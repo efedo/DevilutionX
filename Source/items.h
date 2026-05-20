@@ -195,7 +195,7 @@ struct Item {
 	/*
 	 * @brief Contains Information for current Animation
 	 */
-	AnimationInfo AnimInfo;
+	AnimationInfo animInfo;
 	bool _iDelFlag = false; // set when item is flagged for deletion, deprecated in 1.02
 	SelectionRegion selectionRegion = SelectionRegion::None;
 	bool _iPostDraw = false;

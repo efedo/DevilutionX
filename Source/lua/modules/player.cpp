@@ -96,7 +96,7 @@ void InitPlayerUserType(sol::state_view &lua)
 	LuaSetDocFn(playerType, "restoreFullLife", "()",
 	    "Restore player's HP to maximum",
 	    [](Player &player) {
-		    player._pHitPoints = player._pMaxHP;
+		    player.hitPoints = player.maxHitPoints;
 		    player._pHPBase = player._pMaxHPBase;
 	    });
 	LuaSetDocFn(playerType, "restoreFullMana", "()",

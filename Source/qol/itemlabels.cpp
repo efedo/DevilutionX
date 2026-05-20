@@ -119,7 +119,7 @@ void AddItemToLabelQueue(int id, Point position)
 	nameWidth += MarginX * 2;
 	const int index = ItemCAnimTbl[item._iCurs];
 	if (!labelCenterOffsets[index]) {
-		const auto [xBegin, xEnd] = ClxMeasureSolidHorizontalBounds((*item.AnimInfo.sprites)[item.AnimInfo.currentFrame]);
+		const auto [xBegin, xEnd] = ClxMeasureSolidHorizontalBounds((*item.animInfo.sprites)[item.animInfo.currentFrame]);
 		labelCenterOffsets[index].emplace((xBegin + xEnd) / 2);
 	}
 

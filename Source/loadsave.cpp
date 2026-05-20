@@ -275,9 +275,9 @@ struct LevelConversionData {
 	item.position.y = file.NextLE<int32_t>();
 	item._iAnimFlag = file.NextBool32();
 	file.Skip(4); // Skip pointer _iAnimData
-	item.AnimInfo = {};
-	item.AnimInfo.numberOfFrames = file.NextLENarrow<int32_t, int8_t>();
-	item.AnimInfo.currentFrame = file.NextLENarrow<int32_t, int8_t>(-1);
+	item.animInfo = {};
+	item.animInfo.numberOfFrames = file.NextLENarrow<int32_t, int8_t>();
+	item.animInfo.currentFrame = file.NextLENarrow<int32_t, int8_t>(-1);
 	file.Skip(8); // Skip _iAnimWidth and _iAnimWidth2
 	file.Skip(4); // Unused since 1.02
 	item.selectionRegion = static_cast<SelectionRegion>(file.NextLE<uint8_t>());
@@ -417,15 +417,15 @@ void LoadPlayer(LoadHelper &file, Player &player)
 	player.position.old.x = file.NextLE<int32_t>();
 	player.position.old.y = file.NextLE<int32_t>();
 	file.Skip<int32_t>(4); // Skip offset and velocity
-	player._pdir = static_cast<Direction>(file.NextLE<int32_t>());
+	player.direction = static_cast<Direction>(file.NextLE<int32_t>());
 	file.Skip(4); // Unused
 	player._pgfxnum = file.NextLENarrow<uint32_t, uint8_t>();
 	file.Skip<uint32_t>(); // Skip pointer pData
-	player.AnimInfo = {};
-	player.AnimInfo.ticksPerFrame = file.NextLENarrow<int32_t, int8_t>(1);
-	player.AnimInfo.tickCounterOfCurrentFrame = file.NextLENarrow<int32_t, int8_t>();
-	player.AnimInfo.numberOfFrames = file.NextLENarrow<int32_t, int8_t>();
-	player.AnimInfo.currentFrame = file.NextLENarrow<int32_t, int8_t>(-1);
+	player.animInfo = {};
+	player.animInfo.ticksPerFrame = file.NextLENarrow<int32_t, int8_t>(1);
+	player.animInfo.tickCounterOfCurrentFrame = file.NextLENarrow<int32_t, int8_t>();
+	player.animInfo.numberOfFrames = file.NextLENarrow<int32_t, int8_t>();
+	player.animInfo.currentFrame = file.NextLENarrow<int32_t, int8_t>(-1);
 	file.Skip<uint32_t>(3); // Skip _pAnimWidth, _pAnimWidth2, _peflag
 	player.lightId = file.NextLE<int32_t>();
 	file.Skip<int32_t>(); // _pvid
@@ -502,8 +502,8 @@ void LoadPlayer(LoadHelper &file, Player &player)
 	file.Skip<int32_t>(); // Skip _pBaseToBlk - always a copy of PlayerData.blockBonus
 	player._pHPBase = file.NextLE<int32_t>();
 	player._pMaxHPBase = file.NextLE<int32_t>();
-	player._pHitPoints = file.NextLE<int32_t>();
-	player._pMaxHP = file.NextLE<int32_t>();
+	player.hitPoints = file.NextLE<int32_t>();
+	player.maxHitPoints = file.NextLE<int32_t>();
 	file.Skip<int32_t>(); // Skip _pHPPer - always derived from hp and maxHP.
 	player._pManaBase = file.NextLE<int32_t>();
 	player._pMaxManaBase = file.NextLE<int32_t>();
@@ -792,7 +792,7 @@ void LoadMonsters(LoadHelper &file, ankerl::unordered_dense::set<unsigned> &remo
 			monsterConversionData = &levelConversionData->monsterConversionData[ActiveMonsters[i]];
 		const bool valid = LoadMonster(&file, monster, monsterConversionData);
 		if (!valid) {
-			Monsters[ActiveMonsters[i]] = {};
+			Monsters[ActiveMonsters[i]] = Monster{};
 			removedMonsterIds.insert(ActiveMonsters[i]);
 			for (size_t j = i + 1; j < ActiveMonsterCount; j++) {
 				ActiveMonsters[j - 1] = ActiveMonsters[j];
@@ -1176,8 +1176,8 @@ void SaveItem(SaveHelper &file, const Item &item)
 	file.WriteLE<int32_t>(item.position.y);
 	file.WriteLE<uint32_t>(item._iAnimFlag ? 1 : 0);
 	file.Skip(4); // Skip pointer _iAnimData
-	file.WriteLE<int32_t>(item.AnimInfo.numberOfFrames);
-	file.WriteLE<int32_t>(item.AnimInfo.currentFrame + 1);
+	file.WriteLE<int32_t>(item.animInfo.numberOfFrames);
+	file.WriteLE<int32_t>(item.animInfo.currentFrame + 1);
 	// write _iAnimWidth for vanilla compatibility
 	file.WriteLE<int32_t>(ItemAnimWidth);
 	// write _iAnimWidth2 for vanilla compatibility
@@ -1280,22 +1280,22 @@ void SavePlayer(SaveHelper &file, const Player &player)
 	DisplacementOf<int16_t> offset2 = {};
 	DisplacementOf<int16_t> velocity = {};
 	if (player.isWalking()) {
-		offset = player.position.CalculateWalkingOffset(player._pdir, player.AnimInfo);
-		offset2 = player.position.CalculateWalkingOffsetShifted8(player._pdir, player.AnimInfo);
-		velocity = player.position.GetWalkingVelocityShifted8(player._pdir, player.AnimInfo);
+		offset = player.position.CalculateWalkingOffset(player.direction, player.animInfo);
+		offset2 = player.position.CalculateWalkingOffsetShifted8(player.direction, player.animInfo);
+		velocity = player.position.GetWalkingVelocityShifted8(player.direction, player.animInfo);
 	}
 	file.WriteLE<int32_t>(offset.deltaX);
 	file.WriteLE<int32_t>(offset.deltaY);
 	file.WriteLE<int32_t>(velocity.deltaX);
 	file.WriteLE<int32_t>(velocity.deltaY);
-	file.WriteLE<int32_t>(static_cast<int32_t>(player._pdir));
+	file.WriteLE<int32_t>(static_cast<int32_t>(player.direction));
 	file.Skip(4); // Unused
 	file.WriteLE<uint32_t>(player._pgfxnum);
 	file.Skip(4); // Skip pointer _pAnimData
-	file.WriteLE<int32_t>(std::max(0, player.AnimInfo.ticksPerFrame - 1));
-	file.WriteLE<int32_t>(player.AnimInfo.tickCounterOfCurrentFrame);
-	file.WriteLE<int32_t>(player.AnimInfo.numberOfFrames);
-	file.WriteLE<int32_t>(player.AnimInfo.currentFrame + 1);
+	file.WriteLE<int32_t>(std::max(0, player.animInfo.ticksPerFrame - 1));
+	file.WriteLE<int32_t>(player.animInfo.tickCounterOfCurrentFrame);
+	file.WriteLE<int32_t>(player.animInfo.numberOfFrames);
+	file.WriteLE<int32_t>(player.animInfo.currentFrame + 1);
 	// write _pAnimWidth for vanilla compatibility
 	const int animWidth = player.getSpriteWidth();
 	file.WriteLE<int32_t>(animWidth);
@@ -1359,8 +1359,8 @@ void SavePlayer(SaveHelper &file, const Player &player)
 	file.WriteLE<int32_t>(player.getBaseToBlock()); // set _pBaseToBlk for backwards compatibility
 	file.WriteLE<int32_t>(player._pHPBase);
 	file.WriteLE<int32_t>(player._pMaxHPBase);
-	file.WriteLE<int32_t>(player._pHitPoints);
-	file.WriteLE<int32_t>(player._pMaxHP);
+	file.WriteLE<int32_t>(player.hitPoints);
+	file.WriteLE<int32_t>(player.maxHitPoints);
 	file.Skip<int32_t>(); // Skip _pHPPer
 	file.WriteLE<int32_t>(player._pManaBase);
 	file.WriteLE<int32_t>(player._pMaxManaBase);

@@ -1110,13 +1110,13 @@ TEST_F(NetPackTest, UnPackNetPlayer_invalid_vitality)
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_hitPoints)
 {
-	MyPlayer->_pHitPoints++;
+	MyPlayer->hitPoints++;
 	ASSERT_FALSE(TestNetPackValidation());
 }
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_maxHP)
 {
-	MyPlayer->_pMaxHP++;
+	MyPlayer->maxHitPoints++;
 	ASSERT_FALSE(TestNetPackValidation());
 }
 

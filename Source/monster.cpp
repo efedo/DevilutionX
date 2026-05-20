@@ -1251,7 +1251,7 @@ void MonsterAttackPlayer(Monster &monster, Player &player, int hit, int minDam, 
 		const Point newPosition = player.position.tile + monster.direction;
 		if (PosOkPlayer(player, newPosition)) {
 			player.position.tile = newPosition;
-			FixPlayerLocation(player, player._pdir);
+			FixPlayerLocation(player, player.direction);
 			FixPlrWalkTags(player);
 			player.occupyTile(newPosition, false);
 			SetPlayerOld(player);
@@ -3901,8 +3901,8 @@ void MonsterReducePlayerAttribute(Monster &monster, Player &player)
 	}
 	if (monster.reducePlayerMaxHP > 0) {
 		const int reduceAmount = std::min(player._pMaxHPBase - 64, monster.reducePlayerMaxHP * 64);
-		player._pMaxHP = std::max(64, player._pMaxHP - reduceAmount);
-		player._pHitPoints = std::min(player._pHitPoints, player._pMaxHP);
+		player.maxHitPoints = std::max(64, player.maxHitPoints - reduceAmount);
+		player.hitPoints = std::min(player.hitPoints, player.maxHitPoints);
 		player._pMaxHPBase -= reduceAmount;
 		player._pHPBase = std::min(player._pHPBase, player._pMaxHPBase);
 
@@ -4134,7 +4134,7 @@ void PrepDoEnding()
 		player._pInvincible = true;
 		if (gbIsMultiplayer) {
 			if (player.hasNoLife())
-				player._pHitPoints = 64;
+				player.hitPoints = 64;
 			if (player.hasNoMana())
 				player._pMana = 64;
 		}
@@ -4204,7 +4204,7 @@ void GolumAi(Monster &golem)
 	if (golem.pathCount > 8)
 		golem.pathCount = 5;
 
-	if (RandomWalk(golem, Players[golem.goalVar3]._pdir))
+	if (RandomWalk(golem, Players[golem.goalVar3].direction))
 		return;
 
 	Direction md = Left(golem.direction);
@@ -4607,7 +4607,7 @@ void MissToMonst(Missile &missile, Point position)
 		const Point newPosition = oldPosition + GetDirection(missile.position.start, oldPosition);
 		if (PosOkPlayer(*player, newPosition)) {
 			player->position.tile = newPosition;
-			FixPlayerLocation(*player, player->_pdir);
+			FixPlayerLocation(*player, player->direction);
 			FixPlrWalkTags(*player);
 			player->occupyTile(newPosition, false);
 			SetPlayerOld(*player);

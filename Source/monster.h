@@ -15,8 +15,8 @@
 #include <expected.hpp>
 #include <function_ref.hpp>
 
+#include "engine/actor.hpp"
 #include "engine/actor_position.hpp"
-#include "engine/animationinfo.h"
 #include "engine/clx_sprite.hpp"
 #include "engine/point.hpp"
 #include "engine/sound.h"
@@ -209,14 +209,9 @@ struct CMonster {
 
 extern CMonster LevelMonsterTypes[MaxLvlMTypes];
 
-struct Monster { // note: missing field _mAFNum
+struct Monster : Actor { // note: missing field _mAFNum
 	std::unique_ptr<uint8_t[]> uniqueMonsterTRN;
-	/**
-	 * @brief Contains information for current animation
-	 */
-	AnimationInfo animInfo;
-	int maxHitPoints;
-	int hitPoints;
+	// animInfo, direction, lightId, hitPoints, maxHitPoints are inherited from Actor
 	uint32_t flags;
 	/** Seed used to determine item drops on death */
 	uint32_t rndItemSeed;
@@ -255,8 +250,6 @@ struct Monster { // note: missing field _mAFNum
 	uint8_t levelType;
 	MonsterMode mode;
 	uint8_t pathCount;
-	/** Direction faced by monster (direction enum) */
-	Direction direction;
 	/** The current target of the monster. An index in to either the player or monster array based on the _meflag value. */
 	uint8_t enemy;
 	bool isInvalid;
@@ -287,7 +280,6 @@ struct Monster { // note: missing field _mAFNum
 	uint8_t leader;
 	LeaderRelation leaderRelation;
 	uint8_t packSize;
-	int8_t lightId;
 
 	static constexpr uint8_t NoLeader = -1;
 

@@ -1903,7 +1903,7 @@ void OperateBook(Player &player, Object &book, bool sendmsg)
 		AddMissile(
 		    player.position.tile,
 		    book.position + Displacement { -2, -4 },
-		    player._pdir,
+		    player.direction,
 		    MissileID::Guardian,
 		    TARGET_MONSTERS,
 		    player,
@@ -2394,7 +2394,7 @@ void OperateShrineMagical(const Player &player)
 	AddMissile(
 	    player.position.tile,
 	    player.position.tile,
-	    player._pdir,
+	    player.direction,
 	    MissileID::ManaShield,
 	    TARGET_MONSTERS,
 	    player,
@@ -2548,7 +2548,7 @@ void OperateShrineCryptic(Player &player)
 	AddMissile(
 	    player.position.tile,
 	    player.position.tile,
-	    player._pdir,
+	    player.direction,
 	    MissileID::Nova,
 	    TARGET_MONSTERS,
 	    player,
@@ -2633,7 +2633,7 @@ void OperateShrineDivine(Player &player, Point spawnPosition)
 
 	player._pMana = player._pMaxMana;
 	player._pManaBase = player._pMaxManaBase;
-	player._pHitPoints = player._pMaxHP;
+	player.hitPoints = player.maxHitPoints;
 	player._pHPBase = player._pMaxHPBase;
 
 	RedrawEverything();
@@ -2679,7 +2679,7 @@ void OperateShrineSpooky(const Player &player)
 
 	Player &myPlayer = *MyPlayer;
 
-	myPlayer._pHitPoints = myPlayer._pMaxHP;
+	myPlayer.hitPoints = myPlayer.maxHitPoints;
 	myPlayer._pHPBase = myPlayer._pMaxHPBase;
 	myPlayer._pMana = myPlayer._pMaxMana;
 	myPlayer._pManaBase = myPlayer._pMaxManaBase;
@@ -2828,7 +2828,7 @@ void OperateShrineOily(Player &player, Point spawnPosition)
 	AddMissile(
 	    spawnPosition,
 	    player.position.tile,
-	    player._pdir,
+	    player.direction,
 	    MissileID::FireWall,
 	    TARGET_PLAYERS,
 	    -1,
@@ -2887,7 +2887,7 @@ void OperateShrineSparkling(Player &player, Point spawnPosition)
 	AddMissile(
 	    spawnPosition,
 	    player.position.tile,
-	    player._pdir,
+	    player.direction,
 	    MissileID::FlashBottom,
 	    TARGET_PLAYERS,
 	    -1,
@@ -2912,7 +2912,7 @@ void OperateShrineTown(const Player &player, Point spawnPosition)
 	AddMissile(
 	    spawnPosition,
 	    player.position.tile,
-	    player._pdir,
+	    player.direction,
 	    MissileID::TownPortal,
 	    TARGET_MONSTERS,
 	    player,
@@ -3229,12 +3229,12 @@ bool OperateFountains(Player &player, Object &fountain)
 		if (&player != MyPlayer)
 			return false;
 
-		if (player._pHitPoints < player._pMaxHP) {
+		if (player.hitPoints < player.maxHitPoints) {
 			PlaySfxLoc(SfxID::OperateFountain, fountain.position);
-			player._pHitPoints += 64;
+			player.hitPoints += 64;
 			player._pHPBase += 64;
-			if (player._pHitPoints > player._pMaxHP) {
-				player._pHitPoints = player._pMaxHP;
+			if (player.hitPoints > player.maxHitPoints) {
+				player.hitPoints = player.maxHitPoints;
 				player._pHPBase = player._pMaxHPBase;
 			}
 			applied = true;
@@ -3267,7 +3267,7 @@ bool OperateFountains(Player &player, Object &fountain)
 		AddMissile(
 		    player.position.tile,
 		    player.position.tile,
-		    player._pdir,
+		    player.direction,
 		    MissileID::Infravision,
 		    TARGET_MONSTERS,
 		    player,

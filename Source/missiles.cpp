@@ -420,7 +420,7 @@ bool Plr2PlrMHit(const Player &player, Player &target, int mindam, int maxdam, i
 
 	int dam;
 	if (mtype == MissileID::BoneSpirit) {
-		dam = target._pHitPoints / 3;
+		dam = target.hitPoints / 3;
 	} else {
 		dam = RandomIntBetween(mindam, maxdam);
 		if (missileData.isArrow() && damageType == DamageType::Physical) {
@@ -1148,7 +1148,7 @@ bool PlayerMHit(Player &player, Monster *monster, int dist, int mind, int maxd, 
 
 	int dam;
 	if (mtype == MissileID::BoneSpirit) {
-		dam = player._pHitPoints / 3;
+		dam = player.hitPoints / 3;
 	} else {
 		if (!shift) {
 			// New method fixes a bug which caused the maximum possible damage value to be 63/64ths too low.
@@ -1169,7 +1169,7 @@ bool PlayerMHit(Player &player, Monster *monster, int dist, int mind, int maxd, 
 	}
 
 	if ((resper <= 0 || gbIsHellfire) && blk < blkper) {
-		Direction dir = player._pdir;
+		Direction dir = player.direction;
 		if (monster != nullptr) {
 			dir = GetDirection(player.position.tile, monster->position.tile);
 		}
@@ -2467,7 +2467,7 @@ void AddHealing(Missile &missile, AddMissileParameter & /*parameter*/)
 		hp += hp / 2;
 	}
 
-	player._pHitPoints = std::min(player._pHitPoints + hp, player._pMaxHP);
+	player.hitPoints = std::min(player.hitPoints + hp, player.maxHitPoints);
 	player._pHPBase = std::min(player._pHPBase + hp, player._pMaxHPBase);
 
 	missile._miDelFlag = true;
@@ -2582,7 +2582,7 @@ void AddRage(Missile &missile, AddMissileParameter &parameter)
 {
 	Player &player = Players[missile._misource];
 
-	if (HasAnyOf(player._pSpellFlags, SpellFlag::RageActive | SpellFlag::RageCooldown) || player._pHitPoints <= player.getCharacterLevel() << 6) {
+	if (HasAnyOf(player._pSpellFlags, SpellFlag::RageActive | SpellFlag::RageCooldown) || player.hitPoints <= player.getCharacterLevel() << 6) {
 		missile._miDelFlag = true;
 		parameter.spellFizzled = true;
 		return;
@@ -3283,7 +3283,7 @@ void ProcessNovaCommon(Missile &missile, MissileID projectileType)
 	Direction dir = Direction::South;
 	mienemy_type en = TARGET_PLAYERS;
 	if (!missile.IsTrap()) {
-		dir = Players[id]._pdir;
+		dir = Players[id].direction;
 		en = TARGET_MONSTERS;
 	}
 
@@ -3321,7 +3321,7 @@ void ProcessSpectralArrow(Missile &missile)
 	mienemy_type micaster = TARGET_PLAYERS;
 	if (!missile.IsTrap()) {
 		const Player &player = Players[id];
-		dir = player._pdir;
+		dir = player.direction;
 		micaster = TARGET_MONSTERS;
 
 		switch (player._pILMinDam) {
@@ -3874,7 +3874,7 @@ void ProcessApocalypse(Missile &missile)
 				continue;
 
 			const int id = missile._misource;
-			AddMissile(WorldTilePosition(k, j), WorldTilePosition(k, j), Players[id]._pdir, MissileID::ApocalypseBoom, TARGET_MONSTERS, id, missile._midam, 0);
+			AddMissile(WorldTilePosition(k, j), WorldTilePosition(k, j), Players[id].direction, MissileID::ApocalypseBoom, TARGET_MONSTERS, id, missile._midam, 0);
 			missile.var2 = j;
 			missile.var4 = k + 1;
 			return;
@@ -3887,7 +3887,7 @@ void ProcessApocalypse(Missile &missile)
 void ProcessFlameWaveControl(Missile &missile)
 {
 	const int id = missile._misource;
-	const Direction pdir = Players[id]._pdir;
+	const Direction pdir = Players[id].direction;
 	const Point src = missile.position.tile;
 	const Direction sd = GetDirection(src, { missile.var1, missile.var2 });
 	const Point start = src + sd;
@@ -4109,7 +4109,7 @@ void ProcessElemental(Missile &missile)
 				missile.setDirection(sd);
 				UpdateMissileVelocity(missile, nextMonster->position.tile, 16);
 			} else {
-				const Direction sd = Players[missile._misource]._pdir;
+				const Direction sd = Players[missile._misource].direction;
 				missile.setDirection(sd);
 				UpdateMissileVelocity(missile, missilePosition + sd, 16);
 			}
@@ -4154,7 +4154,7 @@ void ProcessBoneSpirit(Missile &missile)
 				missile.setDirection(GetDirection(c, monster->position.tile));
 				UpdateMissileVelocity(missile, monster->position.tile, 16);
 			} else {
-				const Direction sd = Players[missile._misource]._pdir;
+				const Direction sd = Players[missile._misource].direction;
 				missile.setDirection(sd);
 				UpdateMissileVelocity(missile, c + sd, 16);
 			}

@@ -306,10 +306,10 @@ void AssertPlayer(Player &player)
 	ASSERT_EQ(player._pmode, 0);
 	ASSERT_EQ(Count8(player.walkpath, MaxPathLengthPlayer), MaxPathLengthPlayer);
 	ASSERT_EQ(player._pgfxnum, 36);
-	ASSERT_EQ(player.AnimInfo.ticksPerFrame, 4);
-	ASSERT_EQ(player.AnimInfo.tickCounterOfCurrentFrame, 1);
-	ASSERT_EQ(player.AnimInfo.numberOfFrames, 20);
-	ASSERT_EQ(player.AnimInfo.currentFrame, 0);
+	ASSERT_EQ(player.animInfo.ticksPerFrame, 4);
+	ASSERT_EQ(player.animInfo.tickCounterOfCurrentFrame, 1);
+	ASSERT_EQ(player.animInfo.numberOfFrames, 20);
+	ASSERT_EQ(player.animInfo.currentFrame, 0);
 	ASSERT_EQ(player.queuedSpell.spellId, SpellID::Invalid);
 	ASSERT_EQ(player.queuedSpell.spellType, SpellType::Invalid);
 	ASSERT_EQ(player.queuedSpell.spellFrom, 0);
@@ -324,8 +324,8 @@ void AssertPlayer(Player &player)
 	ASSERT_EQ(player._pBlockFlag, 0);
 	ASSERT_EQ(player._pLightRad, 11);
 	ASSERT_EQ(player._pDamageMod, 101);
-	ASSERT_EQ(player._pHitPoints, 16640);
-	ASSERT_EQ(player._pMaxHP, 16640);
+	ASSERT_EQ(player.hitPoints, 16640);
+	ASSERT_EQ(player.maxHitPoints, 16640);
 	ASSERT_EQ(player._pMana, 14624);
 	ASSERT_EQ(player._pMaxMana, 14624);
 	ASSERT_EQ(player.getNextExperienceThreshold(), 1583495809);

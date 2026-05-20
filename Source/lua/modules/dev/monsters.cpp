@@ -78,7 +78,7 @@ std::string DebugCmdSpawnUniqueMonster(std::string name, std::optional<unsigned>
 		if (!IsTileWalkable(pos))
 			return {};
 
-		Monster *monster = AddMonster(pos, myPlayer._pdir, id, true);
+		Monster *monster = AddMonster(pos, myPlayer.direction, id, true);
 		if (monster == nullptr)
 			return StrCat("Spawned ", spawnedMonster, " monsters. (Unable to spawn more)");
 		PrepareUniqueMonst(*monster, uniqueIndex, 0, 0, UniqueMonstersData[static_cast<size_t>(uniqueIndex)]);
@@ -156,7 +156,7 @@ std::string DebugCmdSpawnMonster(std::string name, std::optional<unsigned> count
 		if (!IsTileWalkable(pos))
 			return false;
 
-		SpawnMonster(pos, myPlayer._pdir, id);
+		SpawnMonster(pos, myPlayer.direction, id);
 		spawnedMonster += 1;
 
 		return spawnedMonster == monstersToSpawn;

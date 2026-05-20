@@ -1929,7 +1929,7 @@ size_t OnResurrect(const TCmdParam1 &message, Player &caster)
 
 	SpawnResurrectBeam(caster, target);
 
-	if (&target == MyPlayer && target._pHitPoints <= 0) {
+	if (&target == MyPlayer && target.hitPoints <= 0) {
 		NetSendCmd(true, CMD_PLRALIVE);
 	}
 
@@ -2337,7 +2337,7 @@ size_t OnPlayerJoinLevel(const TCmdLocParam2 &message, Player &player)
 				player._pgfxnum &= ~0xFU;
 				player._pmode = PM_DEATH;
 				NewPlrAnim(player, player_graphic::Death, Direction::South);
-				player.AnimInfo.currentFrame = static_cast<int8_t>(player.AnimInfo.numberOfFrames - 2);
+				player.animInfo.currentFrame = static_cast<int8_t>(player.animInfo.numberOfFrames - 2);
 				dFlags[player.position.tile.x][player.position.tile.y] |= DungeonFlag::DeadPlayer;
 			}
 

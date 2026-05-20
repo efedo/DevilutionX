@@ -114,7 +114,7 @@ int GetRotaryDistance(Point destination)
 	if (myPlayer.position.future == destination)
 		return -1;
 
-	const int d1 = static_cast<int>(myPlayer._pdir);
+	const int d1 = static_cast<int>(myPlayer.direction);
 	const int d2 = static_cast<int>(GetDirection(myPlayer.position.future, destination));
 
 	const int d = std::abs(d1 - d2);
@@ -518,7 +518,7 @@ void Interact()
 	const Player &myPlayer = *MyPlayer;
 
 	if (leveltype != DTYPE_TOWN && IsStandingGround()) {
-		Direction pdir = myPlayer._pdir;
+		Direction pdir = myPlayer.direction;
 		const AxisDirection moveDir = GetMoveDirection();
 		const bool motion = moveDir.x != AxisDirectionX_NONE || moveDir.y != AxisDirectionY_NONE;
 		if (motion) {
@@ -1750,7 +1750,7 @@ void WalkInDir(Player &player, AxisDirection dir)
 	const auto delta = player.position.future + pdir;
 
 	if (!player.isWalking() && player.CanChangeAction())
-		player._pdir = pdir;
+		player.direction = pdir;
 
 	if (IsStandingGround()) {
 		if (player._pmode == PM_STAND)
@@ -2383,7 +2383,7 @@ void UpdateSpellTarget(SpellID spell)
 
 	const int range = spell == SpellID::Teleport ? 4 : 1;
 
-	cursPosition = myPlayer.position.future + Displacement(myPlayer._pdir) * range;
+	cursPosition = myPlayer.position.future + Displacement(myPlayer.direction) * range;
 }
 
 /**
@@ -2410,7 +2410,7 @@ bool TryDropItem()
 		}
 	}
 
-	std::optional<Point> itemTile = FindAdjacentPositionForItem(myPlayer.position.future, myPlayer._pdir);
+	std::optional<Point> itemTile = FindAdjacentPositionForItem(myPlayer.position.future, myPlayer.direction);
 	if (!itemTile) {
 		myPlayer.Say(HeroSpeech::WhereWouldIPutThis);
 		return false;
