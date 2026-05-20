@@ -13,8 +13,8 @@
 #include <string_view>
 
 #include "diablo.h"
+#include "engine/actor.hpp"
 #include "engine/actor_position.hpp"
-#include "engine/animationinfo.h"
 #include "engine/clx_sprite.hpp"
 #include "engine/displacement.hpp"
 #include "engine/path.h"
@@ -207,7 +207,7 @@ struct SpellCastInfo {
 	int spellLevel;
 };
 
-struct Player {
+struct Player : Actor {
 	Player() = default;
 	Player(Player &&) noexcept = default;
 	Player &operator=(Player &&) noexcept = default;
@@ -217,8 +217,6 @@ struct Player {
 	Item InvList[InventoryGridCells];
 	Item SpdList[MaxBeltItems];
 	Item HoldItem;
-
-	int lightId;
 
 	int _pNumInv;
 	int _pStrength;
@@ -233,8 +231,6 @@ struct Player {
 	int _pDamageMod;
 	int _pHPBase;
 	int _pMaxHPBase;
-	int _pHitPoints;
-	int _pMaxHP;
 	int _pHPPer;
 	int _pManaBase;
 	int _pMaxManaBase;
@@ -266,11 +262,7 @@ struct Player {
 	int _pGold;
 
 	/**
-	 * @brief Contains Information for current Animation
-	 */
-	AnimationInfo AnimInfo;
-	/**
-	 * @brief Contains a optional preview ClxSprite that is displayed until the current command is handled by the game logic
+	 * @brief Contains a optional preview ClxSprite
 	 */
 	OptionalClxSprite previewCelSprite;
 	/**
@@ -299,7 +291,6 @@ struct Player {
 	uint8_t plrlevel;
 	bool plrIsOnSetLevel;
 	ActorPosition position;
-	Direction _pdir; // Direction faced by player (direction enum)
 	HeroClass _pClass;
 
 private:
@@ -680,13 +671,13 @@ public:
 	 */
 	int UpdateHitPointPercentage()
 	{
-		if (_pMaxHP <= 0) { // divide by zero guard
+		if (maxHitPoints <= 0) { // divide by zero guard
 			_pHPPer = 0;
 		} else {
 			// Maximum achievable HP is approximately 1200. Diablo uses fixed point integers where the last 6 bits are
 			// fractional values. This means that we will never overflow HP values normally by doing this multiplication
 			// as the max value is representable in 17 bits and the multiplication result will be at most 23 bits
-			_pHPPer = std::clamp(_pHitPoints * 81 / _pMaxHP, 0, 81); // hp should never be greater than maxHP but just in case
+			_pHPPer = std::clamp(hitPoints * 81 / maxHitPoints, 0, 81); // hp should never be greater than maxHP but just in case
 		}
 
 		return _pHPPer;
@@ -717,7 +708,7 @@ public:
 	 */
 	void RestoreFullLife()
 	{
-		_pHitPoints = _pMaxHP;
+		hitPoints = maxHitPoints;
 		_pHPBase = _pMaxHPBase;
 	}
 
@@ -760,13 +751,13 @@ public:
 	{
 		if (_pmode == PM_STAND)
 			return true;
-		if (_pmode == PM_ATTACK && AnimInfo.currentFrame >= _pAFNum)
+		if (_pmode == PM_ATTACK && animInfo.currentFrame >= _pAFNum)
 			return true;
-		if (_pmode == PM_RATTACK && AnimInfo.currentFrame >= _pAFNum)
+		if (_pmode == PM_RATTACK && animInfo.currentFrame >= _pAFNum)
 			return true;
-		if (_pmode == PM_SPELL && AnimInfo.currentFrame >= _pSFNum)
+		if (_pmode == PM_SPELL && animInfo.currentFrame >= _pSFNum)
 			return true;
-		if (isWalking() && AnimInfo.isLastFrame())
+		if (isWalking() && animInfo.isLastFrame())
 			return true;
 		return false;
 	}
@@ -779,13 +770,13 @@ public:
 
 	[[nodiscard]] ClxSprite currentSprite() const
 	{
-		return previewCelSprite ? *previewCelSprite : AnimInfo.currentSprite();
+		return previewCelSprite ? *previewCelSprite : animInfo.currentSprite();
 	}
 	[[nodiscard]] Displacement getRenderingOffset(const ClxSprite sprite) const
 	{
 		Displacement offset = { -CalculateSpriteTileCenterX(sprite.width()), 0 };
 		if (isWalking())
-			offset += GetOffsetForWalking(AnimInfo, _pdir);
+			offset += GetOffsetForWalking(animInfo, direction);
 		return offset;
 	}
 
@@ -903,7 +894,7 @@ public:
 
 	bool hasNoLife() const
 	{
-		return leveltype == DTYPE_TOWN ? false : _pHitPoints >> 6 <= 0;
+		return leveltype == DTYPE_TOWN ? false : hitPoints >> 6 <= 0;
 	}
 
 	bool hasNoMana() const

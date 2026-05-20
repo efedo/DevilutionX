@@ -80,7 +80,7 @@ void UpdatePlayerLightOffset(Player &player)
 	if (player.lightId == NO_LIGHT)
 		return;
 
-	const WorldTileDisplacement offset = player.position.CalculateWalkingOffset(player._pdir, player.AnimInfo);
+	const WorldTileDisplacement offset = player.position.CalculateWalkingOffset(player.direction, player.animInfo);
 	ChangeLightOffset(player.lightId, offset.screenToLight());
 }
 
@@ -130,7 +130,7 @@ void HandleWalkMode(Player &player, Direction dir)
 		return;
 	}
 
-	player._pdir = dir;
+	player.direction = dir;
 
 	// The player's tile position after finishing this movement action
 	player.position.future = player.position.tile + dirModeParams.dir;
@@ -405,13 +405,13 @@ bool DoWalk(Player &player)
 {
 	// Play walking sound effect on certain animation frames
 	if (*GetOptions().Audio.walkingSound && (leveltype != DTYPE_TOWN || sgGameInitInfo.bRunInTown == 0)) {
-		if (player.AnimInfo.currentFrame == 0
-		    || player.AnimInfo.currentFrame == 4) {
+		if (player.animInfo.currentFrame == 0
+		    || player.animInfo.currentFrame == 4) {
 			PlaySfxLoc(SfxID::Walk, player.position.tile);
 		}
 	}
 
-	if (!player.AnimInfo.isLastFrame()) {
+	if (!player.animInfo.isLastFrame()) {
 		// We didn't reach new tile so update player's "sub-tile" position
 		UpdatePlayerLightOffset(player);
 		return false;
@@ -561,7 +561,7 @@ bool PlrHitMonst(Player &player, Monster &monster, bool adjacentDamage = false)
 	if (gbIsHellfire && HasAllOf(player._pIFlags, ItemSpecialEffect::FireDamage | ItemSpecialEffect::LightningDamage)) {
 		// Fixed off by 1 error from Hellfire
 		const int midam = RandomIntBetween(player._pIFMinDam, player._pIFMaxDam);
-		AddMissile(player.position.tile, player.position.temp, player._pdir, MissileID::SpectralArrow, TARGET_MONSTERS, player, midam, 0);
+		AddMissile(player.position.tile, player.position.temp, player.direction, MissileID::SpectralArrow, TARGET_MONSTERS, player, midam, 0);
 	}
 	const int mind = player._pIMinDam;
 	const int maxd = player._pIMaxDam;
@@ -646,9 +646,9 @@ bool PlrHitMonst(Player &player, Monster &monster, bool adjacentDamage = false)
 	int skdam = 0;
 	if (HasAnyOf(player._pIFlags, ItemSpecialEffect::RandomStealLife)) {
 		skdam = GenerateRnd(dam / 8);
-		player._pHitPoints += skdam;
-		if (player._pHitPoints > player._pMaxHP) {
-			player._pHitPoints = player._pMaxHP;
+		player.hitPoints += skdam;
+		if (player.hitPoints > player.maxHitPoints) {
+			player.hitPoints = player.maxHitPoints;
 		}
 		player._pHPBase += skdam;
 		if (player._pHPBase > player._pMaxHPBase) {
@@ -680,9 +680,9 @@ bool PlrHitMonst(Player &player, Monster &monster, bool adjacentDamage = false)
 		if (HasAnyOf(player._pIFlags, ItemSpecialEffect::StealLife5)) {
 			skdam = 5 * dam / 100;
 		}
-		player._pHitPoints += skdam;
-		if (player._pHitPoints > player._pMaxHP) {
-			player._pHitPoints = player._pMaxHP;
+		player.hitPoints += skdam;
+		if (player.hitPoints > player.maxHitPoints) {
+			player.hitPoints = player.maxHitPoints;
 		}
 		player._pHPBase += skdam;
 		if (player._pHPBase > player._pMaxHPBase) {
@@ -748,9 +748,9 @@ bool PlrHitPlr(Player &attacker, Player &target)
 	const int skdam = dam << 6;
 	if (HasAnyOf(attacker._pIFlags, ItemSpecialEffect::RandomStealLife)) {
 		const int tac = GenerateRnd(skdam / 8);
-		attacker._pHitPoints += tac;
-		if (attacker._pHitPoints > attacker._pMaxHP) {
-			attacker._pHitPoints = attacker._pMaxHP;
+		attacker.hitPoints += tac;
+		if (attacker.hitPoints > attacker.maxHitPoints) {
+			attacker.hitPoints = attacker.maxHitPoints;
 		}
 		attacker._pHPBase += tac;
 		if (attacker._pHPBase > attacker._pMaxHPBase) {
@@ -778,14 +778,14 @@ bool PlrHitObj(const Player &player, Object &targetObject)
 
 bool DoAttack(Player &player)
 {
-	if (player.AnimInfo.currentFrame == player._pAFNum - 2) {
+	if (player.animInfo.currentFrame == player._pAFNum - 2) {
 		PlaySfxLoc(SfxID::Swing, player.position.tile);
 	}
 
 	bool didhit = false;
 
-	if (player.AnimInfo.currentFrame == player._pAFNum - 1) {
-		Point position = player.position.tile + player._pdir;
+	if (player.animInfo.currentFrame == player._pAFNum - 1) {
+		Point position = player.position.tile + player.direction;
 		Monster *monster = FindMonsterAtPosition(position);
 
 		if (monster != nullptr) {
@@ -816,7 +816,7 @@ bool DoAttack(Player &player)
 		}
 		if (player.CanCleave()) {
 			// playing as a class/weapon with cleave
-			position = player.position.tile + Right(player._pdir);
+			position = player.position.tile + Right(player.direction);
 			monster = FindMonsterAtPosition(position);
 			if (monster != nullptr) {
 				if (!CanTalkToMonst(*monster) && monster->position.old == position) {
@@ -824,7 +824,7 @@ bool DoAttack(Player &player)
 						didhit = true;
 				}
 			}
-			position = player.position.tile + Left(player._pdir);
+			position = player.position.tile + Left(player.direction);
 			monster = FindMonsterAtPosition(position);
 			if (monster != nullptr) {
 				if (!CanTalkToMonst(*monster) && monster->position.old == position) {
@@ -835,14 +835,14 @@ bool DoAttack(Player &player)
 		}
 
 		if (didhit && DamageWeapon(player, 30)) {
-			StartStand(player, player._pdir);
+			StartStand(player, player.direction);
 			ClearStateVariables(player);
 			return true;
 		}
 	}
 
-	if (player.AnimInfo.isLastFrame()) {
-		StartStand(player, player._pdir);
+	if (player.animInfo.isLastFrame()) {
+		StartStand(player, player.direction);
 		ClearStateVariables(player);
 		return true;
 	}
@@ -853,11 +853,11 @@ bool DoAttack(Player &player)
 bool DoRangeAttack(Player &player)
 {
 	int arrows = 0;
-	if (player.AnimInfo.currentFrame == player._pAFNum - 1) {
+	if (player.animInfo.currentFrame == player._pAFNum - 1) {
 		arrows = 1;
 	}
 
-	if (HasAnyOf(player._pIFlags, ItemSpecialEffect::MultipleArrows) && player.AnimInfo.currentFrame == player._pAFNum + 1) {
+	if (HasAnyOf(player._pIFlags, ItemSpecialEffect::MultipleArrows) && player.animInfo.currentFrame == player._pAFNum + 1) {
 		arrows = 2;
 	}
 
@@ -891,7 +891,7 @@ bool DoRangeAttack(Player &player)
 		AddMissile(
 		    player.position.tile,
 		    player.position.temp + Displacement { xoff, yoff },
-		    player._pdir,
+		    player.direction,
 		    mistype,
 		    TARGET_MONSTERS,
 		    player,
@@ -903,14 +903,14 @@ bool DoRangeAttack(Player &player)
 		}
 
 		if (DamageWeapon(player, 40)) {
-			StartStand(player, player._pdir);
+			StartStand(player, player.direction);
 			ClearStateVariables(player);
 			return true;
 		}
 	}
 
-	if (player.AnimInfo.isLastFrame()) {
-		StartStand(player, player._pdir);
+	if (player.animInfo.isLastFrame()) {
+		StartStand(player, player.direction);
 		ClearStateVariables(player);
 		return true;
 	}
@@ -948,8 +948,8 @@ void DamageParryItem(Player &player)
 
 bool DoBlock(Player &player)
 {
-	if (player.AnimInfo.isLastFrame()) {
-		StartStand(player, player._pdir);
+	if (player.animInfo.isLastFrame()) {
+		StartStand(player, player.direction);
 		ClearStateVariables(player);
 
 		if (FlipCoin(10)) {
@@ -1004,7 +1004,7 @@ void DamageArmor(Player &player)
 
 bool DoSpell(Player &player)
 {
-	if (player.AnimInfo.currentFrame == player._pSFNum) {
+	if (player.animInfo.currentFrame == player._pSFNum) {
 		CastSpell(
 		    player,
 		    player.executedSpell.spellId,
@@ -1017,8 +1017,8 @@ bool DoSpell(Player &player)
 		}
 	}
 
-	if (player.AnimInfo.isLastFrame()) {
-		StartStand(player, player._pdir);
+	if (player.animInfo.isLastFrame()) {
+		StartStand(player, player.direction);
 		ClearStateVariables(player);
 		return true;
 	}
@@ -1028,8 +1028,8 @@ bool DoSpell(Player &player)
 
 bool DoGotHit(Player &player)
 {
-	if (player.AnimInfo.isLastFrame()) {
-		StartStand(player, player._pdir);
+	if (player.animInfo.isLastFrame()) {
+		StartStand(player, player.direction);
 		ClearStateVariables(player);
 		if (!FlipCoin(4)) {
 			DamageArmor(player);
@@ -1043,11 +1043,11 @@ bool DoGotHit(Player &player)
 
 bool DoDeath(Player &player)
 {
-	if (player.AnimInfo.isLastFrame()) {
-		if (player.AnimInfo.tickCounterOfCurrentFrame == 0) {
-			player.AnimInfo.ticksPerFrame = 100;
+	if (player.animInfo.isLastFrame()) {
+		if (player.animInfo.tickCounterOfCurrentFrame == 0) {
+			player.animInfo.ticksPerFrame = 100;
 			dFlags[player.position.tile.x][player.position.tile.y] |= DungeonFlag::DeadPlayer;
-		} else if (&player == MyPlayer && player.AnimInfo.tickCounterOfCurrentFrame == 30) {
+		} else if (&player == MyPlayer && player.animInfo.tickCounterOfCurrentFrame == 30) {
 			MyPlayerIsDead = true;
 		}
 	}
@@ -1198,7 +1198,7 @@ void CheckNewPath(Player &player, bool pmWillBeCalled)
 			player.walkpath[MaxPathLengthPlayer - 1] = WALK_NONE;
 
 			if (player._pmode == PM_STAND) {
-				StartStand(player, player._pdir);
+				StartStand(player, player.direction);
 				player.destAction = ACTION_NONE;
 			}
 		}
@@ -1322,13 +1322,13 @@ void CheckNewPath(Player &player, bool pmWillBeCalled)
 			break;
 		}
 
-		FixPlayerLocation(player, player._pdir);
+		FixPlayerLocation(player, player.direction);
 		player.destAction = ACTION_NONE;
 
 		return;
 	}
 
-	if (player._pmode == PM_ATTACK && player.AnimInfo.currentFrame >= player._pAFNum) {
+	if (player._pmode == PM_ATTACK && player.animInfo.currentFrame >= player._pAFNum) {
 		if (player.destAction == ACTION_ATTACK) {
 			d = GetDirection(player.position.future, { player.destParam1, player.destParam2 });
 			StartAttack(player, d, pmWillBeCalled);
@@ -1359,7 +1359,7 @@ void CheckNewPath(Player &player, bool pmWillBeCalled)
 		}
 	}
 
-	if (player._pmode == PM_RATTACK && player.AnimInfo.currentFrame >= player._pAFNum) {
+	if (player._pmode == PM_RATTACK && player.animInfo.currentFrame >= player._pAFNum) {
 		if (player.destAction == ACTION_RATTACK) {
 			d = GetDirection(player.position.tile, { player.destParam1, player.destParam2 });
 			StartRangeAttack(player, d, player.destParam1, player.destParam2, pmWillBeCalled);
@@ -1375,7 +1375,7 @@ void CheckNewPath(Player &player, bool pmWillBeCalled)
 		}
 	}
 
-	if (player._pmode == PM_SPELL && player.AnimInfo.currentFrame >= player._pSFNum) {
+	if (player._pmode == PM_SPELL && player.animInfo.currentFrame >= player._pSFNum) {
 		if (player.destAction == ACTION_SPELL) {
 			d = GetDirection(player.position.tile, { player.destParam1, player.destParam2 });
 			StartSpell(player, d, player.destParam1, player.destParam2);
@@ -1741,13 +1741,13 @@ int Player::GetManaShieldDamageReduction()
 
 void Player::RestorePartialLife()
 {
-	const int wholeHitpoints = _pMaxHP >> 6;
+	const int wholeHitpoints = maxHitPoints >> 6;
 	int l = ((wholeHitpoints / 8) + GenerateRnd(wholeHitpoints / 4)) << 6;
 	if (IsAnyOf(_pClass, HeroClass::Warrior, HeroClass::Barbarian))
 		l *= 2;
 	if (IsAnyOf(_pClass, HeroClass::Rogue, HeroClass::Monk, HeroClass::Bard))
 		l += l / 2;
-	_pHitPoints = std::min(_pHitPoints + l, _pMaxHP);
+	hitPoints = std::min(hitPoints + l, maxHitPoints);
 	_pHPBase = std::min(_pHPBase + l, _pMaxHPBase);
 }
 
@@ -1807,7 +1807,7 @@ player_graphic Player::getGraphic() const
 uint16_t Player::getSpriteWidth() const
 {
 	if (!HeadlessMode)
-		return (*AnimInfo.sprites)[0].width();
+		return (*animInfo.sprites)[0].width();
 	const player_graphic graphic = getGraphic();
 	const HeroClass cls = GetPlayerSpriteClass(_pClass);
 	const PlayerWeaponGraphic weaponGraphic = GetPlayerWeaponGraphic(graphic, static_cast<PlayerWeaponGraphic>(_pgfxnum & 0xF));
@@ -2198,7 +2198,7 @@ void InitPlayerGFX(Player &player)
 
 void ResetPlayerGFX(Player &player)
 {
-	player.AnimInfo.sprites = std::nullopt;
+	player.animInfo.sprites = std::nullopt;
 
 	if (!gbRunGame) {
 		player.PartyInfoSprites[0] = std::nullopt;
@@ -2226,7 +2226,7 @@ void NewPlrAnim(Player &player, player_graphic graphic, Direction dir, Animation
 	int8_t numberOfFrames;
 	int8_t ticksPerFrame;
 	player.getAnimationFramesAndTicksPerFrame(graphic, numberOfFrames, ticksPerFrame);
-	player.AnimInfo.setNewAnimation(sprites, numberOfFrames, ticksPerFrame, flags, numSkippedFrames, distributeFramesBeforeFrame, static_cast<uint8_t>(previewShownGameTickFragments));
+	player.animInfo.setNewAnimation(sprites, numberOfFrames, ticksPerFrame, flags, numSkippedFrames, distributeFramesBeforeFrame, static_cast<uint8_t>(previewShownGameTickFragments));
 }
 
 void SetPlrAnims(Player &player)
@@ -2321,10 +2321,10 @@ void CreatePlayer(Player &player, HeroClass c)
 	player._pBaseVit = attr.baseVit;
 	player._pVitality = player._pBaseVit;
 
-	player._pHitPoints = player.calculateBaseLife();
-	player._pMaxHP = player._pHitPoints;
-	player._pHPBase = player._pHitPoints;
-	player._pMaxHPBase = player._pHitPoints;
+	player.hitPoints = player.calculateBaseLife();
+	player.maxHitPoints = player.hitPoints;
+	player._pHPBase = player.hitPoints;
+	player._pMaxHPBase = player.hitPoints;
 
 	player._pMana = player.calculateBaseMana();
 	player._pMaxMana = player._pMana;
@@ -2392,8 +2392,8 @@ void NextPlrLevel(Player &player)
 	}
 	const int hp = player.getClassAttributes().lvlLife;
 
-	player._pMaxHP += hp;
-	player._pHitPoints = player._pMaxHP;
+	player.maxHitPoints += hp;
+	player.hitPoints = player.maxHitPoints;
 	player._pMaxHPBase += hp;
 	player._pHPBase = player._pMaxHPBase;
 
@@ -2503,16 +2503,16 @@ void InitPlayer(Player &player, bool firstTime)
 		if (!player.hasNoLife()) {
 			player._pmode = PM_STAND;
 			NewPlrAnim(player, player_graphic::Stand, Direction::South);
-			player.AnimInfo.currentFrame = GenerateRnd(player._pNFrames - 1);
-			player.AnimInfo.tickCounterOfCurrentFrame = GenerateRnd(3);
+			player.animInfo.currentFrame = GenerateRnd(player._pNFrames - 1);
+			player.animInfo.tickCounterOfCurrentFrame = GenerateRnd(3);
 		} else {
 			player._pgfxnum &= ~0xFU;
 			player._pmode = PM_DEATH;
 			NewPlrAnim(player, player_graphic::Death, Direction::South);
-			player.AnimInfo.currentFrame = player.AnimInfo.numberOfFrames - 2;
+			player.animInfo.currentFrame = player.animInfo.numberOfFrames - 2;
 		}
 
-		player._pdir = Direction::South;
+		player.direction = Direction::South;
 
 		if (&player == MyPlayer && (!firstTime || leveltype != DTYPE_TOWN)) {
 			player.position.tile = ViewPosition;
@@ -2577,7 +2577,7 @@ void SetPlayerOld(Player &player)
 void FixPlayerLocation(Player &player, Direction bDir)
 {
 	player.position.future = player.position.tile;
-	player._pdir = bDir;
+	player.direction = bDir;
 	if (&player == MyPlayer) {
 		ViewPosition = player.position.tile;
 	}
@@ -2652,7 +2652,7 @@ void StartPlrHit(Player &player, int dam, bool forcehit)
 		return;
 	}
 
-	const Direction pd = player._pdir;
+	const Direction pd = player.direction;
 
 	int8_t skippedAnimationFrames = 0;
 	if (HasAnyOf(player._pIFlags, ItemSpecialEffect::FastestHitRecovery)) {
@@ -2708,7 +2708,7 @@ StartPlayerKill(Player &player, DeathReason deathReason)
 		SetPlrAnims(player);
 	}
 
-	NewPlrAnim(player, player_graphic::Death, player._pdir);
+	NewPlrAnim(player, player_graphic::Death, player.direction);
 
 	player._pBlockFlag = false;
 	player._pmode = PM_DEATH;
@@ -2725,7 +2725,7 @@ StartPlayerKill(Player &player, DeathReason deathReason)
 	}
 
 	if (player.isOnActiveLevel()) {
-		FixPlayerLocation(player, player._pdir);
+		FixPlayerLocation(player, player.direction);
 		FixPlrWalkTags(player);
 		dFlags[player.position.tile.x][player.position.tile.y] |= DungeonFlag::DeadPlayer;
 		SetPlayerOld(player);
@@ -2773,7 +2773,7 @@ StartPlayerKill(Player &player, DeathReason deathReason)
 				}
 			}
 			if (dropItems) {
-				Direction pdd = player._pdir;
+				Direction pdd = player.direction;
 				for (Item &item : player.InvBody) {
 					pdd = Left(pdd);
 					DeadItem(player, item.pop(), Displacement(pdd));
@@ -2813,7 +2813,7 @@ void StripTopGold(Player &player)
 		return;
 	if (AutoPlaceItemInBelt(player, player.HoldItem))
 		return;
-	const std::optional<Point> itemTile = FindAdjacentPositionForItem(player.position.tile, player._pdir);
+	const std::optional<Point> itemTile = FindAdjacentPositionForItem(player.position.tile, player.direction);
 	if (itemTile)
 		return;
 	DeadItem(player, std::move(player.HoldItem), { 0, 0 });
@@ -2853,14 +2853,14 @@ void ApplyPlrDamage(DamageType damageType, Player &player, int dam, int minHP /*
 		return;
 
 	RedrawComponent(PanelDrawComponent::Health);
-	player._pHitPoints -= totalDamage;
+	player.hitPoints -= totalDamage;
 	player._pHPBase -= totalDamage;
-	if (player._pHitPoints > player._pMaxHP) {
-		player._pHitPoints = player._pMaxHP;
+	if (player.hitPoints > player.maxHitPoints) {
+		player.hitPoints = player.maxHitPoints;
 		player._pHPBase = player._pMaxHPBase;
 	}
 	const int minHitPoints = minHP << 6;
-	if (player._pHitPoints < minHitPoints) {
+	if (player.hitPoints < minHitPoints) {
 		SetPlayerHitPoints(player, minHitPoints);
 	}
 	if (player.hasNoLife()) {
@@ -3065,8 +3065,8 @@ void ProcessPlayers()
 			} while (tplayer);
 
 			player.previewCelSprite = std::nullopt;
-			if (player._pmode != PM_DEATH || player.AnimInfo.tickCounterOfCurrentFrame != 40)
-				player.AnimInfo.processAnimation();
+			if (player._pmode != PM_DEATH || player.animInfo.tickCounterOfCurrentFrame != 40)
+				player.animInfo.processAnimation();
 		}
 	}
 }
@@ -3231,7 +3231,7 @@ void SyncPlrAnim(Player &player)
 {
 	const player_graphic graphic = player.getGraphic();
 	if (!HeadlessMode)
-		player.AnimInfo.sprites = player.AnimationData[static_cast<size_t>(graphic)].spritesForDirection(player._pdir);
+		player.animInfo.sprites = player.AnimationData[static_cast<size_t>(graphic)].spritesForDirection(player.direction);
 }
 
 void SyncInitPlrPos(Player &player)
@@ -3364,8 +3364,8 @@ void ModifyPlrVit(Player &player, int l)
 
 	player._pHPBase += ms;
 	player._pMaxHPBase += ms;
-	player._pHitPoints += ms;
-	player._pMaxHP += ms;
+	player.hitPoints += ms;
+	player.maxHitPoints += ms;
 
 	CalcPlrInv(player, true);
 
@@ -3376,8 +3376,8 @@ void ModifyPlrVit(Player &player, int l)
 
 void SetPlayerHitPoints(Player &player, int val)
 {
-	player._pHitPoints = val;
-	player._pHPBase = val + player._pMaxHPBase - player._pMaxHP;
+	player.hitPoints = val;
+	player._pHPBase = val + player._pMaxHPBase - player.maxHitPoints;
 
 	if (&player == MyPlayer) {
 		RedrawComponent(PanelDrawComponent::Health);

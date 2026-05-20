@@ -368,7 +368,7 @@ bool TrySelectPixelBased(Point tile)
 		if (itemId != 0) {
 			itemId = itemId - 1;
 			const Item &item = Items[itemId];
-			const ClxSprite sprite = item.AnimInfo.currentSprite();
+			const ClxSprite sprite = item.animInfo.currentSprite();
 			const Displacement renderingOffset = item.getRenderingOffset(sprite);
 			if (checkSprite(adjacentTile, sprite, renderingOffset)) {
 				cursPosition = adjacentTile;
@@ -704,13 +704,13 @@ void AlterMousePositionViaPlayer(Point &screenPosition, const Player &myPlayer)
 
 	// Adjust for player walking
 	if (myPlayer.isWalking()) {
-		const Displacement offset = GetOffsetForWalking(myPlayer.AnimInfo, myPlayer._pdir, true);
+		const Displacement offset = GetOffsetForWalking(myPlayer.animInfo, myPlayer.direction, true);
 		screenPosition.x -= offset.deltaX;
 		screenPosition.y -= offset.deltaY;
 
 		// Predict the next frame when walking to avoid input jitter
-		const DisplacementOf<int16_t> offset2 = myPlayer.position.CalculateWalkingOffsetShifted8(myPlayer._pdir, myPlayer.AnimInfo);
-		const DisplacementOf<int16_t> velocity = myPlayer.position.GetWalkingVelocityShifted8(myPlayer._pdir, myPlayer.AnimInfo);
+		const DisplacementOf<int16_t> offset2 = myPlayer.position.CalculateWalkingOffsetShifted8(myPlayer.direction, myPlayer.animInfo);
+		const DisplacementOf<int16_t> velocity = myPlayer.position.GetWalkingVelocityShifted8(myPlayer.direction, myPlayer.animInfo);
 		int fx = offset2.deltaX / 256;
 		int fy = offset2.deltaY / 256;
 		fx -= (offset2.deltaX + velocity.deltaX) / 256;

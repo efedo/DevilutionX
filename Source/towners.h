@@ -14,8 +14,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "engine/actor.hpp"
 #include "engine/clx_sprite.hpp"
-#include "items.h"
 #include "levels/dun_tile.hpp"
 #include "player.h"
 #include "quests.h"
@@ -45,7 +45,7 @@ enum _talker_id : uint8_t {
 extern DVL_API_FOR_TEST std::unordered_map<_talker_id, std::string> TownerLongNames; // Maps towner type enum to display name
 extern const std::unordered_map<_talker_id, const char *> TownerShortNames;          // Maps towner type enum to Lua/mod short name
 
-struct Towner {
+struct Towner : Actor {
 	OptionalOwnedClxSpriteList ownedAnim;
 	OptionalClxSpriteList anim;
 	/** Specifies the animation frame sequence. */

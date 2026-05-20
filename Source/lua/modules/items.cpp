@@ -28,7 +28,7 @@ void InitItemUserType(sol::state_view &lua)
 	LuaSetDocProperty(itemType, "animFlag", "boolean", "Animation flag", &Item::_iAnimFlag);
 	LuaSetDocProperty(itemType, "position", "Point", "Item world position", &Item::position);
 	// TODO: Add AnimationInfo usertype
-	// LuaSetDocProperty(itemType, "animInfo", "AnimationInfo", "Animation information", &Item::AnimInfo);
+	// LuaSetDocProperty(itemType, "animInfo", "AnimationInfo", "Animation information", &Item::animInfo);
 	LuaSetDocProperty(itemType, "delFlag", "boolean", "Deletion flag", &Item::_iDelFlag);
 	LuaSetDocProperty(itemType, "selectionRegion", "number", "Selection region", &Item::selectionRegion);
 	LuaSetDocProperty(itemType, "postDraw", "boolean", "Post-draw flag", &Item::_iPostDraw);

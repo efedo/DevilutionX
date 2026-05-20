@@ -210,7 +210,7 @@ SpellCheckResult CheckSpell(const Player &player, SpellID sn, SpellType st, bool
 
 void CastSpell(Player &player, SpellID spl, WorldTilePosition src, WorldTilePosition dst, int spllvl)
 {
-	Direction dir = player._pdir;
+	Direction dir = player.direction;
 	if (IsWallSpell(spl)) {
 		dir = player.tempDirection;
 	}
@@ -265,7 +265,7 @@ void ApplyResurrect(Player &target)
 	}
 	SetPlayerHitPoints(target, hp);
 
-	target._pHPBase = target._pHitPoints + (target._pMaxHPBase - target._pMaxHP); // CODEFIX: does the same stuff as SetPlayerHitPoints above, can be removed
+	target._pHPBase = target.hitPoints + (target._pMaxHPBase - target.maxHitPoints); // CODEFIX: does the same stuff as SetPlayerHitPoints above, can be removed
 	target._pMana = 0;
 	target._pManaBase = target._pMana + (target._pMaxManaBase - target._pMaxMana);
 
@@ -274,7 +274,7 @@ void ApplyResurrect(Player &target)
 	CalcPlrInv(target, true);
 
 	if (target.isOnActiveLevel()) {
-		StartStand(target, target._pdir);
+		StartStand(target, target.direction);
 	}
 }
 
@@ -300,7 +300,7 @@ void DoHealOther(const Player &caster, Player &target)
 		hp *= 3;
 	}
 
-	target._pHitPoints = std::min(target._pHitPoints + hp, target._pMaxHP);
+	target.hitPoints = std::min(target.hitPoints + hp, target.maxHitPoints);
 	target._pHPBase = std::min(target._pHPBase + hp, target._pMaxHPBase);
 
 	if (&target == MyPlayer) {

@@ -470,7 +470,7 @@ void AddInitItems()
 
 		item._iCreateInfo = curlv | CF_PREGEN;
 		SetupItem(item);
-		item.AnimInfo.currentFrame = static_cast<int8_t>(item.AnimInfo.numberOfFrames - 1);
+		item.animInfo.currentFrame = static_cast<int8_t>(item.animInfo.numberOfFrames - 1);
 		item._iAnimFlag = false;
 		item.selectionRegion = SelectionRegion::Bottom;
 		DeltaAddItem(ii);
@@ -1600,7 +1600,7 @@ void SpawnRock()
 	SetupItem(item);
 	item.selectionRegion = SelectionRegion::Middle;
 	item._iPostDraw = true;
-	item.AnimInfo.currentFrame = 10;
+	item.animInfo.currentFrame = 10;
 	item._iAnimFlag = true;
 	item._iCreateInfo |= CF_PREGEN;
 
@@ -2641,8 +2641,8 @@ void CalcPlrLifeMana(Player &player, int vitality, int magic, int life, int mana
 	magic = (magic * playerClassAttributes.itmMana) >> 6;
 	mana += (magic << 6);
 
-	player._pMaxHP = std::clamp(life + player._pMaxHPBase, 1 << 6, 2000 << 6);
-	player._pHitPoints = std::min(life + player._pHPBase, player._pMaxHP);
+	player.maxHitPoints = std::clamp(life + player._pMaxHPBase, 1 << 6, 2000 << 6);
+	player.hitPoints = std::min(life + player._pHPBase, player.maxHitPoints);
 
 	if (&player == MyPlayer && player.hasNoLife()) {
 		SetPlayerHitPoints(player, 0);
@@ -2753,7 +2753,7 @@ void CalcPlrGraphics(Player &player, PlayerWeaponGraphic animWeaponId, PlayerArm
 		if (!HeadlessMode) {
 			auto &animData = player.AnimationData[static_cast<size_t>(graphic)];
 			if (animData.sprites.has_value()) {
-				sprites = animData.spritesForDirection(player._pdir);
+				sprites = animData.spritesForDirection(player.direction);
 			} else {
 				// In multiplayer games, a remote player can unequip their shield while that player is blocking an attack on the host.
 				// This results in a nonexistent animation state on the host where the remote player must block with no shield equipped.
@@ -2762,12 +2762,12 @@ void CalcPlrGraphics(Player &player, PlayerWeaponGraphic animWeaponId, PlayerArm
 				// This could also happen when unequipping a weapon during an attack, etc.
 				// To avoid the crash, we can set the remote player into a standing animation before updating the items on their sprite.
 				graphic = player_graphic::Stand;
-				NewPlrAnim(player, graphic, player._pdir);
+				NewPlrAnim(player, graphic, player.direction);
 				player.getAnimationFramesAndTicksPerFrame(graphic, numberOfFrames, ticksPerFrame);
-				sprites = player.AnimationData[static_cast<size_t>(graphic)].spritesForDirection(player._pdir);
+				sprites = player.AnimationData[static_cast<size_t>(graphic)].spritesForDirection(player.direction);
 			}
 		}
-		player.AnimInfo.changeAnimationData(sprites, numberOfFrames, ticksPerFrame);
+		player.animInfo.changeAnimationData(sprites, numberOfFrames, ticksPerFrame);
 	} else {
 		player._pgfxnum = gfxNum;
 	}
@@ -3681,7 +3681,7 @@ void SpawnQuestItem(_item_indexes itemid, Point position, int randarea, Selectio
 	item._iPostDraw = true;
 	if (selectionRegion != SelectionRegion::None) {
 		item.selectionRegion = selectionRegion;
-		item.AnimInfo.currentFrame = item.AnimInfo.numberOfFrames - 1;
+		item.animInfo.currentFrame = item.animInfo.numberOfFrames - 1;
 		item._iAnimFlag = false;
 	}
 
@@ -3753,7 +3753,7 @@ void RespawnItem(Item &item, bool flipFlag)
 		if (stand != nullptr && stand->_otype == OBJ_STAND) {
 			item.selectionRegion = SelectionRegion::Middle; // Item is selectable at elevated level and renders at elevated level
 			item._iPostDraw = true;                         // Draw in front of stand
-			item.AnimInfo.currentFrame = 10;                // Frame 10 is the start of the elevated frames in the cel
+			item.animInfo.currentFrame = 10;                // Frame 10 is the start of the elevated frames in the cel
 		} else {
 			item.selectionRegion = SelectionRegion::Bottom; // Item is selectable at floor level and renders at floor level
 		}
@@ -3785,18 +3785,18 @@ void ProcessItems()
 		auto &item = Items[ii];
 		if (!item._iAnimFlag)
 			continue;
-		item.AnimInfo.processAnimation();
+		item.animInfo.processAnimation();
 		if (item._iCurs == ICURS_MAGIC_ROCK) {
-			if (item.selectionRegion == SelectionRegion::Bottom && item.AnimInfo.currentFrame == 10) // Reached end of floor frames + 1, cycle back
-				item.AnimInfo.currentFrame = 0;                                                      // Beginning of floor frames
-			if (item.selectionRegion == SelectionRegion::Middle && item.AnimInfo.currentFrame == 19) // Reached end of elevated frames, cycle back
-				item.AnimInfo.currentFrame = 10;                                                     // Beginning of elevated frames
+			if (item.selectionRegion == SelectionRegion::Bottom && item.animInfo.currentFrame == 10) // Reached end of floor frames + 1, cycle back
+				item.animInfo.currentFrame = 0;                                                      // Beginning of floor frames
+			if (item.selectionRegion == SelectionRegion::Middle && item.animInfo.currentFrame == 19) // Reached end of elevated frames, cycle back
+				item.animInfo.currentFrame = 10;                                                     // Beginning of elevated frames
 		} else {
-			if (item.AnimInfo.currentFrame == (item.AnimInfo.numberOfFrames - 1) / 2)
+			if (item.animInfo.currentFrame == (item.animInfo.numberOfFrames - 1) / 2)
 				PlaySfxLoc(ItemDropSnds[ItemCAnimTbl[item._iCurs]], item.position);
 
-			if (item.AnimInfo.isLastFrame()) {
-				item.AnimInfo.currentFrame = item.AnimInfo.numberOfFrames - 1;
+			if (item.animInfo.isLastFrame()) {
+				item.animInfo.currentFrame = item.animInfo.numberOfFrames - 1;
 				item._iAnimFlag = false;
 				item.selectionRegion = SelectionRegion::Bottom;
 			}
@@ -3816,7 +3816,7 @@ void GetItemFrm(Item &item)
 {
 	const int it = ItemCAnimTbl[item._iCurs];
 	if (itemanims[it])
-		item.AnimInfo.sprites.emplace(*itemanims[it]);
+		item.animInfo.sprites.emplace(*itemanims[it]);
 }
 
 void GetItemStr(Item &item)
@@ -4282,7 +4282,7 @@ void UseItem(Player &player, item_misc_id mid, SpellID spellID, int spellFrom)
 			// will be validated when processing the network message
 			Point target = cursPosition;
 			if (!InDungeonBounds(target))
-				target = player.position.future + Displacement(player._pdir);
+				target = player.position.future + Displacement(player.direction);
 			// Use CMD_SPELLXY because it's the same behavior as normal casting
 			assert(IsValidSpellFrom(spellFrom));
 			NetSendCmdLocParam3(true, CMD_SPELLXY, target, static_cast<int8_t>(spellID), static_cast<uint8_t>(SpellType::Scroll), static_cast<uint16_t>(spellFrom));
@@ -4688,7 +4688,7 @@ void MakeGoldStack(Item &goldItem, int value)
 int ItemNoFlippy()
 {
 	const int r = ActiveItems[ActiveItemCount - 1];
-	Items[r].AnimInfo.currentFrame = Items[r].AnimInfo.numberOfFrames - 1;
+	Items[r].animInfo.currentFrame = Items[r].animInfo.numberOfFrames - 1;
 	Items[r]._iAnimFlag = false;
 	Items[r].selectionRegion = SelectionRegion::Bottom;
 
@@ -4810,16 +4810,16 @@ void Item::setNewAnimation(bool showAnimation)
 	const int8_t numberOfFrames = ItemAnimLs[it];
 	const OptionalClxSpriteList sprite = itemanims[it] ? OptionalClxSpriteList { *itemanims[static_cast<size_t>(it)] } : std::nullopt;
 	if (_iCurs != ICURS_MAGIC_ROCK)
-		AnimInfo.setNewAnimation(sprite, numberOfFrames, 1, AnimationDistributionFlags::ProcessAnimationPending, 0, numberOfFrames);
+		animInfo.setNewAnimation(sprite, numberOfFrames, 1, AnimationDistributionFlags::ProcessAnimationPending, 0, numberOfFrames);
 	else
-		AnimInfo.setNewAnimation(sprite, numberOfFrames, 1);
+		animInfo.setNewAnimation(sprite, numberOfFrames, 1);
 	_iPostDraw = false;
 	_iRequest = false;
 	if (showAnimation) {
 		_iAnimFlag = true;
 		selectionRegion = SelectionRegion::None;
 	} else {
-		AnimInfo.currentFrame = AnimInfo.numberOfFrames - 1;
+		animInfo.currentFrame = animInfo.numberOfFrames - 1;
 		_iAnimFlag = false;
 		selectionRegion = SelectionRegion::Bottom;
 	}

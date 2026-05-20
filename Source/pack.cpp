@@ -221,7 +221,7 @@ void PackNetPlayer(PlayerNetPack &packed, const Player &player)
 	packed.plrlevel = player.plrlevel;
 	packed.px = player.position.tile.x;
 	packed.py = player.position.tile.y;
-	packed.pdir = static_cast<uint8_t>(player._pdir);
+	packed.pdir = static_cast<uint8_t>(player.direction);
 	CopyUtf8(packed.pName, player._pName, sizeof(packed.pName));
 	packed.pClass = static_cast<uint8_t>(player._pClass);
 	packed.pBaseStr = player._pBaseStr;
@@ -263,8 +263,8 @@ void PackNetPlayer(PlayerNetPack &packed, const Player &player)
 	packed.pMagic = Swap32LE(player._pMagic);
 	packed.pDexterity = Swap32LE(player._pDexterity);
 	packed.pVitality = Swap32LE(player._pVitality);
-	packed.pHitPoints = Swap32LE(player._pHitPoints);
-	packed.pMaxHP = Swap32LE(player._pMaxHP);
+	packed.pHitPoints = Swap32LE(player.hitPoints);
+	packed.pMaxHP = Swap32LE(player.maxHitPoints);
 	packed.pMana = Swap32LE(player._pMana);
 	packed.pMaxMana = Swap32LE(player._pMaxMana);
 	packed.pDamageMod = Swap32LE(player._pDamageMod);
@@ -355,8 +355,8 @@ void UnPackPlayer(const PlayerPack &packed, Player &player)
 	player._pMaxHPBase = Swap32LE(packed.pMaxHPBase);
 	player._pHPBase = Swap32LE(packed.pHPBase);
 	player._pHPBase = std::clamp<int32_t>(player._pHPBase, 0, player._pMaxHPBase);
-	player._pMaxHP = player._pMaxHPBase;
-	player._pHitPoints = player._pHPBase;
+	player.maxHitPoints = player._pMaxHPBase;
+	player.hitPoints = player._pHPBase;
 	player.position.tile = position;
 	player.position.future = position;
 	player.setLevel(std::clamp<int8_t>(packed.plrlevel, 0, NUMLEVELS));
@@ -494,13 +494,13 @@ bool UnPackNetPlayer(const PlayerNetPack &packed, Player &player)
 	player.setCharacterLevel(packed.pLevel);
 	player.position.tile = position;
 	player.position.future = position;
-	player._pdir = static_cast<Direction>(packed.pdir);
+	player.direction = static_cast<Direction>(packed.pdir);
 	player.plrlevel = packed.plrlevel;
 	player.plrIsOnSetLevel = packed.isOnSetLevel != 0;
 	player._pMaxHPBase = baseHpMax;
 	player._pHPBase = baseHp;
-	player._pMaxHP = baseHpMax;
-	player._pHitPoints = baseHp;
+	player.maxHitPoints = baseHpMax;
+	player.hitPoints = baseHp;
 
 	ClrPlrPath(player);
 	player.destAction = ACTION_NONE;
@@ -586,8 +586,8 @@ bool UnPackNetPlayer(const PlayerNetPack &packed, Player &player)
 	ValidateFields(player._pMagic, SwapSigned32LE(packed.pMagic), player._pMagic == SwapSigned32LE(packed.pMagic));
 	ValidateFields(player._pDexterity, SwapSigned32LE(packed.pDexterity), player._pDexterity == SwapSigned32LE(packed.pDexterity));
 	ValidateFields(player._pVitality, SwapSigned32LE(packed.pVitality), player._pVitality == SwapSigned32LE(packed.pVitality));
-	ValidateFields(player._pHitPoints, SwapSigned32LE(packed.pHitPoints), player._pHitPoints == SwapSigned32LE(packed.pHitPoints));
-	ValidateFields(player._pMaxHP, SwapSigned32LE(packed.pMaxHP), player._pMaxHP == SwapSigned32LE(packed.pMaxHP));
+	ValidateFields(player.hitPoints, SwapSigned32LE(packed.pHitPoints), player.hitPoints == SwapSigned32LE(packed.pHitPoints));
+	ValidateFields(player.maxHitPoints, SwapSigned32LE(packed.pMaxHP), player.maxHitPoints == SwapSigned32LE(packed.pMaxHP));
 	ValidateFields(player._pMana, SwapSigned32LE(packed.pMana), player._pMana == SwapSigned32LE(packed.pMana));
 	ValidateFields(player._pMaxMana, SwapSigned32LE(packed.pMaxMana), player._pMaxMana == SwapSigned32LE(packed.pMaxMana));
 	ValidateFields(player._pDamageMod, SwapSigned32LE(packed.pDamageMod), player._pDamageMod == SwapSigned32LE(packed.pDamageMod));

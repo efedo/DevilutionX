@@ -174,14 +174,14 @@ void NetReceivePlayerData(TPkt *pkt)
 	pkt->hdr.py = myPlayer.position.tile.y;
 	pkt->hdr.targx = target.x;
 	pkt->hdr.targy = target.y;
-	pkt->hdr.php = Swap32LE(myPlayer._pHitPoints);
-	pkt->hdr.pmhp = Swap32LE(myPlayer._pMaxHP);
+	pkt->hdr.php = Swap32LE(myPlayer.hitPoints);
+	pkt->hdr.pmhp = Swap32LE(myPlayer.maxHitPoints);
 	pkt->hdr.mana = Swap32LE(myPlayer._pMana);
 	pkt->hdr.maxmana = Swap32LE(myPlayer._pMaxMana);
 	pkt->hdr.bstr = myPlayer._pBaseStr;
 	pkt->hdr.bmag = myPlayer._pBaseMag;
 	pkt->hdr.bdex = myPlayer._pBaseDex;
-	pkt->hdr.pdir = static_cast<uint8_t>(myPlayer._pdir);
+	pkt->hdr.pdir = static_cast<uint8_t>(myPlayer.direction);
 }
 
 void CheckPlayerInfoTimeouts()
@@ -363,8 +363,8 @@ void SyncPacketHeaderData(Player &player, const TPktHdr &pkt)
 	player.position.last = syncPosition;
 	if (&player != MyPlayer) {
 		assert(gbBufferMsgs != 2);
-		player._pHitPoints = Swap32LE(pkt.php);
-		player._pMaxHP = Swap32LE(pkt.pmhp);
+		player.hitPoints = Swap32LE(pkt.php);
+		player.maxHitPoints = Swap32LE(pkt.pmhp);
 		player._pMana = Swap32LE(pkt.mana);
 		player._pMaxMana = Swap32LE(pkt.maxmana);
 		const bool cond = gbBufferMsgs == 1;
@@ -377,8 +377,8 @@ void SyncPacketHeaderData(Player &player, const TPktHdr &pkt)
 				const uint8_t rawDir = pkt.pdir;
 				if (rawDir <= static_cast<uint8_t>(Direction::SouthEast)) {
 					const auto newDir = static_cast<Direction>(rawDir);
-					if (player._pdir != newDir && player._pmode == PM_STAND) {
-						player._pdir = newDir;
+					if (player.direction != newDir && player._pmode == PM_STAND) {
+						player.direction = newDir;
 						StartStand(player, newDir);
 					}
 				}
@@ -968,14 +968,14 @@ void recv_plrinfo(Player &player, const TCmdPlrInfoHdr &header, bool recv)
 	}
 
 	if (!player.hasNoLife()) {
-		StartStand(player, player._pdir);
+		StartStand(player, player.direction);
 		return;
 	}
 
 	player._pgfxnum &= ~0xFU;
 	player._pmode = PM_DEATH;
-	NewPlrAnim(player, player_graphic::Death, player._pdir);
-	player.AnimInfo.currentFrame = player.AnimInfo.numberOfFrames - 2;
+	NewPlrAnim(player, player_graphic::Death, player.direction);
+	player.animInfo.currentFrame = player.animInfo.numberOfFrames - 2;
 	dFlags[player.position.tile.x][player.position.tile.y] |= DungeonFlag::DeadPlayer;
 }
 
