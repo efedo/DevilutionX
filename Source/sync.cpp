@@ -45,7 +45,7 @@ void SyncMonsterPos(TSyncMonster &monsterSync, int ndx)
 	monsterSync._mndx = ndx;
 	monsterSync._mx = monster.position.tile.x;
 	monsterSync._my = monster.position.tile.y;
-	monsterSync._menemy = encode_enemy(monster);
+	monsterSync._menemy = monster.encodeEnemy();
 	monsterSync._mdelta = sgnMonsterPriority[ndx] > 255 ? 255 : sgnMonsterPriority[ndx];
 	monsterSync.mWhoHit = monster.whoHit;
 	monsterSync._mhitpoints = Swap32LE(monster.hitPoints);
@@ -184,26 +184,26 @@ void SyncMonster(bool isOwner, const TSyncMonster &monsterSync)
 	if (monster.position.tile.WalkingDistance(position) <= 2) {
 		if (!monster.isWalking()) {
 			const Direction md = GetDirection(monster.position.tile, position);
-			if (DirOK(monster, md)) {
-				M_ClearSquares(monster);
+			if (monster.isDirOK(md)) {
+				monster.clearSquares();
 				monster.occupyTile(monster.position.tile, false);
-				Walk(monster, md);
+				monster.walk(md);
 				monster.activeForTicks = std::numeric_limits<uint8_t>::max();
 			}
 		}
 	} else if (dMonster[position.x][position.y] == 0) {
-		M_ClearSquares(monster);
+		monster.clearSquares();
 		monster.occupyTile(position, false);
 		monster.position.tile = position;
 		if (monster.lightId != NO_LIGHT)
 			ChangeLightXY(monster.lightId, position);
-		decode_enemy(monster, enemyId);
+		monster.decodeEnemy(enemyId);
 		const Direction md = GetDirection(position, monster.enemyPosition);
-		M_StartStand(monster, md);
+		monster.startStand(md);
 		monster.activeForTicks = std::numeric_limits<uint8_t>::max();
 	}
 
-	decode_enemy(monster, enemyId);
+	monster.decodeEnemy(enemyId);
 	monster.whoHit = static_cast<int8_t>(monster.whoHit | monsterSync.mWhoHit);
 }
 

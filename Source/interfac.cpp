@@ -32,6 +32,7 @@
 #include "engine/palette.h"
 #include "engine/render/clx_render.hpp"
 #include "engine/render/primitive_render.hpp"
+#include "engine/world.hpp"
 #include "game_mode.hpp"
 #include "headless_mode.hpp"
 #include "hwcursor.hpp"
@@ -342,6 +343,7 @@ void DoLoad(interface_mode uMsg)
 		}
 		IncProgress();
 		FreeGameMem();
+		SwitchCurrentLevel(static_cast<LevelIndex>(myPlayer.plrlevel));
 		setlevel = false;
 		currlevel = myPlayer.plrlevel;
 		leveltype = GetLevelType(currlevel);
@@ -358,6 +360,7 @@ void DoLoad(interface_mode uMsg)
 		}
 		IncProgress();
 		FreeGameMem();
+		SwitchCurrentLevel(static_cast<LevelIndex>(currlevel - 1));
 		currlevel--;
 		leveltype = GetLevelType(currlevel);
 		assert(myPlayer.isOnActiveLevel());
@@ -377,6 +380,7 @@ void DoLoad(interface_mode uMsg)
 			DeltaSaveLevel();
 		}
 		IncProgress();
+		SwitchCurrentLevel(static_cast<LevelIndex>(-1 - static_cast<int>(setlvlnum)));
 		setlevel = true;
 		leveltype = setlvltype;
 		currlevel = static_cast<uint8_t>(setlvlnum);
@@ -396,6 +400,7 @@ void DoLoad(interface_mode uMsg)
 		setlevel = false;
 		FreeGameMem();
 		IncProgress();
+		SwitchCurrentLevel(static_cast<LevelIndex>(GetMapReturnLevel()));
 		currlevel = GetMapReturnLevel();
 		leveltype = GetLevelType(currlevel);
 		loadResult = LoadGameLevel(false, ENTRY_RTNLVL);
@@ -424,6 +429,7 @@ void DoLoad(interface_mode uMsg)
 		}
 		IncProgress();
 		FreeGameMem();
+		SwitchCurrentLevel(static_cast<LevelIndex>(myPlayer.plrlevel));
 		setlevel = false;
 		currlevel = myPlayer.plrlevel;
 		leveltype = GetLevelType(currlevel);
@@ -440,6 +446,7 @@ void DoLoad(interface_mode uMsg)
 		}
 		IncProgress();
 		FreeGameMem();
+		SwitchCurrentLevel(static_cast<LevelIndex>(myPlayer.plrlevel));
 		currlevel = myPlayer.plrlevel;
 		leveltype = GetLevelType(currlevel);
 		IncProgress();
@@ -455,6 +462,7 @@ void DoLoad(interface_mode uMsg)
 		}
 		IncProgress();
 		FreeGameMem();
+		SwitchCurrentLevel(0);
 		setlevel = false;
 		currlevel = myPlayer.plrlevel;
 		leveltype = GetLevelType(currlevel);

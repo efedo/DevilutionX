@@ -613,7 +613,7 @@ bool PlrHitMonst(Player &player, Monster &monster, bool adjacentDamage = false)
 	}
 
 	if (HasAnyOf(player.pDamAcFlags, ItemSpecialEffectHf::Doppelganger) && monster.type().type != MT_DIABLO && !monster.isUnique() && GenerateRnd(100) < 10) {
-		AddDoppelganger(monster);
+		monster.addDoppelganger();
 	}
 
 	dam <<= 6;
@@ -640,7 +640,7 @@ bool PlrHitMonst(Player &player, Monster &monster, bool adjacentDamage = false)
 			dam = monster.hitPoints; /* ensure monster is killed with one hit */
 		}
 #endif
-		ApplyMonsterDamage(DamageType::Physical, monster, dam);
+		monster.applyDamage(DamageType::Physical, dam);
 	}
 
 	int skdam = 0;
@@ -691,11 +691,11 @@ bool PlrHitMonst(Player &player, Monster &monster, bool adjacentDamage = false)
 		RedrawComponent(PanelDrawComponent::Health);
 	}
 	if (monster.hasNoLife()) {
-		M_StartKill(monster, player);
+		monster.startKill(player);
 	} else {
 		if (monster.mode != MonsterMode::Petrified && HasAnyOf(player._pIFlags, ItemSpecialEffect::Knockback))
-			M_GetKnockback(monster, player.position.tile);
-		M_StartHit(monster, player, dam);
+			monster.getKnockback(player.position.tile);
+		monster.startHit(player, dam);
 	}
 	return true;
 }
@@ -789,7 +789,7 @@ bool DoAttack(Player &player)
 		Monster *monster = FindMonsterAtPosition(position);
 
 		if (monster != nullptr) {
-			if (CanTalkToMonst(*monster)) {
+			if (monster->canTalk()) {
 				player.position.temp.x = 0; /** @todo Looks to be irrelevant, probably just remove it */
 				return false;
 			}
@@ -819,15 +819,15 @@ bool DoAttack(Player &player)
 			position = player.position.tile + Right(player.direction);
 			monster = FindMonsterAtPosition(position);
 			if (monster != nullptr) {
-				if (!CanTalkToMonst(*monster) && monster->position.old == position) {
-					if (PlrHitMonst(player, *monster, true))
-						didhit = true;
+					if (!monster->canTalk() && monster->position.old == position) {
+						if (PlrHitMonst(player, *monster, true))
+							didhit = true;
+					}
 				}
-			}
-			position = player.position.tile + Left(player.direction);
-			monster = FindMonsterAtPosition(position);
-			if (monster != nullptr) {
-				if (!CanTalkToMonst(*monster) && monster->position.old == position) {
+				position = player.position.tile + Left(player.direction);
+				monster = FindMonsterAtPosition(position);
+				if (monster != nullptr) {
+					if (!monster->canTalk() && monster->position.old == position) {
 					if (PlrHitMonst(player, *monster, true))
 						didhit = true;
 				}
@@ -1880,7 +1880,7 @@ void Player::UpdatePreviewCelSprite(_cmd_id cmdId, Point point, uint16_t wParam1
 		const Monster &monster = Monsters[wParam1];
 		point = monster.position.future;
 		minimalWalkDistance = 2;
-		if (!CanTalkToMonst(monster)) {
+		if (!monster.canTalk()) {
 			dir = GetDirection(position.future, monster.position.future);
 			graphic = player_graphic::Attack;
 		}

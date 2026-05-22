@@ -52,8 +52,8 @@ void InitCorpses()
 
 	int8_t nd = 0;
 
-	for (size_t i = 0; i < LevelMonsterTypeCount; i++) {
-		CMonster &monsterType = LevelMonsterTypes[i];
+	for (size_t i = 0; i < LevelBestiary.size(); i++) {
+		CMonster &monsterType = LevelBestiary[i];
 		if (mtypes[monsterType.type] != 0)
 			continue;
 

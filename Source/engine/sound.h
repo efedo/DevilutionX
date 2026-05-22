@@ -12,7 +12,7 @@
 
 #include <expected.hpp>
 
-#include "levels/gendung.h"
+#include "levels/gendung_defs.hpp"
 #include "utils/attributes.h"
 
 #ifndef NOSOUND

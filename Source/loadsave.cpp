@@ -23,6 +23,7 @@
 #include "doom.h"
 #include "engine/point.hpp"
 #include "engine/random.hpp"
+#include "engine/world.hpp"
 #include "game_mode.hpp"
 #include "inv.h"
 #include "levels/dun_tile.hpp"
@@ -2034,7 +2035,7 @@ tl::expected<void, std::string> LoadLevel(LevelConversionData *levelConversionDa
 
 		if (!gbSkipSync) {
 			for (size_t i = 0; i < ActiveMonsterCount; i++)
-				RETURN_IF_ERROR(SyncMonsterAnim(Monsters[ActiveMonsters[i]]));
+				RETURN_IF_ERROR(Monsters[ActiveMonsters[i]].syncAnim());
 		}
 		for (int &objectId : ActiveObjects)
 			objectId = file.NextLE<int8_t>();
@@ -2492,8 +2493,11 @@ tl::expected<void, std::string> LoadGame(bool firstflag)
 
 	setlevel = file.NextBool8();
 	setlvlnum = static_cast<_setlevels>(file.NextBE<uint32_t>());
-	currlevel = file.NextBE<uint32_t>();
-	leveltype = static_cast<dungeon_type>(file.NextBE<uint32_t>());
+	const auto savedCurrlevel = file.NextBE<uint32_t>();
+	const auto savedLeveltype = static_cast<dungeon_type>(file.NextBE<uint32_t>());
+	SwitchCurrentLevel(static_cast<LevelIndex>(savedCurrlevel));
+	currlevel = savedCurrlevel;
+	leveltype = savedLeveltype;
 	if (!setlevel)
 		leveltype = GetLevelType(currlevel);
 	const int viewX = file.NextBE<int32_t>();
@@ -2564,9 +2568,8 @@ tl::expected<void, std::string> LoadGame(bool firstflag)
 		// For petrified monsters, the data in missile.var1 must be used to
 		// load the appropriate animation data for the monster in missile.var2
 		for (size_t i = 0; i < ActiveMonsterCount; i++)
-			RETURN_IF_ERROR(SyncMonsterAnim(Monsters[ActiveMonsters[i]]));
+			RETURN_IF_ERROR(Monsters[ActiveMonsters[i]].syncAnim());
 		for (int &objectId : ActiveObjects)
-			objectId = file.NextLE<int8_t>();
 		for (int &objectId : AvailableObjects)
 			objectId = file.NextLE<int8_t>();
 		for (int i = 0; i < ActiveObjectCount; i++)

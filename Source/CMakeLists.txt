@@ -81,17 +81,20 @@ set(libdevilutionx_SRCS
   engine/actor_position.cpp
   engine/animationinfo.cpp
   engine/backbuffer_state.cpp
+  engine/bestiary.cpp
   engine/dx.cpp
   engine/events.cpp
   engine/palette.cpp
   engine/sound_position.cpp
   engine/trn.cpp
+  engine/world.cpp
 
   engine/render/automap_render.cpp
   engine/render/scrollrt.cpp
 
   items/validation.cpp
 
+  levels/level.cpp
   levels/reencode_dun_cels.cpp
   levels/setmaps.cpp
   levels/themes.cpp

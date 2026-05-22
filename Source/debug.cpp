@@ -126,9 +126,9 @@ bool IsDebugGridInMegatiles()
 {
 	switch (SelectedDebugGridTextItem) {
 	case DebugGridTextItem::AutomapView:
-	case DebugGridTextItem::dungeon:
-	case DebugGridTextItem::pdungeon:
-	case DebugGridTextItem::Protected:
+	case DebugGridTextItem::Dungeon:
+	case DebugGridTextItem::Pdungeon:
+	case DebugGridTextItem::DProtected:
 		return true;
 	default:
 		return false;
@@ -185,27 +185,27 @@ bool GetDebugGridText(Point dungeonCoords, std::string &debugGridText)
 		}
 		return !debugGridText.empty();
 	} break;
-	case DebugGridTextItem::dPiece:
+	case DebugGridTextItem::DPiece:
 		info = dPiece[dungeonCoords.x][dungeonCoords.y];
 		break;
-	case DebugGridTextItem::dTransVal:
+	case DebugGridTextItem::DTransVal:
 		info = dTransVal[dungeonCoords.x][dungeonCoords.y];
 		break;
-	case DebugGridTextItem::dLight:
+	case DebugGridTextItem::DLight:
 		info = dLight[dungeonCoords.x][dungeonCoords.y];
 		blankValue = LightsMax;
 		break;
-	case DebugGridTextItem::dPreLight:
+	case DebugGridTextItem::DPreLight:
 		info = dPreLight[dungeonCoords.x][dungeonCoords.y];
 		blankValue = LightsMax;
 		break;
-	case DebugGridTextItem::dFlags:
+	case DebugGridTextItem::DFlags:
 		info = static_cast<int>(dFlags[dungeonCoords.x][dungeonCoords.y]);
 		break;
-	case DebugGridTextItem::dPlayer:
+	case DebugGridTextItem::DPlayer:
 		info = dPlayer[dungeonCoords.x][dungeonCoords.y];
 		break;
-	case DebugGridTextItem::dMonster:
+	case DebugGridTextItem::DMonster:
 		info = dMonster[dungeonCoords.x][dungeonCoords.y];
 		break;
 	case DebugGridTextItem::missiles: {
@@ -217,16 +217,16 @@ bool GetDebugGridText(Point dungeonCoords, std::string &debugGridText)
 		}
 		return !debugGridText.empty();
 	} break;
-	case DebugGridTextItem::dCorpse:
+	case DebugGridTextItem::DCorpse:
 		info = dCorpse[dungeonCoords.x][dungeonCoords.y];
 		break;
 	case DebugGridTextItem::dItem:
 		info = dItem[dungeonCoords.x][dungeonCoords.y];
 		break;
-	case DebugGridTextItem::dSpecial:
+	case DebugGridTextItem::DSpecial:
 		info = dSpecial[dungeonCoords.x][dungeonCoords.y];
 		break;
-	case DebugGridTextItem::dObject:
+	case DebugGridTextItem::DObject:
 		info = dObject[dungeonCoords.x][dungeonCoords.y];
 		break;
 	case DebugGridTextItem::Solid:
@@ -242,15 +242,15 @@ bool GetDebugGridText(Point dungeonCoords, std::string &debugGridText)
 		if (megaCoords.x >= 0 && megaCoords.x < DMAXX && megaCoords.y >= 0 && megaCoords.y < DMAXY)
 			info = AutomapView[megaCoords.x][megaCoords.y];
 		break;
-	case DebugGridTextItem::dungeon:
+	case DebugGridTextItem::Dungeon:
 		if (megaCoords.x >= 0 && megaCoords.x < DMAXX && megaCoords.y >= 0 && megaCoords.y < DMAXY)
 			info = dungeon[megaCoords.x][megaCoords.y];
 		break;
-	case DebugGridTextItem::pdungeon:
+	case DebugGridTextItem::Pdungeon:
 		if (megaCoords.x >= 0 && megaCoords.x < DMAXX && megaCoords.y >= 0 && megaCoords.y < DMAXY)
 			info = pdungeon[megaCoords.x][megaCoords.y];
 		break;
-	case DebugGridTextItem::Protected:
+	case DebugGridTextItem::DProtected:
 		if (megaCoords.x >= 0 && megaCoords.x < DMAXX && megaCoords.y >= 0 && megaCoords.y < DMAXY)
 			info = Protected.test(megaCoords.x, megaCoords.y);
 		break;

@@ -278,7 +278,7 @@ void LeftMouseCmd(bool bShift)
 			LastPlayerAction = PlayerActionType::Attack;
 			NetSendCmdLoc(MyPlayerId, true, CMD_RATTACKXY, cursPosition);
 		} else if (pcursmonst != -1) {
-			if (CanTalkToMonst(Monsters[pcursmonst])) {
+			if (Monsters[pcursmonst].canTalk()) {
 				NetSendCmdParam1(true, CMD_ATTACKID, pcursmonst);
 			} else {
 				LastPlayerAction = PlayerActionType::AttackMonsterTarget;
@@ -291,7 +291,7 @@ void LeftMouseCmd(bool bShift)
 	} else {
 		if (bShift) {
 			if (pcursmonst != -1) {
-				if (CanTalkToMonst(Monsters[pcursmonst])) {
+				if (Monsters[pcursmonst].canTalk()) {
 					NetSendCmdParam1(true, CMD_ATTACKID, pcursmonst);
 				} else {
 					LastPlayerAction = PlayerActionType::Attack;
