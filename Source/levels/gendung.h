@@ -18,6 +18,7 @@
 #include "engine/point.hpp"
 #include "engine/rectangle.hpp"
 #include "engine/render/scrollrt.h"
+#include "engine/world.hpp"
 #include "engine/world_tile.hpp"
 #include "levels/dun_tile.hpp"
 #include "levels/gendung_defs.hpp"
@@ -27,24 +28,8 @@
 
 namespace devilution {
 
-#define MAXTHEMES 50
-#define MAXTILES 1379
-
-enum _setlevels : int8_t {
-	SL_NONE,
-	SL_SKELKING,
-	SL_BONECHAMB,
-	SL_MAZE,
-	SL_POISONWATER,
-	SL_VILEBETRAYER,
-
-	SL_ARENA_CHURCH,
-	SL_ARENA_HELL,
-	SL_ARENA_CIRCLE_OF_LIFE,
-
-	SL_FIRST_ARENA = SL_ARENA_CHURCH,
-	SL_LAST = SL_ARENA_CIRCLE_OF_LIFE,
-};
+// _setlevels, _difficulty, DungeonFlag, THEME_LOC, MegaTile, ShadowStruct,
+// MAXTHEMES and MAXTILES are defined in gendung_defs.hpp (included above).
 
 inline bool IsArenaLevel(_setlevels setLevel)
 {
@@ -61,132 +46,103 @@ inline bool IsArenaLevel(_setlevels setLevel)
 tl::expected<dungeon_type, std::string> ParseDungeonType(std::string_view value);
 tl::expected<_setlevels, std::string> ParseSetLevel(std::string_view value);
 
-enum class DungeonFlag : uint8_t {
-	// clang-format off
-	None                  = 0, // Only used by lighting/automap
-	Missile               = 1 << 0,
-	Visible               = 1 << 1,
-	DeadPlayer            = 1 << 2,
-	Populated             = 1 << 3,
-	MissileFireWall       = 1 << 4,
-	MissileLightningWall  = 1 << 5,
-	Lit                   = 1 << 6,
-	Explored              = 1 << 7,
-	SavedFlags            = (Populated | Lit | Explored), // ~(Missile | Visible | DeadPlayer)
-	LoadedFlags           = (Missile | Visible | DeadPlayer | Populated | Lit | Explored)
-	// clang-format on
-};
-use_enum_as_flags(DungeonFlag);
-
-enum _difficulty : uint8_t {
-	DIFF_NORMAL,
-	DIFF_NIGHTMARE,
-	DIFF_HELL,
-
-	DIFF_LAST = DIFF_HELL,
-};
-
-struct THEME_LOC {
-	RectangleOf<uint8_t> room;
-	int8_t ttval;
-};
-
-struct MegaTile {
-	uint16_t micro1;
-	uint16_t micro2;
-	uint16_t micro3;
-	uint16_t micro4;
-};
-
-struct ShadowStruct {
-	uint8_t strig;
-	uint8_t s1;
-	uint8_t s2;
-	uint8_t s3;
-	uint8_t nv1;
-	uint8_t nv2;
-	uint8_t nv3;
-};
-
+// ---------------------------------------------------------------------------
+// Macro shims — each name expands to the corresponding Level member so that
+// all existing call sites (assignments, address-of, array indexing, …)
+// continue to work without modification.
+// ---------------------------------------------------------------------------
+// clang-format off
 /** Reprecents what tiles are being utilized in the generated map. */
-extern Bitset2d<DMAXX, DMAXY> DungeonMask;
+#define DungeonMask   (currentLevel().DungeonMask_)
 /** Contains the tile IDs of the map. */
-extern DVL_API_FOR_TEST uint8_t dungeon[DMAXX][DMAXY];
+#define dungeon       (currentLevel().dungeon_)
 /** Contains a backup of the tile IDs of the map. */
-extern uint8_t pdungeon[DMAXX][DMAXY];
+#define pdungeon      (currentLevel().pdungeon_)
 /** Tile that may not be overwritten by the level generator */
-extern Bitset2d<DMAXX, DMAXY> Protected;
-extern WorldTileRectangle SetPieceRoom;
+#define Protected     (currentLevel().Protected_)
+#define SetPieceRoom  (currentLevel().SetPieceRoom_)
 /** Specifies the active set quest piece in coordinate. */
-extern WorldTileRectangle SetPiece;
-extern OptionalOwnedClxSpriteList pSpecialCels;
-/** Specifies the tile definitions of the active dungeon type; (e.g. levels/l1data/l1.til). */
-extern DVL_API_FOR_TEST std::unique_ptr<MegaTile[]> pMegaTiles;
-extern DVL_API_FOR_TEST std::unique_ptr<std::byte[]> pDungeonCels;
-/**
- * List tile properties
- */
-extern DVL_API_FOR_TEST TileProperties SOLData[MAXTILES];
+#define SetPiece      (currentLevel().SetPiece_)
+#define pSpecialCels  (currentLevel().pSpecialCels_)
+/** Specifies the tile definitions of the active dungeon type. */
+#define pMegaTiles    (currentLevel().pMegaTiles_)
+#define pDungeonCels  (currentLevel().pDungeonCels_)
+/** List tile properties */
+#define SOLData       (currentLevel().SOLData_)
 /** Specifies the minimum X,Y-coordinates of the map. */
-extern WorldTilePosition dminPosition;
+#define dminPosition  (currentLevel().dminPosition_)
 /** Specifies the maximum X,Y-coordinates of the map. */
-extern WorldTilePosition dmaxPosition;
+#define dmaxPosition  (currentLevel().dmaxPosition_)
+
+
 /** Specifies the active dungeon type of the current game. */
-extern DVL_API_FOR_TEST dungeon_type leveltype;
+#define leveltype     (currentLevel().leveltype_)
 /** Specifies the active dungeon level of the current game. */
-extern DVL_API_FOR_TEST uint8_t currlevel;
-extern bool setlevel;
+#define currlevel     (currentLevel().currlevel_)
+#define setlevel      (currentLevel().setlevel_)
 /** Specifies the active quest level of the current game. */
-extern _setlevels setlvlnum;
+#define setlvlnum     (currentLevel().setlvlnum_)
 /** Specifies the dungeon type of the active quest level of the current game. */
-extern dungeon_type setlvltype;
+#define setlvltype    (currentLevel().setlvltype_)
+
+///** Specifies the active dungeon type of the current game. */
+//extern DVL_API_FOR_TEST dungeon_type leveltype;
+///** Specifies the active dungeon level of the current game. */
+//extern DVL_API_FOR_TEST uint8_t currlevel;
+//extern bool setlevel;
+///** Specifies the active quest level of the current game. */
+//extern _setlevels setlvlnum;
+///** Specifies the dungeon type of the active quest level of the current game. */
+//extern dungeon_type setlvltype;
+
 /** Specifies the player viewpoint X,Y-coordinates of the map. */
-extern DVL_API_FOR_TEST Point ViewPosition;
-extern uint_fast8_t MicroTileLen;
-extern int8_t TransVal;
+#define ViewPosition  (currentLevel().ViewPosition_)
+#define MicroTileLen  (currentLevel().MicroTileLen_)
+#define TransVal      (currentLevel().TransVal_)
 /** Specifies the active transparency indices. */
-extern std::array<bool, 256> TransList;
+#define TransList     (currentLevel().TransList_)
 /** Contains the piece IDs of each tile on the map. */
-extern DVL_API_FOR_TEST uint16_t dPiece[MAXDUNX][MAXDUNY];
+#define dPiece        (currentLevel().dPiece_)
 /** Map of micros that comprises a full tile for any given dungeon piece. */
-extern DVL_API_FOR_TEST MICROS DPieceMicros[MAXTILES];
+#define DPieceMicros  (currentLevel().DPieceMicros_)
 /** Specifies the transparency at each coordinate of the map. */
-extern DVL_API_FOR_TEST int8_t dTransVal[MAXDUNX][MAXDUNY];
+#define dTransVal     (currentLevel().dTransVal_)
 /** Current realtime lighting. Per tile. */
-extern DVL_API_FOR_TEST uint8_t dLight[MAXDUNX][MAXDUNY];
+#define dLight        (currentLevel().dLight_)
 /** Precalculated static lights. dLight uses this as a base before applying lights. Per tile. */
-extern uint8_t dPreLight[MAXDUNX][MAXDUNY];
+#define dPreLight     (currentLevel().dPreLight_)
 /** Holds various information about dungeon tiles, @see DungeonFlag */
-extern DungeonFlag dFlags[MAXDUNX][MAXDUNY];
-/** Contains the player numbers (players array indices) of the map. negative id indicates player moving. */
-extern int8_t dPlayer[MAXDUNX][MAXDUNY];
+#define dFlags        (currentLevel().dFlags_)
+/** Contains the player numbers (players array indices) of the map. */
+#define dPlayer       (currentLevel().dPlayer_)
 /**
  * Contains the NPC numbers of the map. The NPC number represents a
  * towner number (towners array index) in Tristram and a monster number
  * (monsters array index) in the dungeon.
  * Negative id indicates monsters moving.
  */
-extern int16_t dMonster[MAXDUNX][MAXDUNY];
+#define dMonster      (currentLevel().dMonster_)
 /**
  * Contains the dead numbers (deads array indices) and dead direction of
  * the map, encoded as specified by the pseudo-code below.
  * dDead[x][y] & 0x1F - index of dead
  * dDead[x][y] >> 0x5 - direction
  */
-extern DVL_API_FOR_TEST int8_t dCorpse[MAXDUNX][MAXDUNY];
+#define dCorpse       (currentLevel().dCorpse_)
 /**
  * Contains the object numbers (objects array indices) of the map.
  * Large objects have negative id for their extended area.
  */
-extern DVL_API_FOR_TEST int8_t dObject[MAXDUNX][MAXDUNY];
+#define dObject       (currentLevel().dObject_)
 /**
  * Contains the arch frame numbers of the map from the special tileset
  * (e.g. "levels/l1data/l1s"). Note, the special tileset of Tristram (i.e.
  * "levels/towndata/towns") contains trees rather than arches.
  */
-extern int8_t dSpecial[MAXDUNX][MAXDUNY];
-extern int themeCount;
-extern THEME_LOC themeLoc[MAXTHEMES];
+#define dSpecial      (currentLevel().dSpecial_)
+#define themeCount    (currentLevel().themeCount_)
+#define themeLoc      (currentLevel().themeLoc_)
+// clang-format on
 
 #ifdef BUILD_TESTING
 std::optional<WorldTileSize> GetSizeForThemeRoom();

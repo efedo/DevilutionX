@@ -217,6 +217,7 @@ struct Monster : CombatActor { // note: missing field _mAFNum
 	[[nodiscard]] bool isPlayerMinion() const;
 
 	bool isPossibleToHit() const;
+
 	void tag(const Player &tagger);
 
 	[[nodiscard]] bool isUnique() const;
@@ -315,11 +316,10 @@ void InitGolems();
 tl::expected<void, std::string> InitMonsters();
 tl::expected<void, std::string> SetMapMonsters(const uint16_t *dunData, Point startPosition);
 Monster *AddMonster(Point position, Direction dir, size_t typeIndex, bool inMap);
-/**
- * @brief Spawns a new monsters (dynamically/not on level load).
- * The command is only executed for the level owner, to prevent desyncs in multiplayer.
- * The level owner sends a CMD_SPAWNMONSTER-message to the other players.
- */
+
+// Spawns a new monsters (dynamically/not on level load).
+// Only executed for the level owner, to prevent desyncs in multiplayer.
+// The level owner sends a CMD_SPAWNMONSTER-message to the other players.
 void SpawnMonster(Point position, Direction dir, size_t typeIndex);
 
 // Loads data for a dynamically spawned monster when entering a level in multiplayer.
@@ -354,12 +354,12 @@ Monster *FindGolemForPlayer(const Player &player);
 bool IsTileAvailable(const Monster &monster, Point position);
 bool IsSkel(_monster_id mt);
 bool IsGoat(_monster_id mt);
-/**
- * @brief Reveals a monster that was hiding in a container
- * @param monster instance returned from a previous call to PreSpawnSkeleton
- * @param position tile to try spawn the monster at, neighboring tiles will be used as a fallback
- */
+
+// Reveals a monster that was hiding in a container
+// monster: instance returned from a previous call to PreSpawnSkeleton
+// position: tile to try spawn the monster at, neighboring tiles will be used as a fallback
 void ActivateSkeleton(Monster &monster, Point position);
+
 Monster *PreSpawnSkeleton();
 void TalktoMonster(Player &player, Monster &monster);
 void SpawnGolem(const Player &player, Point position, uint8_t spellLevel);

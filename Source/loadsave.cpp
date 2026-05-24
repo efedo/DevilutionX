@@ -23,6 +23,7 @@
 #include "doom.h"
 #include "engine/point.hpp"
 #include "engine/random.hpp"
+#include "engine/world.hpp"
 #include "game_mode.hpp"
 #include "inv.h"
 #include "levels/dun_tile.hpp"
@@ -2492,8 +2493,11 @@ tl::expected<void, std::string> LoadGame(bool firstflag)
 
 	setlevel = file.NextBool8();
 	setlvlnum = static_cast<_setlevels>(file.NextBE<uint32_t>());
-	currlevel = file.NextBE<uint32_t>();
-	leveltype = static_cast<dungeon_type>(file.NextBE<uint32_t>());
+	const auto savedCurrlevel = file.NextBE<uint32_t>();
+	const auto savedLeveltype = static_cast<dungeon_type>(file.NextBE<uint32_t>());
+	SwitchCurrentLevel(static_cast<LevelIndex>(savedCurrlevel));
+	currlevel = savedCurrlevel;
+	leveltype = savedLeveltype;
 	if (!setlevel)
 		leveltype = GetLevelType(currlevel);
 	const int viewX = file.NextBE<int32_t>();

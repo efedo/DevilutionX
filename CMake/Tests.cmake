@@ -8,7 +8,7 @@ target_link_dependencies(libdevilutionx_so PUBLIC libdevilutionx)
 set_target_properties(libdevilutionx_so PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 add_library(test_main OBJECT test/main.cpp)
-target_link_dependencies(test_main PUBLIC libdevilutionx_so GTest::gtest GTest::gmock)
+target_link_dependencies(test_main PUBLIC libdevilutionx GTest::gtest GTest::gmock)
 
 set(tests
   animationinfo_test
@@ -125,7 +125,7 @@ target_link_dependencies(clx_render_benchmark
 target_link_dependencies(crawl_test PRIVATE libdevilutionx_crawl)
 target_link_dependencies(crawl_benchmark PRIVATE libdevilutionx_crawl)
 target_link_dependencies(data_file_test PRIVATE libdevilutionx_txtdata app_fatal_for_testing language_for_testing)
-target_link_dependencies(dun_render_benchmark PRIVATE libdevilutionx_so)
+target_link_dependencies(dun_render_benchmark PRIVATE libdevilutionx)
 target_link_dependencies(file_util_test PRIVATE libdevilutionx_file_util app_fatal_for_testing)
 target_link_dependencies(format_int_test PRIVATE libdevilutionx_format_int language_for_testing)
 target_link_dependencies(ini_test PRIVATE libdevilutionx_ini app_fatal_for_testing)
