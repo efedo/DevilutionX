@@ -5,6 +5,7 @@
  */
 #include "portal.h"
 
+#include "engine/world.hpp"
 #include "lighting.h"
 #include "missiles.h"
 #include "multi.h"
@@ -134,6 +135,7 @@ void SetCurrentPortal(size_t p)
 void GetPortalLevel()
 {
 	if (leveltype != DTYPE_TOWN) {
+		SwitchCurrentLevel(0);
 		setlevel = false;
 		currlevel = 0;
 		MyPlayer->setLevel(0);
@@ -142,12 +144,14 @@ void GetPortalLevel()
 	}
 
 	if (Portals[portalindex].setlvl) {
+		SwitchCurrentLevel(static_cast<LevelIndex>(-1 - static_cast<int>(Portals[portalindex].level)));
 		setlevel = true;
 		setlvlnum = (_setlevels)Portals[portalindex].level;
 		currlevel = Portals[portalindex].level;
 		MyPlayer->setLevel(setlvlnum);
 		setlvltype = leveltype = Portals[portalindex].ltype;
 	} else {
+		SwitchCurrentLevel(static_cast<LevelIndex>(Portals[portalindex].level));
 		setlevel = false;
 		currlevel = Portals[portalindex].level;
 		MyPlayer->setLevel(currlevel);

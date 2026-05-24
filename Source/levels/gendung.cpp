@@ -36,40 +36,15 @@
 
 namespace devilution {
 
-Bitset2d<DMAXX, DMAXY> DungeonMask;
-uint8_t dungeon[DMAXX][DMAXY];
-uint8_t pdungeon[DMAXX][DMAXY];
-Bitset2d<DMAXX, DMAXY> Protected;
-WorldTileRectangle SetPieceRoom;
-WorldTileRectangle SetPiece;
-OptionalOwnedClxSpriteList pSpecialCels;
-std::unique_ptr<MegaTile[]> pMegaTiles;
-std::unique_ptr<std::byte[]> pDungeonCels;
-TileProperties SOLData[MAXTILES];
-WorldTilePosition dminPosition;
-WorldTilePosition dmaxPosition;
-dungeon_type leveltype;
-uint8_t currlevel;
-bool setlevel;
-_setlevels setlvlnum;
-dungeon_type setlvltype;
-Point ViewPosition;
-uint_fast8_t MicroTileLen;
-int8_t TransVal;
-std::array<bool, 256> TransList;
-uint16_t dPiece[MAXDUNX][MAXDUNY];
-MICROS DPieceMicros[MAXTILES];
-int8_t dTransVal[MAXDUNX][MAXDUNY];
-uint8_t dLight[MAXDUNX][MAXDUNY];
-uint8_t dPreLight[MAXDUNX][MAXDUNY];
-DungeonFlag dFlags[MAXDUNX][MAXDUNY];
-int8_t dPlayer[MAXDUNX][MAXDUNY];
-int16_t dMonster[MAXDUNX][MAXDUNY];
-int8_t dCorpse[MAXDUNX][MAXDUNY];
-int8_t dObject[MAXDUNX][MAXDUNY];
-int8_t dSpecial[MAXDUNX][MAXDUNY];
-int themeCount;
-THEME_LOC themeLoc[MAXTHEMES];
+// All level-data globals have been migrated into Level (levels/level.hpp).
+// They are accessed via the macro shims in gendung.h which expand to
+// currentLevel().member_ — no call sites needed updating.
+
+//dungeon_type leveltype;
+//uint8_t currlevel;
+//bool setlevel;
+//_setlevels setlvlnum;
+//dungeon_type setlvltype;
 
 namespace {
 
@@ -412,7 +387,19 @@ dungeon_type GetLevelType(int level)
 
 void CreateDungeon(uint32_t rseed, lvl_entry entry)
 {
-	InitGlobals();
+	// When loading from a save file, the level data arrays have already been
+	// loaded from the save, so we should not zero them with memset.
+	// However, we still need to initialize other state.
+	if (entry != ENTRY_LOAD) {
+		InitGlobals();
+	} else {
+		// For ENTRY_LOAD, just do the non-array initialization from InitGlobals
+		DRLG_InitTrans();
+		dminPosition = WorldTilePosition(0, 0).megaToWorld();
+		dmaxPosition = WorldTilePosition(40, 40).megaToWorld();
+		SetPieceRoom = { { 0, 0 }, { 0, 0 } };
+		SetPiece = { { 0, 0 }, { 0, 0 } };
+	}
 
 	switch (leveltype) {
 	case DTYPE_TOWN:
@@ -812,6 +799,7 @@ bool IsNearThemeRoom(WorldTilePosition testPosition)
 
 void InitLevels()
 {
+	SwitchCurrentLevel(0);
 	currlevel = 0;
 	leveltype = DTYPE_TOWN;
 	setlevel = false;

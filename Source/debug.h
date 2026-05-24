@@ -36,18 +36,18 @@ extern uint32_t glEndSeed[NUMLEVELS];
 enum class DebugGridTextItem : uint16_t {
 	None,
 	microTiles,
-	dPiece,
-	dTransVal,
-	dLight,
-	dPreLight,
-	dFlags,
-	dPlayer,
-	dMonster,
+	DPiece,
+	DTransVal,
+	DLight,
+	DPreLight,
+	DFlags,
+	DPlayer,
+	DMonster,
 	missiles,
-	dCorpse,
-	dObject,
+	DCorpse,
+	DObject,
 	dItem,
-	dSpecial,
+	DSpecial,
 
 	coords,
 	cursorcoords,
@@ -60,9 +60,9 @@ enum class DebugGridTextItem : uint16_t {
 
 	// megatiles
 	AutomapView,
-	dungeon,
-	pdungeon,
-	Protected,
+	Dungeon,
+	Pdungeon,
+	DProtected,
 };
 
 void FreeDebugGFX();
