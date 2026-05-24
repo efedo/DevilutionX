@@ -328,18 +328,18 @@ bool MonsterMHit(const Player &player, Monster &monster, int mindam, int maxdam,
 		dam >>= 2;
 
 	if (&player == MyPlayer)
-		ApplyMonsterDamage(damageType, monster, dam);
+		monster.applyDamage(damageType, dam);
 
 	if (monster.hasNoLife()) {
-		M_StartKill(monster, player);
+		monster.startKill(player);
 	} else if (resist) {
 		monster.tag(player);
-		PlayEffect(monster, MonsterSound::Hit);
+		monster.playEffect(MonsterSound::Hit);
 	} else {
 		if (monster.mode != MonsterMode::Petrified && missileData.isArrow() && HasAnyOf(player._pIFlags, ItemSpecialEffect::Knockback))
-			M_GetKnockback(monster, startPos);
+			monster.getKnockback(startPos);
 		if (monster.type().type != MT_GOLEM)
-			M_StartHit(monster, player, dam);
+			monster.startHit(player, dam);
 	}
 
 	if (monster.activeForTicks == 0) {
@@ -1048,7 +1048,7 @@ bool MonsterTrapHit(Monster &monster, int mindam, int maxdam, int dist, MissileI
 		dam <<= 6;
 	if (resist)
 		dam /= 4;
-	ApplyMonsterDamage(damageType, monster, dam);
+	monster.applyDamage(damageType, dam);
 #ifdef _DEBUG
 	if (DebugGodMode)
 		monster.hitPoints = 0;
@@ -1056,9 +1056,9 @@ bool MonsterTrapHit(Monster &monster, int mindam, int maxdam, int dist, MissileI
 	if (monster.hasNoLife()) {
 		MonsterDeath(monster, monster.direction, true);
 	} else if (resist) {
-		PlayEffect(monster, MonsterSound::Hit);
+		monster.playEffect(MonsterSound::Hit);
 	} else if (monster.type().type != MT_GOLEM) {
-		M_StartHit(monster, dam);
+		monster.startHit(dam);
 	}
 	return true;
 }
@@ -1179,7 +1179,7 @@ bool PlayerMHit(Player &player, Monster *monster, int dist, int mind, int maxd, 
 	}
 
 	if (monster != nullptr) {
-		MonsterReducePlayerAttribute(*monster, player);
+		monster->reducePlayerAttribute(player);
 	}
 
 	if (resper > 0) {

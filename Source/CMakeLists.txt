@@ -81,6 +81,7 @@ set(libdevilutionx_SRCS
   engine/actor_position.cpp
   engine/animationinfo.cpp
   engine/backbuffer_state.cpp
+  engine/bestiary.cpp
   engine/dx.cpp
   engine/events.cpp
   engine/palette.cpp
