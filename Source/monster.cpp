@@ -4,6 +4,7 @@
  * Implementation of monster functionality, AI, actions, spawning, loading, etc.
  */
 #include "monster.h"
+#include "monster_pool.h"
 
 #include "engine/bestiary.hpp"
 
@@ -111,9 +112,6 @@
 
 namespace devilution {
 
-Monster Monsters[MaxMonsters];
-unsigned ActiveMonsters[MaxMonsters];
-size_t ActiveMonsterCount;
 /** Tracks the total number of monsters killed per monster_id. */
 int MonsterKillCounts[NUM_MAX_MTYPES];
 bool sgbSaveSoundOn;
@@ -483,7 +481,7 @@ void ClearMVars(Monster &monster)
 
 void ClrAllMonsters()
 {
-	for (auto &monster : Monsters) {
+	for (auto &monster : MonsterPoolAdapter::AllMonsters()) {
 		ClearMVars(monster);
 		monster.goal = MonsterGoal::None;
 		monster.mode = MonsterMode::Stand;
@@ -3402,7 +3400,9 @@ void InitLevelMonsters()
 	ActiveMonsterCount = 0;
 	totalmonsters = MaxMonsters;
 
-	std::iota(std::begin(ActiveMonsters), std::end(ActiveMonsters), 0U);
+	for (unsigned i = 0; i < MaxMonsters; i++) {
+		ActiveMonsters[i] = i;
+	}
 	uniquetrans = 0;
 }
 

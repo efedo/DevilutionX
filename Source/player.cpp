@@ -45,6 +45,7 @@
 #include "minitext.h"
 #include "missiles.h"
 #include "monster.h"
+#include "monster_pool.h"
 #include "nthread.h"
 #include "objects.h"
 #include "object_pool.h"
@@ -3730,7 +3731,7 @@ void PlayDungMsgs()
 		myPlayer.Say(HeroSpeech::IMustBeGettingClose, 40);
 		myPlayer.pDungMsgs |= DungMsgHell;
 	} else if (!setlevel && currlevel == 16 && !myPlayer._pLvlVisited[16] && (myPlayer.pDungMsgs & DungMsgDiablo) == 0) {
-		for (auto &monster : Monsters) {
+		for (auto &monster : MonsterPoolAdapter::AllMonsters()) {
 			if (monster.type().type != MT_DIABLO) continue;
 			if (monster.hitPoints > 0) {
 				sfxdelay = 40;

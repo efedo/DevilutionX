@@ -31,6 +31,7 @@
 #include "menu.h"
 #include "missiles.h"
 #include "monster.h"
+#include "monster_pool.h"
 #include "object_pool.h"
 #include "monsters/validation.hpp"
 #include "mpq/mpq_common.hpp"
@@ -784,7 +785,7 @@ bool gbSkipSync = false;
 
 void LoadMonsters(LoadHelper &file, ankerl::unordered_dense::set<unsigned> &removedMonsterIds, const bool applyLight, LevelConversionData *levelConversionData)
 {
-	for (unsigned &monsterId : ActiveMonsters)
+	for (unsigned &monsterId : MonsterPoolAdapter::ActiveMonsterIds())
 		monsterId = file.NextBE<uint32_t>();
 
 	for (size_t i = 0; i < ActiveMonsterCount;) {
@@ -1952,7 +1953,7 @@ void SaveLevel(SaveWriter &saveWriter, LevelConversionData *levelConversionData)
 	file.WriteBE<int32_t>(ObjectPoolAdapter::ActiveObjectCountValue());
 
 	if (leveltype != DTYPE_TOWN) {
-		for (const unsigned monsterId : ActiveMonsters)
+		for (const unsigned monsterId : MonsterPoolAdapter::ActiveMonsterIds())
 			file.WriteBE<uint32_t>(monsterId);
 		for (size_t i = 0; i < ActiveMonsterCount; i++) {
 			MonsterConversionData *monsterConversionData = nullptr;
@@ -2825,7 +2826,7 @@ void SaveGameData(SaveWriter &saveWriter)
 	file.Skip(4 * (MaxMonsters - MonstersData.size()));
 
 	if (leveltype != DTYPE_TOWN) {
-		for (const unsigned monsterId : ActiveMonsters)
+		for (const unsigned monsterId : MonsterPoolAdapter::ActiveMonsterIds())
 			file.WriteBE<uint32_t>(monsterId);
 		for (size_t i = 0; i < ActiveMonsterCount; i++)
 			SaveMonster(&file, Monsters[ActiveMonsters[i]]);

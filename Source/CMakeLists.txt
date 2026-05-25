@@ -555,6 +555,7 @@ target_link_dependencies(libdevilutionx_level_objects PUBLIC
 add_devilutionx_object_library(libdevilutionx_monster
   tables/monstdat.cpp
   monster.cpp
+  monster_pool.cpp
 )
 target_link_dependencies(libdevilutionx_monster
   PUBLIC

@@ -9,7 +9,7 @@
  *   This is essential for save file format, network sync, and map references.
  * - gObjectPool owns all object storage. Objects/ActiveObjects/AvailableObjects/ActiveObjectCount
  *   are pointer/reference aliases into pool memory (defined in object_pool.cpp).
- * - See docs/OBJECT_POOL.md for usage and extension guidance.
+ * - See docs/ENTITY_POOLS.md for usage and extension guidance.
  */
 #pragma once
 

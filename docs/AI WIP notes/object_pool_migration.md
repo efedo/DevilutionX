@@ -33,6 +33,9 @@ exactly because the pointers reference the same memory the pool owns.
 
 ## Future Migration Targets
 
-- Monster pool: `Monsters[]`, `ActiveMonsters[]`, `ActiveMonsterCount` in `monster.h/cpp`.
-  - Use `SparseAllocationPolicy` (tile map references via `dMonster[]`).
+- ~~Monster pool~~ — **Done.** See `Source/monster_pool.h` and `Source/monster_pool.cpp`.
+  - `Monsters` is a pointer alias into `gMonsterPool.data()`.
+  - `ActiveMonsters[MaxMonsters]` and `ActiveMonsterCount` are separate owned globals (type mismatch with pool internals).
+  - Two range-for sites over `Monsters` (`ClrAllMonsters`, `player.cpp`) were updated to use `MonsterPoolAdapter::AllMonsters()`.
+  - Three range-for sites over `ActiveMonsters` in `loadsave.cpp` were updated to use `MonsterPoolAdapter::ActiveMonsterIds()`.
 - ~~Item pool~~ — **Done.** See `Source/item_pool.h` and `Source/item_pool.cpp`.
