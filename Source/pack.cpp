@@ -259,30 +259,30 @@ void PackNetPlayer(PlayerNetPack &packed, const Player &player)
 	packed.friendlyMode = player.friendlyMode ? 1 : 0;
 	packed.isOnSetLevel = player.plrIsOnSetLevel;
 
-	packed.pStrength = Swap32LE(player.attributes.strength.current);
-	packed.pMagic = Swap32LE(player.attributes.magic.current);
-	packed.pDexterity = Swap32LE(player.attributes.dexterity.current);
-	packed.pVitality = Swap32LE(player.attributes.vitality.current);
-	packed.pHitPoints = Swap32LE(player.life.current);
-	packed.pMaxHP = Swap32LE(player.life.maximum);
-	packed.pMana = Swap32LE(player.mana.current);
-	packed.pMaxMana = Swap32LE(player.mana.maximum);
+	packed.currentStrength = Swap32LE(player.attributes.strength.current);
+	packed.currentMagic = Swap32LE(player.attributes.magic.current);
+	packed.currentDexterity = Swap32LE(player.attributes.dexterity.current);
+	packed.currentVitality = Swap32LE(player.attributes.vitality.current);
+	packed.currentHitPoints = Swap32LE(player.life.current);
+	packed.maximumHitPoints = Swap32LE(player.life.maximum);
+	packed.currentMana = Swap32LE(player.mana.current);
+	packed.maximumMana = Swap32LE(player.mana.maximum);
 	packed.pDamageMod = Swap32LE(player._pDamageMod);
 	// we pack base to block as a basic check that remote players are using the same playerdat values as we are
 	packed.pBaseToBlk = Swap32LE(player.getBaseToBlock());
-	packed.pIMinDam = Swap32LE(player.damageBonuses.physical.minimum);
-	packed.pIMaxDam = Swap32LE(player.damageBonuses.physical.maximum);
+	packed.physicalDamageMinimum = Swap32LE(player.damageBonuses.physical.minimum);
+	packed.physicalDamageMaximum = Swap32LE(player.damageBonuses.physical.maximum);
 	packed.pIAC = Swap32LE(player._pIAC);
-	packed.pIBonusDam = Swap32LE(player.damageBonuses.percent);
+	packed.damagePercentBonus = Swap32LE(player.damageBonuses.percent);
 	packed.pIBonusToHit = Swap32LE(player._pIBonusToHit);
 	packed.pIBonusAC = Swap32LE(player._pIBonusAC);
-	packed.pIBonusDamMod = Swap32LE(player.damageBonuses.flat);
+	packed.damageFlatBonus = Swap32LE(player.damageBonuses.flat);
 	packed.pIGetHit = Swap32LE(player._pIGetHit);
-	packed.pIEnAc = Swap32LE(player.damageBonuses.armorPiercing);
-	packed.pIFMinDam = Swap32LE(player.damageBonuses.fire.minimum);
-	packed.pIFMaxDam = Swap32LE(player.damageBonuses.fire.maximum);
-	packed.pILMinDam = Swap32LE(player.damageBonuses.lightning.minimum);
-	packed.pILMaxDam = Swap32LE(player.damageBonuses.lightning.maximum);
+	packed.armorPiercing = Swap32LE(player.damageBonuses.armorPiercing);
+	packed.fireDamageMinimum = Swap32LE(player.damageBonuses.fire.minimum);
+	packed.fireDamageMaximum = Swap32LE(player.damageBonuses.fire.maximum);
+	packed.lightningDamageMinimum = Swap32LE(player.damageBonuses.lightning.minimum);
+	packed.lightningDamageMaximum = Swap32LE(player.damageBonuses.lightning.maximum);
 }
 
 void UnPackItem(const ItemPack &packedItem, const Player &player, Item &item, bool isHellfire)
@@ -476,7 +476,7 @@ bool UnPackNetPlayer(const PlayerNetPack &packed, Player &player)
 
 	const int32_t baseHpMax = Swap32LE(packed.pMaxHPBase);
 	const int32_t baseHp = Swap32LE(packed.pHPBase);
-	const int32_t hpMax = Swap32LE(packed.pMaxHP);
+	const int32_t hpMax = Swap32LE(packed.maximumHitPoints);
 	ValidateFields(baseHp, baseHpMax, baseHp >= (baseHpMax - hpMax) && baseHp <= baseHpMax);
 
 	const int32_t baseManaMax = Swap32LE(packed.pMaxManaBase);
@@ -582,29 +582,40 @@ bool UnPackNetPlayer(const PlayerNetPack &packed, Player &player)
 	CalcPlrInv(player, false);
 	player._pGold = CalculateGold(player);
 
-	ValidateFields(player.attributes.strength.current, SwapSigned32LE(packed.pStrength), player.attributes.strength.current == SwapSigned32LE(packed.pStrength));
-	ValidateFields(player.attributes.magic.current, SwapSigned32LE(packed.pMagic), player.attributes.magic.current == SwapSigned32LE(packed.pMagic));
-	ValidateFields(player.attributes.dexterity.current, SwapSigned32LE(packed.pDexterity), player.attributes.dexterity.current == SwapSigned32LE(packed.pDexterity));
-	ValidateFields(player.attributes.vitality.current, SwapSigned32LE(packed.pVitality), player.attributes.vitality.current == SwapSigned32LE(packed.pVitality));
-	ValidateFields(player.life.current, SwapSigned32LE(packed.pHitPoints), player.life.current == SwapSigned32LE(packed.pHitPoints));
-	ValidateFields(player.life.maximum, SwapSigned32LE(packed.pMaxHP), player.life.maximum == SwapSigned32LE(packed.pMaxHP));
-	ValidateFields(player.mana.current, SwapSigned32LE(packed.pMana), player.mana.current == SwapSigned32LE(packed.pMana));
-	ValidateFields(player.mana.maximum, SwapSigned32LE(packed.pMaxMana), player.mana.maximum == SwapSigned32LE(packed.pMaxMana));
+	ValidateFields(player.attributes.strength.current, SwapSigned32LE(packed.currentStrength),
+	    player.attributes.strength.current == SwapSigned32LE(packed.currentStrength));
+	ValidateFields(player.attributes.magic.current, SwapSigned32LE(packed.currentMagic), player.attributes.magic.current == SwapSigned32LE(packed.currentMagic));
+	ValidateFields(player.attributes.dexterity.current, SwapSigned32LE(packed.currentDexterity),
+	    player.attributes.dexterity.current == SwapSigned32LE(packed.currentDexterity));
+	ValidateFields(player.attributes.vitality.current, SwapSigned32LE(packed.currentVitality),
+	    player.attributes.vitality.current == SwapSigned32LE(packed.currentVitality));
+	ValidateFields(player.life.current, SwapSigned32LE(packed.currentHitPoints), player.life.current == SwapSigned32LE(packed.currentHitPoints));
+	ValidateFields(player.life.maximum, SwapSigned32LE(packed.maximumHitPoints), player.life.maximum == SwapSigned32LE(packed.maximumHitPoints));
+	ValidateFields(player.mana.current, SwapSigned32LE(packed.currentMana), player.mana.current == SwapSigned32LE(packed.currentMana));
+	ValidateFields(player.mana.maximum, SwapSigned32LE(packed.maximumMana), player.mana.maximum == SwapSigned32LE(packed.maximumMana));
 	ValidateFields(player._pDamageMod, SwapSigned32LE(packed.pDamageMod), player._pDamageMod == SwapSigned32LE(packed.pDamageMod));
 	ValidateFields(player.getBaseToBlock(), SwapSigned32LE(packed.pBaseToBlk), player.getBaseToBlock() == SwapSigned32LE(packed.pBaseToBlk));
-	ValidateFields(player.damageBonuses.physical.minimum, SwapSigned32LE(packed.pIMinDam), player.damageBonuses.physical.minimum == SwapSigned32LE(packed.pIMinDam));
-	ValidateFields(player.damageBonuses.physical.maximum, SwapSigned32LE(packed.pIMaxDam), player.damageBonuses.physical.maximum == SwapSigned32LE(packed.pIMaxDam));
+	ValidateFields(player.damageBonuses.physical.minimum, SwapSigned32LE(packed.physicalDamageMinimum),
+	    player.damageBonuses.physical.minimum == SwapSigned32LE(packed.physicalDamageMinimum));
+	ValidateFields(player.damageBonuses.physical.maximum, SwapSigned32LE(packed.physicalDamageMaximum),
+	    player.damageBonuses.physical.maximum == SwapSigned32LE(packed.physicalDamageMaximum));
 	ValidateFields(player._pIAC, SwapSigned32LE(packed.pIAC), player._pIAC == SwapSigned32LE(packed.pIAC));
-	ValidateFields(player.damageBonuses.percent, SwapSigned32LE(packed.pIBonusDam), player.damageBonuses.percent == SwapSigned32LE(packed.pIBonusDam));
+	ValidateFields(player.damageBonuses.percent, SwapSigned32LE(packed.damagePercentBonus),
+	    player.damageBonuses.percent == SwapSigned32LE(packed.damagePercentBonus));
 	ValidateFields(player._pIBonusToHit, SwapSigned32LE(packed.pIBonusToHit), player._pIBonusToHit == SwapSigned32LE(packed.pIBonusToHit));
 	ValidateFields(player._pIBonusAC, SwapSigned32LE(packed.pIBonusAC), player._pIBonusAC == SwapSigned32LE(packed.pIBonusAC));
-	ValidateFields(player.damageBonuses.flat, SwapSigned32LE(packed.pIBonusDamMod), player.damageBonuses.flat == SwapSigned32LE(packed.pIBonusDamMod));
+	ValidateFields(player.damageBonuses.flat, SwapSigned32LE(packed.damageFlatBonus), player.damageBonuses.flat == SwapSigned32LE(packed.damageFlatBonus));
 	ValidateFields(player._pIGetHit, SwapSigned32LE(packed.pIGetHit), player._pIGetHit == SwapSigned32LE(packed.pIGetHit));
-	ValidateFields(player.damageBonuses.armorPiercing, SwapSigned32LE(packed.pIEnAc), player.damageBonuses.armorPiercing == SwapSigned32LE(packed.pIEnAc));
-	ValidateFields(player.damageBonuses.fire.minimum, SwapSigned32LE(packed.pIFMinDam), player.damageBonuses.fire.minimum == SwapSigned32LE(packed.pIFMinDam));
-	ValidateFields(player.damageBonuses.fire.maximum, SwapSigned32LE(packed.pIFMaxDam), player.damageBonuses.fire.maximum == SwapSigned32LE(packed.pIFMaxDam));
-	ValidateFields(player.damageBonuses.lightning.minimum, SwapSigned32LE(packed.pILMinDam), player.damageBonuses.lightning.minimum == SwapSigned32LE(packed.pILMinDam));
-	ValidateFields(player.damageBonuses.lightning.maximum, SwapSigned32LE(packed.pILMaxDam), player.damageBonuses.lightning.maximum == SwapSigned32LE(packed.pILMaxDam));
+	ValidateFields(player.damageBonuses.armorPiercing, SwapSigned32LE(packed.armorPiercing),
+	    player.damageBonuses.armorPiercing == SwapSigned32LE(packed.armorPiercing));
+	ValidateFields(player.damageBonuses.fire.minimum, SwapSigned32LE(packed.fireDamageMinimum),
+	    player.damageBonuses.fire.minimum == SwapSigned32LE(packed.fireDamageMinimum));
+	ValidateFields(player.damageBonuses.fire.maximum, SwapSigned32LE(packed.fireDamageMaximum),
+	    player.damageBonuses.fire.maximum == SwapSigned32LE(packed.fireDamageMaximum));
+	ValidateFields(player.damageBonuses.lightning.minimum, SwapSigned32LE(packed.lightningDamageMinimum),
+	    player.damageBonuses.lightning.minimum == SwapSigned32LE(packed.lightningDamageMinimum));
+	ValidateFields(player.damageBonuses.lightning.maximum, SwapSigned32LE(packed.lightningDamageMaximum),
+	    player.damageBonuses.lightning.maximum == SwapSigned32LE(packed.lightningDamageMaximum));
 	ValidateFields(player.life.maximumBase, player.calculateBaseLife(), player.life.maximumBase <= player.calculateBaseLife());
 	ValidateFields(player.mana.maximumBase, player.calculateBaseMana(), player.mana.maximumBase <= player.calculateBaseMana());
 
