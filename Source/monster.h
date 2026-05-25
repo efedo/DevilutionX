@@ -294,8 +294,6 @@ struct Monster : CombatActor { // note: missing field _mAFNum
 
 /** Storage owned by gMonsterPool (monster_pool.cpp). */
 extern Monster *Monsters;
-extern unsigned ActiveMonsters[MaxMonsters];
-extern size_t ActiveMonsterCount;
 extern int MonsterKillCounts[NUM_MAX_MTYPES];
 extern bool sgbSaveSoundOn;
 

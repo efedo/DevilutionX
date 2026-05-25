@@ -29,6 +29,10 @@ using MonsterPool = DenseEntityPool<Monster, MaxMonsters, SparseAllocationPolicy
 
 extern MonsterPool gMonsterPool;
 
+// Active monster index bookkeeping (separate from pool internals)
+extern unsigned ActiveMonsters[MaxMonsters];
+extern size_t ActiveMonsterCount;
+
 void InitializeMonsterPool();
 
 namespace MonsterPoolAdapter {

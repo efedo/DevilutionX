@@ -15,6 +15,7 @@
 #include "cursor.h"
 #include "engine/random.hpp"
 #include "items.h"
+#include "item_pool.h"
 #include "lua/metadoc.hpp"
 #include "pack.h"
 #include "player.h"
