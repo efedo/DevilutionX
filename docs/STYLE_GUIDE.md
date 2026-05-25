@@ -45,6 +45,7 @@ This guide captures local preferences that are not obvious from the compiler, fo
 
 ## Headers
 
+- Header files should include a short file description at the top.
 - Headers should expose the smallest useful interface.
 - Prefer declarations in headers and implementations in `.cpp` files.
 - As a rule of thumb, only keep functions in headers when the full definition and body fit comfortably on one line.

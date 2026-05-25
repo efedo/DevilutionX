@@ -3624,6 +3624,114 @@ unsigned int Object::GetId() const
 	return std::abs(dObject[position.x][position.y]) - 1;
 }
 
+void Object::SetMapRange(WorldTilePosition topLeftPosition, WorldTilePosition bottomRightPosition)
+{
+	_oVar1 = topLeftPosition.x;
+	_oVar2 = topLeftPosition.y;
+	_oVar3 = bottomRightPosition.x;
+	_oVar4 = bottomRightPosition.y;
+}
+
+void Object::SetMapRange(WorldTileRectangle mapRange)
+{
+	SetMapRange(mapRange.position, mapRange.position + DisplacementOf<uint8_t>(mapRange.size));
+}
+
+void Object::InitializeBook(WorldTileRectangle mapRange)
+{
+	SetMapRange(mapRange);
+	_oVar6 = _oAnimFrame + 1; // Save the frame number for the open book frame
+}
+
+void Object::InitializeQuestBook(WorldTileRectangle mapRange, int leverID, _speech_id message)
+{
+	InitializeBook(mapRange);
+	_oVar8 = leverID;
+	bookMessage = message;
+}
+
+void Object::InitializeLoadedObject(WorldTileRectangle mapRange, int leverID)
+{
+	SetMapRange(mapRange);
+	_oVar8 = leverID;
+}
+
+bool Object::IsBreakable() const
+{
+	return _oBreak == 1;
+}
+
+bool Object::IsBroken() const
+{
+	return _oBreak == -1;
+}
+
+bool Object::canInteractWith() const
+{
+	return selectionRegion != SelectionRegion::None;
+}
+
+bool Object::IsBarrel() const
+{
+	return IsAnyOf(_otype, _object_id::OBJ_BARREL, _object_id::OBJ_BARRELEX, _object_id::OBJ_POD, _object_id::OBJ_PODEX, _object_id::OBJ_URN, _object_id::OBJ_URNEX);
+}
+
+bool Object::isExplosive() const
+{
+	return IsAnyOf(_otype, _object_id::OBJ_BARRELEX, _object_id::OBJ_PODEX, _object_id::OBJ_URNEX);
+}
+
+bool Object::IsChest() const
+{
+	return IsAnyOf(_otype, _object_id::OBJ_CHEST1, _object_id::OBJ_CHEST2, _object_id::OBJ_CHEST3, _object_id::OBJ_TCHEST1, _object_id::OBJ_TCHEST2, _object_id::OBJ_TCHEST3);
+}
+
+bool Object::IsTrappedChest() const
+{
+	return IsAnyOf(_otype, _object_id::OBJ_TCHEST1, _object_id::OBJ_TCHEST2, _object_id::OBJ_TCHEST3) && _oTrapFlag;
+}
+
+bool Object::IsUntrappedChest() const
+{
+	return IsAnyOf(_otype, _object_id::OBJ_CHEST1, _object_id::OBJ_CHEST2, _object_id::OBJ_CHEST3) && !_oTrapFlag;
+}
+
+bool Object::IsCrux() const
+{
+	return IsAnyOf(_otype, _object_id::OBJ_CRUX1, _object_id::OBJ_CRUX2, _object_id::OBJ_CRUX3);
+}
+
+bool Object::isDoor() const
+{
+	return IsAnyOf(_otype, _object_id::OBJ_L1LDOOR, _object_id::OBJ_L1RDOOR, _object_id::OBJ_L2LDOOR, _object_id::OBJ_L2RDOOR, _object_id::OBJ_L3LDOOR, _object_id::OBJ_L3RDOOR, _object_id::OBJ_L5LDOOR, _object_id::OBJ_L5RDOOR);
+}
+
+bool Object::IsShrine() const
+{
+	return IsAnyOf(_otype, _object_id::OBJ_SHRINEL, _object_id::OBJ_SHRINER);
+}
+
+bool Object::IsTrap() const
+{
+	return IsAnyOf(_otype, _object_id::OBJ_TRAPL, _object_id::OBJ_TRAPR);
+}
+
+ClxSprite Object::currentSprite() const
+{
+	return (*_oAnimData)[_oAnimFrame - 1];
+}
+
+Displacement Object::getRenderingOffset(const ClxSprite sprite, Point tilePosition) const
+{
+	Displacement offset = Displacement { -CalculateSpriteTileCenterX(sprite.width()), 0 };
+	if (position != tilePosition) {
+		// drawing a large or offset object, calculate the correct position for the center of the sprite
+		Displacement worldOffset = position - tilePosition;
+		offset -= worldOffset.worldToScreen();
+	}
+	return offset;
+}
+
 bool Object::IsDisabled() const
 {
 	if (!*GetOptions().Gameplay.disableCripplingShrines) {
@@ -3652,6 +3760,16 @@ Object *FindObjectAtPosition(Point position, bool considerLargeObjects)
 
 	// nothing at this position, return a nullptr
 	return nullptr;
+}
+
+bool IsObjectAtPosition(Point position)
+{
+	return FindObjectAtPosition(position) != nullptr;
+}
+
+Object &ObjectAtPosition(Point position)
+{
+	return Objects[std::abs(dObject[position.x][position.y]) - 1];
 }
 
 bool IsItemBlockingObjectAtPosition(Point position)
