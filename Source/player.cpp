@@ -561,14 +561,14 @@ bool PlrHitMonst(Player &player, Monster &monster, bool adjacentDamage = false)
 
 	if (gbIsHellfire && HasAllOf(player._pIFlags, ItemSpecialEffect::FireDamage | ItemSpecialEffect::LightningDamage)) {
 		// Fixed off by 1 error from Hellfire
-		const int midam = RandomIntBetween(player._pIFMinDam, player._pIFMaxDam);
+		const int midam = RandomIntBetween(player.damageBonuses.fire.minimum, player.damageBonuses.fire.maximum);
 		AddMissile(player.position.tile, player.position.temp, player.direction, MissileID::SpectralArrow, TARGET_MONSTERS, player, midam, 0);
 	}
-	const int mind = player._pIMinDam;
-	const int maxd = player._pIMaxDam;
+	const int mind = player.damageBonuses.physical.minimum;
+	const int maxd = player.damageBonuses.physical.maximum;
 	int dam = RandomIntBetween(mind, maxd);
-	dam += dam * player._pIBonusDam / 100;
-	dam += player._pIBonusDamMod;
+	dam += dam * player.damageBonuses.percent / 100;
+	dam += player.damageBonuses.flat;
 	int dam2 = dam << 6;
 	dam += player._pDamageMod;
 
@@ -734,11 +734,11 @@ bool PlrHitPlr(Player &attacker, Player &target)
 		return true;
 	}
 
-	const int mind = attacker._pIMinDam;
-	const int maxd = attacker._pIMaxDam;
+	const int mind = attacker.damageBonuses.physical.minimum;
+	const int maxd = attacker.damageBonuses.physical.maximum;
 	int dam = RandomIntBetween(mind, maxd);
-	dam += (dam * attacker._pIBonusDam) / 100;
-	dam += attacker._pIBonusDamMod + attacker._pDamageMod;
+	dam += (dam * attacker.damageBonuses.percent) / 100;
+	dam += attacker.damageBonuses.flat + attacker._pDamageMod;
 
 	const ClassAttributes &classAttributes = GetClassAttributes(attacker._pClass);
 	if (HasAnyOf(classAttributes.classFlags, PlayerClassFlag::CriticalStrike)) {
@@ -885,7 +885,7 @@ bool DoRangeAttack(Player &player)
 		}
 		if (HasAllOf(player._pIFlags, ItemSpecialEffect::FireArrows | ItemSpecialEffect::LightningArrows)) {
 			// Fixed off by 1 error from Hellfire
-			dmg = RandomIntBetween(player._pIFMinDam, player._pIFMaxDam);
+			dmg = RandomIntBetween(player.damageBonuses.fire.minimum, player.damageBonuses.fire.maximum);
 			mistype = MissileID::SpectralArrow;
 		}
 
@@ -1616,7 +1616,7 @@ int Player::GetMeleePiercingToHit() const
 {
 	int hper = GetMeleeToHit();
 	if (!gbIsHellfire)
-		hper += _pIEnAc;
+		hper += damageBonuses.armorPiercing;
 	return hper;
 }
 
@@ -1629,7 +1629,7 @@ int Player::GetRangedPiercingToHit() const
 {
 	int hper = GetRangedToHit();
 	if (!gbIsHellfire)
-		hper += _pIEnAc;
+		hper += damageBonuses.armorPiercing;
 	return hper;
 }
 
@@ -1658,9 +1658,9 @@ int Player::GetSpellLevel(SpellID spell) const
 int Player::CalculateArmorPierce(int monsterArmor, bool isMelee) const
 {
 	int tmac = monsterArmor;
-	if (_pIEnAc > 0) {
+	if (damageBonuses.armorPiercing > 0) {
 		if (gbIsHellfire) {
-			int pIEnAc = _pIEnAc - 1;
+			int pIEnAc = damageBonuses.armorPiercing - 1;
 			if (pIEnAc > 0)
 				tmac >>= pIEnAc;
 			else

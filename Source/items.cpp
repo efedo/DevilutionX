@@ -2507,8 +2507,8 @@ void CalcPlrDamage(Player &player, int minDamage, int maxDamage)
 		}
 	}
 
-	player._pIMinDam = minDamage;
-	player._pIMaxDam = maxDamage;
+	player.damageBonuses.physical.minimum = minDamage;
+	player.damageBonuses.physical.maximum = maxDamage;
 }
 
 void CalcPlrPrimaryStats(Player &player, int strength, int &magic, int dexterity, int &vitality)
@@ -2870,25 +2870,25 @@ void CalcPlrItemVals(Player &player, bool loadgfx)
 	CalcPlrDamage(player, minDamage, maxDamage);
 	CalcPlrPrimaryStats(player, strength, magic, dexterity, vitality);
 	player._pIAC = ac;
-	player._pIBonusDam = dam;
+	player.damageBonuses.percent = dam;
 	player._pIBonusToHit = toHit;
 	player._pIBonusAC = bonusAc;
 	player._pIFlags = flags;
 	player.pDamAcFlags = damAcFlags;
-	player._pIBonusDamMod = damMod;
+	player.damageBonuses.flat = damMod;
 	player._pIGetHit = getHit;
 	CalcPlrLightRadius(player, lightRadius);
 	CalcPlrDamageMod(player);
 	player._pISpells = spells;
 	EnsureValidReadiedSpell(player);
 	player._pISplLvlAdd = splLvlAdd;
-	player._pIEnAc = targetAc;
+	player.damageBonuses.armorPiercing = targetAc;
 	CalcPlrResistances(player, flags, fireRes, lightRes, magicRes);
 	CalcPlrLifeMana(player, vitality, magic, life, mana);
-	player._pIFMinDam = minFireDam;
-	player._pIFMaxDam = maxFireDam;
-	player._pILMinDam = minLightDam;
-	player._pILMaxDam = maxLightDam;
+	player.damageBonuses.fire.minimum = minFireDam;
+	player.damageBonuses.fire.maximum = maxFireDam;
+	player.damageBonuses.lightning.minimum = minLightDam;
+	player.damageBonuses.lightning.maximum = maxLightDam;
 
 	CalcPlrBlockFlag(player);
 

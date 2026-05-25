@@ -1148,7 +1148,7 @@ TEST_F(NetPackTest, UnPackNetPlayer_invalid_baseToBlk)
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_iMinDam)
 {
-	MyPlayer->_pIMinDam++;
+	MyPlayer->damageBonuses.physical.minimum++;
 	ASSERT_FALSE(TestNetPackValidation());
 
 	CalcPlrItemVals(*MyPlayer, false);
@@ -1161,7 +1161,7 @@ TEST_F(NetPackTest, UnPackNetPlayer_invalid_iMinDam)
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_iMaxDam)
 {
-	MyPlayer->_pIMaxDam++;
+	MyPlayer->damageBonuses.physical.maximum++;
 	ASSERT_FALSE(TestNetPackValidation());
 
 	CalcPlrItemVals(*MyPlayer, false);
@@ -1187,7 +1187,7 @@ TEST_F(NetPackTest, UnPackNetPlayer_invalid_iAC)
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_iBonusDam)
 {
-	MyPlayer->_pIBonusDam++;
+	MyPlayer->damageBonuses.percent++;
 	ASSERT_FALSE(TestNetPackValidation());
 
 	CalcPlrItemVals(*MyPlayer, false);
@@ -1226,7 +1226,7 @@ TEST_F(NetPackTest, UnPackNetPlayer_invalid_iBonusAC)
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_iBonusDamMod)
 {
-	MyPlayer->_pIBonusDamMod++;
+	MyPlayer->damageBonuses.flat++;
 	ASSERT_FALSE(TestNetPackValidation());
 
 	CalcPlrItemVals(*MyPlayer, false);
@@ -1252,7 +1252,7 @@ TEST_F(NetPackTest, UnPackNetPlayer_invalid_iGetHit)
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_iEnAc)
 {
-	MyPlayer->_pIEnAc++;
+	MyPlayer->damageBonuses.armorPiercing++;
 	ASSERT_FALSE(TestNetPackValidation());
 
 	CalcPlrItemVals(*MyPlayer, false);
@@ -1265,7 +1265,7 @@ TEST_F(NetPackTest, UnPackNetPlayer_invalid_iEnAc)
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_iFMinDam)
 {
-	MyPlayer->_pIFMinDam++;
+	MyPlayer->damageBonuses.fire.minimum++;
 	ASSERT_FALSE(TestNetPackValidation());
 
 	CalcPlrItemVals(*MyPlayer, false);
@@ -1278,7 +1278,7 @@ TEST_F(NetPackTest, UnPackNetPlayer_invalid_iFMinDam)
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_iFMaxDam)
 {
-	MyPlayer->_pIFMaxDam++;
+	MyPlayer->damageBonuses.fire.maximum++;
 	ASSERT_FALSE(TestNetPackValidation());
 
 	CalcPlrItemVals(*MyPlayer, false);
@@ -1291,7 +1291,7 @@ TEST_F(NetPackTest, UnPackNetPlayer_invalid_iFMaxDam)
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_iLMinDam)
 {
-	MyPlayer->_pILMinDam++;
+	MyPlayer->damageBonuses.lightning.minimum++;
 	ASSERT_FALSE(TestNetPackValidation());
 
 	CalcPlrItemVals(*MyPlayer, false);
@@ -1304,7 +1304,7 @@ TEST_F(NetPackTest, UnPackNetPlayer_invalid_iLMinDam)
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_iLMaxDam)
 {
-	MyPlayer->_pILMaxDam++;
+	MyPlayer->damageBonuses.lightning.maximum++;
 	ASSERT_FALSE(TestNetPackValidation());
 
 	CalcPlrItemVals(*MyPlayer, false);

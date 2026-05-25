@@ -169,22 +169,22 @@ static void AssertPlayer(devilution::Player &player)
 	ASSERT_EQ(CountBool(player._pLvlVisited, NUMLEVELS), 0);
 	ASSERT_EQ(CountBool(player._pSLvlVisited, NUMLEVELS), 0);
 	// This test case uses a Rogue, starting loadout is a short bow with damage 1-4
-	ASSERT_EQ(player._pIMinDam, 1);
-	ASSERT_EQ(player._pIMaxDam, 4);
+	ASSERT_EQ(player.damageBonuses.physical.minimum, 1);
+	ASSERT_EQ(player.damageBonuses.physical.maximum, 4);
 	ASSERT_EQ(player._pIAC, 0);
-	ASSERT_EQ(player._pIBonusDam, 0);
+	ASSERT_EQ(player.damageBonuses.percent, 0);
 	ASSERT_EQ(player._pIBonusToHit, 0);
 	ASSERT_EQ(player._pIBonusAC, 0);
-	ASSERT_EQ(player._pIBonusDamMod, 0);
+	ASSERT_EQ(player.damageBonuses.flat, 0);
 	ASSERT_EQ(player._pISpells, 0);
 	ASSERT_EQ(player._pIFlags, ItemSpecialEffect::None);
 	ASSERT_EQ(player._pIGetHit, 0);
 	ASSERT_EQ(player._pISplLvlAdd, 0);
-	ASSERT_EQ(player._pIEnAc, 0);
-	ASSERT_EQ(player._pIFMinDam, 0);
-	ASSERT_EQ(player._pIFMaxDam, 0);
-	ASSERT_EQ(player._pILMinDam, 0);
-	ASSERT_EQ(player._pILMaxDam, 0);
+	ASSERT_EQ(player.damageBonuses.armorPiercing, 0);
+	ASSERT_EQ(player.damageBonuses.fire.minimum, 0);
+	ASSERT_EQ(player.damageBonuses.fire.maximum, 0);
+	ASSERT_EQ(player.damageBonuses.lightning.minimum, 0);
+	ASSERT_EQ(player.damageBonuses.lightning.maximum, 0);
 }
 
 TEST(Player, CreatePlayer)

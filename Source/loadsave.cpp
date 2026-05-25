@@ -591,13 +591,13 @@ void LoadPlayer(LoadHelper &file, Player &player)
 
 	LoadAndValidateItemData(file, player.HoldItem);
 
-	player._pIMinDam = file.NextLE<int32_t>();
-	player._pIMaxDam = file.NextLE<int32_t>();
+	player.damageBonuses.physical.minimum = file.NextLE<int32_t>();
+	player.damageBonuses.physical.maximum = file.NextLE<int32_t>();
 	player._pIAC = file.NextLE<int32_t>();
-	player._pIBonusDam = file.NextLE<int32_t>();
+	player.damageBonuses.percent = file.NextLE<int32_t>();
 	player._pIBonusToHit = file.NextLE<int32_t>();
 	player._pIBonusAC = file.NextLE<int32_t>();
-	player._pIBonusDamMod = file.NextLE<int32_t>();
+	player.damageBonuses.flat = file.NextLE<int32_t>();
 	file.Skip(4); // Alignment
 
 	player._pISpells = file.NextLE<uint64_t>();
@@ -607,11 +607,11 @@ void LoadPlayer(LoadHelper &file, Player &player)
 	file.Skip(1);         // Unused
 	file.Skip(2);         // Alignment
 	file.Skip<int32_t>(); // _pISplDur
-	player._pIEnAc = file.NextLE<int32_t>();
-	player._pIFMinDam = file.NextLE<int32_t>();
-	player._pIFMaxDam = file.NextLE<int32_t>();
-	player._pILMinDam = file.NextLE<int32_t>();
-	player._pILMaxDam = file.NextLE<int32_t>();
+	player.damageBonuses.armorPiercing = file.NextLE<int32_t>();
+	player.damageBonuses.fire.minimum = file.NextLE<int32_t>();
+	player.damageBonuses.fire.maximum = file.NextLE<int32_t>();
+	player.damageBonuses.lightning.minimum = file.NextLE<int32_t>();
+	player.damageBonuses.lightning.maximum = file.NextLE<int32_t>();
 	player._pOilType = static_cast<item_misc_id>(file.NextLE<int32_t>());
 	player.pTownWarps = file.NextLE<uint8_t>();
 	player.pDungMsgs = file.NextLE<uint8_t>();
@@ -1448,13 +1448,13 @@ void SavePlayer(SaveHelper &file, const Player &player)
 
 	SaveItem(file, player.HoldItem);
 
-	file.WriteLE<int32_t>(player._pIMinDam);
-	file.WriteLE<int32_t>(player._pIMaxDam);
+	file.WriteLE<int32_t>(player.damageBonuses.physical.minimum);
+	file.WriteLE<int32_t>(player.damageBonuses.physical.maximum);
 	file.WriteLE<int32_t>(player._pIAC);
-	file.WriteLE<int32_t>(player._pIBonusDam);
+	file.WriteLE<int32_t>(player.damageBonuses.percent);
 	file.WriteLE<int32_t>(player._pIBonusToHit);
 	file.WriteLE<int32_t>(player._pIBonusAC);
-	file.WriteLE<int32_t>(player._pIBonusDamMod);
+	file.WriteLE<int32_t>(player.damageBonuses.flat);
 	file.Skip(4); // Alignment
 
 	file.WriteLE<uint64_t>(player._pISpells);
@@ -1465,11 +1465,11 @@ void SavePlayer(SaveHelper &file, const Player &player)
 	file.Skip<uint8_t>(); // Skip _pISplCost
 	file.Skip(2);         // Alignment
 	file.Skip<int32_t>(); // _pISplDur
-	file.WriteLE<int32_t>(player._pIEnAc);
-	file.WriteLE<int32_t>(player._pIFMinDam);
-	file.WriteLE<int32_t>(player._pIFMaxDam);
-	file.WriteLE<int32_t>(player._pILMinDam);
-	file.WriteLE<int32_t>(player._pILMaxDam);
+	file.WriteLE<int32_t>(player.damageBonuses.armorPiercing);
+	file.WriteLE<int32_t>(player.damageBonuses.fire.minimum);
+	file.WriteLE<int32_t>(player.damageBonuses.fire.maximum);
+	file.WriteLE<int32_t>(player.damageBonuses.lightning.minimum);
+	file.WriteLE<int32_t>(player.damageBonuses.lightning.maximum);
 	file.WriteLE<int32_t>(player._pOilType);
 	file.WriteLE<uint8_t>(player.pTownWarps);
 	file.WriteLE<uint8_t>(player.pDungMsgs);

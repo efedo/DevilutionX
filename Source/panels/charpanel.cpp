@@ -89,14 +89,14 @@ UiFlags GetMaxHealthColor()
 
 std::pair<int, int> GetDamage()
 {
-	int damageMod = InspectPlayer->_pIBonusDamMod;
+	int damageMod = InspectPlayer->damageBonuses.flat;
 	if (InspectPlayer->InvBody[INVLOC_HAND_LEFT]._itype == ItemType::Bow && InspectPlayer->_pClass != HeroClass::Rogue) {
 		damageMod += InspectPlayer->_pDamageMod / 2;
 	} else {
 		damageMod += InspectPlayer->_pDamageMod;
 	}
-	const int mindam = InspectPlayer->_pIMinDam + (InspectPlayer->_pIBonusDam * InspectPlayer->_pIMinDam / 100) + damageMod;
-	const int maxdam = InspectPlayer->_pIMaxDam + (InspectPlayer->_pIBonusDam * InspectPlayer->_pIMaxDam / 100) + damageMod;
+	const int mindam = InspectPlayer->damageBonuses.physical.minimum + (InspectPlayer->damageBonuses.percent * InspectPlayer->damageBonuses.physical.minimum / 100) + damageMod;
+	const int maxdam = InspectPlayer->damageBonuses.physical.maximum + (InspectPlayer->damageBonuses.percent * InspectPlayer->damageBonuses.physical.maximum / 100) + damageMod;
 	return { mindam, maxdam };
 }
 
@@ -178,7 +178,7 @@ PanelEntry panelEntries[] = {
 	{ N_("Damage"), { RightColumnLabelX, 219 }, 57, RightColumnLabelWidth,
 	    []() {
 	        const auto [dmgMin, dmgMax] = GetDamage();
-	        return StyledText { GetValueColor(InspectPlayer->_pIBonusDam), StrCat(dmgMin, "-", dmgMax) };
+	        return StyledText { GetValueColor(InspectPlayer->damageBonuses.percent), StrCat(dmgMin, "-", dmgMax) };
 	    } },
 
 	{ N_("Life"), { LeftColumnLabelX, 284 }, 45, LeftColumnLabelWidth,

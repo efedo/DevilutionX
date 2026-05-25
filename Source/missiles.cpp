@@ -313,7 +313,7 @@ bool MonsterMHit(const Player &player, Monster &monster, int mindam, int maxdam,
 	}
 
 	if (missileData.isArrow() && damageType == DamageType::Physical) {
-		dam = player._pIBonusDamMod + dam * player._pIBonusDam / 100 + dam;
+		dam = player.damageBonuses.flat + dam * player.damageBonuses.percent / 100 + dam;
 		if (player._pClass == HeroClass::Rogue)
 			dam += player._pDamageMod;
 		else
@@ -425,7 +425,7 @@ bool Plr2PlrMHit(const Player &player, Player &target, int mindam, int maxdam, i
 		dam = RandomIntBetween(mindam, maxdam);
 		if (missileData.isArrow() && damageType == DamageType::Physical) {
 			const int damMod = IsAnyOf(player._pClass, HeroClass::Rogue) ? player._pDamageMod : player._pDamageMod / 2;
-			dam += player._pIBonusDamMod + damMod + dam * player._pIBonusDam / 100;
+			dam += player.damageBonuses.flat + damMod + dam * player.damageBonuses.percent / 100;
 		}
 		if (!shift)
 			dam <<= 6;
@@ -2865,8 +2865,8 @@ void ProcessElementalArrow(Missile &missile)
 			if (missile._micaster == TARGET_MONSTERS) {
 				// BUGFIX: damage of missile should be encoded in missile struct; player can be dead/have left the game before missile arrives.
 				const Player &player = Players[p];
-				mind = player._pIMinDam;
-				maxd = player._pIMaxDam;
+				mind = player.damageBonuses.physical.minimum;
+				maxd = player.damageBonuses.physical.maximum;
 			} else {
 				// BUGFIX: damage of missile should be encoded in missile struct; monster can be dead before missile arrives.
 				const Monster &monster = Monsters[p];
@@ -2892,8 +2892,8 @@ void ProcessElementalArrow(Missile &missile)
 				if (!missile.IsTrap()) {
 					// BUGFIX: damage of missile should be encoded in missile struct; player can be dead/have left the game before missile arrives.
 					const Player &player = Players[p];
-					eMind = player._pILMinDam;
-					eMaxd = player._pILMaxDam;
+					eMind = player.damageBonuses.lightning.minimum;
+					eMaxd = player.damageBonuses.lightning.maximum;
 				} else {
 					eMind = GenerateRnd(10) + 1 + currlevel;
 					eMaxd = GenerateRnd(10) + 1 + currlevel * 2;
@@ -2905,8 +2905,8 @@ void ProcessElementalArrow(Missile &missile)
 				if (!missile.IsTrap()) {
 					// BUGFIX: damage of missile should be encoded in missile struct; player can be dead/have left the game before missile arrives.
 					const Player &player = Players[p];
-					eMind = player._pIFMinDam;
-					eMaxd = player._pIFMaxDam;
+					eMind = player.damageBonuses.fire.minimum;
+					eMaxd = player.damageBonuses.fire.maximum;
 				} else {
 					eMind = GenerateRnd(10) + 1 + currlevel;
 					eMaxd = GenerateRnd(10) + 1 + currlevel * 2;
@@ -2946,8 +2946,8 @@ void ProcessArrow(Missile &missile)
 	case MissileSource::Player: {
 		// BUGFIX: damage of missile should be encoded in missile struct; player can be dead/have left the game before missile arrives.
 		const Player &player = *missile.sourcePlayer();
-		mind = player._pIMinDam;
-		maxd = player._pIMaxDam;
+		mind = player.damageBonuses.physical.minimum;
+		maxd = player.damageBonuses.physical.maximum;
 	} break;
 	case MissileSource::Monster: {
 		// BUGFIX: damage of missile should be encoded in missile struct; monster can be dead before missile arrives.
@@ -3324,7 +3324,7 @@ void ProcessSpectralArrow(Missile &missile)
 		dir = player.direction;
 		micaster = TARGET_MONSTERS;
 
-		switch (player._pILMinDam) {
+		switch (player.damageBonuses.lightning.minimum) {
 		case 0:
 			mitype = MissileID::FireballBow;
 			break;
@@ -3607,13 +3607,13 @@ void ProcessWeaponExplosion(Missile &missile)
 	DamageType damageType;
 	if (missile.var2 == 1) {
 		// BUGFIX: damage of missile should be encoded in missile struct; player can be dead/have left the game before missile arrives.
-		mind = player._pIFMinDam;
-		maxd = player._pIFMaxDam;
+		mind = player.damageBonuses.fire.minimum;
+		maxd = player.damageBonuses.fire.maximum;
 		damageType = DamageType::Fire;
 	} else {
 		// BUGFIX: damage of missile should be encoded in missile struct; player can be dead/have left the game before missile arrives.
-		mind = player._pILMinDam;
-		maxd = player._pILMaxDam;
+		mind = player.damageBonuses.lightning.minimum;
+		maxd = player.damageBonuses.lightning.maximum;
 		damageType = DamageType::Lightning;
 	}
 	CheckMissileCol(missile, damageType, mind, maxd, false, missile.position.tile, false);
