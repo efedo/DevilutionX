@@ -9,7 +9,7 @@ insert_final_newline = true
 
 [*.{c++,cc,cpp,cppm,cxx,h,h++,hh,hpp,hxx,inl,ipp,ixx,tlh,tli}]
 # Visual C++ Code Style settings
-cpp_generate_documentation_comments = doxygen_slash_star
+cpp_generate_documentation_comments = none
 
 [*.java]
 end_of_line = lf

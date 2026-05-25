@@ -1527,8 +1527,8 @@ void UpdateCircle(Object &circle)
 			LastPlayerAction = PlayerActionType::None;
 			sgbMouseDown = CLICK_NONE;
 		}
-		ClrPlrPath(*playerOnCircle);
-		StartStand(*playerOnCircle, Direction::South);
+		playerOnCircle->clearPath();
+		playerOnCircle->startStand(Direction::South);
 	}
 }
 
@@ -1655,7 +1655,7 @@ void UpdateBurningCrossDamage(Object &cross)
 	if (myPlayer.position.tile != cross.position + Displacement { 0, -1 })
 		return;
 
-	ApplyPlrDamage(DamageType::Fire, myPlayer, 0, 0, damage[leveltype - 1]);
+	myPlayer.applyDamage(DamageType::Fire, 0, 0, damage[leveltype - 1]);
 	if (!myPlayer.hasNoLife()) {
 		myPlayer.Say(HeroSpeech::Argh);
 	}
@@ -2252,27 +2252,27 @@ void OperateShrineMysterious(DiabloGenerator &rng, Player &player)
 	if (&player != MyPlayer)
 		return;
 
-	ModifyPlrStr(player, -1);
-	ModifyPlrMag(player, -1);
-	ModifyPlrDex(player, -1);
-	ModifyPlrVit(player, -1);
+	player.modifyStrength(-1);
+	player.modifyMagic(-1);
+	player.modifyDexterity(-1);
+	player.modifyVitality(-1);
 
 	switch (static_cast<CharacterAttribute>(rng.generateRnd(4))) {
 	case CharacterAttribute::Strength:
-		ModifyPlrStr(player, 6);
+		player.modifyStrength(6);
 		break;
 	case CharacterAttribute::Magic:
-		ModifyPlrMag(player, 6);
+		player.modifyMagic(6);
 		break;
 	case CharacterAttribute::Dexterity:
-		ModifyPlrDex(player, 6);
+		player.modifyDexterity(6);
 		break;
 	case CharacterAttribute::Vitality:
-		ModifyPlrVit(player, 6);
+		player.modifyVitality(6);
 		break;
 	}
 
-	CheckStats(player);
+	player.checkStats();
 	CalcPlrInv(player, true);
 	RedrawEverything();
 
@@ -2604,8 +2604,8 @@ void OperateShrineEerie(Player &player)
 	if (&player != MyPlayer)
 		return;
 
-	ModifyPlrMag(player, 2);
-	CheckStats(player);
+	player.modifyMagic(2);
+	player.checkStats();
 	CalcPlrInv(player, true);
 	RedrawEverything();
 
@@ -2694,8 +2694,8 @@ void OperateShrineAbandoned(Player &player)
 	if (&player != MyPlayer)
 		return;
 
-	ModifyPlrDex(player, 2);
-	CheckStats(player);
+	player.modifyDexterity(2);
+	player.checkStats();
 	CalcPlrInv(player, true);
 	RedrawEverything();
 
@@ -2707,8 +2707,8 @@ void OperateShrineCreepy(Player &player)
 	if (&player != MyPlayer)
 		return;
 
-	ModifyPlrStr(player, 2);
-	CheckStats(player);
+	player.modifyStrength(2);
+	player.checkStats();
 	CalcPlrInv(player, true);
 	RedrawEverything();
 
@@ -2720,8 +2720,8 @@ void OperateShrineQuiet(Player &player)
 	if (&player != MyPlayer)
 		return;
 
-	ModifyPlrVit(player, 2);
-	CheckStats(player);
+	player.modifyVitality(2);
+	player.checkStats();
 	CalcPlrInv(player, true);
 	RedrawEverything();
 
@@ -2773,12 +2773,12 @@ void OperateShrineTainted(DiabloGenerator &rng, const Player &player)
 
 	Player &myPlayer = *MyPlayer;
 
-	ModifyPlrStr(myPlayer, v1);
-	ModifyPlrMag(myPlayer, v2);
-	ModifyPlrDex(myPlayer, v3);
-	ModifyPlrVit(myPlayer, v4);
+	myPlayer.modifyStrength(v1);
+	myPlayer.modifyMagic(v2);
+	myPlayer.modifyDexterity(v3);
+	myPlayer.modifyVitality(v4);
 
-	CheckStats(myPlayer);
+	myPlayer.checkStats();
 	CalcPlrInv(myPlayer, true);
 	RedrawEverything();
 
@@ -2798,30 +2798,30 @@ void OperateShrineOily(Player &player, Point spawnPosition)
 
 	switch (player._pClass) {
 	case HeroClass::Warrior:
-		ModifyPlrStr(player, 2);
+		player.modifyStrength(2);
 		break;
 	case HeroClass::Rogue:
-		ModifyPlrDex(player, 2);
+		player.modifyDexterity(2);
 		break;
 	case HeroClass::Sorcerer:
-		ModifyPlrMag(player, 2);
+		player.modifyMagic(2);
 		break;
 	case HeroClass::Barbarian:
-		ModifyPlrVit(player, 2);
+		player.modifyVitality(2);
 		break;
 	case HeroClass::Monk:
-		ModifyPlrStr(player, 1);
-		ModifyPlrDex(player, 1);
+		player.modifyStrength(1);
+		player.modifyDexterity(1);
 		break;
 	case HeroClass::Bard:
-		ModifyPlrDex(player, 1);
-		ModifyPlrMag(player, 1);
+		player.modifyDexterity(1);
+		player.modifyMagic(1);
 		break;
 	default:
 		break;
 	}
 
-	CheckStats(player);
+	player.checkStats();
 	CalcPlrInv(player, true);
 	RedrawEverything();
 
@@ -2844,7 +2844,7 @@ void OperateShrineGlowing(Player &player)
 		return;
 
 	// Add 0-5 points to Magic (0.1% of the players XP)
-	ModifyPlrMag(player, static_cast<int>(std::min<uint32_t>(player._pExperience / 1000, 5)));
+	player.modifyMagic(static_cast<int>(std::min<uint32_t>(player._pExperience / 1000, 5)));
 
 	// Take 5% of the players experience to offset the bonus, unless they're very low level in which case take all their experience.
 	if (player._pExperience > 5000)
@@ -2852,7 +2852,7 @@ void OperateShrineGlowing(Player &player)
 	else
 		player._pExperience = 0;
 
-	CheckStats(player);
+	player.checkStats();
 	RedrawEverything();
 
 	InitDiabloMsg(EMSG_SHRINE_GLOWING);
@@ -2945,19 +2945,19 @@ void OperateShrineSolar(Player &player)
 	const int hour = localtimeResult != nullptr ? localtimeResult->tm_hour : 20;
 	if (hour >= 20 || hour < 4) {
 		InitDiabloMsg(EMSG_SHRINE_SOLAR4);
-		ModifyPlrVit(player, 2);
+		player.modifyVitality(2);
 	} else if (hour >= 18) {
 		InitDiabloMsg(EMSG_SHRINE_SOLAR3);
-		ModifyPlrMag(player, 2);
+		player.modifyMagic(2);
 	} else if (hour >= 12) {
 		InitDiabloMsg(EMSG_SHRINE_SOLAR2);
-		ModifyPlrStr(player, 2);
+		player.modifyStrength(2);
 	} else /* 4:00 to 11:59 */ {
 		InitDiabloMsg(EMSG_SHRINE_SOLAR1);
-		ModifyPlrDex(player, 2);
+		player.modifyDexterity(2);
 	}
 
-	CheckStats(player);
+	player.checkStats();
 	CalcPlrInv(player, true);
 	RedrawEverything();
 }
@@ -3295,21 +3295,21 @@ bool OperateFountains(Player &player, Object &fountain)
 		for (const auto &[stat, delta] : alterations) {
 			switch (stat) {
 			case 0:
-				ModifyPlrStr(player, delta);
+				player.modifyStrength(delta);
 				break;
 			case 1:
-				ModifyPlrMag(player, delta);
+				player.modifyMagic(delta);
 				break;
 			case 2:
-				ModifyPlrDex(player, delta);
+				player.modifyDexterity(delta);
 				break;
 			case 3:
-				ModifyPlrVit(player, delta);
+				player.modifyVitality(delta);
 				break;
 			}
 		}
 
-		CheckStats(player);
+		player.checkStats();
 		applied = true;
 		if (&player == MyPlayer)
 			NetSendCmdLoc(MyPlayerId, false, CMD_OPERATEOBJ, fountain.position);

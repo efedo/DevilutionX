@@ -147,7 +147,7 @@ int GetDistance(Point destination, int maxDistance)
 
 	int8_t walkpath[MaxPathLengthPlayer];
 	Player &myPlayer = *MyPlayer;
-	const int steps = FindPath(CanStep, [&myPlayer](Point position) { return PosOkPlayer(myPlayer, position); }, myPlayer.position.future, destination, walkpath, std::min<size_t>(maxDistance, MaxPathLengthPlayer));
+	const int steps = FindPath(CanStep, [&myPlayer](Point position) { return myPlayer.positionIsAvailable(position); }, myPlayer.position.future, destination, walkpath, std::min<size_t>(maxDistance, MaxPathLengthPlayer));
 	if (steps > maxDistance)
 		return 0;
 
@@ -337,7 +337,7 @@ void FindMeleeTarget()
 				continue;
 			}
 
-			if (!PosOkPlayer(myPlayer, { dx, dy })) {
+			if (!myPlayer.positionIsAvailable({ dx, dy })) {
 				visited[dx][dy] = true;
 
 				if (dMonster[dx][dy] != 0) {
@@ -1735,7 +1735,7 @@ bool IsPathBlocked(Point position, Direction dir)
 
 	const Player &myPlayer = *MyPlayer;
 
-	return !PosOkPlayer(myPlayer, leftStep) && !PosOkPlayer(myPlayer, rightStep);
+	return !myPlayer.positionIsAvailable(leftStep) && !myPlayer.positionIsAvailable(rightStep);
 }
 
 void WalkInDir(Player &player, AxisDirection dir)
@@ -1754,13 +1754,13 @@ void WalkInDir(Player &player, AxisDirection dir)
 
 	if (IsStandingGround()) {
 		if (player._pmode == PM_STAND)
-			StartStand(player, pdir);
+			player.startStand(pdir);
 		return;
 	}
 
-	if (PosOkPlayer(player, delta) && IsPathBlocked(player.position.future, pdir)) {
+	if (player.positionIsAvailable(delta) && IsPathBlocked(player.position.future, pdir)) {
 		if (player._pmode == PM_STAND)
-			StartStand(player, pdir);
+			player.startStand(pdir);
 		return; // Don't start backtrack around obstacles
 	}
 
@@ -2561,13 +2561,13 @@ void PerformSecondaryAction()
 		LastPlayerAction = PlayerActionType::OperateObject;
 	} else {
 		if (pcursmissile != nullptr) {
-			MakePlrPath(myPlayer, pcursmissile->position.tile, true);
+			myPlayer.makePath(pcursmissile->position.tile, true);
 			myPlayer.destAction = ACTION_WALK;
 		} else if (pcurstrig != -1) {
-			MakePlrPath(myPlayer, trigs[pcurstrig].position, true);
+			myPlayer.makePath(trigs[pcurstrig].position, true);
 			myPlayer.destAction = ACTION_WALK;
 		} else if (pcursquest != Q_INVALID) {
-			MakePlrPath(myPlayer, Quests[pcursquest].position, true);
+			myPlayer.makePath(Quests[pcursquest].position, true);
 			myPlayer.destAction = ACTION_WALK;
 		}
 	}

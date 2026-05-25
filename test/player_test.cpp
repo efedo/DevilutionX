@@ -21,7 +21,7 @@ int RunBlockTest(int frames, ItemSpecialEffect flags)
 	player._pIFlags = flags;
 	// StartPlrHit compares damage (a 6 bit fixed point value) to character level to determine if the player shrugs off the hit.
 	// We don't initialise player so this comparison can't be relied on, instead we use forcehit to ensure the player enters hit mode
-	StartPlrHit(player, 0, true);
+	player.startHit(0, true);
 
 	int i = 1;
 	for (; i < 100; i++) {
@@ -201,6 +201,6 @@ TEST(Player, CreatePlayer)
 	LoadMonsterData();
 	LoadItemData();
 	Players.resize(1);
-	CreatePlayer(Players[0], HeroClass::Rogue);
+	Players[0].create(HeroClass::Rogue);
 	AssertPlayer(Players[0]);
 }

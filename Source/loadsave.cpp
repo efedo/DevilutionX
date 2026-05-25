@@ -2538,8 +2538,8 @@ tl::expected<void, std::string> LoadGame(bool firstflag)
 	}
 
 	RETURN_IF_ERROR(LoadGameLevel(firstflag, ENTRY_LOAD));
-	SetPlrAnims(myPlayer);
-	SyncPlrAnim(myPlayer);
+	myPlayer.setAnimations();
+	myPlayer.syncAnimation();
 
 	ViewPosition = { viewX, viewY };
 	ActiveMonsterCount = tmpNummonsters;

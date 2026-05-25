@@ -209,7 +209,7 @@ void FreeGame()
 	FreeStoreMem();
 
 	for (Player &player : Players)
-		ResetPlayerGFX(player);
+		player.resetGraphics();
 
 	FreeCursor();
 #ifdef _DEBUG
@@ -3155,7 +3155,7 @@ void LoadGameLevelSyncPlayerEntry(lvl_entry lvldir)
 		if (player.plractive && player.isOnActiveLevel() && (!player._pLvlChanging || &player == MyPlayer)) {
 			if (player.hitPoints > 0) {
 				if (lvldir != ENTRY_LOAD)
-					SyncInitPlrPos(player);
+					player.syncInitialPosition();
 			} else {
 				dFlags[player.position.tile.x][player.position.tile.y] |= DungeonFlag::DeadPlayer;
 			}
@@ -3184,7 +3184,7 @@ void LoadGameLevelInitPlayers(bool firstflag, lvl_entry lvldir)
 {
 	for (Player &player : Players) {
 		if (player.plractive && player.isOnActiveLevel()) {
-			InitPlayerGFX(player);
+			player.initGraphics();
 			if (lvldir != ENTRY_LOAD)
 				InitPlayer(player, firstflag);
 		}
@@ -3254,7 +3254,7 @@ tl::expected<void, std::string> LoadGameLevelSetLevel(bool firstflag, lvl_entry 
 
 	for (Player &player : Players) {
 		if (player.plractive && player.isOnActiveLevel()) {
-			InitPlayerGFX(player);
+			player.initGraphics();
 			if (lvldir != ENTRY_LOAD)
 				InitPlayer(player, firstflag);
 		}

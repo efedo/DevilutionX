@@ -735,7 +735,7 @@ bool pfile_ui_save_create(_uiheroinfo *heroinfo)
 	CopyUtf8(hero_names[saveNum], heroinfo->name, sizeof(hero_names[saveNum]));
 
 	Player &player = Players[0];
-	CreatePlayer(player, heroinfo->heroclass);
+	player.create(heroinfo->heroclass);
 	CopyUtf8(player._pName, heroinfo->name, PlayerNameLength);
 	PackPlayer(pkplr, player);
 	EncodeHero(saveWriter, &pkplr);

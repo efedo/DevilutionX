@@ -1204,7 +1204,7 @@ void MonsterAttackPlayer(Monster &monster, Player &player, int hit, int minDam, 
 		return;
 	if (blkper < blk) {
 		const Direction dir = GetDirection(player.position.tile, monster.position.tile);
-		StartPlrBlock(player, dir);
+		player.startBlock(dir);
 		if (&player == MyPlayer && player.wReflections > 0) {
 			int dam = GenerateRnd(((maxDam - minDam) << 6) + 1) + (minDam << 6);
 			dam = std::max(dam + (player._pIGetHit << 6), 64);
@@ -1223,7 +1223,7 @@ void MonsterAttackPlayer(Monster &monster, Player &player, int hit, int minDam, 
 			const int reflectedDamage = CheckReflect(monster, player, dam);
 			dam = std::max(dam - reflectedDamage, 0);
 		}
-		ApplyPlrDamage(DamageType::Physical, player, 0, 0, dam);
+		player.applyDamage(DamageType::Physical, 0, 0, dam);
 	}
 
 	// Reflect can also kill a monster, so make sure the monster is still alive
@@ -1243,18 +1243,18 @@ void MonsterAttackPlayer(Monster &monster, Player &player, int hit, int minDam, 
 			monster.startStand(monster.direction);
 		return;
 	}
-	StartPlrHit(player, dam, false);
+	player.startHit(dam, false);
 	if ((monster.flags & MFLAG_KNOCKBACK) != 0) {
 		if (player._pmode != PM_GOTHIT)
-			StartPlrHit(player, 0, true);
+			player.startHit(0, true);
 
 		const Point newPosition = player.position.tile + monster.direction;
-		if (PosOkPlayer(player, newPosition)) {
+		if (player.positionIsAvailable(newPosition)) {
 			player.position.tile = newPosition;
-			FixPlayerLocation(player, player.direction);
+			player.fixLocation(player.direction);
 			FixPlrWalkTags(player);
 			player.occupyTile(newPosition, false);
-			SetPlayerOld(player);
+			player.saveOldPosition();
 		}
 	}
 }
@@ -3821,16 +3821,16 @@ void Monster::reducePlayerAttribute(Player &player)
 		return;
 
 	if (this->reducePlayerStrength > 0) {
-		ModifyPlrStr(player, -static_cast<int>(this->reducePlayerStrength));
+		player.modifyStrength(-static_cast<int>(this->reducePlayerStrength));
 	}
 	if (this->reducePlayerMagic > 0) {
-		ModifyPlrMag(player, -static_cast<int>(this->reducePlayerMagic));
+		player.modifyMagic(-static_cast<int>(this->reducePlayerMagic));
 	}
 	if (this->reducePlayerDexterity > 0) {
-		ModifyPlrDex(player, -static_cast<int>(this->reducePlayerDexterity));
+		player.modifyDexterity(-static_cast<int>(this->reducePlayerDexterity));
 	}
 	if (this->reducePlayerVitality > 0) {
-		ModifyPlrVit(player, -static_cast<int>(this->reducePlayerVitality));
+		player.modifyVitality(-static_cast<int>(this->reducePlayerVitality));
 	}
 	if (this->reducePlayerMaxHP > 0) {
 		const int reduceAmount = std::min(player._pMaxHPBase - 64, this->reducePlayerMaxHP * 64);
@@ -4524,14 +4524,14 @@ void MissToMonst(Missile &missile, Point position)
 			return;
 
 		if (player->_pmode != PM_GOTHIT && player->_pmode != PM_DEATH)
-			StartPlrHit(*player, 0, true);
+			player->startHit(0, true);
 		const Point newPosition = oldPosition + GetDirection(missile.position.start, oldPosition);
-		if (PosOkPlayer(*player, newPosition)) {
+		if (player->positionIsAvailable(newPosition)) {
 			player->position.tile = newPosition;
-			FixPlayerLocation(*player, player->direction);
+			player->fixLocation(player->direction);
 			FixPlrWalkTags(*player);
 			player->occupyTile(newPosition, false);
-			SetPlayerOld(*player);
+			player->saveOldPosition();
 		}
 		return;
 	}

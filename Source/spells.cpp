@@ -168,10 +168,10 @@ void ConsumeSpell(Player &player, SpellID sn)
 		break;
 	}
 	if (sn == SpellID::BloodStar) {
-		ApplyPlrDamage(DamageType::Physical, player, 5);
+		player.applyDamage(DamageType::Physical, 5);
 	}
 	if (sn == SpellID::BoneSpirit) {
-		ApplyPlrDamage(DamageType::Physical, player, 6);
+		player.applyDamage(DamageType::Physical, 6);
 	}
 }
 
@@ -254,16 +254,16 @@ void ApplyResurrect(Player &target)
 		RedrawComponent(PanelDrawComponent::Mana);
 	}
 
-	ClrPlrPath(target);
+	target.clearPath();
 	target.destAction = ACTION_NONE;
 	target._pInvincible = false;
-	SyncInitPlrPos(target);
+	target.syncInitialPosition();
 
 	int hp = 10 << 6;
 	if (target._pMaxHPBase < (10 << 6)) {
 		hp = target._pMaxHPBase;
 	}
-	SetPlayerHitPoints(target, hp);
+	target.setHitPoints(hp);
 
 	target._pHPBase = target.hitPoints + (target._pMaxHPBase - target.maxHitPoints); // CODEFIX: does the same stuff as SetPlayerHitPoints above, can be removed
 	target._pMana = 0;
@@ -274,7 +274,7 @@ void ApplyResurrect(Player &target)
 	CalcPlrInv(target, true);
 
 	if (target.isOnActiveLevel()) {
-		StartStand(target, target.direction);
+		target.startStand(target.direction);
 	}
 }
 

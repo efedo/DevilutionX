@@ -2645,7 +2645,7 @@ void CalcPlrLifeMana(Player &player, int vitality, int magic, int life, int mana
 	player.hitPoints = std::min(life + player._pHPBase, player.maxHitPoints);
 
 	if (&player == MyPlayer && player.hasNoLife()) {
-		SetPlayerHitPoints(player, 0);
+		player.setHitPoints(0);
 	}
 
 	player._pMaxMana = std::clamp(mana + player._pMaxManaBase, 0, 2000 << 6);
@@ -2741,14 +2741,14 @@ void CalcPlrGraphics(Player &player, PlayerWeaponGraphic animWeaponId, PlayerArm
 	const uint8_t gfxNum = static_cast<uint8_t>(animWeaponId) | static_cast<uint8_t>(animArmorId);
 	if (player._pgfxnum != gfxNum && loadgfx) {
 		player._pgfxnum = gfxNum;
-		ResetPlayerGFX(player);
-		SetPlrAnims(player);
+		player.resetGraphics();
+		player.setAnimations();
 		player.previewCelSprite = std::nullopt;
 		player_graphic graphic = player.getGraphic();
 		int8_t numberOfFrames;
 		int8_t ticksPerFrame;
 		player.getAnimationFramesAndTicksPerFrame(graphic, numberOfFrames, ticksPerFrame);
-		LoadPlrGFX(player, graphic);
+		player.loadGraphic(graphic);
 		OptionalClxSpriteList sprites;
 		if (!HeadlessMode) {
 			auto &animData = player.AnimationData[static_cast<size_t>(graphic)];
@@ -2762,7 +2762,7 @@ void CalcPlrGraphics(Player &player, PlayerWeaponGraphic animWeaponId, PlayerArm
 				// This could also happen when unequipping a weapon during an attack, etc.
 				// To avoid the crash, we can set the remote player into a standing animation before updating the items on their sprite.
 				graphic = player_graphic::Stand;
-				NewPlrAnim(player, graphic, player.direction);
+				player.setAnimation(graphic, player.direction);
 				player.getAnimationFramesAndTicksPerFrame(graphic, numberOfFrames, ticksPerFrame);
 				sprites = player.AnimationData[static_cast<size_t>(graphic)].spritesForDirection(player.direction);
 			}
@@ -4233,10 +4233,10 @@ void UseItem(Player &player, item_misc_id mid, SpellID spellID, int spellFrom)
 		}
 		break;
 	case IMISC_ELIXSTR:
-		ModifyPlrStr(player, 1);
+		player.modifyStrength(1);
 		break;
 	case IMISC_ELIXMAG:
-		ModifyPlrMag(player, 1);
+		player.modifyMagic(1);
 		if (gbIsHellfire) {
 			player.RestoreFullMana();
 			if (&player == MyPlayer) {
@@ -4245,10 +4245,10 @@ void UseItem(Player &player, item_misc_id mid, SpellID spellID, int spellFrom)
 		}
 		break;
 	case IMISC_ELIXDEX:
-		ModifyPlrDex(player, 1);
+		player.modifyDexterity(1);
 		break;
 	case IMISC_ELIXVIT:
-		ModifyPlrVit(player, 1);
+		player.modifyVitality(1);
 		if (gbIsHellfire) {
 			player.RestoreFullLife();
 			if (&player == MyPlayer) {
@@ -4336,10 +4336,10 @@ void UseItem(Player &player, item_misc_id mid, SpellID spellID, int spellFrom)
 		NewCursor(CURSOR_OIL);
 		break;
 	case IMISC_SPECELIX:
-		ModifyPlrStr(player, 3);
-		ModifyPlrMag(player, 3);
-		ModifyPlrDex(player, 3);
-		ModifyPlrVit(player, 3);
+		player.modifyStrength(3);
+		player.modifyMagic(3);
+		player.modifyDexterity(3);
+		player.modifyVitality(3);
 		break;
 	case IMISC_RUNEF:
 		prepareSpellID = SpellID::RuneOfFire;

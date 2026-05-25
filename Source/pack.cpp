@@ -363,7 +363,7 @@ void UnPackPlayer(const PlayerPack &packed, Player &player)
 
 	player._pClass = static_cast<HeroClass>(std::clamp<uint8_t>(packed.pClass, 0, static_cast<uint8_t>(GetNumPlayerClasses() - 1)));
 
-	ClrPlrPath(player);
+	player.clearPath();
 	player.destAction = ACTION_NONE;
 
 	CopyUtf8(player._pName, packed.pName, sizeof(player._pName));
@@ -502,7 +502,7 @@ bool UnPackNetPlayer(const PlayerNetPack &packed, Player &player)
 	player.maxHitPoints = baseHpMax;
 	player.hitPoints = baseHp;
 
-	ClrPlrPath(player);
+	player.clearPath();
 	player.destAction = ACTION_NONE;
 
 	InitPlayer(player, true);

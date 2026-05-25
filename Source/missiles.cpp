@@ -441,12 +441,12 @@ bool Plr2PlrMHit(const Player &player, Player &target, int mindam, int maxdam, i
 	}
 
 	if (blkper < blk) {
-		StartPlrBlock(target, GetDirection(target.position.tile, player.position.tile));
+		target.startBlock(GetDirection(target.position.tile, player.position.tile));
 		*blocked = true;
 	} else {
 		if (&player == MyPlayer)
 			NetSendCmdDamage(true, target, dam, damageType);
-		StartPlrHit(target, dam, false);
+		target.startHit(dam, false);
 	}
 
 	return true;
@@ -1174,7 +1174,7 @@ bool PlayerMHit(Player &player, Monster *monster, int dist, int mind, int maxd, 
 			dir = GetDirection(player.position.tile, monster->position.tile);
 		}
 		*blocked = true;
-		StartPlrBlock(player, dir);
+		player.startBlock(dir);
 		return true;
 	}
 
@@ -1185,7 +1185,7 @@ bool PlayerMHit(Player &player, Monster *monster, int dist, int mind, int maxd, 
 	if (resper > 0) {
 		dam -= dam * resper / 100;
 		if (&player == MyPlayer) {
-			ApplyPlrDamage(damageType, player, 0, 0, dam, deathReason);
+			player.applyDamage(damageType, 0, 0, dam, deathReason);
 		}
 
 		if (!player.hasNoLife()) {
@@ -1195,11 +1195,11 @@ bool PlayerMHit(Player &player, Monster *monster, int dist, int mind, int maxd, 
 	}
 
 	if (&player == MyPlayer) {
-		ApplyPlrDamage(damageType, player, 0, 0, dam, deathReason);
+		player.applyDamage(damageType, 0, 0, dam, deathReason);
 	}
 
 	if (!player.hasNoLife()) {
-		StartPlrHit(player, dam, false);
+		player.startHit(dam, false);
 	}
 
 	return true;
@@ -1227,7 +1227,7 @@ void InitMissiles()
 			if (missile._mitype == MissileID::Rage) {
 				if (missile.sourcePlayer() == MyPlayer) {
 					CalcPlrItemVals(myPlayer, true);
-					ApplyPlrDamage(DamageType::Physical, myPlayer, missile._midam, 1);
+					myPlayer.applyDamage(DamageType::Physical, missile._midam, 1);
 				}
 			}
 		}
@@ -1570,7 +1570,7 @@ void AddWarp(Missile &missile, AddMissileParameter &parameter)
 			    if (trigs[i].position == target)
 				    return false;
 		    }
-		    return PosOkPlayer(player, target);
+		    return player.positionIsAvailable(target);
 	    },
 	    tile, 0, 5);
 
@@ -1816,7 +1816,7 @@ void UpdateVileMissPos(Missile &missile, Point dst)
 			const int yy = j + dst.y;
 			for (int i = -k; i <= k; i++) {
 				const int xx = i + dst.x;
-				if (PosOkPlayer(*MyPlayer, { xx, yy })) {
+				if (MyPlayer->positionIsAvailable({ xx, yy })) {
 					missile.position.tile = WorldTilePosition(xx, yy);
 					return;
 				}
@@ -1833,7 +1833,7 @@ void AddPhasing(Missile &missile, AddMissileParameter &parameter)
 
 	if (missile._micaster == TARGET_BOTH) {
 		missile.position.tile = parameter.dst;
-		if (!PosOkPlayer(player, parameter.dst))
+		if (!player.positionIsAvailable(parameter.dst))
 			UpdateVileMissPos(missile, parameter.dst);
 		return;
 	}
@@ -1847,7 +1847,7 @@ void AddPhasing(Missile &missile, AddMissileParameter &parameter)
 				continue; // Skip center
 
 			const Point target = missile.position.start + Displacement { x, y };
-			if (!PosOkPlayer(player, target))
+			if (!player.positionIsAvailable(target))
 				continue;
 
 			targets[count] = target;
@@ -1933,7 +1933,7 @@ void AddTeleport(Missile &missile, AddMissileParameter &parameter)
 
 	std::optional<Point> teleportDestination = FindClosestValidPosition(
 	    [&player](Point target) {
-		    return PosOkPlayer(player, target);
+		    return player.positionIsAvailable(target);
 	    },
 	    parameter.dst, 0, 5);
 
@@ -3400,7 +3400,7 @@ void ProcessTownPortal(Missile &missile)
 
 	for (Player &player : Players) {
 		if (player.plractive && player.isOnActiveLevel() && !player._pLvlChanging && player._pmode == PM_STAND && player.position.tile == missile.position.tile) {
-			ClrPlrPath(player);
+			player.clearPath();
 			if (&player == MyPlayer) {
 				NetSendCmdParam1(true, CMD_WARP, missile._misource);
 				player._pmode = PM_NEWLVL;
@@ -3680,7 +3680,7 @@ void ProcessTeleport(Missile &missile)
 
 	std::optional<Point> teleportDestination = FindClosestValidPosition(
 	    [&player](Point target) {
-		    return PosOkPlayer(player, target);
+		    return player.positionIsAvailable(target);
 	    },
 	    missile.position.tile, 0, 5);
 
@@ -3937,13 +3937,13 @@ void ProcessRage(Missile &missile)
 
 	// Prevent the player from dying as a result of recalculating their current life
 	if (player.hasNoLife())
-		SetPlayerHitPoints(player, 64);
+		player.setHitPoints(64);
 
 	RedrawEverything();
 	player.Say(HeroSpeech::HeavyBreathing);
 
 	if (missile._miDelFlag)
-		ApplyPlrDamage(DamageType::Physical, player, missile._midam, 1); // Prevent penalty from killing the player
+		player.applyDamage(DamageType::Physical, missile._midam, 1); // Prevent penalty from killing the player
 }
 
 void ProcessInferno(Missile &missile)

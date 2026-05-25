@@ -279,7 +279,7 @@ void PlayerLeftMsg(Player &player, bool left)
 	DeactivatePortal(player);
 	delta_close_portal(player);
 	RemoveEnemyReferences(player);
-	RemovePlrMissiles(player);
+	player.removeMissiles();
 	if (left) {
 		const leaveinfo_t leaveReason = sgdwPlayerLeftReasonTbl[player.getId()];
 		const std::string reasonDescription = DescribeLeaveReason(leaveReason);
@@ -306,7 +306,7 @@ void PlayerLeftMsg(Player &player, bool left)
 	}
 	player.plractive = false;
 	player._pName[0] = '\0';
-	ResetPlayerGFX(player);
+	player.resetGraphics();
 	gbActivePlayers--;
 }
 
@@ -379,10 +379,10 @@ void SyncPacketHeaderData(Player &player, const TPktHdr &pkt)
 					const auto newDir = static_cast<Direction>(rawDir);
 					if (player.direction != newDir && player._pmode == PM_STAND) {
 						player.direction = newDir;
-						StartStand(player, newDir);
+						player.startStand(newDir);
 					}
 				}
-				if (player.position.tile.WalkingDistance(syncPosition) > 3 && PosOkPlayer(player, syncPosition)) {
+				if (player.position.tile.WalkingDistance(syncPosition) > 3 && player.positionIsAvailable(syncPosition)) {
 					// got out of sync, clear the tiles around where we last thought the player was located
 					FixPlrWalkTags(player);
 
@@ -393,7 +393,7 @@ void SyncPacketHeaderData(Player &player, const TPktHdr &pkt)
 					player.position.future = syncPosition;
 					if (player.isWalking())
 						player.position.temp = syncPosition;
-					SetPlayerOld(player);
+					player.saveOldPosition();
 					player.occupyTile(player.position.tile, false);
 				}
 				if (player.position.future.WalkingDistance(player.position.tile) > 1) {
@@ -401,11 +401,11 @@ void SyncPacketHeaderData(Player &player, const TPktHdr &pkt)
 				}
 				const Point target = { pkt.targx, pkt.targy };
 				if (target != Point {}) // does the client send a desired (future) position of remote player?
-					MakePlrPath(player, target, true);
+					player.makePath(target, true);
 			} else {
 				player.position.tile = syncPosition;
 				player.position.future = syncPosition;
-				SetPlayerOld(player);
+				player.saveOldPosition();
 			}
 		}
 	}
@@ -870,7 +870,7 @@ bool NetInit(bool bSinglePlayer)
 		SendPlayerInfo(SNPLAYER_OTHERS, CMD_SEND_PLRINFO);
 
 		Player &myPlayer = *MyPlayer;
-		ResetPlayerGFX(myPlayer);
+		myPlayer.resetGraphics();
 		myPlayer.plractive = true;
 		gbActivePlayers = 1;
 
@@ -947,7 +947,7 @@ void recv_plrinfo(Player &player, const TCmdPlrInfoHdr &header, bool recv)
 		return;
 	}
 
-	ResetPlayerGFX(player);
+	player.resetGraphics();
 	player.plractive = true;
 	gbActivePlayers++;
 
@@ -961,20 +961,20 @@ void recv_plrinfo(Player &player, const TCmdPlrInfoHdr &header, bool recv)
 	}
 	EventPlrMsg(fmt::format(fmt::runtime(szEvent), player._pName, player.getCharacterLevel()));
 
-	SyncInitPlr(player);
+	player.syncInitialState();
 
 	if (!player.isOnActiveLevel()) {
 		return;
 	}
 
 	if (!player.hasNoLife()) {
-		StartStand(player, player.direction);
+		player.startStand(player.direction);
 		return;
 	}
 
 	player._pgfxnum &= ~0xFU;
 	player._pmode = PM_DEATH;
-	NewPlrAnim(player, player_graphic::Death, player.direction);
+	player.setAnimation(player_graphic::Death, player.direction);
 	player.animInfo.currentFrame = player.animInfo.numberOfFrames - 2;
 	dFlags[player.position.tile.x][player.position.tile.y] |= DungeonFlag::DeadPlayer;
 }

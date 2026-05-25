@@ -27,20 +27,20 @@ std::string DebugCmdLevelUp(std::optional<int> levels)
 std::string DebugCmdMaxStats()
 {
 	Player &myPlayer = *MyPlayer;
-	ModifyPlrStr(myPlayer, myPlayer.GetMaximumAttributeValue(CharacterAttribute::Strength) - myPlayer._pBaseStr);
-	ModifyPlrMag(myPlayer, myPlayer.GetMaximumAttributeValue(CharacterAttribute::Magic) - myPlayer._pBaseMag);
-	ModifyPlrDex(myPlayer, myPlayer.GetMaximumAttributeValue(CharacterAttribute::Dexterity) - myPlayer._pBaseDex);
-	ModifyPlrVit(myPlayer, myPlayer.GetMaximumAttributeValue(CharacterAttribute::Vitality) - myPlayer._pBaseVit);
+	myPlayer.modifyStrength(myPlayer.GetMaximumAttributeValue(CharacterAttribute::Strength) - myPlayer._pBaseStr);
+	myPlayer.modifyMagic(myPlayer.GetMaximumAttributeValue(CharacterAttribute::Magic) - myPlayer._pBaseMag);
+	myPlayer.modifyDexterity(myPlayer.GetMaximumAttributeValue(CharacterAttribute::Dexterity) - myPlayer._pBaseDex);
+	myPlayer.modifyVitality(myPlayer.GetMaximumAttributeValue(CharacterAttribute::Vitality) - myPlayer._pBaseVit);
 	return "Set all character base attributes to maximum.";
 }
 
 std::string DebugCmdMinStats()
 {
 	Player &myPlayer = *MyPlayer;
-	ModifyPlrStr(myPlayer, -myPlayer._pBaseStr);
-	ModifyPlrMag(myPlayer, -myPlayer._pBaseMag);
-	ModifyPlrDex(myPlayer, -myPlayer._pBaseDex);
-	ModifyPlrVit(myPlayer, -myPlayer._pBaseVit);
+	myPlayer.modifyStrength(-myPlayer._pBaseStr);
+	myPlayer.modifyMagic(-myPlayer._pBaseMag);
+	myPlayer.modifyDexterity(-myPlayer._pBaseDex);
+	myPlayer.modifyVitality(-myPlayer._pBaseVit);
 	return "Set all character base attributes to minimum.";
 }
 
@@ -61,9 +61,9 @@ std::string DebugCmdChangeHealth(int change)
 		return StrCat("Enter a value not equal to 0 to change life!");
 
 	int newHealth = myPlayer.hitPoints + (change * 64);
-	SetPlayerHitPoints(myPlayer, newHealth);
+	myPlayer.setHitPoints(newHealth);
 	if (newHealth <= 0)
-		SyncPlrKill(myPlayer, DeathReason::MonsterOrTrap);
+		myPlayer.syncKill(DeathReason::MonsterOrTrap);
 
 	return StrCat("Changed life by ", change);
 }
