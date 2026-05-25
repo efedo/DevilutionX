@@ -38,9 +38,26 @@ namespace MonsterPoolAdapter {
 	return std::span<Monster, MaxMonsters>(Monsters, MaxMonsters);
 }
 
+// Full-capacity span of the ActiveMonsters index array (MaxMonsters entries).
 [[nodiscard]] inline std::span<unsigned, MaxMonsters> ActiveMonsterIds()
 {
 	return std::span<unsigned, MaxMonsters>(ActiveMonsters, MaxMonsters);
+}
+
+// Span covering only the currently active monster indices [0, ActiveMonsterCount).
+[[nodiscard]] inline std::span<unsigned> ActiveMonsterRange()
+{
+	return std::span<unsigned>(ActiveMonsters, ActiveMonsterCount);
+}
+
+[[nodiscard]] inline size_t ActiveMonsterCountValue()
+{
+	return ActiveMonsterCount;
+}
+
+[[nodiscard]] inline bool HasFreeMonsterSlot()
+{
+	return ActiveMonsterCount < MaxMonsters;
 }
 
 } // namespace MonsterPoolAdapter

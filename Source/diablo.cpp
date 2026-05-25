@@ -77,6 +77,7 @@
 #include "menu.h"
 #include "minitext.h"
 #include "missiles.h"
+#include "monster_pool.h"
 #include "movie.h"
 #include "multi.h"
 #include "nthread.h"
@@ -1487,8 +1488,8 @@ void UnstuckChargers()
 			return;
 		}
 	}
-	for (size_t i = 0; i < ActiveMonsterCount; i++) {
-		Monster &monster = Monsters[ActiveMonsters[i]];
+	for (const unsigned m : MonsterPoolAdapter::ActiveMonsterRange()) {
+		Monster &monster = Monsters[m];
 		if (monster.mode == MonsterMode::Charge)
 			monster.mode = MonsterMode::Stand;
 	}
@@ -1496,8 +1497,8 @@ void UnstuckChargers()
 
 void UpdateMonsterLights()
 {
-	for (size_t i = 0; i < ActiveMonsterCount; i++) {
-		Monster &monster = Monsters[ActiveMonsters[i]];
+	for (const unsigned m : MonsterPoolAdapter::ActiveMonsterRange()) {
+		Monster &monster = Monsters[m];
 
 		if ((monster.flags & MFLAG_BERSERK) != 0) {
 			const int lightRadius = leveltype == DTYPE_NEST ? 9 : 3;

@@ -12,6 +12,7 @@
 #include "lighting.h"
 #include "lua/metadoc.hpp"
 #include "monster.h"
+#include "monster_pool.h"
 #include "player.h"
 #include "tables/monstdat.h"
 #include "utils/str_case.hpp"
@@ -144,7 +145,7 @@ std::string DebugCmdSpawnMonster(std::string name, std::optional<unsigned> count
 
 	Player &myPlayer = *MyPlayer;
 
-	size_t monstersToSpawn = std::min<size_t>(MaxMonsters - ActiveMonsterCount, count);
+	size_t monstersToSpawn = std::min<size_t>(MaxMonsters - MonsterPoolAdapter::ActiveMonsterCountValue(), count);
 	if (monstersToSpawn == 0)
 		return "Can't spawn any monsters";
 

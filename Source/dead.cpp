@@ -12,7 +12,7 @@
 #include "levels/gendung.h"
 #include "lighting.h"
 #include "monster.h"
-#include "tables/misdat.h"
+#include "monster_pool.h"
 
 namespace devilution {
 
@@ -76,11 +76,11 @@ void InitCorpses()
 
 	stonendx = nd;
 
-	for (size_t i = 0; i < ActiveMonsterCount; i++) {
-		auto &monster = Monsters[ActiveMonsters[i]];
+	for (const unsigned m : MonsterPoolAdapter::ActiveMonsterRange()) {
+		auto &monster = Monsters[m];
 		if (monster.isUnique()) {
 			InitDeadAnimationFromMonster(Corpses[nd], monster.type());
-			Corpses[nd].translationPaletteIndex = ActiveMonsters[i] + 1;
+			Corpses[nd].translationPaletteIndex = m + 1;
 			nd++;
 
 			monster.corpseId = nd;
@@ -97,8 +97,8 @@ void AddCorpse(Point tilePosition, int8_t dv, Direction ddir)
 
 void MoveLightsToCorpses()
 {
-	for (size_t i = 0; i < ActiveMonsterCount; i++) {
-		auto &monster = Monsters[ActiveMonsters[i]];
+	for (const unsigned m : MonsterPoolAdapter::ActiveMonsterRange()) {
+		auto &monster = Monsters[m];
 		if (!monster.isUnique())
 			continue;
 		MoveLightToCorpse(monster);

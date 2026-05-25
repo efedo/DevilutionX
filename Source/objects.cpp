@@ -39,6 +39,7 @@
 #include "missiles.h"
 #include "monster.h"
 #include "object_pool.h"
+#include "item_pool.h"
 #include "options.h"
 #include "qol/stash.h"
 #include "stores.h"
@@ -1909,7 +1910,7 @@ void OperateBook(Player &player, Object &book, bool sendmsg)
 
 void OperateBookLever(Object &questBook, bool sendmsg)
 {
-	if (ActiveItemCount >= MAXITEMS) {
+	if (!ItemPoolAdapter::HasFreeItemSlot()) {
 		return;
 	}
 	if (questBook.canInteractWith() && !qtextflag) {
@@ -2058,7 +2059,7 @@ void OperateChest(const Player &player, Object &chest, bool sendLootMsg)
 
 void OperateMushroomPatch(const Player &player, Object &mushroomPatch)
 {
-	if (ActiveItemCount >= MAXITEMS) {
+	if (!ItemPoolAdapter::HasFreeItemSlot()) {
 		return;
 	}
 
@@ -2089,7 +2090,7 @@ void OperateMushroomPatch(const Player &player, Object &mushroomPatch)
 
 void OperateInnSignChest(const Player &player, Object &questContainer, bool sendmsg)
 {
-	if (ActiveItemCount >= MAXITEMS) {
+	if (!ItemPoolAdapter::HasFreeItemSlot()) {
 		return;
 	}
 
@@ -2190,7 +2191,7 @@ void OperateSarcophagus(Object &sarcophagus, bool sendMsg, bool sendLootMsg)
 
 void OperatePedestal(Player &player, Object &pedestal, bool sendmsg)
 {
-	if (ActiveItemCount >= MAXITEMS) {
+	if (!ItemPoolAdapter::HasFreeItemSlot()) {
 		return;
 	}
 
@@ -3379,7 +3380,7 @@ void OperateStoryBook(Object &storyBook)
 
 void OperateLazStand(Object &stand)
 {
-	if (ActiveItemCount >= MAXITEMS) {
+	if (!ItemPoolAdapter::HasFreeItemSlot()) {
 		return;
 	}
 

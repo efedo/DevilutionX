@@ -41,6 +41,7 @@
 #include "levels/trigs.h"
 #include "minitext.h"
 #include "missiles.h"
+#include "monster_pool.h"
 #include "panels/spell_icons.hpp"
 #include "panels/spell_list.hpp"
 #include "panels/ui_panels.hpp"
@@ -274,8 +275,7 @@ void FindRangedTarget()
 	int distance = 0;
 	bool canTalk = false;
 
-	for (size_t i = 0; i < ActiveMonsterCount; i++) {
-		const int mi = ActiveMonsters[i];
+	for (const int mi : MonsterPoolAdapter::ActiveMonsterIds()) {
 		const Monster &monster = Monsters[mi];
 
 		if (!CanTargetMonster(monster))

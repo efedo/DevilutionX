@@ -46,6 +46,7 @@
 #include "missiles.h"
 #include "monster.h"
 #include "monster_pool.h"
+#include "item_pool.h"
 #include "nthread.h"
 #include "objects.h"
 #include "object_pool.h"
@@ -293,7 +294,7 @@ void StartSpell(Player &player, Direction d, WorldTileCoord cx, WorldTileCoord c
 
 void RespawnDeadItem(Item &&itm, Point target)
 {
-	if (ActiveItemCount >= MAXITEMS)
+	if (!ItemPoolAdapter::HasFreeItemSlot())
 		return;
 
 	const int ii = AllocateItem();
@@ -3057,7 +3058,7 @@ void StripTopGold(Player &player)
 
 		if (GoldAutoPlace(player, excessGold))
 			continue;
-		if (!player.HoldItem.isEmpty() && ActiveItemCount + 1 >= MAXITEMS)
+		if (!player.HoldItem.isEmpty() && ItemPoolAdapter::ActiveItemCountValue() + 1 >= MAXITEMS)
 			continue;
 		DeadItem(player, std::move(excessGold), { 0, 0 });
 	}

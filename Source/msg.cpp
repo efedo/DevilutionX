@@ -41,6 +41,8 @@
 #include "lighting.h"
 #include "missiles.h"
 #include "monster.h"
+#include "monster_pool.h"
+#include "item_pool.h"
 #include "monsters/validation.hpp"
 #include "nthread.h"
 #include "objects.h"
@@ -941,8 +943,9 @@ void DeltaLoadItems(const DLevel &deltaLevel)
 			    static_cast<_item_indexes>(Swap16LE(deltaItem.def.wIndx)),
 			    Swap16LE(deltaItem.def.wCI));
 			if (activeItemIndex != -1) {
-				const auto &position = Items[ActiveItems[activeItemIndex]].position;
-				if (dItem[position.x][position.y] == ActiveItems[activeItemIndex] + 1)
+				const uint8_t itemId = ItemPoolAdapter::ActiveItemIds()[activeItemIndex];
+				const auto &position = Items[itemId].position;
+				if (dItem[position.x][position.y] == itemId + 1)
 					dItem[position.x][position.y] = 0;
 				DeleteItem(activeItemIndex);
 			}
@@ -1023,8 +1026,7 @@ void DeltaLeaveSync(uint8_t bLevel)
 
 	DLevel &deltaLevel = GetDeltaLevel(bLevel);
 
-	for (size_t i = 0; i < ActiveMonsterCount; i++) {
-		const unsigned ma = ActiveMonsters[i];
+	for (const unsigned ma : MonsterPoolAdapter::ActiveMonsterRange()) {
 		Monster &monster = Monsters[ma];
 		if (monster.hitPoints == 0)
 			continue;
@@ -1449,7 +1451,7 @@ size_t OnRequestGetItem(const TCmdGItem &message, Player &player)
 		// No item at the target position or the key attributes don't match, so try find a matching item.
 		const int activeItemIndex = FindGetItem(dwSeed, wIndx, wCI);
 		if (activeItemIndex != -1) {
-			ii = ActiveItems[activeItemIndex];
+			ii = ItemPoolAdapter::ActiveItemIds()[activeItemIndex];
 		}
 	}
 
@@ -1501,7 +1503,7 @@ size_t OnGetItem(const TCmdGItem &message, Player &player)
 			InvGetItem(*MyPlayer, ii);
 	} else {
 		const int activeItemIndex = FindGetItem(dwSeed, wIndx, wCI);
-		InvGetItem(*MyPlayer, ActiveItems[activeItemIndex]);
+		InvGetItem(*MyPlayer, ItemPoolAdapter::ActiveItemIds()[activeItemIndex]);
 	}
 
 	return sizeof(message);

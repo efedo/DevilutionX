@@ -21,6 +21,7 @@
 #include "lighting.h"
 #include "missiles.h"
 #include "monster.h"
+#include "monster_pool.h"
 #include "plrmsg.h"
 #include "utils/str_case.hpp"
 #include "utils/str_cat.hpp"
@@ -66,8 +67,8 @@ void PrintDebugMonster(const Monster &monster)
 
 	bool bActive = false;
 
-	for (size_t i = 0; i < ActiveMonsterCount; i++) {
-		if (&Monsters[ActiveMonsters[i]] == &monster) {
+	for (const unsigned m : MonsterPoolAdapter::ActiveMonsterRange()) {
+		if (&Monsters[m] == &monster) {
 			bActive = true;
 			break;
 		}

@@ -811,8 +811,8 @@ void LoadMonsters(LoadHelper &file, ankerl::unordered_dense::set<unsigned> &remo
 	}
 
 	for (const unsigned removedMonsterId : removedMonsterIds) {
-		for (size_t i = 0; i < ActiveMonsterCount; i++) {
-			Monster &activeMonster = Monsters[ActiveMonsters[i]];
+		for (const unsigned m : MonsterPoolAdapter::ActiveMonsterRange()) {
+			Monster &activeMonster = Monsters[m];
 			if ((activeMonster.flags & MFLAG_TARGETS_MONSTER) != 0 && activeMonster.enemy == removedMonsterId) {
 				activeMonster.flags |= MFLAG_NO_ENEMY;
 			}
@@ -832,8 +832,8 @@ void SyncPackSize(Monster &leader)
 
 	leader.packSize = 0;
 
-	for (size_t i = 0; i < ActiveMonsterCount; i++) {
-		const Monster &minion = Monsters[ActiveMonsters[i]];
+	for (const unsigned m : MonsterPoolAdapter::ActiveMonsterRange()) {
+		const Monster &minion = Monsters[m];
 		if (minion.leaderRelation == LeaderRelation::Leashed && minion.getLeader() == &leader)
 			leader.packSize++;
 	}
@@ -1948,18 +1948,18 @@ void SaveLevel(SaveWriter &saveWriter, LevelConversionData *levelConversionData)
 		}
 	}
 
-	file.WriteBE(static_cast<int32_t>(ActiveMonsterCount));
+	file.WriteBE(static_cast<int32_t>(MonsterPoolAdapter::ActiveMonsterCountValue()));
 	file.WriteBE<int32_t>(ActiveItemCount);
 	file.WriteBE<int32_t>(ObjectPoolAdapter::ActiveObjectCountValue());
 
 	if (leveltype != DTYPE_TOWN) {
 		for (const unsigned monsterId : MonsterPoolAdapter::ActiveMonsterIds())
 			file.WriteBE<uint32_t>(monsterId);
-		for (size_t i = 0; i < ActiveMonsterCount; i++) {
+		for (const unsigned mId : MonsterPoolAdapter::ActiveMonsterRange()) {
 			MonsterConversionData *monsterConversionData = nullptr;
 			if (levelConversionData != nullptr)
-				monsterConversionData = &levelConversionData->monsterConversionData[ActiveMonsters[i]];
-			SaveMonster(&file, Monsters[ActiveMonsters[i]], monsterConversionData);
+				monsterConversionData = &levelConversionData->monsterConversionData[mId];
+			SaveMonster(&file, Monsters[mId], monsterConversionData);
 		}
 		for (const int objectId : ObjectPoolAdapter::ActiveObjectIds())
 			file.WriteLE<int8_t>(objectId);
@@ -2036,8 +2036,8 @@ tl::expected<void, std::string> LoadLevel(LevelConversionData *levelConversionDa
 		LoadMonsters(file, removedMonsterIds, true, levelConversionData);
 
 		if (!gbSkipSync) {
-			for (size_t i = 0; i < ActiveMonsterCount; i++)
-				RETURN_IF_ERROR(Monsters[ActiveMonsters[i]].syncAnim());
+			for (const unsigned m : MonsterPoolAdapter::ActiveMonsterRange())
+				RETURN_IF_ERROR(Monsters[m].syncAnim());
 		}
 		for (int &objectId : ObjectPoolAdapter::ActiveObjectIds())
 			objectId = file.NextLE<int8_t>();
@@ -2559,8 +2559,8 @@ tl::expected<void, std::string> LoadGame(bool firstflag)
 	if (leveltype != DTYPE_TOWN) {
 		LoadMonsters(file, removedMonsterIds, false, nullptr);
 
-		for (size_t i = 0; i < ActiveMonsterCount; i++)
-			SyncPackSize(Monsters[ActiveMonsters[i]]);
+		for (const unsigned m : MonsterPoolAdapter::ActiveMonsterRange())
+			SyncPackSize(Monsters[m]);
 		// Skip ActiveMissiles
 		file.Skip<int8_t>(MaxMissilesForSaveGame);
 		// Skip AvailableMissiles
@@ -2569,8 +2569,8 @@ tl::expected<void, std::string> LoadGame(bool firstflag)
 			LoadMissile(&file);
 		// For petrified monsters, the data in missile.var1 must be used to
 		// load the appropriate animation data for the monster in missile.var2
-		for (size_t i = 0; i < ActiveMonsterCount; i++)
-			RETURN_IF_ERROR(Monsters[ActiveMonsters[i]].syncAnim());
+		for (const unsigned m : MonsterPoolAdapter::ActiveMonsterRange())
+			RETURN_IF_ERROR(Monsters[m].syncAnim());
 		for (int &objectId : ObjectPoolAdapter::ActiveObjectIds())
 			objectId = file.NextLE<int8_t>();
 		for (int &objectId : ObjectPoolAdapter::AvailableObjectIds())
@@ -2798,9 +2798,9 @@ void SaveGameData(SaveWriter &saveWriter)
 	file.WriteBE<int32_t>(ViewPosition.y);
 	file.WriteLE<uint8_t>(invflag ? 1 : 0);
 	file.WriteLE<uint8_t>(CharFlag ? 1 : 0);
-	file.WriteBE(static_cast<int32_t>(ActiveMonsterCount));
+	file.WriteBE(static_cast<int32_t>(MonsterPoolAdapter::ActiveMonsterCountValue()));
 	file.WriteBE<int32_t>(ActiveItemCount);
-	// ActiveMissileCount will be a value from 0-125 (for vanilla compatibility). Writing an unsigned value here to avoid
+	// ActiveMissileCount will be a value from 0-125
 	// warnings about casting from unsigned to signed, but there's no sign extension issues when reading this as a signed
 	// value later so it doesn't have to match in LoadGameData().
 	file.WriteBE<uint32_t>(static_cast<uint32_t>(std::min(Missiles.size(), MaxMissilesForSaveGame)));
@@ -2828,8 +2828,8 @@ void SaveGameData(SaveWriter &saveWriter)
 	if (leveltype != DTYPE_TOWN) {
 		for (const unsigned monsterId : MonsterPoolAdapter::ActiveMonsterIds())
 			file.WriteBE<uint32_t>(monsterId);
-		for (size_t i = 0; i < ActiveMonsterCount; i++)
-			SaveMonster(&file, Monsters[ActiveMonsters[i]]);
+		for (const unsigned m : MonsterPoolAdapter::ActiveMonsterRange())
+			SaveMonster(&file, Monsters[m]);
 		// Write ActiveMissiles
 		for (uint8_t activeMissile = 0; activeMissile < MaxMissilesForSaveGame; activeMissile++)
 			file.WriteLE<uint8_t>(activeMissile);

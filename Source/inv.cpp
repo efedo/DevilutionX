@@ -35,7 +35,7 @@
 #include "levels/town.h"
 #include "minitext.h"
 #include "options.h"
-#include "panels/ui_panels.hpp"
+#include "item_pool.h"
 #include "player.h"
 #include "plrmsg.h"
 #include "qol/stash.h"
@@ -1065,8 +1065,8 @@ void CleanupItems(int ii)
 	}
 
 	int i = 0;
-	while (i < ActiveItemCount) {
-		if (ActiveItems[i] == ii) {
+	while (i < ItemPoolAdapter::ActiveItemCountValue()) {
+		if (ItemPoolAdapter::ActiveItemIds()[i] == ii) {
 			DeleteItem(i);
 			i = 0;
 			continue;
@@ -1703,7 +1703,7 @@ void InvGetItem(Player &player, int ii)
 
 std::optional<Point> FindAdjacentPositionForItem(Point origin, Direction facing)
 {
-	if (ActiveItemCount >= MAXITEMS)
+	if (!ItemPoolAdapter::HasFreeItemSlot())
 		return {};
 
 	if (CanPut(origin + facing))
@@ -1789,8 +1789,8 @@ void AutoGetItem(Player &player, Item *itemPointer, int ii)
 
 int FindGetItem(uint32_t iseed, _item_indexes idx, uint16_t createInfo)
 {
-	for (uint8_t i = 0; i < ActiveItemCount; i++) {
-		const Item &item = Items[ActiveItems[i]];
+	for (int i = 0; i < ItemPoolAdapter::ActiveItemCountValue(); i++) {
+		const Item &item = Items[ItemPoolAdapter::ActiveItemIds()[i]];
 		if (item.keyAttributesMatch(iseed, idx, createInfo)) {
 			return i;
 		}
@@ -1818,7 +1818,7 @@ void SyncGetItem(Point position, uint32_t iseed, _item_indexes idx, uint16_t ci)
 
 		if (ii != -1) {
 			// Translate to Items index for CleanupItems, FindGetItem returns an ActiveItems index
-			ii = ActiveItems[ii];
+			ii = ItemPoolAdapter::ActiveItemIds()[ii];
 		}
 	}
 
@@ -1886,7 +1886,7 @@ uint8_t ClampMaxDam(const Item &item, uint8_t maxDam)
 
 int SyncDropItem(Point position, _item_indexes idx, uint16_t icreateinfo, int iseed, int id, int dur, int mdur, int ch, int mch, int ivalue, uint32_t ibuff, int toHit, int maxDam)
 {
-	if (ActiveItemCount >= MAXITEMS)
+	if (!ItemPoolAdapter::HasFreeItemSlot())
 		return -1;
 
 	Item item;
@@ -1908,7 +1908,7 @@ int SyncDropItem(Point position, _item_indexes idx, uint16_t icreateinfo, int is
 
 int SyncDropEar(Point position, uint16_t icreateinfo, uint32_t iseed, uint8_t cursval, std::string_view heroname)
 {
-	if (ActiveItemCount >= MAXITEMS)
+	if (!ItemPoolAdapter::HasFreeItemSlot())
 		return -1;
 
 	Item item;

@@ -4179,8 +4179,8 @@ void RemoveEnemyReferences(const Player &player)
 		return;
 
 	const size_t playerId = player.getId();
-	for (size_t i = 0; i < ActiveMonsterCount; i++) {
-		Monster &activeMonster = Monsters[ActiveMonsters[i]];
+	for (const unsigned m : MonsterPoolAdapter::ActiveMonsterRange()) {
+		Monster &activeMonster = Monsters[m];
 		if ((activeMonster.flags & MFLAG_TARGETS_MONSTER) == 0 && activeMonster.enemy == playerId) {
 			activeMonster.flags |= MFLAG_NO_ENEMY;
 		}
@@ -4191,9 +4191,9 @@ void ProcessMonsters()
 {
 	DeleteMonsterList();
 
-	assert(ActiveMonsterCount <= MaxMonsters);
-	for (size_t i = 0; i < ActiveMonsterCount; i++) {
-		Monster &monster = Monsters[ActiveMonsters[i]];
+	assert(MonsterPoolAdapter::ActiveMonsterCountValue() <= MaxMonsters);
+	for (const unsigned m : MonsterPoolAdapter::ActiveMonsterRange()) {
+		Monster &monster = Monsters[m];
 		FollowTheLeader(monster);
 		if (gbIsMultiplayer) {
 			SetRndSeed(monster.aiSeed);
@@ -4573,9 +4573,8 @@ Monster *FindMonsterAtPosition(Point position, bool ignoreMovingMonsters)
 
 Monster *FindUniqueMonster(UniqueMonsterType monsterType)
 {
-	for (size_t i = 0; i < ActiveMonsterCount; i++) {
-		const int monsterId = ActiveMonsters[i];
-		Monster &monster = Monsters[monsterId];
+	for (const unsigned m : MonsterPoolAdapter::ActiveMonsterRange()) {
+		Monster &monster = Monsters[m];
 		if (monster.uniqueType == monsterType)
 			return &monster;
 	}
@@ -4584,9 +4583,8 @@ Monster *FindUniqueMonster(UniqueMonsterType monsterType)
 
 Monster *FindGolemForPlayer(const Player &player)
 {
-	for (size_t i = 0; i < ActiveMonsterCount; i++) {
-		const int monsterId = ActiveMonsters[i];
-		Monster &monster = Monsters[monsterId];
+	for (const unsigned m : MonsterPoolAdapter::ActiveMonsterRange()) {
+		Monster &monster = Monsters[m];
 		if (monster.type().type != MT_GOLEM)
 			continue;
 		if (monster.position.tile == GolemHoldingCell)

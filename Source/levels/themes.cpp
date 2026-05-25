@@ -13,6 +13,7 @@
 #include "engine/points_in_rectangle_range.hpp"
 #include "engine/random.hpp"
 #include "items.h"
+#include "item_pool.h"
 #include "levels/tile_properties.hpp"
 #include "levels/trigs.h"
 #include "monster.h"
@@ -536,7 +537,7 @@ void Theme_Treasure(int t)
 				//    of the item creation branches above, thus the last (unrelated)
 				//    item spawned/dropped on ground would be halved in value.
 				if (rv >= treasureType - 2 && leveltype != DTYPE_CATHEDRAL) {
-					Item &item = Items[ActiveItems[ActiveItemCount - 1]];
+					Item &item = Items[ItemPoolAdapter::ActiveItemIds()[ItemPoolAdapter::ActiveItemCountValue() - 1]];
 					if (item.IDidx == IDI_GOLD) {
 						item._ivalue = std::max(item._ivalue / 2, 1);
 					}
