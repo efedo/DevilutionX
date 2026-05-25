@@ -839,14 +839,14 @@ void DeltaLoadEnemies(const DLevel &deltaLevel)
 			continue;
 		Monster &monster = Monsters[i];
 		if (IsEnemyValid(i, deltaMonster.menemy))
-			decode_enemy(monster, deltaMonster.menemy);
+			monster.decodeEnemy(deltaMonster.menemy);
 		if (monster.position.tile != Point { 0, 0 } && monster.position.tile != GolemHoldingCell)
 			monster.occupyTile(monster.position.tile, false);
 		if (monster.type().type == MT_GOLEM) {
 			GolumAi(monster);
 			monster.flags |= (MFLAG_TARGETS_MONSTER | MFLAG_GOLEM);
 		} else {
-			M_StartStand(monster, monster.direction);
+			monster.startStand(monster.direction);
 		}
 		monster.activeForTicks = deltaMonster.mactive;
 	}
@@ -860,7 +860,7 @@ void DeltaLoadMonsters(const DLevel &deltaLevel)
 			continue;
 
 		Monster &monster = Monsters[i];
-		M_ClearSquares(monster);
+		monster.clearSquares();
 		{
 			const WorldTilePosition position = deltaMonster.position;
 			monster.position.tile = position;
@@ -875,7 +875,7 @@ void DeltaLoadMonsters(const DLevel &deltaLevel)
 		if (deltaMonster.hitPoints != 0)
 			continue;
 
-		M_ClearSquares(monster);
+		monster.clearSquares();
 		if (monster.ai != MonsterAIID::Diablo) {
 			if (monster.isUnique()) {
 				AddCorpse(monster.position.tile, monster.corpseId, monster.direction);
@@ -884,7 +884,7 @@ void DeltaLoadMonsters(const DLevel &deltaLevel)
 			}
 		}
 		monster.isInvalid = true;
-		M_UpdateRelations(monster);
+		monster.updateRelations();
 	}
 
 	// Calling this here ensures that monster hitpoints
@@ -1030,7 +1030,7 @@ void DeltaLeaveSync(uint8_t bLevel)
 			continue;
 		DMonsterStr &delta = deltaLevel.monster[ma];
 		delta.position = monster.position.tile;
-		delta.menemy = encode_enemy(monster);
+		delta.menemy = monster.encodeEnemy();
 		delta.hitPoints = monster.hitPoints;
 		delta.mactive = monster.activeForTicks;
 		delta.mWhoHit = monster.whoHit;
@@ -1906,8 +1906,8 @@ size_t OnKnockback(const TCmdParam1 &message, Player &player)
 
 	if (gbBufferMsgs != 1 && player.isOnActiveLevel() && leveltype != DTYPE_TOWN && monsterIdx < MaxMonsters) {
 		Monster &monster = Monsters[monsterIdx];
-		M_GetKnockback(monster, player.position.tile);
-		M_StartHit(monster, player, 0);
+		monster.getKnockback(player.position.tile);
+		monster.startHit(player, 0);
 	}
 
 	return sizeof(message);
@@ -2020,7 +2020,7 @@ size_t OnMonstDeath(const TCmdLocParam1 &message, Player &player)
 		if (&player != MyPlayer && player.plrlevel > 0 && InDungeonBounds(position) && monsterIdx < MaxMonsters) {
 			Monster &monster = Monsters[monsterIdx];
 			if (player.isOnActiveLevel())
-				M_SyncStartKill(monster, position, player);
+				monster.syncStartKill(position, player);
 			delta_kill_monster(monster, position, player);
 		}
 	} else {

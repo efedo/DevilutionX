@@ -2034,7 +2034,7 @@ tl::expected<void, std::string> LoadLevel(LevelConversionData *levelConversionDa
 
 		if (!gbSkipSync) {
 			for (size_t i = 0; i < ActiveMonsterCount; i++)
-				RETURN_IF_ERROR(SyncMonsterAnim(Monsters[ActiveMonsters[i]]));
+				RETURN_IF_ERROR(Monsters[ActiveMonsters[i]].syncAnim());
 		}
 		for (int &objectId : ActiveObjects)
 			objectId = file.NextLE<int8_t>();
@@ -2564,7 +2564,7 @@ tl::expected<void, std::string> LoadGame(bool firstflag)
 		// For petrified monsters, the data in missile.var1 must be used to
 		// load the appropriate animation data for the monster in missile.var2
 		for (size_t i = 0; i < ActiveMonsterCount; i++)
-			RETURN_IF_ERROR(SyncMonsterAnim(Monsters[ActiveMonsters[i]]));
+			RETURN_IF_ERROR(Monsters[ActiveMonsters[i]].syncAnim());
 		for (int &objectId : ActiveObjects)
 			objectId = file.NextLE<int8_t>();
 		for (int &objectId : AvailableObjects)

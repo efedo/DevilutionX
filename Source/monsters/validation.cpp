@@ -41,7 +41,7 @@ bool IsEnemyValid(size_t monsterId, size_t enemyId)
 
 bool IsMonsterValid(const Monster &monster)
 {
-	const CMonster &monsterType = LevelMonsterTypes[monster.levelType];
+	const CMonster &monsterType = LevelBestiary[monster.levelType];
 	const _monster_id monsterId = monsterType.type;
 	const auto monsterIndex = static_cast<size_t>(monsterId);
 
@@ -65,7 +65,7 @@ bool IsUniqueMonsterValid(const Monster &monster)
 		return false;
 	}
 
-	const CMonster &monsterType = LevelMonsterTypes[monster.levelType];
+	const CMonster &monsterType = LevelBestiary[monster.levelType];
 	const _monster_id monsterId = monsterType.type;
 	const UniqueMonsterData &uniqueMonsterData = UniqueMonstersData.at(uniqueMonsterIndex);
 	return monsterId == uniqueMonsterData.mtype;

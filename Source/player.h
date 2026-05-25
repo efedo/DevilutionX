@@ -14,6 +14,7 @@
 
 #include "diablo.h"
 #include "engine/actor.hpp"
+#include "engine/combat_actor.hpp"
 #include "engine/actor_position.hpp"
 #include "engine/clx_sprite.hpp"
 #include "engine/displacement.hpp"
@@ -207,7 +208,7 @@ struct SpellCastInfo {
 	int spellLevel;
 };
 
-struct Player : Actor {
+struct Player : CombatActor {
 	Player() = default;
 	Player(Player &&) noexcept = default;
 	Player &operator=(Player &&) noexcept = default;
@@ -290,7 +291,6 @@ struct Player : Actor {
 
 	uint8_t plrlevel;
 	bool plrIsOnSetLevel;
-	ActorPosition position;
 	HeroClass _pClass;
 
 private:
@@ -353,7 +353,7 @@ public:
 	uint16_t wReflections;
 	ItemSpecialEffectHf pDamAcFlags;
 
-	[[nodiscard]] std::string_view name() const
+	[[nodiscard]] std::string_view name() const override
 	{
 		return _pName;
 	}
@@ -538,7 +538,7 @@ public:
 	/**
 	 * @brief Is the player currently walking?
 	 */
-	bool isWalking() const;
+	[[nodiscard]] bool isWalking() const override;
 
 	/**
 	 * @brief Returns item location taking into consideration barbarian's ability to hold two-handed maces and clubs in one hand.
@@ -772,14 +772,6 @@ public:
 	{
 		return previewCelSprite ? *previewCelSprite : animInfo.currentSprite();
 	}
-	[[nodiscard]] Displacement getRenderingOffset(const ClxSprite sprite) const
-	{
-		Displacement offset = { -CalculateSpriteTileCenterX(sprite.width()), 0 };
-		if (isWalking())
-			offset += GetOffsetForWalking(animInfo, direction);
-		return offset;
-	}
-
 	/**
 	 * @brief Updates previewCelSprite according to new requested command
 	 * @param cmdId What command is requested

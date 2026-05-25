@@ -48,8 +48,8 @@ std::string DebugCmdSpawnUniqueMonster(std::string name, std::optional<unsigned>
 	size_t id = MaxLvlMTypes - 1;
 	bool found = false;
 
-	for (size_t i = 0; i < LevelMonsterTypeCount; i++) {
-		if (LevelMonsterTypes[i].type == mtype) {
+	for (size_t i = 0; i < LevelBestiary.size(); i++) {
+		if (LevelBestiary[i].type == mtype) {
 			id = i;
 			found = true;
 			break;
@@ -57,13 +57,13 @@ std::string DebugCmdSpawnUniqueMonster(std::string name, std::optional<unsigned>
 	}
 
 	if (!found) {
-		if (LevelMonsterTypeCount == MaxLvlMTypes)
-			LevelMonsterTypeCount--; // we are running out of monster types, so override last used monster type
+		if (LevelBestiary.size() == MaxLvlMTypes)
+			LevelBestiary.decrementSize(); // we are running out of monster types, so override last used monster type
 		tl::expected<size_t, std::string> idResult = AddMonsterType(uniqueIndex, PLACE_SCATTER);
 		if (!idResult.has_value()) return std::move(idResult).error();
 		id = idResult.value();
-		CMonster &monsterType = LevelMonsterTypes[id];
-		InitMonsterGFX(monsterType);
+		CMonster &monsterType = LevelBestiary[id];
+		Bestiary::initGraphics(monsterType);
 		monsterType.corpseId = 1;
 	}
 
@@ -123,8 +123,8 @@ std::string DebugCmdSpawnMonster(std::string name, std::optional<unsigned> count
 	size_t id = MaxLvlMTypes - 1;
 	bool found = false;
 
-	for (size_t i = 0; i < LevelMonsterTypeCount; i++) {
-		if (LevelMonsterTypes[i].type == mtype) {
+	for (size_t i = 0; i < LevelBestiary.size(); i++) {
+		if (LevelBestiary[i].type == mtype) {
 			id = i;
 			found = true;
 			break;
@@ -132,13 +132,13 @@ std::string DebugCmdSpawnMonster(std::string name, std::optional<unsigned> count
 	}
 
 	if (!found) {
-		if (LevelMonsterTypeCount == MaxLvlMTypes)
-			LevelMonsterTypeCount--; // we are running out of monster types, so override last used monster type
+		if (LevelBestiary.size() == MaxLvlMTypes)
+			LevelBestiary.decrementSize(); // we are running out of monster types, so override last used monster type
 		tl::expected<size_t, std::string> idResult = AddMonsterType(static_cast<_monster_id>(mtype), PLACE_SCATTER);
 		if (!idResult.has_value()) return std::move(idResult).error();
 		id = idResult.value();
-		CMonster &monsterType = LevelMonsterTypes[id];
-		InitMonsterGFX(monsterType);
+		CMonster &monsterType = LevelBestiary[id];
+		Bestiary::initGraphics(monsterType);
 		monsterType.corpseId = 1;
 	}
 

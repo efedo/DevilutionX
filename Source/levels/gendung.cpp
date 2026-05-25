@@ -627,7 +627,7 @@ void LoadDungeonBase(const char *path, Point spawn, int floorId, int dirtId)
 	LoadTransparency(dunData.get());
 
 	SetMapMonsters(dunData.get(), Point(0, 0).megaToWorld());
-	InitAllMonsterGFX();
+	LevelBestiary.initAllGraphics();
 	SetMapObjects(dunData.get(), 0, 0);
 }
 
