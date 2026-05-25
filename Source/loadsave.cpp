@@ -2570,7 +2570,6 @@ tl::expected<void, std::string> LoadGame(bool firstflag)
 		for (size_t i = 0; i < ActiveMonsterCount; i++)
 			RETURN_IF_ERROR(Monsters[ActiveMonsters[i]].syncAnim());
 		for (int &objectId : ActiveObjects)
-			objectId = file.NextLE<int8_t>();
 		for (int &objectId : AvailableObjects)
 			objectId = file.NextLE<int8_t>();
 		for (int i = 0; i < ActiveObjectCount; i++)
