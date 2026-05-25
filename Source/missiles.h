@@ -9,6 +9,7 @@
 #include <list>
 #include <optional>
 
+#include "engine/attributes.hpp"
 #include "engine/displacement.hpp"
 #include "engine/point.hpp"
 #include "engine/world_tile.hpp"
@@ -238,10 +239,6 @@ public:
 extern std::list<Missile> Missiles;
 extern bool MissilePreFlag;
 
-struct DamageRange {
-	int min;
-	int max;
-};
 DamageRange GetDamageAmt(SpellID spell, int spellLevel);
 
 /**

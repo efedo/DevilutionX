@@ -14,6 +14,7 @@
 
 #include "diablo.h"
 #include "engine/actor.hpp"
+#include "engine/attributes.hpp"
 #include "engine/combat_actor.hpp"
 #include "engine/actor_position.hpp"
 #include "engine/clx_sprite.hpp"
