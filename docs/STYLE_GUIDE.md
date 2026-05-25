@@ -58,6 +58,23 @@ This guide captures local preferences that are not obvious from the compiler, fo
 - Keep free functions for lookups, orchestration, multi-object operations, and operations whose natural owner is a module rather than one object.
 - When migrating legacy free functions into a class, prefer a compile-preserving mechanical change first, then clean up internals in a follow-up pass.
 
+## API Modernization via Facade
+
+When refactoring a procedural or legacy API that serves a natural module or subsystem:
+
+1. **Create a namespace facade** (`ModuleName::FunctionName`) that wraps the legacy functions.
+2. **Improve names** in the facade for clarity and domain intent.
+3. **Group related operations** logically (lookup, lifecycle, processing, interaction, etc.).
+4. **Keep the old API intact** for backward compatibility; it remains a valid, if discouraged, choice for new code.
+5. **Migrate call sites mechanically first**, then improve internals in follow-up passes once confidence is high.
+
+Example: `ObjectManager` wraps the legacy `objects.h` API with a cleaner interface:
+- `ObjectManager::FindObject()` instead of `FindObjectAtPosition()`
+- `ObjectManager::Operate()` instead of `OperateObject()`
+- `ObjectManager::Break()` instead of `BreakObject()`
+
+This approach allows gradual, low-risk migration without requiring a full rewrite.
+
 ## Naming
 
 - Prefer project-local naming for existing APIs, but use clearer names when creating new interfaces.

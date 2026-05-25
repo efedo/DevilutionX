@@ -2,6 +2,12 @@
  * @file objects.h
  *
  * Interface of object functionality, interaction, spawning, loading, etc.
+ *
+ * MODERNIZATION STRATEGY:
+ * This interface is gradually being refactored through a facade pattern (see ObjectManager).
+ * New code should prefer the cleaner ObjectManager API; legacy callers continue to work.
+ * Direct use of these functions is acceptable but discouraged for new features.
+ * When migrating call sites, batch mechanical changes first, then clean up internals in a follow-up pass.
  */
 #pragma once
 
