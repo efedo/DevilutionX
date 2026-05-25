@@ -143,10 +143,10 @@ struct Object {
 	[[nodiscard]] Displacement getRenderingOffset(const ClxSprite sprite, Point tilePosition) const;
 };
 
-extern DVL_API_FOR_TEST Object Objects[MAXOBJECTS];
-extern int AvailableObjects[MAXOBJECTS];
-extern int ActiveObjects[MAXOBJECTS];
-extern int ActiveObjectCount;
+extern DVL_API_FOR_TEST Object *Objects;
+extern int *AvailableObjects;
+extern int *ActiveObjects;
+extern int &ActiveObjectCount;
 extern bool LoadingMapObjects; // Indicates that objects are being loaded during gameplay and pre-calculated data should be updated
 extern int NaKrulTomeSequence; // Tracks progress through the tome sequence that spawns Na-Krul (see OperateNakrulBook())
 

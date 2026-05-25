@@ -18,6 +18,12 @@ namespace devilution {
 // Global pool instance
 ObjectPool gObjectPool;
 
+// Legacy global aliases bound to ObjectPool storage
+Object *Objects = gObjectPool.data();
+int *AvailableObjects = gObjectPool.availableIndices();
+int *ActiveObjects = gObjectPool.activeIndices();
+int &ActiveObjectCount = gObjectPool.activeCountRef();
+
 void InitializeObjectPool()
 {
 	// Clear and reinitialize the pool

@@ -517,9 +517,9 @@ void CalcSelfItems(Player &player)
 	bool changeflag;
 	do {
 		// cap stats to 0
-		const int currstr = std::max(0, sa + player._pBaseStr);
-		const int currmag = std::max(0, ma + player._pBaseMag);
-		const int currdex = std::max(0, da + player._pBaseDex);
+		const int currstr = std::max(0, sa + player.attributes.strength.base);
+		const int currmag = std::max(0, ma + player.attributes.magic.base);
+		const int currdex = std::max(0, da + player.attributes.dexterity.base);
 
 		changeflag = false;
 		// Iterate over equipped items and remove stat bonuses if they are not valid
@@ -1936,9 +1936,9 @@ _item_indexes RndPremiumItem(const Player &player, int minlvl, int maxlvl)
 
 void SpawnOnePremium(Item &premiumItem, int plvl, const Player &player)
 {
-	int strength = std::max(player.GetMaximumAttributeValue(CharacterAttribute::Strength), player._pStrength);
-	int dexterity = std::max(player.GetMaximumAttributeValue(CharacterAttribute::Dexterity), player._pDexterity);
-	int magic = std::max(player.GetMaximumAttributeValue(CharacterAttribute::Magic), player._pMagic);
+	int strength = std::max(player.GetMaximumAttributeValue(CharacterAttribute::Strength), player.attributes.strength.current);
+	int dexterity = std::max(player.GetMaximumAttributeValue(CharacterAttribute::Dexterity), player.attributes.dexterity.current);
+	int magic = std::max(player.GetMaximumAttributeValue(CharacterAttribute::Magic), player.attributes.magic.current);
 	strength += strength / 5;
 	dexterity += dexterity / 5;
 	magic += magic / 5;
@@ -2053,13 +2053,13 @@ bool HealerItemOk(const Player &player, const ItemData &item)
 
 	if (!gbIsMultiplayer) {
 		if (item.iMiscId == IMISC_ELIXSTR)
-			return !gbIsHellfire || player._pBaseStr < player.GetMaximumAttributeValue(CharacterAttribute::Strength);
+			return !gbIsHellfire || player.attributes.strength.base < player.GetMaximumAttributeValue(CharacterAttribute::Strength);
 		if (item.iMiscId == IMISC_ELIXMAG)
-			return !gbIsHellfire || player._pBaseMag < player.GetMaximumAttributeValue(CharacterAttribute::Magic);
+			return !gbIsHellfire || player.attributes.magic.base < player.GetMaximumAttributeValue(CharacterAttribute::Magic);
 		if (item.iMiscId == IMISC_ELIXDEX)
-			return !gbIsHellfire || player._pBaseDex < player.GetMaximumAttributeValue(CharacterAttribute::Dexterity);
+			return !gbIsHellfire || player.attributes.dexterity.base < player.GetMaximumAttributeValue(CharacterAttribute::Dexterity);
 		if (item.iMiscId == IMISC_ELIXVIT)
-			return !gbIsHellfire || player._pBaseVit < player.GetMaximumAttributeValue(CharacterAttribute::Vitality);
+			return !gbIsHellfire || player.attributes.vitality.base < player.GetMaximumAttributeValue(CharacterAttribute::Vitality);
 	}
 
 	if (item.iMiscId == IMISC_REJUV)
@@ -2527,10 +2527,10 @@ void CalcPlrPrimaryStats(Player &player, int strength, int &magic, int dexterity
 		vitality -= 2 * playerLevel;
 	}
 
-	player._pStrength = std::clamp(strength + player._pBaseStr, 0, 750);
-	player._pMagic = std::clamp(magic + player._pBaseMag, 0, 750);
-	player._pDexterity = std::clamp(dexterity + player._pBaseDex, 0, 750);
-	player._pVitality = std::clamp(vitality + player._pBaseVit, 0, 750);
+	player.attributes.strength.current = std::clamp(strength + player.attributes.strength.base, 0, 750);
+	player.attributes.magic.current = std::clamp(magic + player.attributes.magic.base, 0, 750);
+	player.attributes.dexterity.current = std::clamp(dexterity + player.attributes.dexterity.base, 0, 750);
+	player.attributes.vitality.current = std::clamp(vitality + player.attributes.vitality.base, 0, 750);
 }
 
 void CalcPlrLightRadius(Player &player, int lrad)
@@ -2551,8 +2551,8 @@ void CalcPlrDamageMod(Player &player)
 	const uint8_t playerLevel = player.getCharacterLevel();
 	const Item &leftHandItem = player.InvBody[INVLOC_HAND_LEFT];
 	const Item &rightHandItem = player.InvBody[INVLOC_HAND_RIGHT];
-	const int strMod = playerLevel * player._pStrength;
-	const int strDexMod = playerLevel * (player._pStrength + player._pDexterity);
+	const int strMod = playerLevel * player.attributes.strength.current;
+	const int strDexMod = playerLevel * (player.attributes.strength.current + player.attributes.dexterity.current);
 
 	switch (player._pClass) {
 	case HeroClass::Rogue:
@@ -2588,7 +2588,7 @@ void CalcPlrDamageMod(Player &player)
 			else if (rightHandItem._itype == ItemType::Shield)
 				player._pIAC -= rightHandItem._iAC / 2;
 		} else if (!player.isHoldingItem(ItemType::Staff) && !player.isHoldingItem(ItemType::Bow)) {
-			player._pDamageMod += playerLevel * player._pVitality / 100;
+			player._pDamageMod += playerLevel * player.attributes.vitality.current / 100;
 		}
 		break;
 	default:
@@ -4539,9 +4539,9 @@ void SpawnBoy(int lvl)
 	const Player &myPlayer = *MyPlayer;
 
 	const HeroClass pc = myPlayer._pClass;
-	int strength = std::max(myPlayer.GetMaximumAttributeValue(CharacterAttribute::Strength), myPlayer._pStrength);
-	int dexterity = std::max(myPlayer.GetMaximumAttributeValue(CharacterAttribute::Dexterity), myPlayer._pDexterity);
-	int magic = std::max(myPlayer.GetMaximumAttributeValue(CharacterAttribute::Magic), myPlayer._pMagic);
+	int strength = std::max(myPlayer.GetMaximumAttributeValue(CharacterAttribute::Strength), myPlayer.attributes.strength.current);
+	int dexterity = std::max(myPlayer.GetMaximumAttributeValue(CharacterAttribute::Dexterity), myPlayer.attributes.dexterity.current);
+	int magic = std::max(myPlayer.GetMaximumAttributeValue(CharacterAttribute::Magic), myPlayer.attributes.magic.current);
 	strength += strength / 5;
 	dexterity += dexterity / 5;
 	magic += magic / 5;

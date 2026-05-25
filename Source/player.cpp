@@ -1074,7 +1074,7 @@ void TryDisarm(const Player &player, Object &object)
 	if (!object._oTrapFlag) {
 		return;
 	}
-	const int trapdisper = (2 * player._pDexterity) - (5 * currlevel);
+	const int trapdisper = (2 * player.attributes.dexterity.current) - (5 * currlevel);
 	if (GenerateRnd(100) > trapdisper) {
 		return;
 	}
@@ -1441,17 +1441,17 @@ void ValidatePlayer()
 	if (gt != myPlayer._pGold)
 		myPlayer._pGold = gt;
 
-	if (myPlayer._pBaseStr > myPlayer.GetMaximumAttributeValue(CharacterAttribute::Strength)) {
-		myPlayer._pBaseStr = myPlayer.GetMaximumAttributeValue(CharacterAttribute::Strength);
+	if (myPlayer.attributes.strength.base > myPlayer.GetMaximumAttributeValue(CharacterAttribute::Strength)) {
+		myPlayer.attributes.strength.base = myPlayer.GetMaximumAttributeValue(CharacterAttribute::Strength);
 	}
-	if (myPlayer._pBaseMag > myPlayer.GetMaximumAttributeValue(CharacterAttribute::Magic)) {
-		myPlayer._pBaseMag = myPlayer.GetMaximumAttributeValue(CharacterAttribute::Magic);
+	if (myPlayer.attributes.magic.base > myPlayer.GetMaximumAttributeValue(CharacterAttribute::Magic)) {
+		myPlayer.attributes.magic.base = myPlayer.GetMaximumAttributeValue(CharacterAttribute::Magic);
 	}
-	if (myPlayer._pBaseDex > myPlayer.GetMaximumAttributeValue(CharacterAttribute::Dexterity)) {
-		myPlayer._pBaseDex = myPlayer.GetMaximumAttributeValue(CharacterAttribute::Dexterity);
+	if (myPlayer.attributes.dexterity.base > myPlayer.GetMaximumAttributeValue(CharacterAttribute::Dexterity)) {
+		myPlayer.attributes.dexterity.base = myPlayer.GetMaximumAttributeValue(CharacterAttribute::Dexterity);
 	}
-	if (myPlayer._pBaseVit > myPlayer.GetMaximumAttributeValue(CharacterAttribute::Vitality)) {
-		myPlayer._pBaseVit = myPlayer.GetMaximumAttributeValue(CharacterAttribute::Vitality);
+	if (myPlayer.attributes.vitality.base > myPlayer.GetMaximumAttributeValue(CharacterAttribute::Vitality)) {
+		myPlayer.attributes.vitality.base = myPlayer.GetMaximumAttributeValue(CharacterAttribute::Vitality);
 	}
 
 	uint64_t msk = 0;
@@ -1546,9 +1546,9 @@ bool Player::CanUseItem(const Item &item) const
 	if (!IsItemValid(*this, item))
 		return false;
 
-	return _pStrength >= item._iMinStr
-	    && _pMagic >= item._iMinMag
-	    && _pDexterity >= item._iMinDex;
+	return attributes.strength.current >= item._iMinStr
+	    && attributes.magic.current >= item._iMinMag
+	    && attributes.dexterity.current >= item._iMinDex;
 }
 
 bool Player::CanCleave()
@@ -1604,12 +1604,12 @@ item_equip_type Player::GetItemLocation(const Item &item) const
 
 int Player::GetArmor() const
 {
-	return _pIBonusAC + _pIAC + _pDexterity / 5;
+	return _pIBonusAC + _pIAC + attributes.dexterity.current / 5;
 }
 
 int Player::GetMeleeToHit() const
 {
-	return getCharacterLevel() + _pDexterity / 2 + _pIBonusToHit + getPlayerCombatData().baseMeleeToHit;
+	return getCharacterLevel() + attributes.dexterity.current / 2 + _pIBonusToHit + getPlayerCombatData().baseMeleeToHit;
 }
 
 int Player::GetMeleePiercingToHit() const
@@ -1622,7 +1622,7 @@ int Player::GetMeleePiercingToHit() const
 
 int Player::GetRangedToHit() const
 {
-	return getCharacterLevel() + _pDexterity + _pIBonusToHit + getPlayerCombatData().baseRangedToHit;
+	return getCharacterLevel() + attributes.dexterity.current + _pIBonusToHit + getPlayerCombatData().baseRangedToHit;
 }
 
 int Player::GetRangedPiercingToHit() const
@@ -1635,12 +1635,12 @@ int Player::GetRangedPiercingToHit() const
 
 int Player::GetMagicToHit() const
 {
-	return _pMagic + getPlayerCombatData().baseMagicToHit;
+	return attributes.magic.current + getPlayerCombatData().baseMagicToHit;
 }
 
 int Player::GetBlockChance(bool useLevel) const
 {
-	int blkper = _pDexterity + getBaseToBlock();
+	int blkper = attributes.dexterity.current + getBaseToBlock();
 	if (useLevel)
 		blkper += getCharacterLevel() * 2;
 	return blkper;
@@ -1764,13 +1764,13 @@ int Player::GetBaseAttributeValue(CharacterAttribute attribute) const
 {
 	switch (attribute) {
 	case CharacterAttribute::Dexterity:
-		return this->_pBaseDex;
+		return this->attributes.dexterity.base;
 	case CharacterAttribute::Magic:
-		return this->_pBaseMag;
+		return this->attributes.magic.base;
 	case CharacterAttribute::Strength:
-		return this->_pBaseStr;
+		return this->attributes.strength.base;
 	case CharacterAttribute::Vitality:
-		return this->_pBaseVit;
+		return this->attributes.vitality.base;
 	default:
 		app_fatal("Unsupported attribute");
 	}
@@ -1780,13 +1780,13 @@ int Player::GetCurrentAttributeValue(CharacterAttribute attribute) const
 {
 	switch (attribute) {
 	case CharacterAttribute::Dexterity:
-		return this->_pDexterity;
+		return this->attributes.dexterity.current;
 	case CharacterAttribute::Magic:
-		return this->_pMagic;
+		return this->attributes.magic.current;
 	case CharacterAttribute::Strength:
-		return this->_pStrength;
+		return this->attributes.strength.current;
 	case CharacterAttribute::Vitality:
-		return this->_pVitality;
+		return this->attributes.vitality.current;
 	default:
 		app_fatal("Unsupported attribute");
 	}
@@ -2183,13 +2183,13 @@ uint32_t Player::getNextExperienceThreshold() const
 int32_t Player::calculateBaseLife() const
 {
 	const ClassAttributes &attr = getClassAttributes();
-	return attr.adjLife + (attr.lvlLife * getCharacterLevel()) + (attr.chrLife * _pBaseVit);
+	return attr.adjLife + (attr.lvlLife * getCharacterLevel()) + (attr.chrLife * attributes.vitality.base);
 }
 
 int32_t Player::calculateBaseMana() const
 {
 	const ClassAttributes &attr = getClassAttributes();
-	return attr.adjMana + (attr.lvlMana * getCharacterLevel()) + (attr.chrMana * _pBaseMag);
+	return attr.adjMana + (attr.lvlMana * getCharacterLevel()) + (attr.chrMana * attributes.magic.base);
 }
 
 void Player::occupyTile(Point tilePosition, bool isMoving) const
@@ -2496,17 +2496,17 @@ void Player::create(HeroClass c)
 
 	const ClassAttributes &attr = player.getClassAttributes();
 
-	player._pBaseStr = attr.baseStr;
-	player._pStrength = player._pBaseStr;
+	player.attributes.strength.base = attr.baseStr;
+	player.attributes.strength.current = player.attributes.strength.base;
 
-	player._pBaseMag = attr.baseMag;
-	player._pMagic = player._pBaseMag;
+	player.attributes.magic.base = attr.baseMag;
+	player.attributes.magic.current = player.attributes.magic.base;
 
-	player._pBaseDex = attr.baseDex;
-	player._pDexterity = player._pBaseDex;
+	player.attributes.dexterity.base = attr.baseDex;
+	player.attributes.dexterity.current = player.attributes.dexterity.base;
 
-	player._pBaseVit = attr.baseVit;
-	player._pVitality = player._pBaseVit;
+	player.attributes.vitality.base = attr.baseVit;
+	player.attributes.vitality.current = player.attributes.vitality.base;
 
 	player.hitPoints = player.calculateBaseLife();
 	player.maxHitPoints = player.hitPoints;
@@ -3553,16 +3553,16 @@ void Player::checkStats()
 		const int maxStatPoint = player.GetMaximumAttributeValue(attribute);
 		switch (attribute) {
 		case CharacterAttribute::Strength:
-			player._pBaseStr = std::clamp(player._pBaseStr, 0, maxStatPoint);
+			player.attributes.strength.base = std::clamp(player.attributes.strength.base, 0, maxStatPoint);
 			break;
 		case CharacterAttribute::Magic:
-			player._pBaseMag = std::clamp(player._pBaseMag, 0, maxStatPoint);
+			player.attributes.magic.base = std::clamp(player.attributes.magic.base, 0, maxStatPoint);
 			break;
 		case CharacterAttribute::Dexterity:
-			player._pBaseDex = std::clamp(player._pBaseDex, 0, maxStatPoint);
+			player.attributes.dexterity.base = std::clamp(player.attributes.dexterity.base, 0, maxStatPoint);
 			break;
 		case CharacterAttribute::Vitality:
-			player._pBaseVit = std::clamp(player._pBaseVit, 0, maxStatPoint);
+			player.attributes.vitality.base = std::clamp(player.attributes.vitality.base, 0, maxStatPoint);
 			break;
 		}
 	}
@@ -3571,25 +3571,25 @@ void Player::checkStats()
 void Player::modifyStrength(int l)
 {
 	Player &player = *this;
-	l = std::clamp(l, 0 - player._pBaseStr, player.GetMaximumAttributeValue(CharacterAttribute::Strength) - player._pBaseStr);
+	l = std::clamp(l, 0 - player.attributes.strength.base, player.GetMaximumAttributeValue(CharacterAttribute::Strength) - player.attributes.strength.base);
 
-	player._pStrength += l;
-	player._pBaseStr += l;
+	player.attributes.strength.current += l;
+	player.attributes.strength.base += l;
 
 	CalcPlrInv(player, true);
 
 	if (&player == MyPlayer) {
-		NetSendCmdParam1(false, CMD_SETSTR, player._pBaseStr);
+		NetSendCmdParam1(false, CMD_SETSTR, player.attributes.strength.base);
 	}
 }
 
 void Player::modifyMagic(int l)
 {
 	Player &player = *this;
-	l = std::clamp(l, 0 - player._pBaseMag, player.GetMaximumAttributeValue(CharacterAttribute::Magic) - player._pBaseMag);
+	l = std::clamp(l, 0 - player.attributes.magic.base, player.GetMaximumAttributeValue(CharacterAttribute::Magic) - player.attributes.magic.base);
 
-	player._pMagic += l;
-	player._pBaseMag += l;
+	player.attributes.magic.current += l;
+	player.attributes.magic.base += l;
 
 	int ms = l;
 	ms *= player.getClassAttributes().chrMana;
@@ -3604,31 +3604,31 @@ void Player::modifyMagic(int l)
 	CalcPlrInv(player, true);
 
 	if (&player == MyPlayer) {
-		NetSendCmdParam1(false, CMD_SETMAG, player._pBaseMag);
+		NetSendCmdParam1(false, CMD_SETMAG, player.attributes.magic.base);
 	}
 }
 
 void Player::modifyDexterity(int l)
 {
 	Player &player = *this;
-	l = std::clamp(l, 0 - player._pBaseDex, player.GetMaximumAttributeValue(CharacterAttribute::Dexterity) - player._pBaseDex);
+	l = std::clamp(l, 0 - player.attributes.dexterity.base, player.GetMaximumAttributeValue(CharacterAttribute::Dexterity) - player.attributes.dexterity.base);
 
-	player._pDexterity += l;
-	player._pBaseDex += l;
+	player.attributes.dexterity.current += l;
+	player.attributes.dexterity.base += l;
 	CalcPlrInv(player, true);
 
 	if (&player == MyPlayer) {
-		NetSendCmdParam1(false, CMD_SETDEX, player._pBaseDex);
+		NetSendCmdParam1(false, CMD_SETDEX, player.attributes.dexterity.base);
 	}
 }
 
 void Player::modifyVitality(int l)
 {
 	Player &player = *this;
-	l = std::clamp(l, 0 - player._pBaseVit, player.GetMaximumAttributeValue(CharacterAttribute::Vitality) - player._pBaseVit);
+	l = std::clamp(l, 0 - player.attributes.vitality.base, player.GetMaximumAttributeValue(CharacterAttribute::Vitality) - player.attributes.vitality.base);
 
-	player._pVitality += l;
-	player._pBaseVit += l;
+	player.attributes.vitality.current += l;
+	player.attributes.vitality.base += l;
 
 	int ms = l;
 	ms *= player.getClassAttributes().chrLife;
@@ -3641,7 +3641,7 @@ void Player::modifyVitality(int l)
 	CalcPlrInv(player, true);
 
 	if (&player == MyPlayer) {
-		NetSendCmdParam1(false, CMD_SETVIT, player._pBaseVit);
+		NetSendCmdParam1(false, CMD_SETVIT, player.attributes.vitality.base);
 	}
 }
 
@@ -3659,14 +3659,14 @@ void Player::setHitPoints(int val)
 void Player::setStrength(int v)
 {
 	Player &player = *this;
-	player._pBaseStr = v;
+	player.attributes.strength.base = v;
 	CalcPlrInv(player, true);
 }
 
 void Player::setMagic(int v)
 {
 	Player &player = *this;
-	player._pBaseMag = v;
+	player.attributes.magic.base = v;
 
 	int m = v;
 	m *= player.getClassAttributes().chrMana;
@@ -3679,14 +3679,14 @@ void Player::setMagic(int v)
 void Player::setDexterity(int v)
 {
 	Player &player = *this;
-	player._pBaseDex = v;
+	player.attributes.dexterity.base = v;
 	CalcPlrInv(player, true);
 }
 
 void Player::setVitality(int v)
 {
 	Player &player = *this;
-	player._pBaseVit = v;
+	player.attributes.vitality.base = v;
 
 	int hp = v;
 	hp *= player.getClassAttributes().chrLife;

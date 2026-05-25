@@ -53,8 +53,8 @@ public:
 	static constexpr bool StableIndices = AllocationPolicy::MaintainsStableIndices;
 
 	using value_type = T;
-	using size_type = uint32_t;
-	using difference_type = int32_t;
+	using size_type = int;
+	using difference_type = int;
 	using reference = T &;
 	using const_reference = const T &;
 	using pointer = T *;
@@ -230,9 +230,17 @@ public:
 	const size_type *activeIndices() const { return activeIndices_; }
 
 	/**
+	 * Get available indices array pointer (for legacy sparse access).
+	 */
+	size_type *availableIndices() { return availableIndices_; }
+	const size_type *availableIndices() const { return availableIndices_; }
+
+	/**
 	 * Number of active elements.
 	 */
 	size_type activeCount() const { return activeCount_; }
+	size_type &activeCountRef() { return activeCount_; }
+	const size_type &activeCountRef() const { return activeCount_; }
 
 	size_type capacity() const { return MaxCapacity; }
 

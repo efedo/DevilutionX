@@ -4,21 +4,12 @@
  * Provides a type-safe, STL-compatible fixed-capacity pool using sparse allocation
  * to maintain stable object indices (required for save compatibility and network sync).
  *
- * This is provided as an opt-in modernization facility. Legacy code continues to use
- * Objects[]/AvailableObjects[]/ActiveObjects[]/ActiveObjectCount globals.
- * 
  * DESIGN NOTES:
  * - Sparse allocation: Object indices remain stable throughout their lifetime.
  *   This is essential for save file format, network sync, and map references.
- * - The pool can coexist with legacy arrays indefinitely.
- * - New hot-path code can use the pool directly; legacy code sees no difference.
- * - Both paradigms remain valid; they can even be used simultaneously in different parts of the code.
- * 
- * FUTURE MIGRATION PATH:
- * 1. Identify hot paths that iterate over objects frequently
- * 2. Add pool methods to those functions to parallelize reads
- * 3. Gradually replace array-based iteration with pool iteration
- * 4. Eventually, move internal implementation details to use pool storage directly
+ * - gObjectPool owns all object storage. Objects/ActiveObjects/AvailableObjects/ActiveObjectCount
+ *   are pointer/reference aliases into pool memory (defined in object_pool.cpp).
+ * - See docs/OBJECT_POOL.md for usage and extension guidance.
  */
 #pragma once
 
@@ -149,12 +140,12 @@ inline void CommitReservedObjectSlot()
 
 [[nodiscard]] inline std::span<int, MAXOBJECTS> ActiveObjectIds()
 {
-	return std::span<int, MAXOBJECTS>(ActiveObjects);
+	return std::span<int, MAXOBJECTS>(ActiveObjects, MAXOBJECTS);
 }
 
 [[nodiscard]] inline std::span<int, MAXOBJECTS> AvailableObjectIds()
 {
-	return std::span<int, MAXOBJECTS>(AvailableObjects);
+	return std::span<int, MAXOBJECTS>(AvailableObjects, MAXOBJECTS);
 }
 
 [[nodiscard]] inline Object &ActiveObjectAt(int activeIndex)
@@ -168,7 +159,7 @@ inline void ResetLegacyObjectPools()
 		AvailableObjects[i] = i;
 	}
 	ActiveObjectCount = 0;
-	memset(ActiveObjects, 0, sizeof(ActiveObjects));
+	memset(ActiveObjects, 0, sizeof(*ActiveObjects) * MAXOBJECTS);
 }
 
 inline void ReleaseObjectSlot(int objectIndex, int activeListIndex)

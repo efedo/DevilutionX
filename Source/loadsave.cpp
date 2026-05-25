@@ -491,14 +491,14 @@ void LoadPlayer(LoadHelper &file, Player &player)
 	TerminateUtf8(player._pName, PlayerNameLength);
 	player._pClass = static_cast<HeroClass>(file.NextLE<int8_t>());
 	file.Skip(3); // Alignment
-	player._pStrength = file.NextLE<int32_t>();
-	player._pBaseStr = file.NextLE<int32_t>();
-	player._pMagic = file.NextLE<int32_t>();
-	player._pBaseMag = file.NextLE<int32_t>();
-	player._pDexterity = file.NextLE<int32_t>();
-	player._pBaseDex = file.NextLE<int32_t>();
-	player._pVitality = file.NextLE<int32_t>();
-	player._pBaseVit = file.NextLE<int32_t>();
+	player.attributes.strength.current = file.NextLE<int32_t>();
+	player.attributes.strength.base = file.NextLE<int32_t>();
+	player.attributes.magic.current = file.NextLE<int32_t>();
+	player.attributes.magic.base = file.NextLE<int32_t>();
+	player.attributes.dexterity.current = file.NextLE<int32_t>();
+	player.attributes.dexterity.base = file.NextLE<int32_t>();
+	player.attributes.vitality.current = file.NextLE<int32_t>();
+	player.attributes.vitality.base = file.NextLE<int32_t>();
 	player._pStatPts = file.NextLE<int32_t>();
 	player._pDamageMod = file.NextLE<int32_t>();
 	file.Skip<int32_t>(); // Skip _pBaseToBlk - always a copy of PlayerData.blockBonus
@@ -1347,14 +1347,14 @@ void SavePlayer(SaveHelper &file, const Player &player)
 	file.WriteBytes(player._pName, PlayerNameLength);
 	file.WriteLE<int8_t>(static_cast<int8_t>(player._pClass));
 	file.Skip(3); // Alignment
-	file.WriteLE<int32_t>(player._pStrength);
-	file.WriteLE<int32_t>(player._pBaseStr);
-	file.WriteLE<int32_t>(player._pMagic);
-	file.WriteLE<int32_t>(player._pBaseMag);
-	file.WriteLE<int32_t>(player._pDexterity);
-	file.WriteLE<int32_t>(player._pBaseDex);
-	file.WriteLE<int32_t>(player._pVitality);
-	file.WriteLE<int32_t>(player._pBaseVit);
+	file.WriteLE<int32_t>(player.attributes.strength.current);
+	file.WriteLE<int32_t>(player.attributes.strength.base);
+	file.WriteLE<int32_t>(player.attributes.magic.current);
+	file.WriteLE<int32_t>(player.attributes.magic.base);
+	file.WriteLE<int32_t>(player.attributes.dexterity.current);
+	file.WriteLE<int32_t>(player.attributes.dexterity.base);
+	file.WriteLE<int32_t>(player.attributes.vitality.current);
+	file.WriteLE<int32_t>(player.attributes.vitality.base);
 	file.WriteLE<int32_t>(player._pStatPts);
 	file.WriteLE<int32_t>(player._pDamageMod);
 

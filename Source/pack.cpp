@@ -163,10 +163,10 @@ void PackPlayer(PlayerPack &packed, const Player &player)
 	}
 	CopyUtf8(packed.pName, player._pName, sizeof(packed.pName));
 	packed.pClass = static_cast<uint8_t>(player._pClass);
-	packed.pBaseStr = player._pBaseStr;
-	packed.pBaseMag = player._pBaseMag;
-	packed.pBaseDex = player._pBaseDex;
-	packed.pBaseVit = player._pBaseVit;
+	packed.pBaseStr = player.attributes.strength.base;
+	packed.pBaseMag = player.attributes.magic.base;
+	packed.pBaseDex = player.attributes.dexterity.base;
+	packed.pBaseVit = player.attributes.vitality.base;
 	packed.pLevel = player.getCharacterLevel();
 	packed.pStatPts = player._pStatPts;
 	packed.pExperience = Swap32LE(player._pExperience);
@@ -224,10 +224,10 @@ void PackNetPlayer(PlayerNetPack &packed, const Player &player)
 	packed.pdir = static_cast<uint8_t>(player.direction);
 	CopyUtf8(packed.pName, player._pName, sizeof(packed.pName));
 	packed.pClass = static_cast<uint8_t>(player._pClass);
-	packed.pBaseStr = player._pBaseStr;
-	packed.pBaseMag = player._pBaseMag;
-	packed.pBaseDex = player._pBaseDex;
-	packed.pBaseVit = player._pBaseVit;
+	packed.pBaseStr = player.attributes.strength.base;
+	packed.pBaseMag = player.attributes.magic.base;
+	packed.pBaseDex = player.attributes.dexterity.base;
+	packed.pBaseVit = player.attributes.vitality.base;
 	packed.pLevel = player.getCharacterLevel();
 	packed.pStatPts = player._pStatPts;
 	packed.pExperience = Swap32LE(player._pExperience);
@@ -259,10 +259,10 @@ void PackNetPlayer(PlayerNetPack &packed, const Player &player)
 	packed.friendlyMode = player.friendlyMode ? 1 : 0;
 	packed.isOnSetLevel = player.plrIsOnSetLevel;
 
-	packed.pStrength = Swap32LE(player._pStrength);
-	packed.pMagic = Swap32LE(player._pMagic);
-	packed.pDexterity = Swap32LE(player._pDexterity);
-	packed.pVitality = Swap32LE(player._pVitality);
+	packed.pStrength = Swap32LE(player.attributes.strength.current);
+	packed.pMagic = Swap32LE(player.attributes.magic.current);
+	packed.pDexterity = Swap32LE(player.attributes.dexterity.current);
+	packed.pVitality = Swap32LE(player.attributes.vitality.current);
 	packed.pHitPoints = Swap32LE(player.hitPoints);
 	packed.pMaxHP = Swap32LE(player.maxHitPoints);
 	packed.pMana = Swap32LE(player._pMana);
@@ -370,14 +370,14 @@ void UnPackPlayer(const PlayerPack &packed, Player &player)
 
 	InitPlayer(player, true);
 
-	player._pBaseStr = std::min<uint8_t>(packed.pBaseStr, player.GetMaximumAttributeValue(CharacterAttribute::Strength));
-	player._pStrength = player._pBaseStr;
-	player._pBaseMag = std::min<uint8_t>(packed.pBaseMag, player.GetMaximumAttributeValue(CharacterAttribute::Magic));
-	player._pMagic = player._pBaseMag;
-	player._pBaseDex = std::min<uint8_t>(packed.pBaseDex, player.GetMaximumAttributeValue(CharacterAttribute::Dexterity));
-	player._pDexterity = player._pBaseDex;
-	player._pBaseVit = std::min<uint8_t>(packed.pBaseVit, player.GetMaximumAttributeValue(CharacterAttribute::Vitality));
-	player._pVitality = player._pBaseVit;
+	player.attributes.strength.base = std::min<uint8_t>(packed.pBaseStr, player.GetMaximumAttributeValue(CharacterAttribute::Strength));
+	player.attributes.strength.current = player.attributes.strength.base;
+	player.attributes.magic.base = std::min<uint8_t>(packed.pBaseMag, player.GetMaximumAttributeValue(CharacterAttribute::Magic));
+	player.attributes.magic.current = player.attributes.magic.base;
+	player.attributes.dexterity.base = std::min<uint8_t>(packed.pBaseDex, player.GetMaximumAttributeValue(CharacterAttribute::Dexterity));
+	player.attributes.dexterity.current = player.attributes.dexterity.base;
+	player.attributes.vitality.base = std::min<uint8_t>(packed.pBaseVit, player.GetMaximumAttributeValue(CharacterAttribute::Vitality));
+	player.attributes.vitality.current = player.attributes.vitality.base;
 	player._pStatPts = packed.pStatPts;
 
 	player._pExperience = Swap32LE(packed.pExperience);
@@ -507,14 +507,14 @@ bool UnPackNetPlayer(const PlayerNetPack &packed, Player &player)
 
 	InitPlayer(player, true);
 
-	player._pBaseStr = packed.pBaseStr;
-	player._pStrength = player._pBaseStr;
-	player._pBaseMag = packed.pBaseMag;
-	player._pMagic = player._pBaseMag;
-	player._pBaseDex = packed.pBaseDex;
-	player._pDexterity = player._pBaseDex;
-	player._pBaseVit = packed.pBaseVit;
-	player._pVitality = player._pBaseVit;
+	player.attributes.strength.base = packed.pBaseStr;
+	player.attributes.strength.current = player.attributes.strength.base;
+	player.attributes.magic.base = packed.pBaseMag;
+	player.attributes.magic.current = player.attributes.magic.base;
+	player.attributes.dexterity.base = packed.pBaseDex;
+	player.attributes.dexterity.current = player.attributes.dexterity.base;
+	player.attributes.vitality.base = packed.pBaseVit;
+	player.attributes.vitality.current = player.attributes.vitality.base;
 	player._pStatPts = packed.pStatPts;
 
 	player._pExperience = Swap32LE(packed.pExperience);
@@ -582,10 +582,10 @@ bool UnPackNetPlayer(const PlayerNetPack &packed, Player &player)
 	CalcPlrInv(player, false);
 	player._pGold = CalculateGold(player);
 
-	ValidateFields(player._pStrength, SwapSigned32LE(packed.pStrength), player._pStrength == SwapSigned32LE(packed.pStrength));
-	ValidateFields(player._pMagic, SwapSigned32LE(packed.pMagic), player._pMagic == SwapSigned32LE(packed.pMagic));
-	ValidateFields(player._pDexterity, SwapSigned32LE(packed.pDexterity), player._pDexterity == SwapSigned32LE(packed.pDexterity));
-	ValidateFields(player._pVitality, SwapSigned32LE(packed.pVitality), player._pVitality == SwapSigned32LE(packed.pVitality));
+	ValidateFields(player.attributes.strength.current, SwapSigned32LE(packed.pStrength), player.attributes.strength.current == SwapSigned32LE(packed.pStrength));
+	ValidateFields(player.attributes.magic.current, SwapSigned32LE(packed.pMagic), player.attributes.magic.current == SwapSigned32LE(packed.pMagic));
+	ValidateFields(player.attributes.dexterity.current, SwapSigned32LE(packed.pDexterity), player.attributes.dexterity.current == SwapSigned32LE(packed.pDexterity));
+	ValidateFields(player.attributes.vitality.current, SwapSigned32LE(packed.pVitality), player.attributes.vitality.current == SwapSigned32LE(packed.pVitality));
 	ValidateFields(player.hitPoints, SwapSigned32LE(packed.pHitPoints), player.hitPoints == SwapSigned32LE(packed.pHitPoints));
 	ValidateFields(player.maxHitPoints, SwapSigned32LE(packed.pMaxHP), player.maxHitPoints == SwapSigned32LE(packed.pMaxHP));
 	ValidateFields(player._pMana, SwapSigned32LE(packed.pMana), player._pMana == SwapSigned32LE(packed.pMana));

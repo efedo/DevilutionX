@@ -54,10 +54,6 @@
 
 namespace devilution {
 
-Object Objects[MAXOBJECTS];
-int AvailableObjects[MAXOBJECTS];
-int ActiveObjects[MAXOBJECTS];
-int ActiveObjectCount;
 bool LoadingMapObjects;
 int NaKrulTomeSequence;
 

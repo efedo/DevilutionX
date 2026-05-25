@@ -178,9 +178,9 @@ void NetReceivePlayerData(TPkt *pkt)
 	pkt->hdr.pmhp = Swap32LE(myPlayer.maxHitPoints);
 	pkt->hdr.mana = Swap32LE(myPlayer._pMana);
 	pkt->hdr.maxmana = Swap32LE(myPlayer._pMaxMana);
-	pkt->hdr.bstr = myPlayer._pBaseStr;
-	pkt->hdr.bmag = myPlayer._pBaseMag;
-	pkt->hdr.bdex = myPlayer._pBaseDex;
+	pkt->hdr.bstr = myPlayer.attributes.strength.base;
+	pkt->hdr.bmag = myPlayer.attributes.magic.base;
+	pkt->hdr.bdex = myPlayer.attributes.dexterity.base;
 	pkt->hdr.pdir = static_cast<uint8_t>(myPlayer.direction);
 }
 
@@ -368,9 +368,9 @@ void SyncPacketHeaderData(Player &player, const TPktHdr &pkt)
 		player._pMana = Swap32LE(pkt.mana);
 		player._pMaxMana = Swap32LE(pkt.maxmana);
 		const bool cond = gbBufferMsgs == 1;
-		player._pBaseStr = pkt.bstr;
-		player._pBaseMag = pkt.bmag;
-		player._pBaseDex = pkt.bdex;
+		player.attributes.strength.base = pkt.bstr;
+		player.attributes.magic.base = pkt.bmag;
+		player.attributes.dexterity.base = pkt.bdex;
 
 		if (!cond && player.plractive && !player.hasNoLife()) {
 			if (player.isOnActiveLevel() && !player._pLvlChanging) {

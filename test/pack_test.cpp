@@ -1056,25 +1056,25 @@ TEST_F(NetPackTest, UnPackNetPlayer_invalid_manaBase)
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_baseStr)
 {
-	MyPlayer->_pBaseStr = MyPlayer->GetMaximumAttributeValue(CharacterAttribute::Strength) + 1;
+	MyPlayer->attributes.strength.base = MyPlayer->GetMaximumAttributeValue(CharacterAttribute::Strength) + 1;
 	ASSERT_FALSE(TestNetPackValidation());
 }
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_baseMag)
 {
-	MyPlayer->_pBaseMag = MyPlayer->GetMaximumAttributeValue(CharacterAttribute::Magic) + 1;
+	MyPlayer->attributes.magic.base = MyPlayer->GetMaximumAttributeValue(CharacterAttribute::Magic) + 1;
 	ASSERT_FALSE(TestNetPackValidation());
 }
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_baseDex)
 {
-	MyPlayer->_pBaseDex = MyPlayer->GetMaximumAttributeValue(CharacterAttribute::Dexterity) + 1;
+	MyPlayer->attributes.dexterity.base = MyPlayer->GetMaximumAttributeValue(CharacterAttribute::Dexterity) + 1;
 	ASSERT_FALSE(TestNetPackValidation());
 }
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_baseVit)
 {
-	MyPlayer->_pBaseVit = MyPlayer->GetMaximumAttributeValue(CharacterAttribute::Vitality) + 1;
+	MyPlayer->attributes.vitality.base = MyPlayer->GetMaximumAttributeValue(CharacterAttribute::Vitality) + 1;
 	ASSERT_FALSE(TestNetPackValidation());
 }
 
@@ -1086,25 +1086,25 @@ TEST_F(NetPackTest, UnPackNetPlayer_invalid_numInv)
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_strength)
 {
-	MyPlayer->_pStrength++;
+	MyPlayer->attributes.strength.current++;
 	ASSERT_FALSE(TestNetPackValidation());
 }
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_magic)
 {
-	MyPlayer->_pMagic++;
+	MyPlayer->attributes.magic.current++;
 	ASSERT_FALSE(TestNetPackValidation());
 }
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_dexterity)
 {
-	MyPlayer->_pDexterity++;
+	MyPlayer->attributes.dexterity.current++;
 	ASSERT_FALSE(TestNetPackValidation());
 }
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_vitality)
 {
-	MyPlayer->_pVitality++;
+	MyPlayer->attributes.vitality.current++;
 	ASSERT_FALSE(TestNetPackValidation());
 }
 

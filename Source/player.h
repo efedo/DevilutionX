@@ -207,14 +207,7 @@ struct Player : CombatActor {
 	Item HoldItem;
 
 	int _pNumInv;
-	int _pStrength;
-	int _pBaseStr;
-	int _pMagic;
-	int _pBaseMag;
-	int _pDexterity;
-	int _pBaseDex;
-	int _pVitality;
-	int _pBaseVit;
+	PrimaryAttributes attributes;
 	int _pStatPts;
 	int _pDamageMod;
 	int _pHPBase;
