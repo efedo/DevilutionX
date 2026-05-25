@@ -8,6 +8,12 @@
  * New code should prefer the cleaner ObjectManager API; legacy callers continue to work.
  * Direct use of these functions is acceptable but discouraged for new features.
  * When migrating call sites, batch mechanical changes first, then clean up internals in a follow-up pass.
+ *
+ * CONTAINER MODERNIZATION:
+ * The legacy Objects[]/AvailableObjects[]/ActiveObjects[] pattern is modernized via DenseEntityPool<T>.
+ * See docs/ENTITY_POOL_MODERNIZATION.md for strategy and design.
+ * A fully generic, reusable container template is available (entity_pool.hpp).
+ * Integration with objects.cpp is deferred to allow exhaustive migrate of all call sites first.
  */
 #pragma once
 

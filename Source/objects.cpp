@@ -324,8 +324,8 @@ void InitRndLocObj5x5(int min, int max, _object_id objtype)
 
 void ClrAllObjects()
 {
-	for (Object &object : Objects) {
-		object = {};
+	for (int i = 0; i < MAXOBJECTS; i++) {
+		Objects[i] = {};
 	}
 	ActiveObjectCount = 0;
 	for (int i = 0; i < MAXOBJECTS; i++) {
