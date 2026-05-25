@@ -647,13 +647,13 @@ bool PlrHitMonst(Player &player, Monster &monster, bool adjacentDamage = false)
 	int skdam = 0;
 	if (HasAnyOf(player._pIFlags, ItemSpecialEffect::RandomStealLife)) {
 		skdam = GenerateRnd(dam / 8);
-		player.hitPoints += skdam;
-		if (player.hitPoints > player.maxHitPoints) {
-			player.hitPoints = player.maxHitPoints;
+		player.life.current += skdam;
+		if (player.life.current > player.life.maximum) {
+			player.life.current = player.life.maximum;
 		}
-		player._pHPBase += skdam;
-		if (player._pHPBase > player._pMaxHPBase) {
-			player._pHPBase = player._pMaxHPBase;
+		player.life.base += skdam;
+		if (player.life.base > player.life.maximumBase) {
+			player.life.base = player.life.maximumBase;
 		}
 		RedrawComponent(PanelDrawComponent::Health);
 	}
@@ -664,13 +664,13 @@ bool PlrHitMonst(Player &player, Monster &monster, bool adjacentDamage = false)
 		if (HasAnyOf(player._pIFlags, ItemSpecialEffect::StealMana5)) {
 			skdam = 5 * dam / 100;
 		}
-		player._pMana += skdam;
-		if (player._pMana > player._pMaxMana) {
-			player._pMana = player._pMaxMana;
+		player.mana.current += skdam;
+		if (player.mana.current > player.mana.maximum) {
+			player.mana.current = player.mana.maximum;
 		}
-		player._pManaBase += skdam;
-		if (player._pManaBase > player._pMaxManaBase) {
-			player._pManaBase = player._pMaxManaBase;
+		player.mana.base += skdam;
+		if (player.mana.base > player.mana.maximumBase) {
+			player.mana.base = player.mana.maximumBase;
 		}
 		RedrawComponent(PanelDrawComponent::Mana);
 	}
@@ -681,13 +681,13 @@ bool PlrHitMonst(Player &player, Monster &monster, bool adjacentDamage = false)
 		if (HasAnyOf(player._pIFlags, ItemSpecialEffect::StealLife5)) {
 			skdam = 5 * dam / 100;
 		}
-		player.hitPoints += skdam;
-		if (player.hitPoints > player.maxHitPoints) {
-			player.hitPoints = player.maxHitPoints;
+		player.life.current += skdam;
+		if (player.life.current > player.life.maximum) {
+			player.life.current = player.life.maximum;
 		}
-		player._pHPBase += skdam;
-		if (player._pHPBase > player._pMaxHPBase) {
-			player._pHPBase = player._pMaxHPBase;
+		player.life.base += skdam;
+		if (player.life.base > player.life.maximumBase) {
+			player.life.base = player.life.maximumBase;
 		}
 		RedrawComponent(PanelDrawComponent::Health);
 	}
@@ -749,13 +749,13 @@ bool PlrHitPlr(Player &attacker, Player &target)
 	const int skdam = dam << 6;
 	if (HasAnyOf(attacker._pIFlags, ItemSpecialEffect::RandomStealLife)) {
 		const int tac = GenerateRnd(skdam / 8);
-		attacker.hitPoints += tac;
-		if (attacker.hitPoints > attacker.maxHitPoints) {
-			attacker.hitPoints = attacker.maxHitPoints;
+		attacker.life.current += tac;
+		if (attacker.life.current > attacker.life.maximum) {
+			attacker.life.current = attacker.life.maximum;
 		}
-		attacker._pHPBase += tac;
-		if (attacker._pHPBase > attacker._pMaxHPBase) {
-			attacker._pHPBase = attacker._pMaxHPBase;
+		attacker.life.base += tac;
+		if (attacker.life.base > attacker.life.maximumBase) {
+			attacker.life.base = attacker.life.maximumBase;
 		}
 		RedrawComponent(PanelDrawComponent::Health);
 	}
@@ -1678,24 +1678,24 @@ int Player::CalculateArmorPierce(int monsterArmor, bool isMelee) const
 
 int Player::UpdateHitPointPercentage()
 {
-	if (maxHitPoints <= 0) {
-		_pHPPer = 0;
+	if (life.maximum <= 0) {
+		life.percentage = 0;
 	} else {
-		_pHPPer = std::clamp(hitPoints * 81 / maxHitPoints, 0, 81);
+		life.percentage = std::clamp(life.current * 81 / life.maximum, 0, 81);
 	}
 
-	return _pHPPer;
+	return life.percentage;
 }
 
 int Player::UpdateManaPercentage()
 {
-	if (_pMaxMana <= 0) {
-		_pManaPer = 0;
+	if (mana.maximum <= 0) {
+		mana.percentage = 0;
 	} else {
-		_pManaPer = std::clamp(_pMana * 81 / _pMaxMana, 0, 81);
+		mana.percentage = std::clamp(mana.current * 81 / mana.maximum, 0, 81);
 	}
 
-	return _pManaPer;
+	return mana.percentage;
 }
 
 void Player::RemoveInvItem(int iv, bool calcScrolls)
@@ -1888,41 +1888,41 @@ int Player::GetManaShieldDamageReduction()
 
 void Player::RestoreFullLife()
 {
-	hitPoints = maxHitPoints;
-	_pHPBase = _pMaxHPBase;
+	life.current = life.maximum;
+	life.base = life.maximumBase;
 }
 
 void Player::RestorePartialLife()
 {
-	const int wholeHitpoints = maxHitPoints >> 6;
+	const int wholeHitpoints = life.maximum >> 6;
 	int l = ((wholeHitpoints / 8) + GenerateRnd(wholeHitpoints / 4)) << 6;
 	if (IsAnyOf(_pClass, HeroClass::Warrior, HeroClass::Barbarian))
 		l *= 2;
 	if (IsAnyOf(_pClass, HeroClass::Rogue, HeroClass::Monk, HeroClass::Bard))
 		l += l / 2;
-	hitPoints = std::min(hitPoints + l, maxHitPoints);
-	_pHPBase = std::min(_pHPBase + l, _pMaxHPBase);
+	life.current = std::min(life.current + l, life.maximum);
+	life.base = std::min(life.base + l, life.maximumBase);
 }
 
 void Player::RestoreFullMana()
 {
 	if (HasNoneOf(_pIFlags, ItemSpecialEffect::NoMana)) {
-		_pMana = _pMaxMana;
-		_pManaBase = _pMaxManaBase;
+		mana.current = mana.maximum;
+		mana.base = mana.maximumBase;
 	}
 }
 
 void Player::RestorePartialMana()
 {
-	const int wholeManaPoints = _pMaxMana >> 6;
+	const int wholeManaPoints = mana.maximum >> 6;
 	int l = ((wholeManaPoints / 8) + GenerateRnd(wholeManaPoints / 4)) << 6;
 	if (_pClass == HeroClass::Sorcerer)
 		l *= 2;
 	if (IsAnyOf(_pClass, HeroClass::Rogue, HeroClass::Monk, HeroClass::Bard))
 		l += l / 2;
 	if (HasNoneOf(_pIFlags, ItemSpecialEffect::NoMana)) {
-		_pMana = std::min(_pMana + l, _pMaxMana);
-		_pManaBase = std::min(_pManaBase + l, _pMaxManaBase);
+		mana.current = std::min(mana.current + l, mana.maximum);
+		mana.base = std::min(mana.base + l, mana.maximumBase);
 	}
 }
 
@@ -2508,15 +2508,15 @@ void Player::create(HeroClass c)
 	player.attributes.vitality.base = attr.baseVit;
 	player.attributes.vitality.current = player.attributes.vitality.base;
 
-	player.hitPoints = player.calculateBaseLife();
-	player.maxHitPoints = player.hitPoints;
-	player._pHPBase = player.hitPoints;
-	player._pMaxHPBase = player.hitPoints;
+	player.life.current = player.calculateBaseLife();
+	player.life.maximum = player.life.current;
+	player.life.base = player.life.current;
+	player.life.maximumBase = player.life.current;
 
-	player._pMana = player.calculateBaseMana();
-	player._pMaxMana = player._pMana;
-	player._pManaBase = player._pMana;
-	player._pMaxManaBase = player._pMana;
+	player.mana.current = player.calculateBaseMana();
+	player.mana.maximum = player.mana.current;
+	player.mana.base = player.mana.current;
+	player.mana.maximumBase = player.mana.current;
 
 	player._pExperience = 0;
 	player._pArmorClass = 0;
@@ -2581,10 +2581,10 @@ void Player::advanceLevel()
 	}
 	const int hp = player.getClassAttributes().lvlLife;
 
-	player.maxHitPoints += hp;
-	player.hitPoints = player.maxHitPoints;
-	player._pMaxHPBase += hp;
-	player._pHPBase = player._pMaxHPBase;
+	player.life.maximum += hp;
+	player.life.current = player.life.maximum;
+	player.life.maximumBase += hp;
+	player.life.base = player.life.maximumBase;
 
 	if (&player == MyPlayer) {
 		RedrawComponent(PanelDrawComponent::Health);
@@ -2592,12 +2592,12 @@ void Player::advanceLevel()
 
 	const int mana = player.getClassAttributes().lvlMana;
 
-	player._pMaxMana += mana;
-	player._pMaxManaBase += mana;
+	player.mana.maximum += mana;
+	player.mana.maximumBase += mana;
 
 	if (HasNoneOf(player._pIFlags, ItemSpecialEffect::NoMana)) {
-		player._pMana = player._pMaxMana;
-		player._pManaBase = player._pMaxManaBase;
+		player.mana.current = player.mana.maximum;
+		player.mana.base = player.mana.maximumBase;
 	}
 
 	if (&player == MyPlayer) {
@@ -2705,12 +2705,12 @@ bool Player::isHoldingItem(const ItemType type) const
 
 bool Player::hasNoLife() const
 {
-	return leveltype == DTYPE_TOWN ? false : hitPoints >> 6 <= 0;
+	return leveltype == DTYPE_TOWN ? false : life.current >> 6 <= 0;
 }
 
 bool Player::hasNoMana() const
 {
-	return _pMana >> 6 <= 0;
+	return mana.current >> 6 <= 0;
 }
 
 void AddPlrMonstExper(int lvl, unsigned exp, char pmask)
@@ -3091,17 +3091,17 @@ void Player::applyDamage(DamageType damageType, int dam, int minHP, int frac, De
 		}
 		if (&player == MyPlayer)
 			RedrawComponent(PanelDrawComponent::Mana);
-		if (player._pMana >= totalDamage) {
-			player._pMana -= totalDamage;
-			player._pManaBase -= totalDamage;
+		if (player.mana.current >= totalDamage) {
+			player.mana.current -= totalDamage;
+			player.mana.base -= totalDamage;
 			totalDamage = 0;
 		} else {
-			totalDamage -= player._pMana;
+			totalDamage -= player.mana.current;
 			if (manaShieldLevel > 0) {
 				totalDamage += totalDamage / (player.GetManaShieldDamageReduction() - 1);
 			}
-			player._pMana = 0;
-			player._pManaBase = player._pMaxManaBase - player._pMaxMana;
+			player.mana.current = 0;
+			player.mana.base = player.mana.maximumBase - player.mana.maximum;
 			if (&player == MyPlayer)
 				NetSendCmd(true, CMD_REMSHIELD);
 		}
@@ -3111,14 +3111,14 @@ void Player::applyDamage(DamageType damageType, int dam, int minHP, int frac, De
 		return;
 
 	RedrawComponent(PanelDrawComponent::Health);
-	player.hitPoints -= totalDamage;
-	player._pHPBase -= totalDamage;
-	if (player.hitPoints > player.maxHitPoints) {
-		player.hitPoints = player.maxHitPoints;
-		player._pHPBase = player._pMaxHPBase;
+	player.life.current -= totalDamage;
+	player.life.base -= totalDamage;
+	if (player.life.current > player.life.maximum) {
+		player.life.current = player.life.maximum;
+		player.life.base = player.life.maximumBase;
 	}
 	const int minHitPoints = minHP << 6;
-	if (player.hitPoints < minHitPoints) {
+	if (player.life.current < minHitPoints) {
 		player.setHitPoints(minHitPoints);
 	}
 	if (player.hasNoLife()) {
@@ -3201,8 +3201,8 @@ void RestartTownLvl(Player &player)
 
 	player.setHitPoints(64);
 
-	player._pMana = 0;
-	player._pManaBase = player._pMana - (player._pMaxMana - player._pMaxManaBase);
+	player.mana.current = 0;
+	player.mana.base = player.mana.current - (player.mana.maximum - player.mana.maximumBase);
 
 	CalcPlrInv(player, false);
 	player._pmode = PM_NEWLVL;
@@ -3594,11 +3594,11 @@ void Player::modifyMagic(int l)
 	int ms = l;
 	ms *= player.getClassAttributes().chrMana;
 
-	player._pMaxManaBase += ms;
-	player._pMaxMana += ms;
+	player.mana.maximumBase += ms;
+	player.mana.maximum += ms;
 	if (HasNoneOf(player._pIFlags, ItemSpecialEffect::NoMana)) {
-		player._pManaBase += ms;
-		player._pMana += ms;
+		player.mana.base += ms;
+		player.mana.current += ms;
 	}
 
 	CalcPlrInv(player, true);
@@ -3633,10 +3633,10 @@ void Player::modifyVitality(int l)
 	int ms = l;
 	ms *= player.getClassAttributes().chrLife;
 
-	player._pHPBase += ms;
-	player._pMaxHPBase += ms;
-	player.hitPoints += ms;
-	player.maxHitPoints += ms;
+	player.life.base += ms;
+	player.life.maximumBase += ms;
+	player.life.current += ms;
+	player.life.maximum += ms;
 
 	CalcPlrInv(player, true);
 
@@ -3648,8 +3648,8 @@ void Player::modifyVitality(int l)
 void Player::setHitPoints(int val)
 {
 	Player &player = *this;
-	player.hitPoints = val;
-	player._pHPBase = val + player._pMaxHPBase - player.maxHitPoints;
+	player.life.current = val;
+	player.life.base = val + player.life.maximumBase - player.life.maximum;
 
 	if (&player == MyPlayer) {
 		RedrawComponent(PanelDrawComponent::Health);
@@ -3671,8 +3671,8 @@ void Player::setMagic(int v)
 	int m = v;
 	m *= player.getClassAttributes().chrMana;
 
-	player._pMaxManaBase = m;
-	player._pMaxMana = m;
+	player.mana.maximumBase = m;
+	player.mana.maximum = m;
 	CalcPlrInv(player, true);
 }
 
@@ -3691,8 +3691,8 @@ void Player::setVitality(int v)
 	int hp = v;
 	hp *= player.getClassAttributes().chrLife;
 
-	player._pHPBase = hp;
-	player._pMaxHPBase = hp;
+	player.life.base = hp;
+	player.life.maximumBase = hp;
 	CalcPlrInv(player, true);
 }
 

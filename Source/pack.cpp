@@ -171,10 +171,10 @@ void PackPlayer(PlayerPack &packed, const Player &player)
 	packed.pStatPts = player._pStatPts;
 	packed.pExperience = Swap32LE(player._pExperience);
 	packed.pGold = Swap32LE(player._pGold);
-	packed.pHPBase = Swap32LE(player._pHPBase);
-	packed.pMaxHPBase = Swap32LE(player._pMaxHPBase);
-	packed.pManaBase = Swap32LE(player._pManaBase);
-	packed.pMaxManaBase = Swap32LE(player._pMaxManaBase);
+	packed.pHPBase = Swap32LE(player.life.base);
+	packed.pMaxHPBase = Swap32LE(player.life.maximumBase);
+	packed.pManaBase = Swap32LE(player.mana.base);
+	packed.pMaxManaBase = Swap32LE(player.mana.maximumBase);
 	packed.pMemSpells = Swap64LE(player._pMemSpells);
 
 	for (int i = 0; i < 37; i++) // Should be MAX_SPELLS but set to 37 to make save games compatible
@@ -231,10 +231,10 @@ void PackNetPlayer(PlayerNetPack &packed, const Player &player)
 	packed.pLevel = player.getCharacterLevel();
 	packed.pStatPts = player._pStatPts;
 	packed.pExperience = Swap32LE(player._pExperience);
-	packed.pHPBase = Swap32LE(player._pHPBase);
-	packed.pMaxHPBase = Swap32LE(player._pMaxHPBase);
-	packed.pManaBase = Swap32LE(player._pManaBase);
-	packed.pMaxManaBase = Swap32LE(player._pMaxManaBase);
+	packed.pHPBase = Swap32LE(player.life.base);
+	packed.pMaxHPBase = Swap32LE(player.life.maximumBase);
+	packed.pManaBase = Swap32LE(player.mana.base);
+	packed.pMaxManaBase = Swap32LE(player.mana.maximumBase);
 	packed.pMemSpells = Swap64LE(player._pMemSpells);
 
 	for (int i = 0; i < MAX_SPELLS; i++)
@@ -263,10 +263,10 @@ void PackNetPlayer(PlayerNetPack &packed, const Player &player)
 	packed.pMagic = Swap32LE(player.attributes.magic.current);
 	packed.pDexterity = Swap32LE(player.attributes.dexterity.current);
 	packed.pVitality = Swap32LE(player.attributes.vitality.current);
-	packed.pHitPoints = Swap32LE(player.hitPoints);
-	packed.pMaxHP = Swap32LE(player.maxHitPoints);
-	packed.pMana = Swap32LE(player._pMana);
-	packed.pMaxMana = Swap32LE(player._pMaxMana);
+	packed.pHitPoints = Swap32LE(player.life.current);
+	packed.pMaxHP = Swap32LE(player.life.maximum);
+	packed.pMana = Swap32LE(player.mana.current);
+	packed.pMaxMana = Swap32LE(player.mana.maximum);
 	packed.pDamageMod = Swap32LE(player._pDamageMod);
 	// we pack base to block as a basic check that remote players are using the same playerdat values as we are
 	packed.pBaseToBlk = Swap32LE(player.getBaseToBlock());
@@ -352,11 +352,11 @@ void UnPackPlayer(const PlayerPack &packed, Player &player)
 
 	player = {};
 	player.setCharacterLevel(packed.pLevel);
-	player._pMaxHPBase = Swap32LE(packed.pMaxHPBase);
-	player._pHPBase = Swap32LE(packed.pHPBase);
-	player._pHPBase = std::clamp<int32_t>(player._pHPBase, 0, player._pMaxHPBase);
-	player.maxHitPoints = player._pMaxHPBase;
-	player.hitPoints = player._pHPBase;
+	player.life.maximumBase = Swap32LE(packed.pMaxHPBase);
+	player.life.base = Swap32LE(packed.pHPBase);
+	player.life.base = std::clamp<int32_t>(player.life.base, 0, player.life.maximumBase);
+	player.life.maximum = player.life.maximumBase;
+	player.life.current = player.life.base;
 	player.position.tile = position;
 	player.position.future = position;
 	player.setLevel(std::clamp<int8_t>(packed.plrlevel, 0, NUMLEVELS));
@@ -382,12 +382,12 @@ void UnPackPlayer(const PlayerPack &packed, Player &player)
 
 	player._pExperience = Swap32LE(packed.pExperience);
 	player._pGold = Swap32LE(packed.pGold);
-	if ((int)(player._pHPBase & 0xFFFFFFC0) < 64)
-		player._pHPBase = 64;
+	if ((int)(player.life.base & 0xFFFFFFC0) < 64)
+		player.life.base = 64;
 
-	player._pMaxManaBase = Swap32LE(packed.pMaxManaBase);
-	player._pManaBase = Swap32LE(packed.pManaBase);
-	player._pManaBase = std::min<int32_t>(player._pManaBase, player._pMaxManaBase);
+	player.mana.maximumBase = Swap32LE(packed.pMaxManaBase);
+	player.mana.base = Swap32LE(packed.pManaBase);
+	player.mana.base = std::min<int32_t>(player.mana.base, player.mana.maximumBase);
 	player._pMemSpells = Swap64LE(packed.pMemSpells);
 
 	// Only read spell levels for learnable spells (Diablo)
@@ -497,10 +497,10 @@ bool UnPackNetPlayer(const PlayerNetPack &packed, Player &player)
 	player.direction = static_cast<Direction>(packed.pdir);
 	player.plrlevel = packed.plrlevel;
 	player.plrIsOnSetLevel = packed.isOnSetLevel != 0;
-	player._pMaxHPBase = baseHpMax;
-	player._pHPBase = baseHp;
-	player.maxHitPoints = baseHpMax;
-	player.hitPoints = baseHp;
+	player.life.maximumBase = baseHpMax;
+	player.life.base = baseHp;
+	player.life.maximum = baseHpMax;
+	player.life.current = baseHp;
 
 	player.clearPath();
 	player.destAction = ACTION_NONE;
@@ -518,8 +518,8 @@ bool UnPackNetPlayer(const PlayerNetPack &packed, Player &player)
 	player._pStatPts = packed.pStatPts;
 
 	player._pExperience = Swap32LE(packed.pExperience);
-	player._pMaxManaBase = baseManaMax;
-	player._pManaBase = baseMana;
+	player.mana.maximumBase = baseManaMax;
+	player.mana.base = baseMana;
 	player._pMemSpells = Swap64LE(packed.pMemSpells);
 	player.wReflections = Swap16LE(packed.wReflections);
 	player.pDiabloKillLevel = packed.pDiabloKillLevel;
@@ -586,10 +586,10 @@ bool UnPackNetPlayer(const PlayerNetPack &packed, Player &player)
 	ValidateFields(player.attributes.magic.current, SwapSigned32LE(packed.pMagic), player.attributes.magic.current == SwapSigned32LE(packed.pMagic));
 	ValidateFields(player.attributes.dexterity.current, SwapSigned32LE(packed.pDexterity), player.attributes.dexterity.current == SwapSigned32LE(packed.pDexterity));
 	ValidateFields(player.attributes.vitality.current, SwapSigned32LE(packed.pVitality), player.attributes.vitality.current == SwapSigned32LE(packed.pVitality));
-	ValidateFields(player.hitPoints, SwapSigned32LE(packed.pHitPoints), player.hitPoints == SwapSigned32LE(packed.pHitPoints));
-	ValidateFields(player.maxHitPoints, SwapSigned32LE(packed.pMaxHP), player.maxHitPoints == SwapSigned32LE(packed.pMaxHP));
-	ValidateFields(player._pMana, SwapSigned32LE(packed.pMana), player._pMana == SwapSigned32LE(packed.pMana));
-	ValidateFields(player._pMaxMana, SwapSigned32LE(packed.pMaxMana), player._pMaxMana == SwapSigned32LE(packed.pMaxMana));
+	ValidateFields(player.life.current, SwapSigned32LE(packed.pHitPoints), player.life.current == SwapSigned32LE(packed.pHitPoints));
+	ValidateFields(player.life.maximum, SwapSigned32LE(packed.pMaxHP), player.life.maximum == SwapSigned32LE(packed.pMaxHP));
+	ValidateFields(player.mana.current, SwapSigned32LE(packed.pMana), player.mana.current == SwapSigned32LE(packed.pMana));
+	ValidateFields(player.mana.maximum, SwapSigned32LE(packed.pMaxMana), player.mana.maximum == SwapSigned32LE(packed.pMaxMana));
 	ValidateFields(player._pDamageMod, SwapSigned32LE(packed.pDamageMod), player._pDamageMod == SwapSigned32LE(packed.pDamageMod));
 	ValidateFields(player.getBaseToBlock(), SwapSigned32LE(packed.pBaseToBlk), player.getBaseToBlock() == SwapSigned32LE(packed.pBaseToBlk));
 	ValidateFields(player._pIMinDam, SwapSigned32LE(packed.pIMinDam), player._pIMinDam == SwapSigned32LE(packed.pIMinDam));
@@ -605,8 +605,8 @@ bool UnPackNetPlayer(const PlayerNetPack &packed, Player &player)
 	ValidateFields(player._pIFMaxDam, SwapSigned32LE(packed.pIFMaxDam), player._pIFMaxDam == SwapSigned32LE(packed.pIFMaxDam));
 	ValidateFields(player._pILMinDam, SwapSigned32LE(packed.pILMinDam), player._pILMinDam == SwapSigned32LE(packed.pILMinDam));
 	ValidateFields(player._pILMaxDam, SwapSigned32LE(packed.pILMaxDam), player._pILMaxDam == SwapSigned32LE(packed.pILMaxDam));
-	ValidateFields(player._pMaxHPBase, player.calculateBaseLife(), player._pMaxHPBase <= player.calculateBaseLife());
-	ValidateFields(player._pMaxManaBase, player.calculateBaseMana(), player._pMaxManaBase <= player.calculateBaseMana());
+	ValidateFields(player.life.maximumBase, player.calculateBaseLife(), player.life.maximumBase <= player.calculateBaseLife());
+	ValidateFields(player.mana.maximumBase, player.calculateBaseMana(), player.mana.maximumBase <= player.calculateBaseMana());
 
 	return true;
 }

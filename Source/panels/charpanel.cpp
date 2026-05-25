@@ -79,12 +79,12 @@ UiFlags GetMaxManaColor()
 {
 	if (HasAnyOf(InspectPlayer->_pIFlags, ItemSpecialEffect::NoMana))
 		return UiFlags::ColorRed;
-	return InspectPlayer->_pMaxMana > InspectPlayer->_pMaxManaBase ? UiFlags::ColorBlue : UiFlags::ColorWhite;
+	return InspectPlayer->mana.maximum > InspectPlayer->mana.maximumBase ? UiFlags::ColorBlue : UiFlags::ColorWhite;
 }
 
 UiFlags GetMaxHealthColor()
 {
-	return InspectPlayer->maxHitPoints > InspectPlayer->_pMaxHPBase ? UiFlags::ColorBlue : UiFlags::ColorWhite;
+	return InspectPlayer->life.maximum > InspectPlayer->life.maximumBase ? UiFlags::ColorBlue : UiFlags::ColorWhite;
 }
 
 std::pair<int, int> GetDamage()
@@ -182,13 +182,13 @@ PanelEntry panelEntries[] = {
 	    } },
 
 	{ N_("Life"), { LeftColumnLabelX, 284 }, 45, LeftColumnLabelWidth,
-	    []() { return StyledText { GetMaxHealthColor(), StrCat(InspectPlayer->maxHitPoints >> 6) }; } },
+	    []() { return StyledText { GetMaxHealthColor(), StrCat(InspectPlayer->life.maximum >> 6) }; } },
 	{ "", { 135, 284 }, 45, 0,
-	    []() { return StyledText { (InspectPlayer->hitPoints != InspectPlayer->maxHitPoints ? UiFlags::ColorRed : GetMaxHealthColor()), StrCat(InspectPlayer->hitPoints >> 6) }; } },
+	    []() { return StyledText { (InspectPlayer->life.current != InspectPlayer->life.maximum ? UiFlags::ColorRed : GetMaxHealthColor()), StrCat(InspectPlayer->life.current >> 6) }; } },
 	{ N_("Mana"), { LeftColumnLabelX, 312 }, 45, LeftColumnLabelWidth,
-	    []() { return StyledText { GetMaxManaColor(), StrCat(HasAnyOf(InspectPlayer->_pIFlags, ItemSpecialEffect::NoMana) ? 0 : InspectPlayer->_pMaxMana >> 6) }; } },
+	    []() { return StyledText { GetMaxManaColor(), StrCat(HasAnyOf(InspectPlayer->_pIFlags, ItemSpecialEffect::NoMana) ? 0 : InspectPlayer->mana.maximum >> 6) }; } },
 	{ "", { 135, 312 }, 45, 0,
-	    []() { return StyledText { (InspectPlayer->_pMana != InspectPlayer->_pMaxMana ? UiFlags::ColorRed : GetMaxManaColor()), StrCat((HasAnyOf(InspectPlayer->_pIFlags, ItemSpecialEffect::NoMana) || InspectPlayer->hasNoMana()) ? 0 : InspectPlayer->_pMana >> 6) }; } },
+	    []() { return StyledText { (InspectPlayer->mana.current != InspectPlayer->mana.maximum ? UiFlags::ColorRed : GetMaxManaColor()), StrCat((HasAnyOf(InspectPlayer->_pIFlags, ItemSpecialEffect::NoMana) || InspectPlayer->hasNoMana()) ? 0 : InspectPlayer->mana.current >> 6) }; } },
 
 	{ N_("Resist magic"), { RightColumnLabelX, 256 }, 57, RightColumnLabelWidth,
 	    []() { return GetResistInfo(InspectPlayer->_pMagResist); } },

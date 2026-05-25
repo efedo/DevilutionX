@@ -1929,7 +1929,7 @@ size_t OnResurrect(const TCmdParam1 &message, Player &caster)
 
 	SpawnResurrectBeam(caster, target);
 
-	if (&target == MyPlayer && target.hitPoints <= 0) {
+	if (&target == MyPlayer && target.life.current <= 0) {
 		NetSendCmd(true, CMD_PLRALIVE);
 	}
 

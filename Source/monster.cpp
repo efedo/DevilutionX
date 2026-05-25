@@ -3228,7 +3228,7 @@ void InitGolem(devilution::Monster &monster, uint8_t golemOwnerPlayerId, int16_t
 	monster.flags |= MFLAG_GOLEM;
 	monster.goalVar3 = static_cast<int8_t>(golemOwnerPlayerId);
 	const Player &player = Players[golemOwnerPlayerId];
-	monster.maxHitPoints = 2 * (320 * golemSpellLevel + player._pMaxMana / 3);
+	monster.maxHitPoints = 2 * (320 * golemSpellLevel + player.mana.maximum / 3);
 	monster.hitPoints = monster.maxHitPoints;
 	monster.armorClass = 25;
 	monster.golemToHit = 5 * (golemSpellLevel + 8) + 2 * player.getCharacterLevel();
@@ -3833,20 +3833,20 @@ void Monster::reducePlayerAttribute(Player &player)
 		player.modifyVitality(-static_cast<int>(this->reducePlayerVitality));
 	}
 	if (this->reducePlayerMaxHP > 0) {
-		const int reduceAmount = std::min(player._pMaxHPBase - 64, this->reducePlayerMaxHP * 64);
-		player.maxHitPoints = std::max(64, player.maxHitPoints - reduceAmount);
-		player.hitPoints = std::min(player.hitPoints, player.maxHitPoints);
-		player._pMaxHPBase -= reduceAmount;
-		player._pHPBase = std::min(player._pHPBase, player._pMaxHPBase);
+		const int reduceAmount = std::min(player.life.maximumBase - 64, this->reducePlayerMaxHP * 64);
+		player.life.maximum = std::max(64, player.life.maximum - reduceAmount);
+		player.life.current = std::min(player.life.current, player.life.maximum);
+		player.life.maximumBase -= reduceAmount;
+		player.life.base = std::min(player.life.base, player.life.maximumBase);
 
 		RedrawComponent(PanelDrawComponent::Health);
 	}
 	if (this->reducePlayerMaxMana > 0) {
-		const int reduceAmount = std::min(player._pMaxManaBase, this->reducePlayerMaxMana * 64);
-		player._pMaxMana = std::max(0, player._pMaxMana - reduceAmount);
-		player._pMana = std::min(player._pMana, player._pMaxMana);
-		player._pMaxManaBase -= reduceAmount;
-		player._pManaBase = std::min(player._pManaBase, player._pMaxManaBase);
+		const int reduceAmount = std::min(player.mana.maximumBase, this->reducePlayerMaxMana * 64);
+		player.mana.maximum = std::max(0, player.mana.maximum - reduceAmount);
+		player.mana.current = std::min(player.mana.current, player.mana.maximum);
+		player.mana.maximumBase -= reduceAmount;
+		player.mana.base = std::min(player.mana.base, player.mana.maximumBase);
 
 		RedrawComponent(PanelDrawComponent::Mana);
 	}
@@ -4067,9 +4067,9 @@ void PrepDoEnding()
 		player._pInvincible = true;
 		if (gbIsMultiplayer) {
 			if (player.hasNoLife())
-				player.hitPoints = 64;
+				player.life.current = 64;
 			if (player.hasNoMana())
-				player._pMana = 64;
+				player.mana.current = 64;
 		}
 	}
 }

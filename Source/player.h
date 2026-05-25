@@ -210,14 +210,8 @@ struct Player : CombatActor {
 	PrimaryAttributes attributes;
 	int _pStatPts;
 	int _pDamageMod;
-	int _pHPBase;
-	int _pMaxHPBase;
-	int _pHPPer;
-	int _pManaBase;
-	int _pMaxManaBase;
-	int _pMana;
-	int _pMaxMana;
-	int _pManaPer;
+	VitalResource life;
+	VitalResource mana;
 	int _pIMinDam;
 	int _pIMaxDam;
 	int _pIAC;
@@ -428,7 +422,7 @@ public:
 	int CalculateArmorPierce(int monsterArmor, bool isMelee) const;
 
 	// Calculates the players current Hit Points as a percentage of their max HP and stores it for later reference
-	// The stored value is unused... see _pHPPer
+	// The stored value is unused... see life.percentage
 	// return: The players current hit points as a percentage of their maximum (from 0 to 80%)
 	int UpdateHitPointPercentage();
 

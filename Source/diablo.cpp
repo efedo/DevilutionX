@@ -544,7 +544,7 @@ void PressKey(SDL_Keycode vkey, uint16_t modState)
 		}
 	}
 	// Disallow player from accessing escape menu during the frames before the death message appears
-	if (vkey == SDLK_ESCAPE && MyPlayer->hitPoints > 0) {
+	if (vkey == SDLK_ESCAPE && MyPlayer->life.current > 0) {
 		if (!PressEscKey()) {
 			LastPlayerAction = PlayerActionType::None;
 			gamemenu_on();
@@ -3153,7 +3153,7 @@ void LoadGameLevelSyncPlayerEntry(lvl_entry lvldir)
 {
 	for (Player &player : Players) {
 		if (player.plractive && player.isOnActiveLevel() && (!player._pLvlChanging || &player == MyPlayer)) {
-			if (player.hitPoints > 0) {
+			if (player.life.current > 0) {
 				if (lvldir != ENTRY_LOAD)
 					player.syncInitialPosition();
 			} else {

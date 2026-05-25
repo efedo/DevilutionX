@@ -482,8 +482,8 @@ struct CornerStoneStruct {
 	bool isAvailable();
 };
 
-/** Contains the items on ground in the current game. */
-extern Item Items[MAXITEMS + 1];
+/** Contains the items on ground in the current game. Storage is owned by gItemPool (item_pool.cpp). */
+extern Item *Items;
 extern uint8_t ActiveItems[MAXITEMS];
 extern uint8_t ActiveItemCount;
 /** Contains the location of dropped items. */

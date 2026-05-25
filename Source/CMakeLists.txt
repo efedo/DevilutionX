@@ -499,6 +499,7 @@ target_link_dependencies(libdevilutionx_logged_fstream PUBLIC
 add_devilutionx_object_library(libdevilutionx_items
   tables/itemdat.cpp
   items.cpp
+  item_pool.cpp
 )
 target_link_dependencies(libdevilutionx_items PUBLIC
   DevilutionX::SDL

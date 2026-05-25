@@ -4,6 +4,7 @@
  * Implementation of item functionality.
  */
 #include "items.h"
+#include "item_pool.h"
 
 #include <algorithm>
 #include <array>
@@ -95,9 +96,6 @@
 
 namespace devilution {
 
-Item Items[MAXITEMS + 1];
-uint8_t ActiveItems[MAXITEMS];
-uint8_t ActiveItemCount;
 int8_t dItem[MAXDUNX][MAXDUNY];
 bool ShowUniqueItemInfoBox;
 CornerStoneStruct CornerStone;
@@ -1016,12 +1014,12 @@ int SaveItemPower(const Player &player, Item &item, ItemPower &power)
 		item._iDamAcFlags |= ItemSpecialEffectHf::ACAgainstUndead;
 		break;
 	case IPL_MANATOLIFE: {
-		const int portion = ((player._pMaxManaBase >> 6) * 50 / 100) << 6;
+		const int portion = ((player.mana.maximumBase >> 6) * 50 / 100) << 6;
 		item._iPLMana -= portion;
 		item._iPLHP += portion;
 	} break;
 	case IPL_LIFETOMANA: {
-		const int portion = ((player._pMaxHPBase >> 6) * 40 / 100) << 6;
+		const int portion = ((player.life.maximumBase >> 6) * 40 / 100) << 6;
 		item._iPLHP -= portion;
 		item._iPLMana += portion;
 	} break;
@@ -2435,7 +2433,8 @@ void InitItems()
 	ActiveItemCount = 0;
 	memset(dItem, 0, sizeof(dItem));
 
-	for (auto &item : Items) {
+	for (int i = 0; i < MAXITEMS + 1; i++) {
+		Item &item = Items[i];
 		item.clear();
 		item.position = { 0, 0 };
 		item._iAnimFlag = false;
@@ -2641,15 +2640,15 @@ void CalcPlrLifeMana(Player &player, int vitality, int magic, int life, int mana
 	magic = (magic * playerClassAttributes.itmMana) >> 6;
 	mana += (magic << 6);
 
-	player.maxHitPoints = std::clamp(life + player._pMaxHPBase, 1 << 6, 2000 << 6);
-	player.hitPoints = std::min(life + player._pHPBase, player.maxHitPoints);
+	player.life.maximum = std::clamp(life + player.life.maximumBase, 1 << 6, 2000 << 6);
+	player.life.current = std::min(life + player.life.base, player.life.maximum);
 
 	if (&player == MyPlayer && player.hasNoLife()) {
 		player.setHitPoints(0);
 	}
 
-	player._pMaxMana = std::clamp(mana + player._pMaxManaBase, 0, 2000 << 6);
-	player._pMana = std::min(mana + player._pManaBase, player._pMaxMana);
+	player.mana.maximum = std::clamp(mana + player.mana.maximumBase, 0, 2000 << 6);
+	player.mana.current = std::min(mana + player.mana.base, player.mana.maximum);
 }
 
 void CalcPlrBlockFlag(Player &player)
@@ -4295,10 +4294,10 @@ void UseItem(Player &player, item_misc_id mid, SpellID spellID, int spellFrom)
 			NetSendCmdParam2(true, CMD_CHANGE_SPELL_LEVEL, static_cast<uint16_t>(spellID), newSpellLevel);
 		}
 		if (HasNoneOf(player._pIFlags, ItemSpecialEffect::NoMana)) {
-			player._pMana += GetSpellData(spellID).sManaCost << 6;
-			player._pMana = std::min(player._pMana, player._pMaxMana);
-			player._pManaBase += GetSpellData(spellID).sManaCost << 6;
-			player._pManaBase = std::min(player._pManaBase, player._pMaxManaBase);
+			player.mana.current += GetSpellData(spellID).sManaCost << 6;
+			player.mana.current = std::min(player.mana.current, player.mana.maximum);
+			player.mana.base += GetSpellData(spellID).sManaCost << 6;
+			player.mana.base = std::min(player.mana.base, player.mana.maximumBase);
 		}
 		if (&player == MyPlayer) {
 			for (Item &item : InventoryPlayerItemsRange { player }) {

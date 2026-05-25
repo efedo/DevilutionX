@@ -2507,20 +2507,20 @@ void OperateShrineCostOfWisdom(Player &player, SpellID spellId, diablo_message m
 		}
 	}
 
-	int maxBase = player._pMaxManaBase;
+	int maxBase = player.mana.maximumBase;
 
 	if (maxBase < 0) {
 		// Fix bugged state; do not turn this into a "negative penalty" mana boost.
-		player._pMaxManaBase = 0;
+		player.mana.maximumBase = 0;
 		maxBase = 0;
 	}
 
 	const int penalty = maxBase / 10; // 10% of max base mana (>= 0)
 
-	player._pMaxManaBase -= penalty; // will remain >= 0
-	player._pManaBase -= penalty;    // may go negative, allowed
-	player._pMaxMana -= penalty;     // may go negative, allowed
-	player._pMana -= penalty;        // may go negative, allowed
+	player.mana.maximumBase -= penalty; // will remain >= 0
+	player.mana.base -= penalty;    // may go negative, allowed
+	player.mana.maximum -= penalty;     // may go negative, allowed
+	player.mana.current -= penalty;        // may go negative, allowed
 
 	RedrawEverything();
 	InitDiabloMsg(message);
@@ -2541,8 +2541,8 @@ void OperateShrineCryptic(Player &player)
 	if (&player != MyPlayer)
 		return;
 
-	player._pMana = player._pMaxMana;
-	player._pManaBase = player._pMaxManaBase;
+	player.mana.current = player.mana.maximum;
+	player.mana.base = player.mana.maximumBase;
 
 	InitDiabloMsg(EMSG_SHRINE_CRYPTIC);
 
@@ -2614,10 +2614,10 @@ void OperateShrineDivine(Player &player, Point spawnPosition)
 		CreateTypeItem(spawnPosition, false, ItemType::Misc, IMISC_FULLREJUV, false, false, true);
 	}
 
-	player._pMana = player._pMaxMana;
-	player._pManaBase = player._pMaxManaBase;
-	player.hitPoints = player.maxHitPoints;
-	player._pHPBase = player._pMaxHPBase;
+	player.mana.current = player.mana.maximum;
+	player.mana.base = player.mana.maximumBase;
+	player.life.current = player.life.maximum;
+	player.life.base = player.life.maximumBase;
 
 	RedrawEverything();
 
@@ -2662,10 +2662,10 @@ void OperateShrineSpooky(const Player &player)
 
 	Player &myPlayer = *MyPlayer;
 
-	myPlayer.hitPoints = myPlayer.maxHitPoints;
-	myPlayer._pHPBase = myPlayer._pMaxHPBase;
-	myPlayer._pMana = myPlayer._pMaxMana;
-	myPlayer._pManaBase = myPlayer._pMaxManaBase;
+	myPlayer.life.current = myPlayer.life.maximum;
+	myPlayer.life.base = myPlayer.life.maximumBase;
+	myPlayer.mana.current = myPlayer.mana.maximum;
+	myPlayer.mana.base = myPlayer.mana.maximumBase;
 
 	RedrawEverything();
 
@@ -2910,8 +2910,8 @@ void OperateShrineShimmering(Player &player)
 	if (&player != MyPlayer)
 		return;
 
-	player._pMana = player._pMaxMana;
-	player._pManaBase = player._pMaxManaBase;
+	player.mana.current = player.mana.maximum;
+	player.mana.base = player.mana.maximumBase;
 
 	RedrawEverything();
 
@@ -3212,13 +3212,13 @@ bool OperateFountains(Player &player, Object &fountain)
 		if (&player != MyPlayer)
 			return false;
 
-		if (player.hitPoints < player.maxHitPoints) {
+		if (player.life.current < player.life.maximum) {
 			PlaySfxLoc(SfxID::OperateFountain, fountain.position);
-			player.hitPoints += 64;
-			player._pHPBase += 64;
-			if (player.hitPoints > player.maxHitPoints) {
-				player.hitPoints = player.maxHitPoints;
-				player._pHPBase = player._pMaxHPBase;
+			player.life.current += 64;
+			player.life.base += 64;
+			if (player.life.current > player.life.maximum) {
+				player.life.current = player.life.maximum;
+				player.life.base = player.life.maximumBase;
 			}
 			applied = true;
 		} else
@@ -3228,14 +3228,14 @@ bool OperateFountains(Player &player, Object &fountain)
 		if (&player != MyPlayer)
 			return false;
 
-		if (player._pMana < player._pMaxMana) {
+		if (player.mana.current < player.mana.maximum) {
 			PlaySfxLoc(SfxID::OperateFountain, fountain.position);
 
-			player._pMana += 64;
-			player._pManaBase += 64;
-			if (player._pMana > player._pMaxMana) {
-				player._pMana = player._pMaxMana;
-				player._pManaBase = player._pMaxManaBase;
+			player.mana.current += 64;
+			player.mana.base += 64;
+			if (player.mana.current > player.mana.maximum) {
+				player.mana.current = player.mana.maximum;
+				player.mana.base = player.mana.maximumBase;
 			}
 
 			applied = true;

@@ -502,16 +502,16 @@ void LoadPlayer(LoadHelper &file, Player &player)
 	player._pStatPts = file.NextLE<int32_t>();
 	player._pDamageMod = file.NextLE<int32_t>();
 	file.Skip<int32_t>(); // Skip _pBaseToBlk - always a copy of PlayerData.blockBonus
-	player._pHPBase = file.NextLE<int32_t>();
-	player._pMaxHPBase = file.NextLE<int32_t>();
-	player.hitPoints = file.NextLE<int32_t>();
-	player.maxHitPoints = file.NextLE<int32_t>();
-	file.Skip<int32_t>(); // Skip _pHPPer - always derived from hp and maxHP.
-	player._pManaBase = file.NextLE<int32_t>();
-	player._pMaxManaBase = file.NextLE<int32_t>();
-	player._pMana = file.NextLE<int32_t>();
-	player._pMaxMana = file.NextLE<int32_t>();
-	file.Skip<int32_t>(); // Skip _pManaPer - always derived from mana and maxMana
+	player.life.base = file.NextLE<int32_t>();
+	player.life.maximumBase = file.NextLE<int32_t>();
+	player.life.current = file.NextLE<int32_t>();
+	player.life.maximum = file.NextLE<int32_t>();
+	file.Skip<int32_t>(); // Skip life.percentage - always derived from hp and maxHP.
+	player.mana.base = file.NextLE<int32_t>();
+	player.mana.maximumBase = file.NextLE<int32_t>();
+	player.mana.current = file.NextLE<int32_t>();
+	player.mana.maximum = file.NextLE<int32_t>();
+	file.Skip<int32_t>(); // Skip mana.percentage - always derived from mana and maxMana
 	player.setCharacterLevel(file.NextLE<uint8_t>());
 	file.Skip<uint8_t>(); // Skip _pMaxLevel - unused
 	file.Skip(2);         // Alignment
@@ -1359,16 +1359,16 @@ void SavePlayer(SaveHelper &file, const Player &player)
 	file.WriteLE<int32_t>(player._pDamageMod);
 
 	file.WriteLE<int32_t>(player.getBaseToBlock()); // set _pBaseToBlk for backwards compatibility
-	file.WriteLE<int32_t>(player._pHPBase);
-	file.WriteLE<int32_t>(player._pMaxHPBase);
-	file.WriteLE<int32_t>(player.hitPoints);
-	file.WriteLE<int32_t>(player.maxHitPoints);
-	file.Skip<int32_t>(); // Skip _pHPPer
-	file.WriteLE<int32_t>(player._pManaBase);
-	file.WriteLE<int32_t>(player._pMaxManaBase);
-	file.WriteLE<int32_t>(player._pMana);
-	file.WriteLE<int32_t>(player._pMaxMana);
-	file.Skip<int32_t>(); // Skip _pManaPer
+	file.WriteLE<int32_t>(player.life.base);
+	file.WriteLE<int32_t>(player.life.maximumBase);
+	file.WriteLE<int32_t>(player.life.current);
+	file.WriteLE<int32_t>(player.life.maximum);
+	file.Skip<int32_t>(); // Skip life.percentage
+	file.WriteLE<int32_t>(player.mana.base);
+	file.WriteLE<int32_t>(player.mana.maximumBase);
+	file.WriteLE<int32_t>(player.mana.current);
+	file.WriteLE<int32_t>(player.mana.maximum);
+	file.Skip<int32_t>(); // Skip mana.percentage
 	file.WriteLE<uint8_t>(player.getCharacterLevel());
 	file.Skip<uint8_t>(); // skip _pMaxLevel, this value is uninitialised in most cases in Diablo/Hellfire so there's no point setting it.
 	file.Skip(2);         // Alignment

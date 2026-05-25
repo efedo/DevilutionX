@@ -34,6 +34,5 @@ exactly because the pointers reference the same memory the pool owns.
 ## Future Migration Targets
 
 - Monster pool: `Monsters[]`, `ActiveMonsters[]`, `ActiveMonsterCount` in `monster.h/cpp`.
-- Item pool: `Items[]`, `ActiveItems[]`, `ActiveItemCount` in `items.h/items.cpp`.
-- Apply `SparseAllocationPolicy` to Monsters (tile map references); `DenseAllocationPolicy` may be
-  acceptable for Items if their indices are not stored in save data (verify before migrating).
+  - Use `SparseAllocationPolicy` (tile map references via `dMonster[]`).
+- ~~Item pool~~ — **Done.** See `Source/item_pool.h` and `Source/item_pool.cpp`.

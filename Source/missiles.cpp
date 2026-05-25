@@ -420,7 +420,7 @@ bool Plr2PlrMHit(const Player &player, Player &target, int mindam, int maxdam, i
 
 	int dam;
 	if (mtype == MissileID::BoneSpirit) {
-		dam = target.hitPoints / 3;
+		dam = target.life.current / 3;
 	} else {
 		dam = RandomIntBetween(mindam, maxdam);
 		if (missileData.isArrow() && damageType == DamageType::Physical) {
@@ -1148,7 +1148,7 @@ bool PlayerMHit(Player &player, Monster *monster, int dist, int mind, int maxd, 
 
 	int dam;
 	if (mtype == MissileID::BoneSpirit) {
-		dam = player.hitPoints / 3;
+		dam = player.life.current / 3;
 	} else {
 		if (!shift) {
 			// New method fixes a bug which caused the maximum possible damage value to be 63/64ths too low.
@@ -1470,8 +1470,8 @@ void AddStealMana(Missile &missile, AddMissileParameter & /*parameter*/)
 	if (trappedPlayerPosition) {
 		Player &player = Players[std::abs(dPlayer[trappedPlayerPosition->x][trappedPlayerPosition->y]) - 1];
 
-		player._pMana = 0;
-		player._pManaBase = player._pMana + player._pMaxManaBase - player._pMaxMana;
+		player.mana.current = 0;
+		player.mana.base = player.mana.current + player.mana.maximumBase - player.mana.maximum;
 		CalcPlrInv(player, false);
 		RedrawComponent(PanelDrawComponent::Mana);
 		PlaySfxLoc(SfxID::Pig, *trappedPlayerPosition);
@@ -1671,10 +1671,10 @@ void AddMana(Missile &missile, AddMissileParameter & /*parameter*/)
 		manaAmount *= 2;
 	if (player._pClass == HeroClass::Rogue || player._pClass == HeroClass::Bard)
 		manaAmount += manaAmount / 2;
-	player._pMana += manaAmount;
-	player._pMana = std::min(player._pMana, player._pMaxMana);
-	player._pManaBase += manaAmount;
-	player._pManaBase = std::min(player._pManaBase, player._pMaxManaBase);
+	player.mana.current += manaAmount;
+	player.mana.current = std::min(player.mana.current, player.mana.maximum);
+	player.mana.base += manaAmount;
+	player.mana.base = std::min(player.mana.base, player.mana.maximumBase);
 	missile._miDelFlag = true;
 	RedrawComponent(PanelDrawComponent::Mana);
 }
@@ -1683,8 +1683,8 @@ void AddMagi(Missile &missile, AddMissileParameter & /*parameter*/)
 {
 	Player &player = Players[missile._misource];
 
-	player._pMana = player._pMaxMana;
-	player._pManaBase = player._pMaxManaBase;
+	player.mana.current = player.mana.maximum;
+	player.mana.base = player.mana.maximumBase;
 	missile._miDelFlag = true;
 	RedrawComponent(PanelDrawComponent::Mana);
 }
@@ -2467,8 +2467,8 @@ void AddHealing(Missile &missile, AddMissileParameter & /*parameter*/)
 		hp += hp / 2;
 	}
 
-	player.hitPoints = std::min(player.hitPoints + hp, player.maxHitPoints);
-	player._pHPBase = std::min(player._pHPBase + hp, player._pMaxHPBase);
+	player.life.current = std::min(player.life.current + hp, player.life.maximum);
+	player.life.base = std::min(player.life.base + hp, player.life.maximumBase);
 
 	missile._miDelFlag = true;
 	RedrawComponent(PanelDrawComponent::Health);
@@ -2582,7 +2582,7 @@ void AddRage(Missile &missile, AddMissileParameter &parameter)
 {
 	Player &player = Players[missile._misource];
 
-	if (HasAnyOf(player._pSpellFlags, SpellFlag::RageActive | SpellFlag::RageCooldown) || player.hitPoints <= player.getCharacterLevel() << 6) {
+	if (HasAnyOf(player._pSpellFlags, SpellFlag::RageActive | SpellFlag::RageCooldown) || player.life.current <= player.getCharacterLevel() << 6) {
 		missile._miDelFlag = true;
 		parameter.spellFizzled = true;
 		return;

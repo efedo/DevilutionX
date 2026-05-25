@@ -174,10 +174,10 @@ void NetReceivePlayerData(TPkt *pkt)
 	pkt->hdr.py = myPlayer.position.tile.y;
 	pkt->hdr.targx = target.x;
 	pkt->hdr.targy = target.y;
-	pkt->hdr.php = Swap32LE(myPlayer.hitPoints);
-	pkt->hdr.pmhp = Swap32LE(myPlayer.maxHitPoints);
-	pkt->hdr.mana = Swap32LE(myPlayer._pMana);
-	pkt->hdr.maxmana = Swap32LE(myPlayer._pMaxMana);
+	pkt->hdr.php = Swap32LE(myPlayer.life.current);
+	pkt->hdr.pmhp = Swap32LE(myPlayer.life.maximum);
+	pkt->hdr.mana = Swap32LE(myPlayer.mana.current);
+	pkt->hdr.maxmana = Swap32LE(myPlayer.mana.maximum);
 	pkt->hdr.bstr = myPlayer.attributes.strength.base;
 	pkt->hdr.bmag = myPlayer.attributes.magic.base;
 	pkt->hdr.bdex = myPlayer.attributes.dexterity.base;
@@ -363,10 +363,10 @@ void SyncPacketHeaderData(Player &player, const TPktHdr &pkt)
 	player.position.last = syncPosition;
 	if (&player != MyPlayer) {
 		assert(gbBufferMsgs != 2);
-		player.hitPoints = Swap32LE(pkt.php);
-		player.maxHitPoints = Swap32LE(pkt.pmhp);
-		player._pMana = Swap32LE(pkt.mana);
-		player._pMaxMana = Swap32LE(pkt.maxmana);
+		player.life.current = Swap32LE(pkt.php);
+		player.life.maximum = Swap32LE(pkt.pmhp);
+		player.mana.current = Swap32LE(pkt.mana);
+		player.mana.maximum = Swap32LE(pkt.maxmana);
 		const bool cond = gbBufferMsgs == 1;
 		player.attributes.strength.base = pkt.bstr;
 		player.attributes.magic.base = pkt.bmag;
