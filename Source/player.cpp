@@ -1660,9 +1660,9 @@ int Player::CalculateArmorPierce(int monsterArmor, bool isMelee) const
 	int tmac = monsterArmor;
 	if (damageBonuses.armorPiercing > 0) {
 		if (gbIsHellfire) {
-			int pIEnAc = damageBonuses.armorPiercing - 1;
-			if (pIEnAc > 0)
-				tmac >>= pIEnAc;
+			int armorPiercingShift = damageBonuses.armorPiercing - 1;
+			if (armorPiercingShift > 0)
+				tmac >>= armorPiercingShift;
 			else
 				tmac -= tmac / 4;
 		}
