@@ -1,5 +1,16 @@
 # EntityPool Modernization Strategy
 
+## Integration Status (Updated)
+
+**Current State**: The `DenseEntityPool<T>` template and `ObjectPool` are now integrated.
+- ✅ Generic pool template: `Source/utils/entity_pool.hpp`
+- ✅ Object-specific pool: `Source/object_pool.h` and `Source/object_pool.cpp`
+- ✅ Global instance: `gObjectPool` (initialized during `InitObjects()`)
+- ✅ Legacy globals remain untouched: no breaking changes
+- ✅ Build succeeds; codebase is stable
+
+**Approach**: The pool coexists with legacy arrays. New code can use the pool; existing code is unaffected.
+
 ## Overview
 
 This document describes the strategy for modernizing fixed-size array pools (`Objects[]`, `ActiveObjects[]`, `AvailableObjects[]`, `ActiveObjectCount`) into type-safe, STL-compatible containers while preserving binary save-file compatibility and enabling gradual migration.

@@ -10,10 +10,10 @@
  * When migrating call sites, batch mechanical changes first, then clean up internals in a follow-up pass.
  *
  * CONTAINER MODERNIZATION:
- * The legacy Objects[]/AvailableObjects[]/ActiveObjects[] pattern is modernized via DenseEntityPool<T>.
- * See docs/ENTITY_POOL_MODERNIZATION.md for strategy and design.
- * A fully generic, reusable container template is available (entity_pool.hpp).
- * Integration with objects.cpp is deferred to allow exhaustive migrate of all call sites first.
+ * A modern, type-safe DenseEntityPool<Object> is available via object_pool.h.
+ * Legacy Objects[]/AvailableObjects[]/ActiveObjects[] globals remain unchanged for compatibility.
+ * The pool can be used for new hot-path optimizations or for incremental migration.
+ * See docs/ENTITY_POOL_MODERNIZATION.md for strategy and design rationale.
  */
 #pragma once
 

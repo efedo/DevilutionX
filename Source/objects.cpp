@@ -38,6 +38,7 @@
 #include "minitext.h"
 #include "missiles.h"
 #include "monster.h"
+#include "object_pool.h"
 #include "options.h"
 #include "qol/stash.h"
 #include "stores.h"
@@ -3929,6 +3930,7 @@ void AddSlainHero()
 
 void InitObjects()
 {
+	InitializeObjectPool();
 	ClrAllObjects();
 	NaKrulTomeSequence = 0;
 	if (currlevel == 16) {
