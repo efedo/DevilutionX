@@ -27,6 +27,7 @@
 #include "missiles.h"
 #include "monster.h"
 #include "options.h"
+#include "object_pool.h"
 #include "panels/ui_panels.hpp"
 #include "stores.h"
 #include "tables/townerdat.hpp"
@@ -585,13 +586,13 @@ void ResyncQuests()
 		}
 		if (Quests[Q_LTBANNER]._qvar1 == 2) {
 			ObjChangeMapResync(
-			    SetPiece.position.x + SetPiece.size.width - 2,
-			    SetPiece.position.y + SetPiece.size.height - 2,
-			    SetPiece.position.x + SetPiece.size.width + 1,
-			    SetPiece.position.y + SetPiece.size.height + 1);
+				SetPiece.position.x + SetPiece.size.width - 2,
+				SetPiece.position.y + SetPiece.size.height - 2,
+				SetPiece.position.x + SetPiece.size.width + 1,
+				SetPiece.position.y + SetPiece.size.height + 1);
 			ObjChangeMapResync(SetPiece.position.x, SetPiece.position.y, SetPiece.position.x + (SetPiece.size.width / 2) + 2, SetPiece.position.y + (SetPiece.size.height / 2) - 2);
-			for (int i = 0; i < ActiveObjectCount; i++)
-				SyncObjectAnim(Objects[ActiveObjects[i]]);
+			for (Object &object : ObjectPoolAdapter::ActiveObjectsRange())
+				SyncObjectAnim(object);
 			auto tren = TransVal;
 			TransVal = 9;
 			DRLG_MRectTrans({ SetPiece.position, WorldTileSize((SetPiece.size.width / 2) + 4, SetPiece.size.height / 2) });
@@ -604,8 +605,8 @@ void ResyncQuests()
 		}
 		if (Quests[Q_LTBANNER]._qvar1 == 3) {
 			ObjChangeMapResync(SetPiece.position.x, SetPiece.position.y, SetPiece.position.x + SetPiece.size.width + 1, SetPiece.position.y + SetPiece.size.height + 1);
-			for (int i = 0; i < ActiveObjectCount; i++)
-				SyncObjectAnim(Objects[ActiveObjects[i]]);
+			for (Object &object : ObjectPoolAdapter::ActiveObjectsRange())
+				SyncObjectAnim(object);
 			auto tren = TransVal;
 			TransVal = 9;
 			DRLG_MRectTrans({ SetPiece.position, WorldTileSize((SetPiece.size.width / 2) + 4, SetPiece.size.height / 2) });
@@ -656,8 +657,8 @@ void ResyncQuests()
 		}
 		if (Quests[Q_BETRAYER]._qvar1 >= 7)
 			InitVPTriggers();
-		for (int i = 0; i < ActiveObjectCount; i++)
-			SyncObjectAnim(Objects[ActiveObjects[i]]);
+		for (Object &object : ObjectPoolAdapter::ActiveObjectsRange())
+			SyncObjectAnim(object);
 	}
 	if (currlevel == Quests[Q_BETRAYER]._qlevel
 	    && !setlevel

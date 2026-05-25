@@ -44,6 +44,7 @@
 #include "monsters/validation.hpp"
 #include "nthread.h"
 #include "objects.h"
+#include "object_pool.h"
 #include "options.h"
 #include "pack.h"
 #include "pfile.h"
@@ -921,8 +922,7 @@ void DeltaLoadObjects(DLevel &deltaLevel)
 		}
 	}
 
-	for (int i = 0; i < ActiveObjectCount; i++) {
-		Object &object = Objects[ActiveObjects[i]];
+	for (Object &object : ObjectPoolAdapter::ActiveObjectsRange()) {
 		if (object.IsTrap()) {
 			UpdateTrapState(object);
 		}

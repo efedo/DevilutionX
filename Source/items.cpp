@@ -63,6 +63,7 @@
 #include "msg.h"
 #include "multi.h"
 #include "objects.h"
+#include "object_pool.h"
 #include "options.h"
 #include "pack.h"
 #include "panels/info_box.hpp"
@@ -1579,8 +1580,7 @@ void SpawnRock()
 		return;
 
 	const Object *stand = nullptr;
-	for (int i = 0; i < ActiveObjectCount; i++) {
-		const Object &object = Objects[ActiveObjects[i]];
+	for (const Object &object : ObjectPoolAdapter::ActiveObjectsRange()) {
 		if (object._otype == OBJ_STAND) {
 			stand = &object;
 			break;

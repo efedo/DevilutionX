@@ -47,6 +47,7 @@
 #include "monster.h"
 #include "nthread.h"
 #include "objects.h"
+#include "object_pool.h"
 #include "options.h"
 #include "player.h"
 #include "qol/autopickup.h"
@@ -1077,8 +1078,7 @@ void TryDisarm(const Player &player, Object &object)
 	if (GenerateRnd(100) > trapdisper) {
 		return;
 	}
-	for (int j = 0; j < ActiveObjectCount; j++) {
-		Object &trap = Objects[ActiveObjects[j]];
+	for (Object &trap : ObjectPoolAdapter::ActiveObjectsRange()) {
 		if (trap.IsTrap() && FindObjectAtPosition({ trap._oVar1, trap._oVar2 }) == &object) {
 			trap._oVar4 = 1;
 			object._oTrapFlag = false;

@@ -31,6 +31,7 @@
 #include "menu.h"
 #include "missiles.h"
 #include "monster.h"
+#include "object_pool.h"
 #include "monsters/validation.hpp"
 #include "mpq/mpq_common.hpp"
 #include "pfile.h"
@@ -1948,7 +1949,7 @@ void SaveLevel(SaveWriter &saveWriter, LevelConversionData *levelConversionData)
 
 	file.WriteBE(static_cast<int32_t>(ActiveMonsterCount));
 	file.WriteBE<int32_t>(ActiveItemCount);
-	file.WriteBE<int32_t>(ActiveObjectCount);
+	file.WriteBE<int32_t>(ObjectPoolAdapter::ActiveObjectCountValue());
 
 	if (leveltype != DTYPE_TOWN) {
 		for (const unsigned monsterId : ActiveMonsters)
@@ -1959,12 +1960,12 @@ void SaveLevel(SaveWriter &saveWriter, LevelConversionData *levelConversionData)
 				monsterConversionData = &levelConversionData->monsterConversionData[ActiveMonsters[i]];
 			SaveMonster(&file, Monsters[ActiveMonsters[i]], monsterConversionData);
 		}
-		for (const int objectId : ActiveObjects)
+		for (const int objectId : ObjectPoolAdapter::ActiveObjectIds())
 			file.WriteLE<int8_t>(objectId);
-		for (const int objectId : AvailableObjects)
+		for (const int objectId : ObjectPoolAdapter::AvailableObjectIds())
 			file.WriteLE<int8_t>(objectId);
-		for (int i = 0; i < ActiveObjectCount; i++) {
-			SaveObject(file, Objects[ActiveObjects[i]]);
+		for (Object &object : ObjectPoolAdapter::ActiveObjectsRange()) {
+			SaveObject(file, object);
 		}
 	}
 
@@ -2026,7 +2027,7 @@ tl::expected<void, std::string> LoadLevel(LevelConversionData *levelConversionDa
 
 	ActiveMonsterCount = file.NextBE<int32_t>();
 	auto savedItemCount = file.NextBE<uint32_t>();
-	ActiveObjectCount = file.NextBE<int32_t>();
+	ObjectPoolAdapter::SetActiveObjectCountValue(file.NextBE<int32_t>());
 
 	ankerl::unordered_dense::set<unsigned> removedMonsterIds;
 
@@ -2037,15 +2038,15 @@ tl::expected<void, std::string> LoadLevel(LevelConversionData *levelConversionDa
 			for (size_t i = 0; i < ActiveMonsterCount; i++)
 				RETURN_IF_ERROR(Monsters[ActiveMonsters[i]].syncAnim());
 		}
-		for (int &objectId : ActiveObjects)
+		for (int &objectId : ObjectPoolAdapter::ActiveObjectIds())
 			objectId = file.NextLE<int8_t>();
-		for (int &objectId : AvailableObjects)
+		for (int &objectId : ObjectPoolAdapter::AvailableObjectIds())
 			objectId = file.NextLE<int8_t>();
-		for (int i = 0; i < ActiveObjectCount; i++)
-			LoadObject(file, Objects[ActiveObjects[i]]);
+		for (Object &object : ObjectPoolAdapter::ActiveObjectsRange())
+			LoadObject(file, object);
 		if (!gbSkipSync) {
-			for (int i = 0; i < ActiveObjectCount; i++)
-				SyncObjectAnim(Objects[ActiveObjects[i]]);
+			for (Object &object : ObjectPoolAdapter::ActiveObjectsRange())
+				SyncObjectAnim(object);
 		}
 	}
 
@@ -2543,7 +2544,7 @@ tl::expected<void, std::string> LoadGame(bool firstflag)
 
 	ViewPosition = { viewX, viewY };
 	ActiveMonsterCount = tmpNummonsters;
-	ActiveObjectCount = tmpNobjects;
+	ObjectPoolAdapter::SetActiveObjectCountValue(tmpNobjects);
 
 	for (size_t i = 0; i < MonstersData.size(); ++i) {
 		int &monstkill = MonsterKillCounts[i];
@@ -2569,14 +2570,14 @@ tl::expected<void, std::string> LoadGame(bool firstflag)
 		// load the appropriate animation data for the monster in missile.var2
 		for (size_t i = 0; i < ActiveMonsterCount; i++)
 			RETURN_IF_ERROR(Monsters[ActiveMonsters[i]].syncAnim());
-		for (int &objectId : ActiveObjects)
+		for (int &objectId : ObjectPoolAdapter::ActiveObjectIds())
 			objectId = file.NextLE<int8_t>();
-		for (int &objectId : AvailableObjects)
+		for (int &objectId : ObjectPoolAdapter::AvailableObjectIds())
 			objectId = file.NextLE<int8_t>();
-		for (int i = 0; i < ActiveObjectCount; i++)
-			LoadObject(file, Objects[ActiveObjects[i]]);
-		for (int i = 0; i < ActiveObjectCount; i++)
-			SyncObjectAnim(Objects[ActiveObjects[i]]);
+		for (Object &object : ObjectPoolAdapter::ActiveObjectsRange())
+			LoadObject(file, object);
+		for (Object &object : ObjectPoolAdapter::ActiveObjectsRange())
+			SyncObjectAnim(object);
 
 		ActiveLightCount = file.NextBE<int32_t>();
 
@@ -2802,7 +2803,7 @@ void SaveGameData(SaveWriter &saveWriter)
 	// warnings about casting from unsigned to signed, but there's no sign extension issues when reading this as a signed
 	// value later so it doesn't have to match in LoadGameData().
 	file.WriteBE<uint32_t>(static_cast<uint32_t>(std::min(Missiles.size(), MaxMissilesForSaveGame)));
-	file.WriteBE<int32_t>(ActiveObjectCount);
+	file.WriteBE<int32_t>(ObjectPoolAdapter::ActiveObjectCountValue());
 
 	for (uint8_t i = 0; i < giNumberOfLevels; i++) {
 		file.WriteBE<uint32_t>(DungeonSeeds[i]);
@@ -2844,12 +2845,12 @@ void SaveGameData(SaveWriter &saveWriter)
 				SaveMissile(&file, *it);
 			}
 		}
-		for (const int objectId : ActiveObjects)
+		for (const int objectId : ObjectPoolAdapter::ActiveObjectIds())
 			file.WriteLE(static_cast<int8_t>(objectId));
-		for (const int objectId : AvailableObjects)
+		for (const int objectId : ObjectPoolAdapter::AvailableObjectIds())
 			file.WriteLE(static_cast<int8_t>(objectId));
-		for (int i = 0; i < ActiveObjectCount; i++)
-			SaveObject(file, Objects[ActiveObjects[i]]);
+		for (Object &object : ObjectPoolAdapter::ActiveObjectsRange())
+			SaveObject(file, object);
 
 		file.WriteBE<int32_t>(ActiveLightCount);
 

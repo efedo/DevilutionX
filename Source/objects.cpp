@@ -328,11 +328,7 @@ void ClrAllObjects()
 	for (int i = 0; i < MAXOBJECTS; i++) {
 		Objects[i] = {};
 	}
-	ActiveObjectCount = 0;
-	for (int i = 0; i < MAXOBJECTS; i++) {
-		AvailableObjects[i] = i;
-	}
-	memset(ActiveObjects, 0, sizeof(ActiveObjects));
+	ObjectPoolAdapter::ResetLegacyObjectPools();
 	trapdir = 0;
 	trapid = 1;
 	leverid = 1;
@@ -726,17 +722,15 @@ void SetupObject(Object &object, Point position, _object_id ot)
 
 void AddCryptBook(_object_id ot, int v2, Point position)
 {
-	if (ActiveObjectCount >= MAXOBJECTS)
+	if (!ObjectPoolAdapter::HasFreeObjectSlot())
 		return;
 
-	const int oi = AvailableObjects[0];
-	AvailableObjects[0] = AvailableObjects[MAXOBJECTS - 1 - ActiveObjectCount];
-	ActiveObjects[ActiveObjectCount] = oi;
+	const int oi = ObjectPoolAdapter::ReserveObjectSlot();
 	dObject[position.x][position.y] = oi + 1;
 	Object &object = Objects[oi];
 	SetupObject(object, position, ot);
 	AddCryptObject(object, v2);
-	ActiveObjectCount++;
+	ObjectPoolAdapter::CommitReservedObjectSlot();
 }
 
 void AddCryptStoryBook(int s)
@@ -905,12 +899,9 @@ void DeleteObject(int oi, int i)
 	const Object &object = Objects[oi];
 	const Point position = object.position;
 	dObject[position.x][position.y] = 0;
-	AvailableObjects[-ActiveObjectCount + MAXOBJECTS] = oi;
-	ActiveObjectCount--;
+	ObjectPoolAdapter::ReleaseObjectSlot(oi, i);
 	if (ObjectUnderCursor == &object) // Unselect object if this was highlighted by player
 		ObjectUnderCursor = nullptr;
-	if (ActiveObjectCount > 0 && i != ActiveObjectCount)
-		ActiveObjects[i] = ActiveObjects[ActiveObjectCount];
 }
 
 void AddChest(Object &chest)
@@ -1441,8 +1432,8 @@ Point GetRndObjLoc(int randarea)
 
 void AddMushPatch()
 {
-	if (ActiveObjectCount < MAXOBJECTS) {
-		const int i = AvailableObjects[0];
+	if (ObjectPoolAdapter::HasFreeObjectSlot()) {
+		const int i = ObjectPoolAdapter::PeekNextAvailableObjectIndex();
 		const Point loc = GetRndObjLoc(5);
 		dObject[loc.x + 1][loc.y + 1] = -(i + 1);
 		dObject[loc.x + 2][loc.y + 1] = -(i + 1);
@@ -1574,8 +1565,7 @@ void UpdateSarcophagus(Object &sarcophagus)
 
 void ActivateTrapLine(int ttype, int tid)
 {
-	for (int i = 0; i < ActiveObjectCount; i++) {
-		Object &trap = Objects[ActiveObjects[i]];
+	for (Object &trap : ObjectPoolAdapter::ActiveObjectsRange()) {
 		if (trap._otype == ttype && trap._oVar1 == tid) {
 			trap._oVar4 = 1;
 			trap._oAnimFlag = true;
@@ -1785,11 +1775,10 @@ void OperateDoor(Object &door, bool sendflag)
 
 bool AreAllLeversActivated(int leverId)
 {
-	for (int j = 0; j < ActiveObjectCount; j++) {
-		const Object &lever = Objects[ActiveObjects[j]];
+	for (const Object &lever : ObjectPoolAdapter::ActiveObjectsRange()) {
 		if (lever._otype == OBJ_SWITCHSKL
-		    && lever._oVar8 == leverId
-		    && lever.canInteractWith()) {
+			&& lever._oVar8 == leverId
+			&& lever.canInteractWith()) {
 			return false;
 		}
 	}
@@ -1917,8 +1906,8 @@ void OperateBook(Player &player, Object &book, bool sendmsg)
 		    book._oVar2,
 		    book._oVar3,
 		    book._oVar4);
-		for (int j = 0; j < ActiveObjectCount; j++)
-			SyncObjectAnim(Objects[ActiveObjects[j]]);
+		for (Object &object : ObjectPoolAdapter::ActiveObjectsRange())
+			SyncObjectAnim(object);
 	}
 }
 
@@ -1975,8 +1964,8 @@ void OperateChamberOfBoneBook(Object &questBook, bool sendmsg)
 
 	if (questBook._oAnimFrame != questBook._oVar6) {
 		ObjChangeMapResync(questBook._oVar1, questBook._oVar2, questBook._oVar3, questBook._oVar4);
-		for (int j = 0; j < ActiveObjectCount; j++) {
-			SyncObjectAnim(Objects[ActiveObjects[j]]);
+		for (Object &object : ObjectPoolAdapter::ActiveObjectsRange()) {
+			SyncObjectAnim(object);
 		}
 	}
 	questBook._oAnimFrame = questBook._oVar6;
@@ -2164,8 +2153,7 @@ void OperateTrapLever(Object &flameLever)
 
 	if (flameLever._oAnimFrame == 1) {
 		flameLever._oAnimFrame = 2;
-		for (int j = 0; j < ActiveObjectCount; j++) {
-			Object &target = Objects[ActiveObjects[j]];
+		for (Object &target : ObjectPoolAdapter::ActiveObjectsRange()) {
 			if (target._otype == flameLever._oVar2 && target._oVar1 == flameLever._oVar1) {
 				target._oVar2 = 1;
 				target._oAnimFlag = false;
@@ -2175,8 +2163,7 @@ void OperateTrapLever(Object &flameLever)
 	}
 
 	flameLever._oAnimFrame--;
-	for (int j = 0; j < ActiveObjectCount; j++) {
-		Object &target = Objects[ActiveObjects[j]];
+	for (Object &target : ObjectPoolAdapter::ActiveObjectsRange()) {
 		if (target._otype == flameLever._oVar2 && target._oVar1 == flameLever._oVar1) {
 			target._oVar2 = 0;
 			if (target._oVar4 != 0) {
@@ -2487,8 +2474,7 @@ void OperateShrineEnchanted(DiabloGenerator &rng, Player &player)
 
 void OperateShrineThaumaturgic(DiabloGenerator &rng, const Player &player)
 {
-	for (int j = 0; j < ActiveObjectCount; j++) {
-		Object &object = Objects[ActiveObjects[j]];
+	for (Object &object : ObjectPoolAdapter::ActiveObjectsRange()) {
 		if (object.IsChest() && !object.canInteractWith()) {
 			object._oRndSeed = rng.advanceRndSeed();
 			object.selectionRegion = SelectionRegion::Bottom;
@@ -3423,8 +3409,7 @@ void OperateLazStand(Object &stand)
  */
 bool AreAllCruxesOfTypeBroken(int cruxType)
 {
-	for (int j = 0; j < ActiveObjectCount; j++) {
-		const auto &testObject = Objects[ActiveObjects[j]];
+	for (const auto &testObject : ObjectPoolAdapter::ActiveObjectsRange()) {
 		if (!testObject.IsCrux())
 			continue; // Not a Crux object, keep searching
 		if (cruxType != testObject._oVar8 || testObject._oBreak == -1)
@@ -4127,12 +4112,10 @@ void SetMapObjects(const uint16_t *dunData, int startx, int starty)
 
 Object *AddObject(_object_id objType, Point objPos)
 {
-	if (ActiveObjectCount >= MAXOBJECTS)
+	if (!ObjectPoolAdapter::HasFreeObjectSlot())
 		return nullptr;
 
-	const int oi = AvailableObjects[0];
-	AvailableObjects[0] = AvailableObjects[MAXOBJECTS - 1 - ActiveObjectCount];
-	ActiveObjects[ActiveObjectCount] = oi;
+	const int oi = ObjectPoolAdapter::ReserveObjectSlot();
 	dObject[objPos.x][objPos.y] = oi + 1;
 	Object &object = Objects[oi];
 	SetupObject(object, objPos, objType);
@@ -4250,7 +4233,7 @@ Object *AddObject(_object_id objType, Point objPos)
 
 	AddObjectLight(object);
 
-	ActiveObjectCount++;
+	ObjectPoolAdapter::CommitReservedObjectSlot();
 	return &object;
 }
 
@@ -4316,8 +4299,7 @@ void OperateTrap(Object &trap)
 
 void ProcessObjects()
 {
-	for (int i = 0; i < ActiveObjectCount; ++i) {
-		Object &object = Objects[ActiveObjects[i]];
+	for (Object &object : ObjectPoolAdapter::ActiveObjectsRange()) {
 		switch (object._otype) {
 		case OBJ_L1LIGHT:
 		case OBJ_SKFIRE:
@@ -4396,9 +4378,9 @@ void ProcessObjects()
 			object._oAnimFrame = 1;
 	}
 
-	for (int i = 0; i < ActiveObjectCount;) {
-		const int oi = ActiveObjects[i];
-		if (Objects[oi]._oDelFlag) {
+	for (int i = 0; i < ObjectPoolAdapter::ActiveObjectCountValue();) {
+		const int oi = ObjectPoolAdapter::ActiveObjectIndexAt(i);
+		if (ObjectPoolAdapter::ActiveObjectAt(i)._oDelFlag) {
 			DeleteObject(oi, i);
 		} else {
 			i++;
