@@ -103,25 +103,13 @@ struct Object {
 	// leverID: The ID (*not* an object ID/index) of the lever responsible for the map change.
 	void InitializeLoadedObject(WorldTileRectangle mapRange, int leverID);
 
-	// Check if the object can be broken (is an intact barrel or crux)
-	// return: True if the object is intact and breakable, false if already broken or not a breakable object.
-	[[nodiscard]] bool IsBreakable() const;
-
-	// Check if the object has been broken
-	// return: True if the object is breakable and has been broken, false if unbroken or not a breakable object.
-	[[nodiscard]] bool IsBroken() const;
-
-	// Returns true if the object is a harmful shrine and the player has disabled permanent shrine effects.
-	[[nodiscard]] bool IsDisabled() const;
-
+	[[nodiscard]] bool IsBreakable() const; // Is breakable (i.e. is an intact barrel or crux)?
+	[[nodiscard]] bool IsBroken() const; // Is broken?
+	[[nodiscard]] bool IsDisabled() const; // Returns true if the object is a harmful shrine and 
+										   // the player has disabled permanent shrine effects.
 	[[nodiscard]] bool canInteractWith() const;
-
-	// Check if this object is barrel (or explosive barrel)
-	// return: True if the object is one of the barrel types (see _object_id)
-	[[nodiscard]] bool IsBarrel() const;
-
-	// Check if this object contains explosives or caustic material
-	[[nodiscard]] bool isExplosive() const;
+	[[nodiscard]] bool IsBarrel() const; // Is barrel (or explosive barrel)?
+	[[nodiscard]] bool isExplosive() const; // Contains explosives or caustic material?
 
 	// Check if this object is any of the chest (or trapped chest) types (see _object_id).
 	// Trapped chests get their base type change in addition to having the trap flag set, but if they get "refilled" by
@@ -129,28 +117,14 @@ struct Object {
 	// trap flag to differentiate between chests that are currently trapped and chests which have never been trapped.
 	[[nodiscard]] bool IsChest() const;
 
-	// Check if this object is a trapped chest (specifically a chest which is currently trapped).
-	// return: True if the object is one of the trapped chest types (see _object_id) and has an active trap.
-	[[nodiscard]] bool IsTrappedChest() const;
+	[[nodiscard]] bool IsTrappedChest() const; // Is a trapped chest (i.e. has an active trap)?
+	[[nodiscard]] bool IsUntrappedChest() const; // Is an untrapped chest (i.e. has no active trap)?
+	[[nodiscard]] bool IsCrux() const; // Is a crucifix?
+	[[nodiscard]] bool isDoor() const; // Is a door?
+	[[nodiscard]] bool IsShrine() const; // Is a shrine?
+	[[nodiscard]] bool IsTrap() const; // Is a trap?
 
-	// Check if this object is an untrapped chest (specifically a chest which has not been trapped).
-	// return: True if the object is one of the untrapped chest types (see _object_id) and has no active trap.
-	[[nodiscard]] bool IsUntrappedChest() const;
-
-	// Check if this object is one of the crucifix types (see _object_id)
-	[[nodiscard]] bool IsCrux() const;
-
-	// Check if this object is one of the door types (see _object_id)
-	[[nodiscard]] bool isDoor() const;
-
-	// Check if this object is one of the shrine types (see _object_id)
-	[[nodiscard]] bool IsShrine() const;
-
-	// Check if this object is one of the trap types (see _object_id)
-	[[nodiscard]] bool IsTrap() const;
-
-	// Returns the name of the object as shown in the info box
-	[[nodiscard]] StringOrView name() const;
+	[[nodiscard]] StringOrView name() const; // Name of the object as shown in the info box
 
 	[[nodiscard]] ClxSprite currentSprite() const;
 
