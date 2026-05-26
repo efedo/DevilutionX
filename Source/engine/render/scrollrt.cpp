@@ -543,10 +543,13 @@ static void DrawDungeon(const Surface & /*out*/, const Lightmap & /*lightmap*/, 
  * @param lightmap Per-pixel light buffer
  * @param tilePosition dPiece coordinates
  * @param targetBufferPosition Target buffer coordinates
+ *
+ * MIGRATED to Tile API (Phase 3)
  */
 void DrawCell(const Surface &out, const Lightmap lightmap, Point tilePosition, Point targetBufferPosition, int lightTableIndex)
 {
-	const uint16_t levelPieceId = dPiece[tilePosition.x][tilePosition.y];
+	const Tile &tile = tileAt(tilePosition);  // Migrated from dPiece[...] access
+	const uint16_t levelPieceId = tile.piece();
 	const MICROS *pMap = &DPieceMicros[levelPieceId];
 
 	const uint8_t *tbl = LightTables[lightTableIndex].data();
@@ -563,7 +566,7 @@ void DrawCell(const Surface &out, const Lightmap lightmap, Point tilePosition, P
 	}
 #endif
 
-	bool transparency = TileHasAny(tilePosition, TileProperties::Transparent) && TransList[dTransVal[tilePosition.x][tilePosition.y]];
+	bool transparency = TileHasAny(tilePosition, TileProperties::Transparent) && TransList[tile.transVal()];  // Migrated from dTransVal[...]
 #ifdef _DEBUG
 	if ((SDL_GetModState() & SDL_KMOD_ALT) != 0) {
 		transparency = false;
@@ -674,18 +677,20 @@ void DrawCell(const Surface &out, const Lightmap lightmap, Point tilePosition, P
  * @param lightmap Per-pixel light buffer
  * @param tilePosition dPiece coordinates
  * @param targetBufferPosition Target buffer coordinate
+ *
+ * MIGRATED to Tile API (Phase 3)
  */
 void DrawFloorTile(const Surface &out, const Lightmap &lightmap, Point tilePosition, Point targetBufferPosition)
 {
-	const int lightTableIndex = dLight[tilePosition.x][tilePosition.y];
+	const Tile &tile = tileAt(tilePosition);  // Migrated from dLight[...] and dPiece[...] access
+	const int lightTableIndex = tile.light();
+	const uint16_t levelPieceId = tile.piece();
 
 	const uint8_t *tbl = LightTables[lightTableIndex].data();
 #ifdef _DEBUG
 	if (DebugPath && MyPlayer->GetPositionPathIndex(tilePosition) != -1)
 		tbl = GetPauseTRN();
 #endif
-
-	const uint16_t levelPieceId = dPiece[tilePosition.x][tilePosition.y];
 	{
 		const LevelCelBlock levelCelBlock { DPieceMicros[levelPieceId].mt[0] };
 		if (levelCelBlock.hasValue()) {
@@ -728,9 +733,19 @@ void DrawItem(const Surface &out, int8_t itemIndex, Point targetBufferPosition, 
  * @param tilePosition dPiece coordinates
  * @param targetBufferPosition Output buffer coordinates
  */
+/**
+ * @brief Draw a monster or towner
+ * @param out Target buffer
+ * @param tilePosition Position to draw at
+ * @param targetBufferPosition Position in the buffer
+ * @param lightTableIndex Light level
+ *
+ * MIGRATED to Tile API (Phase 3)
+ */
 void DrawMonsterHelper(const Surface &out, Point tilePosition, Point targetBufferPosition, int lightTableIndex)
 {
-	int mi = dMonster[tilePosition.x][tilePosition.y];
+	const Tile &tile = tileAt(tilePosition);  // Migrated from dMonster[tilePosition.x][tilePosition.y]
+	int mi = tile.monster();
 
 	mi = std::abs(mi) - 1;
 
@@ -775,16 +790,21 @@ void DrawMonsterHelper(const Surface &out, Point tilePosition, Point targetBuffe
  * @param lightmap Per-pixel light buffer
  * @param tilePosition dPiece coordinates
  * @param targetBufferPosition Target buffer coordinates
+ *
+ * MIGRATED to Tile API (Phase 3)
  */
 void DrawDungeon(const Surface &out, const Lightmap &lightmap, Point tilePosition, Point targetBufferPosition)
 {
 	assert(InDungeonBounds(tilePosition));
-	const int lightTableIndex = dLight[tilePosition.x][tilePosition.y];
+
+	// Use new Tile API for better cache locality
+	const Tile &tile = tileAt(tilePosition);
+	const int lightTableIndex = tile.light();
 
 	DrawCell(out, lightmap, tilePosition, targetBufferPosition, lightTableIndex);
 
-	const int8_t bDead = dCorpse[tilePosition.x][tilePosition.y];
-	const int8_t bMap = dTransVal[tilePosition.x][tilePosition.y];
+	const int8_t bDead = tile.corpse();
+	const int8_t bMap = tile.transVal();
 
 #ifdef _DEBUG
 	if (DebugVision && IsTileLit(tilePosition)) {
@@ -808,10 +828,10 @@ void DrawDungeon(const Surface &out, const Lightmap &lightmap, Point tilePositio
 		}
 	}
 
-	const int8_t bItem = dItem[tilePosition.x][tilePosition.y];
+	const int8_t bItem = tile.item();  // Migrated from dItem[tilePosition.x][tilePosition.y]
 	const Object *object = lightTableIndex < LightsMax
-	    ? FindObjectAtPosition(tilePosition)
-	    : nullptr;
+		? FindObjectAtPosition(tilePosition)
+		: nullptr;
 	if (object != nullptr && object->_oPreFlag) {
 		DrawObject(out, *object, tilePosition, targetBufferPosition, lightTableIndex);
 	}
@@ -831,7 +851,7 @@ void DrawDungeon(const Surface &out, const Lightmap &lightmap, Point tilePositio
 		// This respests the order that tiles are drawn. By using the negative id, we ensure that the sprite is drawn with priority
 		if (player->_pmode == PM_WALK_SOUTHWARDS || (player->_pmode == PM_WALK_SIDEWAYS && player->direction == Direction::East))
 			playerId = -playerId;
-		if (dPlayer[tilePosition.x][tilePosition.y] == playerId) {
+		if (tile.player() == playerId) {  // Migrated from dPlayer[tilePosition.x][tilePosition.y]
 			auto tempTilePosition = tilePosition;
 			auto tempTargetBufferPosition = targetBufferPosition;
 
@@ -868,7 +888,7 @@ void DrawDungeon(const Surface &out, const Lightmap &lightmap, Point tilePositio
 		// This respests the order that tiles are drawn. By using the negative id, we ensure that the sprite is drawn with priority
 		if (monster->mode == MonsterMode::MoveSouthwards || (monster->mode == MonsterMode::MoveSideways && monster->direction == Direction::East))
 			monsterId = -monsterId;
-		if (dMonster[tilePosition.x][tilePosition.y] == monsterId) {
+		if (tile.monster() == monsterId) {  // Migrated from dMonster[tilePosition.x][tilePosition.y]
 			auto tempTilePosition = tilePosition;
 			auto tempTargetBufferPosition = targetBufferPosition;
 
@@ -907,7 +927,7 @@ void DrawDungeon(const Surface &out, const Lightmap &lightmap, Point tilePositio
 
 	if (leveltype != DTYPE_TOWN) {
 		const bool perPixelLighting = *GetOptions().Graphics.perPixelLighting;
-		const int8_t bArch = dSpecial[tilePosition.x][tilePosition.y] - 1;
+		const int8_t bArch = tile.special() - 1;  // Migrated from dSpecial[tilePosition.x][tilePosition.y]
 		if (bArch >= 0) {
 			bool transparency = TransList[bMap];
 #ifdef _DEBUG
@@ -934,7 +954,8 @@ void DrawDungeon(const Surface &out, const Lightmap &lightmap, Point tilePositio
 		// So delay the rendering until after the next row is being drawn.
 		// This could probably have been better solved by sprites in screen space.
 		if (tilePosition.x > 0 && tilePosition.y > 0 && targetBufferPosition.y > TILE_HEIGHT) {
-			const int8_t bArch = dSpecial[tilePosition.x - 1][tilePosition.y - 1] - 1;
+			const Tile &tilePrev = tileAt(tilePosition - Displacement { 1, 1 });  // Migrated from dSpecial[tilePosition.x - 1][tilePosition.y - 1]
+			const int8_t bArch = tilePrev.special() - 1;
 			if (bArch >= 0)
 				ClxDraw(out, targetBufferPosition + Displacement { 0, -TILE_HEIGHT }, (*pSpecialCels)[bArch]);
 		}
@@ -1062,13 +1083,20 @@ void DrawDirtTile(const Surface &out, const Lightmap &lightmap, Point tilePositi
 	sample.x = std::clamp(sample.x, 0, MAXDUNX - 1);
 	sample.y = std::clamp(sample.y, 0, MAXDUNY - 1);
 
-	if (!InDungeonBounds(sample) || dPiece[sample.x][sample.y] == 0) {
+	if (!InDungeonBounds(sample)) {
 		// Failsafe: if our sample somehow isn't valid, fall back to black
 		world_draw_black_tile(out, targetBufferPosition.x, targetBufferPosition.y);
 		return;
 	}
 
-	const int lightTableIndex = dLight[sample.x][sample.y];
+	const Tile &sampleTile = tileAt(sample);  // Migrated from dLight[...] and dPiece[...] access
+	if (sampleTile.piece() == 0) {
+		// Failsafe: if our sample somehow isn't valid, fall back to black
+		world_draw_black_tile(out, targetBufferPosition.x, targetBufferPosition.y);
+		return;
+	}
+
+	const int lightTableIndex = sampleTile.light();
 
 	// Let the normal dungeon tile renderer compose the full tile
 	DrawCell(out, lightmap, sample, targetBufferPosition, lightTableIndex);
