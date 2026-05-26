@@ -46,7 +46,7 @@ enum class DebugGridTextItem : uint16_t {
 	missiles,
 	DCorpse,
 	DObject,
-	dItem,
+	DItem,  // Renamed from dItem to avoid conflict with dItem macro in gendung.h
 	DSpecial,
 
 	coords,

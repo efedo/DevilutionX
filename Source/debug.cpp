@@ -221,7 +221,7 @@ bool GetDebugGridText(Point dungeonCoords, std::string &debugGridText)
 	case DebugGridTextItem::DCorpse:
 		info = dCorpse[dungeonCoords.x][dungeonCoords.y];
 		break;
-	case DebugGridTextItem::dItem:
+	case DebugGridTextItem::DItem:  // Updated from dItem to DItem
 		info = dItem[dungeonCoords.x][dungeonCoords.y];
 		break;
 	case DebugGridTextItem::DSpecial:

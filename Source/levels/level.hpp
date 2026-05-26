@@ -23,6 +23,7 @@
 #include "engine/world_tile.hpp"
 #include "levels/dun_tile.hpp"
 #include "levels/gendung_defs.hpp"
+#include "levels/tile.hpp"
 #include "utils/bitset2d.hpp"
 
 namespace devilution {
@@ -78,6 +79,34 @@ public:
 
 	/** @brief Updates the level identity without recreating the level data. */
 	void setId(const LevelId &newId) { id_ = newId; }
+
+	// -------------------------------------------------------------------------
+	// Tile access (NEW - Phase 2 migration)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * @brief Access a tile at the given coordinates.
+	 * @param x X coordinate (0 to MAXDUNX-1)
+	 * @param y Y coordinate (0 to MAXDUNY-1)
+	 * @return Reference to the Tile at (x, y)
+	 */
+	[[nodiscard]] Tile &tileAt(int x, int y) { return tiles_[x][y]; }
+	[[nodiscard]] const Tile &tileAt(int x, int y) const { return tiles_[x][y]; }
+
+	/**
+	 * @brief Access a tile at the given Point.
+	 * @param position Point containing x,y coordinates
+	 * @return Reference to the Tile at the position
+	 */
+	[[nodiscard]] Tile &tileAt(Point position) { return tiles_[position.x][position.y]; }
+	[[nodiscard]] const Tile &tileAt(Point position) const { return tiles_[position.x][position.y]; }
+
+	/**
+	 * @brief Direct access to the tile array (for bulk operations).
+	 * @return Reference to the entire tile array
+	 */
+	[[nodiscard]] Tile (&tiles())[MAXDUNX][MAXDUNY] { return tiles_; }
+	[[nodiscard]] const Tile (&tiles() const)[MAXDUNX][MAXDUNY] { return tiles_; }
 
 	// -------------------------------------------------------------------------
 	// Monster catalogue
@@ -142,6 +171,13 @@ public:
 	// -------------------------------------------------------------------------
 	// Per-tile maps  (MAXDUNX × MAXDUNY)
 	// -------------------------------------------------------------------------
+
+	// NEW: Consolidated tile array (Phase 2 migration)
+	/** Consolidated per-tile data. Each Tile contains all properties for one map tile. */
+	Tile tiles_[MAXDUNX][MAXDUNY] = {};
+
+	// LEGACY: Old separate arrays (kept temporarily for gradual migration)
+	// TODO: Remove these once all code is migrated to use tiles_[]
 	/** @see dPiece */
 	uint16_t dPiece_[MAXDUNX][MAXDUNY] = {};
 	/** @see DPieceMicros */

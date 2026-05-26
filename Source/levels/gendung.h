@@ -144,6 +144,15 @@ tl::expected<_setlevels, std::string> ParseSetLevel(std::string_view value);
 #define dItem         (currentLevel().dItem_)
 #define themeCount    (currentLevel().themeCount_)
 #define themeLoc      (currentLevel().themeLoc_)
+
+// ---------------------------------------------------------------------------
+// NEW: Tile-based access (Phase 2 migration)
+// ---------------------------------------------------------------------------
+/** Direct access to the consolidated Tile array. Use tiles[x][y].method() */
+#define tiles         (currentLevel().tiles_)
+/** Accessor helper for getting a tile. Use tileAt(x, y) or tileAt(Point) */
+#define tileAt        (currentLevel().tileAt)
+
 // clang-format on
 
 #ifdef BUILD_TESTING
