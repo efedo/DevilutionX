@@ -140,6 +140,8 @@ tl::expected<_setlevels, std::string> ParseSetLevel(std::string_view value);
  * "levels/towndata/towns") contains trees rather than arches.
  */
 #define dSpecial      (currentLevel().dSpecial_)
+/** Contains the item numbers (items array indices) at each tile on the map. */
+#define dItem         (currentLevel().dItem_)
 #define themeCount    (currentLevel().themeCount_)
 #define themeLoc      (currentLevel().themeLoc_)
 // clang-format on

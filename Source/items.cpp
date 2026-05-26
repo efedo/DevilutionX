@@ -250,7 +250,6 @@ Displacement Item::getRenderingOffset(const ClxSprite sprite) const
 	return { -CalculateSpriteTileCenterX(sprite.width()), 0 };
 }
 
-int8_t dItem[MAXDUNX][MAXDUNY];
 bool ShowUniqueItemInfoBox;
 CornerStoneStruct CornerStone;
 bool UniqueItemFlags[128];

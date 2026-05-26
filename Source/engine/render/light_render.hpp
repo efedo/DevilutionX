@@ -54,7 +54,7 @@ public:
 	    const uint8_t *outBuffer, uint16_t outPitch,
 	    std::span<const std::array<uint8_t, LightTableSize>, NumLightingLevels> lightTables,
 	    const uint8_t *fullyLitLightTable, const uint8_t *fullyDarkLightTable,
-	    const uint8_t tileLights[MAXDUNX][MAXDUNY],
+	    const uint8_t tileLights[MAXDUNX][MAXDUNY], // move to level?
 	    uint_fast8_t microTileLen);
 
 	static Lightmap bleedUp(bool perPixelLighting, const Lightmap &source, Point targetBufferPosition, std::span<uint8_t> lightmapBuffer);

@@ -164,6 +164,8 @@ public:
 	int8_t dObject_[MAXDUNX][MAXDUNY] = {};
 	/** @see dSpecial */
 	int8_t dSpecial_[MAXDUNX][MAXDUNY] = {};
+	/** @see dItem */
+	int8_t dItem_[MAXDUNX][MAXDUNY] = {};
 
 	// -------------------------------------------------------------------------
 	// Theme rooms
