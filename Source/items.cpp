@@ -1,8 +1,4 @@
-/**
- * @file items.cpp
- *
- * Implementation of item functionality.
- */
+// Implementation of item functionality.
 #include "items.h"
 #include "item_pool.h"
 
@@ -95,6 +91,164 @@
 #include "utils/utf8.hpp"
 
 namespace devilution {
+
+// Item method implementations moved from items.h header
+
+Item Item::pop() &
+{
+	Item temp = std::move(*this);
+	clear();
+	return temp;
+}
+
+bool Item::isEquipment() const
+{
+	if (this->isEmpty()) {
+		return false;
+	}
+
+	switch (this->_iLoc) {
+	case ILOC_AMULET:
+	case ILOC_ARMOR:
+	case ILOC_HELM:
+	case ILOC_ONEHAND:
+	case ILOC_RING:
+	case ILOC_TWOHAND:
+		return true;
+
+	default:
+		return false;
+	}
+}
+
+bool Item::isWeapon() const
+{
+	switch (this->_itype) {
+	case ItemType::Axe:
+	case ItemType::Bow:
+	case ItemType::Mace:
+	case ItemType::Staff:
+	case ItemType::Sword:
+		return true;
+
+	default:
+		return false;
+	}
+}
+
+bool Item::isArmor() const
+{
+	switch (this->_itype) {
+	case ItemType::HeavyArmor:
+	case ItemType::LightArmor:
+	case ItemType::MediumArmor:
+		return true;
+
+	default:
+		return false;
+	}
+}
+
+bool Item::isJewelry() const
+{
+	switch (this->_itype) {
+	case ItemType::Amulet:
+	case ItemType::Ring:
+		return true;
+
+	default:
+		return false;
+	}
+}
+
+bool Item::isRuneOf(SpellID spellId) const
+{
+	if (!isRune())
+		return false;
+	switch (_iMiscId) {
+	case IMISC_RUNEF:
+		return spellId == SpellID::RuneOfFire;
+	case IMISC_RUNEL:
+		return spellId == SpellID::RuneOfLight;
+	case IMISC_GR_RUNEL:
+		return spellId == SpellID::RuneOfNova;
+	case IMISC_GR_RUNEF:
+		return spellId == SpellID::RuneOfImmolation;
+	case IMISC_RUNES:
+		return spellId == SpellID::RuneOfStone;
+	default:
+		return false;
+	}
+}
+
+UiFlags Item::getTextColor() const
+{
+	switch (_iMagical) {
+	case ITEM_QUALITY_MAGIC:
+		return UiFlags::ColorBlue;
+	case ITEM_QUALITY_UNIQUE:
+		return UiFlags::ColorWhitegold;
+	default:
+		return UiFlags::ColorWhite;
+	}
+}
+
+void Item::clear()
+{
+	this->_itype = ItemType::None;
+}
+
+bool Item::isEmpty() const
+{
+	return this->_itype == ItemType::None;
+}
+
+bool Item::isGold() const
+{
+	return this->_itype == ItemType::Gold;
+}
+
+bool Item::isHelm() const
+{
+	return this->_itype == ItemType::Helm;
+}
+
+bool Item::isShield() const
+{
+	return this->_itype == ItemType::Shield;
+}
+
+bool Item::isScroll() const
+{
+	return IsAnyOf(_iMiscId, IMISC_SCROLL, IMISC_SCROLLT);
+}
+
+bool Item::isScrollOf(SpellID spellId) const
+{
+	return isScroll() && _iSpell == spellId;
+}
+
+bool Item::isRune() const
+{
+	return _iMiscId > IMISC_RUNEFIRST && _iMiscId < IMISC_RUNELAST;
+}
+
+bool Item::keyAttributesMatch(uint32_t seed, _item_indexes itemIndex, uint16_t createInfo) const
+{
+	return _iSeed == seed && IDidx == itemIndex && _iCreateInfo == createInfo;
+}
+
+UiFlags Item::getTextColorWithStatCheck() const
+{
+	if (!_iStatFlag)
+		return UiFlags::ColorRed;
+	return getTextColor();
+}
+
+Displacement Item::getRenderingOffset(const ClxSprite sprite) const
+{
+	return { -CalculateSpriteTileCenterX(sprite.width()), 0 };
+}
 
 int8_t dItem[MAXDUNX][MAXDUNY];
 bool ShowUniqueItemInfoBox;
