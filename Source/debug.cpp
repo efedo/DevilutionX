@@ -93,7 +93,7 @@ void GetDebugMonster()
 {
 	int monsterIndex = pcursmonst;
 	if (monsterIndex == -1)
-		monsterIndex = std::abs(dMonster[cursPosition.x][cursPosition.y]) - 1;
+		monsterIndex = std::abs(tileAt(cursPosition).monster()) - 1;
 
 	if (monsterIndex == -1)
 		monsterIndex = DebugMonsterId;
@@ -204,10 +204,10 @@ bool GetDebugGridText(Point dungeonCoords, std::string &debugGridText)
 		info = static_cast<int>(dFlags[dungeonCoords.x][dungeonCoords.y]);
 		break;
 	case DebugGridTextItem::DPlayer:
-		info = dPlayer[dungeonCoords.x][dungeonCoords.y];
+		info = tileAt(dungeonCoords).player();
 		break;
 	case DebugGridTextItem::DMonster:
-		info = dMonster[dungeonCoords.x][dungeonCoords.y];
+		info = tileAt(dungeonCoords).monster();
 		break;
 	case DebugGridTextItem::missiles: {
 		for (auto &missile : Missiles) {
@@ -219,16 +219,16 @@ bool GetDebugGridText(Point dungeonCoords, std::string &debugGridText)
 		return !debugGridText.empty();
 	} break;
 	case DebugGridTextItem::DCorpse:
-		info = dCorpse[dungeonCoords.x][dungeonCoords.y];
+		info = tileAt(dungeonCoords).corpse();
 		break;
 	case DebugGridTextItem::DItem:  // Updated from dItem to DItem
-		info = dItem[dungeonCoords.x][dungeonCoords.y];
+		info = tileAt(dungeonCoords).item();
 		break;
 	case DebugGridTextItem::DSpecial:
 		info = dSpecial[dungeonCoords.x][dungeonCoords.y];
 		break;
 	case DebugGridTextItem::DObject:
-		info = dObject[dungeonCoords.x][dungeonCoords.y];
+		info = tileAt(dungeonCoords).object();
 		break;
 	case DebugGridTextItem::Solid:
 		info = TileHasAny(dungeonCoords, TileProperties::Solid) << 0 | TileHasAny(dungeonCoords, TileProperties::BlockLight) << 1 | TileHasAny(dungeonCoords, TileProperties::BlockMissile) << 2;
@@ -281,15 +281,15 @@ bool ShouldHighlightDebugAutomapTile(Point position)
 		return false;
 	};
 
-	if (SearchMonsters.size() > 0 && dMonster[position.x][position.y] != 0) {
-		const int mi = std::abs(dMonster[position.x][position.y]) - 1;
+	if (SearchMonsters.size() > 0 && tileAt(position).hasMonster()) {
+		const int mi = std::abs(tileAt(position).monster()) - 1;
 		const Monster &monster = Monsters[mi];
 		if (matchesSearched(monster.name(), SearchMonsters))
 			return true;
 	}
 
-	if (SearchItems.size() > 0 && dItem[position.x][position.y] != 0) {
-		const int itemId = std::abs(dItem[position.x][position.y]) - 1;
+	if (SearchItems.size() > 0 && tileAt(position).item() != 0) {
+		const int itemId = std::abs(tileAt(position).item()) - 1;
 		const Item &item = Items[itemId];
 		if (matchesSearched(item.getName(), SearchItems))
 			return true;

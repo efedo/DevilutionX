@@ -154,7 +154,7 @@ void InitCows(Towner &towner, const TownerDataEntry &entry)
 	towner._tAnimFrame = GenerateRnd(11);
 
 	const Point position = entry.position;
-	const int16_t cowId = dMonster[position.x][position.y];
+	const int16_t cowId = tileAt(position).monster();
 
 	// Cows are large sprites so take up multiple tiles. Vanilla Diablo/Hellfire allowed the player to stand adjacent
 	//  to a cow facing an ordinal direction (the two top-right cows) which leads to visual clipping. It's easier to
@@ -162,11 +162,11 @@ void InitCows(Towner &towner, const TownerDataEntry &entry)
 	// The active tile is always the south tile as this is closest to the camera, we mark the other 3 tiles as occupied
 	//  using -id to match the convention used for moving/large monsters and players.
 	Point offset = position + Direction::NorthWest;
-	dMonster[offset.x][offset.y] = -cowId;
+	tileAt(offset).setMonster(-cowId);
 	offset = position + Direction::NorthEast;
-	dMonster[offset.x][offset.y] = -cowId;
+	tileAt(offset).setMonster(-cowId);
 	offset = position + Direction::North;
-	dMonster[offset.x][offset.y] = -cowId;
+	tileAt(offset).setMonster(-cowId);
 }
 
 /**
@@ -790,7 +790,7 @@ void InitTowners()
 
 		// It's necessary to assign this before invoking townerData.init()
 		// specifically for the cows that need to read this value to fill adjacent tiles
-		dMonster[entry.position.x][entry.position.y] = i + 1;
+		tileAt(entry.position).setMonster(i + 1);
 
 		Towners.emplace_back();
 		InitTownerInfo(Towners.back(), *behaviorIt->second, entry);

@@ -192,7 +192,7 @@ void SyncMonster(bool isOwner, const TSyncMonster &monsterSync)
 				monster.activeForTicks = std::numeric_limits<uint8_t>::max();
 			}
 		}
-	} else if (dMonster[position.x][position.y] == 0) {
+	} else if (tileAt(position).monster() == 0) {
 		monster.clearSquares();
 		monster.occupyTile(position, false);
 		monster.position.tile = position;
