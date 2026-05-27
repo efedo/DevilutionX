@@ -155,14 +155,14 @@ bool CheckBlock(Point from, Point to)
 Monster *FindClosest(Point source, int rad)
 {
 	std::optional<Point> monsterPosition = FindClosestValidPosition(
-	    [&source](Point target) {
-		    // search for a monster with clear line of sight
-		    return InDungeonBounds(target) && dMonster[target.x][target.y] > 0 && !CheckBlock(source, target);
-	    },
-	    source, 1, rad);
+		[&source](Point target) {
+			// search for a monster with clear line of sight
+			return InDungeonBounds(target) && tileAt(target).monster() > 0 && !CheckBlock(source, target);
+		},
+		source, 1, rad);
 
 	if (monsterPosition) {
-		const int mid = dMonster[monsterPosition->x][monsterPosition->y];
+		const int mid = tileAt(*monsterPosition).monster();
 		return &Monsters[mid - 1];
 	}
 
@@ -488,7 +488,7 @@ void CheckMissileCol(Missile &missile, DamageType damageType, int minDamage, int
 		return;
 
 	bool isMonsterHit = false;
-	int mid = dMonster[position.x][position.y];
+	int mid = tileAt(position).monster();
 	if (mid != 0) {
 		Monster &monster = Monsters[std::abs(mid) - 1];
 		if (onlyHitWalking.has_value() ? (monster.isWalking() && CheckCanHitOnlyWalking(missile, monster.position, *onlyHitWalking)) : (mid > 0 || monster.mode == MonsterMode::Petrified)) {
@@ -659,7 +659,7 @@ void MoveMissileAndCheckMissileCol(Missile &missile, DamageType damageType, int 
 
 	const bool tileChanged = MoveMissile(missile, checkTile, ifCollidesDontMoveToHitTile);
 
-	const int16_t tileTargetHash = dMonster[missile.position.tile.x][missile.position.tile.y] ^ dPlayer[missile.position.tile.x][missile.position.tile.y];
+	const int16_t tileTargetHash = tileAt(missile.position.tile).monster() ^ tileAt(missile.position.tile).player();
 
 	// missile didn't change the tile... check that we perform CheckMissileCol only once for any monster/player to avoid multiple hits for slow missiles
 	if (!tileChanged && missile.lastCollisionTargetHash != tileTargetHash) {
@@ -717,7 +717,7 @@ bool GuardianTryFireAt(Missile &missile, Point target)
 
 	if (!LineClearMovingMissile(position, target))
 		return false;
-	const int mid = dMonster[target.x][target.y] - 1;
+	const int mid = std::abs(tileAt(target).monster()) - 1;
 	if (mid < 0)
 		return false;
 	const Monster &monster = Monsters[mid];
@@ -1310,9 +1310,9 @@ void AddBerserk(Missile &missile, AddMissileParameter &parameter)
 			    return false;
 		    }
 
-		    const int monsterId = std::abs(dMonster[target.x][target.y]) - 1;
-		    if (monsterId < 0)
-			    return false;
+			const int monsterId = std::abs(tileAt(target).monster()) - 1;
+			if (monsterId < 0)
+				return false;
 
 		    const Monster &monster = Monsters[monsterId];
 		    if (monster.isPlayerMinion())
@@ -1333,7 +1333,7 @@ void AddBerserk(Missile &missile, AddMissileParameter &parameter)
 	    parameter.dst, 0, 5);
 
 	if (targetMonsterPosition) {
-		Monster &monster = Monsters[std::abs(dMonster[targetMonsterPosition->x][targetMonsterPosition->y]) - 1];
+		Monster &monster = Monsters[std::abs(tileAt(*targetMonsterPosition).monster()) - 1];
 		const Player &player = *missile.sourcePlayer();
 		const int slvl = player.GetSpellLevel(SpellID::Berserk);
 		monster.flags |= MFLAG_BERSERK | MFLAG_GOLEM;
@@ -1462,13 +1462,13 @@ void AddStealPotions(Missile &missile, AddMissileParameter & /*parameter*/)
 void AddStealMana(Missile &missile, AddMissileParameter & /*parameter*/)
 {
 	std::optional<Point> trappedPlayerPosition = FindClosestValidPosition(
-	    [](Point target) {
-		    return InDungeonBounds(target) && dPlayer[target.x][target.y] != 0;
-	    },
-	    missile.position.start, 0, 2);
+		[](Point target) {
+			return InDungeonBounds(target) && tileAt(target).hasPlayer();
+		},
+		missile.position.start, 0, 2);
 
 	if (trappedPlayerPosition) {
-		Player &player = Players[std::abs(dPlayer[trappedPlayerPosition->x][trappedPlayerPosition->y]) - 1];
+		Player &player = Players[std::abs(tileAt(*trappedPlayerPosition).player()) - 1];
 
 		player.mana.current = 0;
 		player.mana.base = player.mana.current + player.mana.maximumBase - player.mana.maximum;
@@ -2074,12 +2074,12 @@ void AddTownPortal(Missile &missile, AddMissileParameter &parameter)
 			    if (!InDungeonBounds(target)) {
 				    return false;
 			    }
-			    if (IsObjectAtPosition(target)) {
-				    return false;
-			    }
-			    if (dPlayer[target.x][target.y] != 0) {
-				    return false;
-			    }
+				if (IsObjectAtPosition(target)) {
+					return false;
+				}
+				if (tileAt(target).hasPlayer()) {
+					return false;
+				}
 			    if (TileContainsMissile(target)) {
 				    return false;
 			    }
@@ -2187,9 +2187,9 @@ void AddGuardian(Missile &missile, AddMissileParameter &parameter)
 		    if (!InDungeonBounds(target)) {
 			    return false;
 		    }
-		    if (dMonster[target.x][target.y] != 0) {
-			    return false;
-		    }
+			if (tileAt(target).hasMonster()) {
+				return false;
+			}
 		    if (IsObjectAtPosition(target)) {
 			    return false;
 		    }
@@ -2361,12 +2361,12 @@ void AddStoneCurse(Missile &missile, AddMissileParameter &parameter)
 			    return false;
 		    }
 
-		    const int monsterId = std::abs(dMonster[target.x][target.y]) - 1;
-		    if (monsterId < 0) {
-			    return false;
-		    }
+			const int monsterId = std::abs(tileAt(target).monster()) - 1;
+			if (monsterId < 0) {
+				return false;
+			}
 
-		    const Monster &monster = Monsters[monsterId];
+			const Monster &monster = Monsters[monsterId];
 
 		    if (IsAnyOf(monster.type().type, MT_GOLEM, MT_DIABLO, MT_NAKRUL)) {
 			    return false;
@@ -2386,7 +2386,7 @@ void AddStoneCurse(Missile &missile, AddMissileParameter &parameter)
 	}
 
 	// Petrify the targeted monster
-	const int monsterId = std::abs(dMonster[targetMonsterPosition->x][targetMonsterPosition->y]) - 1;
+	const int monsterId = std::abs(tileAt(*targetMonsterPosition).monster()) - 1;
 	Monster &monster = Monsters[monsterId];
 
 	if (monster.mode == MonsterMode::Petrified) {
@@ -3186,7 +3186,7 @@ void ProcessHorkSpawn(Missile &missile)
 void ProcessRune(Missile &missile)
 {
 	const Point position = missile.position.tile;
-	const int mid = dMonster[position.x][position.y];
+	const int mid = tileAt(position).monster();
 	Player *player = PlayerAtPosition(position);
 	if (mid != 0 || player != nullptr) {
 		const Point targetPosition = mid != 0 ? Monsters[std::abs(mid) - 1].position.tile : player->position.tile;
@@ -3585,7 +3585,7 @@ void ProcessChainLightning(Missile &missile)
 	const int rad = std::min<int>(missile._mispllvl + 3, MaxCrawlRadius);
 	Crawl(1, rad, [&](Displacement displacement) {
 		const Point target = position + displacement;
-		if (InDungeonBounds(target) && dMonster[target.x][target.y] > 0) {
+		if (InDungeonBounds(target) && tileAt(target).monster() > 0) {
 			dir = GetDirection(position, target);
 			AddMissile(position, target, dir, MissileID::LightningControl, TARGET_MONSTERS, id, 1, missile._mispllvl);
 		}
@@ -3687,7 +3687,7 @@ void ProcessTeleport(Missile &missile)
 	if (!teleportDestination)
 		return;
 
-	dPlayer[player.position.tile.x][player.position.tile.y] = 0;
+	tileAt(player.position.tile).setPlayer(0);
 	PlrClrTrans(player.position.tile);
 	player.position.tile = *teleportDestination;
 	player.position.future = player.position.tile;
@@ -3755,7 +3755,7 @@ void ProcessRhino(Missile &missile)
 	UpdateMissilePos(missile);
 	const Point prevPos = missile.position.tile;
 	Point newPosSnake;
-	dMonster[prevPos.x][prevPos.y] = 0;
+	tileAt(prevPos).setMonster(0);
 	if (monster.ai == MonsterAIID::Snake) {
 		missile.position.traveled += missile.position.velocity * 2;
 		UpdateMissilePos(missile);
@@ -3863,7 +3863,7 @@ void ProcessApocalypse(Missile &missile)
 {
 	for (int j = missile.var2; j < missile.var3; j++) {
 		for (int k = missile.var4; k < missile.var5; k++) {
-			const int mid = dMonster[k][j] - 1;
+			const int mid = std::abs(tileAt(Point { k, j }).monster()) - 1;
 			if (mid < 0)
 				continue;
 			if (Monsters[mid].isPlayerMinion())
