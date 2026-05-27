@@ -2188,7 +2188,7 @@ std::optional<Point> ScavengerFindCorpse(const Monster &scavenger)
 			Point position = scavenger.position.tile + Displacement { x, y };
 			if (!InDungeonBounds(position))
 				continue;
-			if (dCorpse[position.x][position.y] == 0)
+			if (tileAt(position).corpse() == 0)
 				continue;
 			if (!IsLineNotSolid(scavenger.position.tile, position))
 				continue;
@@ -2212,14 +2212,14 @@ void ScavengerAi(Monster &monster)
 	}
 	if (monster.goal == MonsterGoal::Healing && monster.goalVar3 != 0) {
 		monster.goalVar3--;
-		if (dCorpse[monster.position.tile.x][monster.position.tile.y] != 0) {
+		if (tileAt(monster.position.tile).hasCorpse()) {
 			StartEating(monster);
 			if (gbIsHellfire) {
 				const int mMaxHP = monster.maxHitPoints;
 				monster.hitPoints += mMaxHP / 8;
 				monster.hitPoints = std::min(monster.hitPoints, monster.maxHitPoints);
 				if (monster.goalVar3 <= 0 || monster.hitPoints == monster.maxHitPoints)
-					dCorpse[monster.position.tile.x][monster.position.tile.y] = 0;
+					tileAt(monster.position.tile).setCorpse(0);
 			} else {
 				monster.hitPoints += 64;
 			}

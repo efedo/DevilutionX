@@ -300,7 +300,7 @@ void RespawnDeadItem(Item &&itm, Point target)
 	const int ii = AllocateItem();
 	Item &item = Items[ii];
 
-	dItem[target.x][target.y] = ii + 1;
+	tileAt(target).setItem(ii + 1);
 
 	item = itm;
 	item.position = target;

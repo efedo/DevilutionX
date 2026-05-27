@@ -1052,21 +1052,21 @@ void SetDoorStateOpen(Object &door)
 		// 407: blood pool
 		// 392: open door (no frame)
 		ObjSetMicro(door.position, door._oVar1 == 214 ? 407 : 392);
-		dSpecial[door.position.x][door.position.y] = 7;
+		tileAt(door.position).setSpecial(7);
 		DoorSet(door.position + Direction::NorthEast, true);
 		break;
 	case OBJ_L1RDOOR:
 		ObjSetMicro(door.position, 394);
-		dSpecial[door.position.x][door.position.y] = 8;
+		tileAt(door.position).setSpecial(8);
 		DoorSet(door.position + Direction::NorthWest, false);
 		break;
 	case OBJ_L2LDOOR:
 		ObjSetMicro(door.position, 12);
-		dSpecial[door.position.x][door.position.y] = 5;
+		tileAt(door.position).setSpecial(5);
 		break;
 	case OBJ_L2RDOOR:
 		ObjSetMicro(door.position, 16);
-		dSpecial[door.position.x][door.position.y] = 6;
+		tileAt(door.position).setSpecial(6);
 		break;
 	case OBJ_L3LDOOR:
 		ObjSetMicro(door.position, 537);
@@ -1097,7 +1097,7 @@ void SetDoorStateClosed(Object &door)
 	switch (door._otype) {
 	case OBJ_L1LDOOR: {
 		// Clear overlapping arches
-		dSpecial[door.position.x][door.position.y] = 0;
+		tileAt(door.position).setSpecial(0);
 		ObjSetMicro(door.position, door._oVar1 - 1);
 
 		// Restore the normal tile where the open door used to be
@@ -1110,7 +1110,7 @@ void SetDoorStateClosed(Object &door)
 	} break;
 	case OBJ_L1RDOOR: {
 		// Clear overlapping arches
-		dSpecial[door.position.x][door.position.y] = 0;
+		tileAt(door.position).setSpecial(0);
 		ObjSetMicro(door.position, door._oVar1 - 1);
 
 		// Restore the normal tile where the open door used to be
@@ -1123,12 +1123,12 @@ void SetDoorStateClosed(Object &door)
 	} break;
 	case OBJ_L2LDOOR:
 		// Clear overlapping arches
-		dSpecial[door.position.x][door.position.y] = 0;
+		tileAt(door.position).setSpecial(0);
 		ObjSetMicro(door.position, 537);
 		break;
 	case OBJ_L2RDOOR:
 		// Clear overlapping arches
-		dSpecial[door.position.x][door.position.y] = 0;
+		tileAt(door.position).setSpecial(0);
 		ObjSetMicro(door.position, 539);
 		break;
 	case OBJ_L3LDOOR:
@@ -1665,39 +1665,39 @@ void ObjL1Special(int x1, int y1, int x2, int y2)
 {
 	for (int i = y1; i <= y2; ++i) {
 		for (int j = x1; j <= x2; ++j) {
-			dSpecial[j][i] = 0;
+			tileAt(j, i).setSpecial(0);
 			if (dPiece[j][i] == 11)
-				dSpecial[j][i] = 1;
+				tileAt(j, i).setSpecial(1);
 			if (dPiece[j][i] == 10)
-				dSpecial[j][i] = 2;
+				tileAt(j, i).setSpecial(2);
 			if (dPiece[j][i] == 70)
-				dSpecial[j][i] = 1;
+				tileAt(j, i).setSpecial(1);
 			if (dPiece[j][i] == 252)
-				dSpecial[j][i] = 3;
+				tileAt(j, i).setSpecial(3);
 			if (dPiece[j][i] == 266)
-				dSpecial[j][i] = 6;
+				tileAt(j, i).setSpecial(6);
 			if (dPiece[j][i] == 258)
-				dSpecial[j][i] = 5;
+				tileAt(j, i).setSpecial(5);
 			if (dPiece[j][i] == 248)
-				dSpecial[j][i] = 2;
+				tileAt(j, i).setSpecial(2);
 			if (dPiece[j][i] == 324)
-				dSpecial[j][i] = 2;
+				tileAt(j, i).setSpecial(2);
 			if (dPiece[j][i] == 320)
-				dSpecial[j][i] = 1;
+				tileAt(j, i).setSpecial(1);
 			if (dPiece[j][i] == 254)
-				dSpecial[j][i] = 4;
+				tileAt(j, i).setSpecial(4);
 			if (dPiece[j][i] == 210)
-				dSpecial[j][i] = 1;
+				tileAt(j, i).setSpecial(1);
 			if (dPiece[j][i] == 343)
-				dSpecial[j][i] = 2;
+				tileAt(j, i).setSpecial(2);
 			if (dPiece[j][i] == 340)
-				dSpecial[j][i] = 1;
+				tileAt(j, i).setSpecial(1);
 			if (dPiece[j][i] == 330)
-				dSpecial[j][i] = 2;
+				tileAt(j, i).setSpecial(2);
 			if (dPiece[j][i] == 417)
-				dSpecial[j][i] = 1;
+				tileAt(j, i).setSpecial(1);
 			if (dPiece[j][i] == 420)
-				dSpecial[j][i] = 2;
+				tileAt(j, i).setSpecial(2);
 		}
 	}
 }
@@ -1706,28 +1706,28 @@ void ObjL2Special(int x1, int y1, int x2, int y2)
 {
 	for (int j = y1; j <= y2; j++) {
 		for (int i = x1; i <= x2; i++) {
-			dSpecial[i][j] = 0;
+			tileAt(i, j).setSpecial(0);
 			if (dPiece[i][j] == 540)
-				dSpecial[i][j] = 5;
+				tileAt(i, j).setSpecial(5);
 			if (dPiece[i][j] == 177)
-				dSpecial[i][j] = 5;
+				tileAt(i, j).setSpecial(5);
 			if (dPiece[i][j] == 550)
-				dSpecial[i][j] = 5;
+				tileAt(i, j).setSpecial(5);
 			if (dPiece[i][j] == 541)
-				dSpecial[i][j] = 6;
+				tileAt(i, j).setSpecial(6);
 			if (dPiece[i][j] == 552)
-				dSpecial[i][j] = 6;
+				tileAt(i, j).setSpecial(6);
 		}
 	}
 	for (int j = y1; j <= y2; j++) {
 		for (int i = x1; i <= x2; i++) {
 			if (dPiece[i][j] == 131) {
-				dSpecial[i][j + 1] = 2;
-				dSpecial[i][j + 2] = 1;
+				tileAt(i, j + 1).setSpecial(2);
+				tileAt(i, j + 2).setSpecial(1);
 			}
 			if (dPiece[i][j] == 134 || dPiece[i][j] == 138) {
-				dSpecial[i + 1][j] = 3;
-				dSpecial[i + 2][j] = 4;
+				tileAt(i + 1, j).setSpecial(3);
+				tileAt(i + 2, j).setSpecial(4);
 			}
 		}
 	}
