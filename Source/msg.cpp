@@ -945,8 +945,8 @@ void DeltaLoadItems(const DLevel &deltaLevel)
 			if (activeItemIndex != -1) {
 				const uint8_t itemId = ItemPoolAdapter::ActiveItemIds()[activeItemIndex];
 				const auto &position = Items[itemId].position;
-				if (dItem[position.x][position.y] == itemId + 1)
-					dItem[position.x][position.y] = 0;
+				if (tileAt(position).item() == itemId + 1)
+					tileAt(position).setItem(0);
 				DeleteItem(activeItemIndex);
 			}
 		}
@@ -958,7 +958,7 @@ void DeltaLoadItems(const DLevel &deltaLevel)
 			const int x = deltaItem.x;
 			const int y = deltaItem.y;
 			item.position = GetItemPosition({ x, y });
-			dItem[item.position.x][item.position.y] = static_cast<int8_t>(ii + 1);
+			tileAt(item.position).setItem(static_cast<int8_t>(ii + 1));
 			RespawnItem(Items[ii], false);
 		}
 	}
@@ -1441,7 +1441,7 @@ size_t OnRequestGetItem(const TCmdGItem &message, Player &player)
 
 	int ii = -1;
 	if (InDungeonBounds(position)) {
-		ii = std::abs(dItem[position.x][position.y]) - 1;
+		ii = std::abs(tileAt(position).item()) - 1;
 		if (ii >= 0 && !Items[ii].keyAttributesMatch(dwSeed, wIndx, wCI)) {
 			ii = -1;
 		}

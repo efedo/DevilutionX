@@ -1143,7 +1143,7 @@ void LoadDroppedItems(LoadHelper &file, size_t savedItemCount)
 			// Loaded a valid item
 			ActiveItemCount++;
 			// populate its location in the lookup table with the offset in the Items array + 1 (so 0 can be used for "no item")
-			dItem[item.position.x][item.position.y] = ActiveItemCount;
+			tileAt(item.position).setItem(ActiveItemCount);
 		}
 	}
 }
@@ -1857,7 +1857,7 @@ void SaveDroppedItemLocations(SaveHelper &file, const ankerl::unordered_dense::m
 {
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-			file.WriteLE<uint8_t>(itemIndexes.at(dItem[i][j]));
+			file.WriteLE<uint8_t>(itemIndexes.at(tileAt(Point { i, j }).item()));
 	}
 }
 

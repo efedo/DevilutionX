@@ -576,9 +576,9 @@ int ItemsGetCurrlevel()
 
 bool ItemPlace(Point position)
 {
-	if (dMonster[position.x][position.y] != 0)
+	if (tileAt(position).hasMonster())
 		return false;
-	if (dPlayer[position.x][position.y] != 0)
+	if (tileAt(position).hasPlayer())
 		return false;
 	if (tileAt(position).item() != 0)
 		return false;
@@ -3228,7 +3228,7 @@ bool ItemSpaceOk(Point position)
 		return false;
 	}
 
-	if (dPlayer[position.x][position.y] != 0) {
+	if (tileAt(position).hasPlayer()) {
 		return false;
 	}
 

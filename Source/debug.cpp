@@ -225,7 +225,7 @@ bool GetDebugGridText(Point dungeonCoords, std::string &debugGridText)
 		info = tileAt(dungeonCoords).item();
 		break;
 	case DebugGridTextItem::DSpecial:
-		info = dSpecial[dungeonCoords.x][dungeonCoords.y];
+		info = tileAt(dungeonCoords).special();
 		break;
 	case DebugGridTextItem::DObject:
 		info = tileAt(dungeonCoords).object();

@@ -1803,7 +1803,7 @@ void DrawAutomap(const Surface &out)
 
 		if (AutoMapShowItems)
 			SearchAutomapItem(out, myPlayerOffset, 8, [](Point position) {
-				return dItem[position.x][position.y] != 0;
+				return tileAt(position).item() != 0;
 			});
 	}
 
@@ -1866,7 +1866,7 @@ void DrawAutomap(const Surface &out)
 	}
 
 	if (AutoMapShowItems)
-		SearchAutomapItem(out, myPlayerOffset, 8, [](Point position) { return dItem[position.x][position.y] != 0; });
+		SearchAutomapItem(out, myPlayerOffset, 8, [](Point position) { return tileAt(position).item() != 0; });
 #ifdef _DEBUG
 	if (IsDebugAutomapHighlightNeeded())
 		SearchAutomapItem(out, myPlayerOffset, std::max(MAXDUNX, MAXDUNY), ShouldHighlightDebugAutomapTile);

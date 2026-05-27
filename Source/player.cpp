@@ -3359,14 +3359,14 @@ bool Player::positionIsAvailable(Point position) const
 	if (otherPlayer != nullptr && otherPlayer != &player && !otherPlayer->hasNoLife())
 		return false;
 
-	if (dMonster[position.x][position.y] != 0) {
+	if (tileAt(position).hasMonster()) {
 		if (leveltype == DTYPE_TOWN) {
 			return false;
 		}
-		if (dMonster[position.x][position.y] <= 0) {
+		if (tileAt(position).monster() <= 0) {
 			return false;
 		}
-		if (!Monsters[dMonster[position.x][position.y] - 1].hasNoLife()) {
+		if (!Monsters[tileAt(position).monster() - 1].hasNoLife()) {
 			return false;
 		}
 	}

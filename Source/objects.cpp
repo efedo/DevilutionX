@@ -234,9 +234,9 @@ _speech_id StoryText[3][3] = {
 
 bool RndLocOk(Point p)
 {
-	if (dMonster[p.x][p.y] != 0)
+	if (tileAt(p).hasMonster())
 		return false;
-	if (dPlayer[p.x][p.y] != 0)
+	if (tileAt(p).hasPlayer())
 		return false;
 	if (IsObjectAtPosition(p))
 		return false;
@@ -1539,10 +1539,10 @@ void ObjectStopAnim(Object &object)
  */
 inline bool IsDoorClear(const Object &door)
 {
-	return dCorpse[door.position.x][door.position.y] == 0
-	    && dMonster[door.position.x][door.position.y] == 0
-	    && dItem[door.position.x][door.position.y] == 0
-	    && dPlayer[door.position.x][door.position.y] == 0;
+	return tileAt(door.position).corpse() == 0
+		&& tileAt(door.position).monster() == 0
+		&& tileAt(door.position).item() == 0
+		&& tileAt(door.position).player() == 0;
 }
 
 void UpdateDoor(Object &door)
@@ -1589,7 +1589,7 @@ void UpdateFlameTrap(Object &trap)
 			int x = trap.position.x - 2;
 			const int y = trap.position.y;
 			for (int j = 0; j < 5; j++) {
-				if (dPlayer[x][y] != 0 || dMonster[x][y] != 0)
+				if (tileAt(Point { x, y }).hasPlayer() || tileAt(Point { x, y }).hasMonster())
 					trap._oVar4 = 1;
 				x++;
 			}
@@ -1597,7 +1597,7 @@ void UpdateFlameTrap(Object &trap)
 			const int x = trap.position.x;
 			int y = trap.position.y - 2;
 			for (int k = 0; k < 5; k++) {
-				if (dPlayer[x][y] != 0 || dMonster[x][y] != 0)
+				if (tileAt(Point { x, y }).hasPlayer() || tileAt(Point { x, y }).hasMonster())
 					trap._oVar4 = 1;
 				y++;
 			}
@@ -4283,7 +4283,7 @@ void OperateTrap(Object &trap)
 
 	auto searchArea = PointsInRectangle(Rectangle { target, 1 });
 	// look for a player near the trigger (using a reverse search to match vanilla behaviour)
-	auto foundPosition = std::find_if(searchArea.crbegin(), searchArea.crend(), [](Point testPosition) { return InDungeonBounds(testPosition) && dPlayer[testPosition.x][testPosition.y] != 0; });
+	auto foundPosition = std::find_if(searchArea.crbegin(), searchArea.crend(), [](Point testPosition) { return InDungeonBounds(testPosition) && tileAt(testPosition).hasPlayer(); });
 	if (foundPosition != searchArea.crend()) {
 		// if a player is standing near the trigger then target them instead
 		target = *foundPosition;
