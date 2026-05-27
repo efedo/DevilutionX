@@ -11,6 +11,7 @@ If you are not a Copilot assistant, ignore the rest of this file.
 	- `cp` should be replaced with `Copy-Item`
 	- `mv` should be replaced with `Move-Item`
 	- `rm` should be replaced with `Remove-Item`
+	- `head` should be replaced with `Select-Object -First`
 	...
 
 Please proceed to read over and implement the instructions in AGENTS.md, and then await further instructions.

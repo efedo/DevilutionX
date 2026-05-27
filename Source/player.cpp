@@ -421,7 +421,7 @@ bool DoWalk(Player &player)
 	}
 
 	// We reached the new tile -> update the player's tile position
-	dPlayer[player.position.tile.x][player.position.tile.y] = 0;
+	tileAt(player.position.tile).setPlayer(0);
 	player.position.tile = player.position.temp;
 	// dPlayer is set here for backwards compatibility; without it, the player would be invisible if loaded from a vanilla save.
 	player.occupyTile(player.position.tile, false);
@@ -2198,7 +2198,7 @@ void Player::occupyTile(Point tilePosition, bool isMoving) const
 {
 	int16_t id = this->getId();
 	id += 1;
-	dPlayer[tilePosition.x][tilePosition.y] = isMoving ? -id : id;
+	tileAt(tilePosition).setPlayer(isMoving ? -id : id);
 }
 
 bool Player::isLevelOwnedByLocalClient() const
@@ -2227,7 +2227,7 @@ Player *PlayerAtPosition(Point position, bool ignoreMovingPlayers /*= false*/)
 	if (!InDungeonBounds(position))
 		return nullptr;
 
-	auto playerIndex = dPlayer[position.x][position.y];
+	auto playerIndex = tileAt(position).player();
 	if (playerIndex == 0 || (ignoreMovingPlayers && playerIndex < 0))
 		return nullptr;
 
@@ -2886,7 +2886,7 @@ void FixPlrWalkTags(const Player &player)
 	for (int y = 0; y < MAXDUNY; y++) {
 		for (int x = 0; x < MAXDUNX; x++) {
 			if (PlayerAtPosition({ x, y }) == &player)
-				dPlayer[x][y] = 0;
+				tileAt(Point { x, y }).setPlayer(0);
 		}
 	}
 }

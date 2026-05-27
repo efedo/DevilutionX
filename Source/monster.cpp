@@ -281,11 +281,11 @@ void InitMonster(Monster &monster, Direction rd, size_t typeIndex, Point positio
 bool CanPlaceMonster(Point position)
 {
 	return InDungeonBounds(position)
-	    && dMonster[position.x][position.y] == 0
-	    && dPlayer[position.x][position.y] == 0
-	    && !IsTileVisible(position)
-	    && !TileContainsSetPiece(position)
-	    && !IsTileOccupied(position);
+		&& tileAt(position).monster() == 0
+		&& tileAt(position).player() == 0
+		&& !IsTileVisible(position)
+		&& !TileContainsSetPiece(position)
+		&& !IsTileOccupied(position);
 }
 
 void PlaceMonster(size_t i, size_t typeIndex, Point position)
@@ -313,7 +313,7 @@ void PlaceGroup(size_t typeIndex, size_t num, Monster *leader = nullptr, bool le
 			ActiveMonsterCount--;
 			placed--;
 			const Point &position = Monsters[ActiveMonsterCount].position.tile;
-			dMonster[position.x][position.y] = 0;
+			tileAt(position).setMonster(0);
 		}
 
 		int xp;
@@ -975,7 +975,7 @@ void Teleport(Monster &monster)
 		return;
 
 	monster.clearSquares();
-	dMonster[monster.position.tile.x][monster.position.tile.y] = 0;
+	tileAt(monster.position.tile).setMonster(0);
 	monster.occupyTile(*position, false);
 	monster.position.old = *position;
 	monster.direction = GetMonsterDirection(monster);
@@ -1087,7 +1087,7 @@ bool MonsterWalk(Monster &monster)
 	// Check if we reached new tile
 	const bool isAnimationEnd = monster.animInfo.isLastFrame();
 	if (isAnimationEnd) {
-		dMonster[monster.position.tile.x][monster.position.tile.y] = 0;
+		tileAt(monster.position.tile).setMonster(0);
 		monster.position.tile.x += monster.var1;
 		monster.position.tile.y += monster.var2;
 		// dMonster is set here for backwards compatibility; without it, the monster would be invisible if loaded from a vanilla save.
@@ -1516,10 +1516,10 @@ void MonsterDeath(Monster &monster)
 		if (monster.isUnique())
 			AddCorpse(monster.position.tile, monster.corpseId, monster.direction);
 		else
-			AddCorpse(monster.position.tile, monster.type().corpseId, monster.direction);
+				AddCorpse(monster.position.tile, monster.type().corpseId, monster.direction);
 
-		dMonster[monster.position.tile.x][monster.position.tile.y] = 0;
-		monster.isInvalid = true;
+			tileAt(monster.position.tile).setMonster(0);
+			monster.isInvalid = true;
 
 		monster.updateRelations();
 	}
@@ -1559,7 +1559,7 @@ bool MonsterDelay(Monster &monster)
 void MonsterPetrified(Monster &monster)
 {
 	if (monster.hitPoints <= 0) {
-		dMonster[monster.position.tile.x][monster.position.tile.y] = 0;
+		tileAt(monster.position.tile).setMonster(0);
 		monster.isInvalid = true;
 	}
 }
@@ -1788,7 +1788,7 @@ bool IsTileSafe(const Monster &monster, Point position)
  */
 bool IsTileAvailable(Point position)
 {
-	if (dPlayer[position.x][position.y] != 0 || dMonster[position.x][position.y] != 0)
+	if (tileAt(position).player() != 0 || tileAt(position).monster() != 0)
 		return false;
 
 	if (!IsTileWalkable(position))
@@ -1802,7 +1802,7 @@ bool IsTileAvailable(Point position)
  */
 bool IsTileAccessible(const Monster &monster, Point position)
 {
-	if (dPlayer[position.x][position.y] != 0 || dMonster[position.x][position.y] != 0)
+	if (tileAt(position).player() != 0 || tileAt(position).monster() != 0)
 		return false;
 
 	if (!IsTileWalkable(position, (monster.flags & MFLAG_CAN_OPEN_DOOR) != 0))
@@ -2344,7 +2344,7 @@ void FallenAi(Monster &monster)
 				const int xpos = monster.position.tile.x + x;
 				const int ypos = monster.position.tile.y + y;
 				if (InDungeonBounds({ xpos, ypos })) {
-					const int m = dMonster[xpos][ypos];
+					const int m = tileAt(Point { xpos, ypos }).monster();
 					if (m <= 0)
 						continue;
 
@@ -3876,7 +3876,7 @@ void Monster::clearSquares()
 {
 	for (const Point searchTile : PointsInRectangle(Rectangle { this->position.old, 1 })) {
 		if (FindMonsterAtPosition(searchTile) == this)
-			dMonster[searchTile.x][searchTile.y] = 0;
+			tileAt(searchTile).setMonster(0);
 	}
 }
 
@@ -3988,7 +3988,7 @@ void Monster::syncStartKill(Point position, const Player &player)
 		return;
 	}
 
-	if (dMonster[position.x][position.y] == 0) {
+	if (tileAt(position).monster() == 0) {
 		this->clearSquares();
 		this->position.tile = position;
 		this->position.old = position;
@@ -4120,7 +4120,7 @@ void GolumAi(Monster &golem)
 						const int my = golem.position.tile.y + j - 2;
 						if (!InDungeonBounds({ mx, my }))
 							continue;
-						const int enemyId = dMonster[mx][my];
+						const int enemyId = tileAt(Point { mx, my }).monster();
 						if (enemyId > 0)
 							Monsters[enemyId - 1].activeForTicks = UINT8_MAX;
 					}
@@ -4374,7 +4374,7 @@ void M_FallenFear(Point position)
 	for (const Point tile : PointsInRectangle(fearArea)) {
 		if (!InDungeonBounds(tile))
 			continue;
-		const int m = dMonster[tile.x][tile.y];
+		const int m = tileAt(tile).monster();
 		if (m == 0)
 			continue;
 		Monster &monster = Monsters[std::abs(m) - 1];
@@ -4549,7 +4549,7 @@ void MissToMonst(Missile &missile, Point position)
 	const Point newPosition = oldPosition + GetDirection(missile.position.start, oldPosition);
 	if (IsTileAvailable(*target, newPosition)) {
 		monster.occupyTile(newPosition, false);
-		dMonster[oldPosition.x][oldPosition.y] = 0;
+		tileAt(oldPosition).setMonster(0);
 		monster.position.tile = newPosition;
 		monster.position.future = newPosition;
 	}
@@ -4561,7 +4561,7 @@ Monster *FindMonsterAtPosition(Point position, bool ignoreMovingMonsters)
 		return nullptr;
 	}
 
-	auto monsterId = dMonster[position.x][position.y];
+	auto monsterId = tileAt(position).monster();
 
 	if (monsterId == 0 || (ignoreMovingMonsters && monsterId < 0)) {
 		// nothing at this position, return a nullptr
@@ -4954,7 +4954,7 @@ unsigned int Monster::toHitSpecial(_difficulty difficulty) const
 void Monster::occupyTile(Point tile, bool isMoving) const
 {
 	const auto id = static_cast<int16_t>(this->getId() + 1);
-	dMonster[tile.x][tile.y] = isMoving ? -id : id;
+	tileAt(tile).setMonster(isMoving ? -id : id);
 }
 
 } // namespace devilution
