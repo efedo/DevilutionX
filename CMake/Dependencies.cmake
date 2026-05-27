@@ -124,6 +124,10 @@ else()
   endif()
 endif()
 
+if(NOT USE_SDL1)
+  add_subdirectory(3rdParty/imgui)
+endif()
+
 macro(_find_SDL_image QUIET_OR_REQUIRED)
   # vcpkg uses sdl2-image as the package name
   find_package(sdl2-image QUIET)

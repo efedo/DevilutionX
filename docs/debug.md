@@ -2,24 +2,50 @@
 
 If you compile the game in debug, you have multiple debug features available.
 
-## Debug commands
+## Debug overlay and console
 
-In-game you have the possibility to use the chat to trigger debug commands.
-This is currently a replacement for a console.
+Debug builds include a Dear ImGui overlay. Press <kbd>`</kbd> to open the
+debug console. The console runs Lua code in the same REPL environment used by
+the existing debug command-line support.
+
+The ImGui overlay is available on SDL2 and SDL3 builds that use the SDL
+renderer path. SDL1 and non-renderer builds keep the legacy in-game console
+fallback.
+
+Most debug functionality is exposed through the `dev` Lua module. For example:
 
 | Command | Description |
 | ------- | ----------- |
-| `help` | Shows a list of all debug commands with descriptions. |
-| `god` | Toggles godmode. |
-| ... | For the other commands see `help` ingame and there are a lot. |
+| `dev.player.god()` | Toggles god mode. |
+| `dev.player.invisible()` | Toggles invisibility. |
+| `dev.display.grid()` | Toggles grid rendering. |
+| `dev.display.vision()` | Toggles vision debug rendering. |
+| `dev.level.seed()` | Shows seed info for the current level. |
 
-Tip: Debug commands are also supported in quick messages. If you need a debug command frequently, put it in a quick message. :wink:
+The multiplayer chat remains available for player chat and multiplayer chat
+commands. Debug commands should be run from the overlay console.
+
+## Legacy chat commands
+
+Some commands are still available from multiplayer chat:
+
+| Command | Description |
+| ------- | ----------- |
+| `/help` | Shows a list of chat commands with descriptions. |
+| `/arena` | Enters a PvP arena. |
+| `/arenapot` | Gives arena potions. |
+| `/inspect` | Inspects another player's stats and equipment. |
+| `/seedinfo` | Shows seed info for the current level. |
+| `/ping` | Shows latency statistics for another player. |
+
+Debug quick messages using `/lua ...` continue to run through the Lua console
+for backward compatibility.
 
 ## Command-line parameters
 
 | Command | Description |
 | ------- | ----------- |
-| `+` | Executes a debug command when loading the first game. For example `+god` or `+changelevel 1 +spawn 4 skeleton`. |
+| `+` | Executes a Lua console command when loading the first game. For example `+dev.player.god()` or `+dev.level.warp.dungeon(1)`. |
 | `-f` | Display frames per second. |
 | `-i` | Disable network timeout. |
 | `-n` | Disable startup video. |

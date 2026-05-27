@@ -22,6 +22,7 @@ To ensure that your contributions are effective and align with the project's goa
 - Use the existing GTest framework for all tests.
 - Register tests in CMake/Tests.cmake.
 - Add comprehensive tests for all new code, covering various scenarios and edge cases.
+- For MSVC configure/build/test commands for non-Copilot agents, see docs/ai/msvc-build.md.
 
 ## Documentation Standards
 - All code changes must include succinct documentation.

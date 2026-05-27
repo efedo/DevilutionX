@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Graphics / Audio
 - Better use of colors to differentiate players in multiplayer
 
+#### Debugging
+- Add a Dear ImGui debug overlay console for debug builds and document the Lua
+  console workflow.
+
 ### Bug Fixes
 
 #### Graphics / Audio

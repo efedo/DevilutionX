@@ -9,6 +9,7 @@ set(libdevilutionx_SRCS
   cursor.cpp
   dead.cpp
   debug.cpp
+  debug_overlay/imgui_overlay.cpp
   diablo.cpp
   diablo_msg.cpp
   doom.cpp
@@ -253,6 +254,10 @@ add_devilutionx_object_library(libdevilutionx_controller_buttons
 )
 target_link_dependencies(libdevilutionx_controller_buttons
   DevilutionX::SDL
+)
+
+add_devilutionx_object_library(libdevilutionx_debug_console_history
+  debug_overlay/console_history.cpp
 )
 
 add_devilutionx_object_library(libdevilutionx_control_mode
@@ -925,6 +930,7 @@ target_link_dependencies(libdevilutionx PUBLIC
   libdevilutionx_controller_buttons
   libdevilutionx_control_mode
   libdevilutionx_crawl
+  libdevilutionx_debug_console_history
   libdevilutionx_direction
   libdevilutionx_dun_render
   libdevilutionx_surface
@@ -993,6 +999,11 @@ file(GENERATE OUTPUT ${CONFIG_PATH} CONTENT
 if(DISCORD_INTEGRATION)
   target_compile_definitions(libdevilutionx PRIVATE DISCORD)
   target_link_libraries(libdevilutionx PRIVATE discord discord_game_sdk)
+endif()
+
+if(NOT USE_SDL1)
+  genex_for_option(DEBUG)
+  target_link_libraries(libdevilutionx PRIVATE "$<${DEBUG_GENEX}:imgui::imgui>")
 endif()
 
 if(SCREEN_READER_INTEGRATION)

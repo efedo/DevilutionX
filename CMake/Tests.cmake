@@ -15,6 +15,7 @@ set(tests
   appfat_test
   automap_test
   cursor_test
+  debug_console_history_test
   dead_test
   diablo_test
   drlg_common_test
@@ -128,6 +129,7 @@ target_link_dependencies(clx_render_benchmark
 target_link_dependencies(crawl_test PRIVATE libdevilutionx_crawl)
 target_link_dependencies(crawl_benchmark PRIVATE libdevilutionx_crawl)
 target_link_dependencies(data_file_test PRIVATE libdevilutionx_txtdata app_fatal_for_testing language_for_testing)
+target_link_dependencies(debug_console_history_test PRIVATE libdevilutionx_debug_console_history)
 target_link_dependencies(dun_render_benchmark PRIVATE libdevilutionx_so)
 target_link_dependencies(file_util_test PRIVATE libdevilutionx_file_util app_fatal_for_testing)
 target_link_dependencies(format_int_test PRIVATE libdevilutionx_format_int language_for_testing)

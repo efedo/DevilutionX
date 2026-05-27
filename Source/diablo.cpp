@@ -32,6 +32,7 @@
 #include "dead.h"
 #ifdef _DEBUG
 #include "debug.h"
+#include "debug_overlay/imgui_overlay.hpp"
 #endif
 #include "DiabloUI/diabloui.h"
 #include "controls/control_mode.hpp"
@@ -763,6 +764,9 @@ void GameEventHandler(const SDL_Event &event, uint16_t modState)
 	}
 
 #ifdef _DEBUG
+	if (DebugOverlayHandleEvent(event)) {
+		return;
+	}
 	if (ConsoleHandleEvent(event)) {
 		return;
 	}
