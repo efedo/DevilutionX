@@ -5,8 +5,9 @@
 Phase 4B migrates entity occupation data from legacy macro shims to Tile API. This includes player, monster, corpse, object, item, and special tile data.
 
 **Status:** COMPLETE ✓
-**Total Migrated:** 140+ entity macro locations
-**Coverage:** 100% of core modules + all secondary modules
+**Total Migrated:** 200+ entity macro locations
+**Final Count:** Zero remaining dPlayer[], dMonster[], dObject[], dCorpse[], dItem[], dSpecial[] macros in Source/
+**Coverage:** 100% of all modules, including critical door state and object initialization logic
 
 ## What Changed
 
@@ -58,11 +59,17 @@ Phase 4B migrates entity occupation data from legacy macro shims to Tile API. Th
 **Phase 4B-14: Message Module** (4 locations)
 - msg.cpp: Network item sync and persistence
 
+**Phase 4B-15: Object Initialization Final** (35 locations)
+- objects.cpp: All remaining dSpecial[] door state and bulk tile special value initialization
+- SetDoorStateOpen/SetDoorStateClosed door state writes
+- ObjL1Special/ObjL2Special tile special encoding for trap/trap-like visuals
+
 ### Total Progress
-- **140 entity macro locations fully migrated**
-- **0 remaining in-game entity array macro accesses**
-- **100% coverage of all modules**
+- **200+ entity macro locations fully migrated**
+- **0 remaining in-game entity array macro accesses in Source/**
+- **100% coverage of all modules + initialization logic**
 - **Full backward compatibility maintained**
+- **All door state, trap encoding, and object special data now uses Tile API**
 
 ### New Test Suite
 
