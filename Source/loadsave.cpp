@@ -2078,8 +2078,11 @@ tl::expected<void, std::string> LoadLevel(LevelConversionData *levelConversionDa
 		}
 		file.Skip<uint8_t>(MAXDUNY * MAXDUNX); // dLight
 		for (int j = 0; j < MAXDUNY; j++) {
-			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				dPreLight[i][j] = file.NextLE<uint8_t>();
+			for (int i = 0; i < MAXDUNX; i++) { // NOLINT(modernize-loop-convert)
+				// MIGRATED to Tile API (Phase 4A)
+				uint8_t preLight = file.NextLE<uint8_t>();
+				tileAt(Point { static_cast<WorldTileCoord>(i), static_cast<WorldTileCoord>(j) }).setPreLight(preLight);
+			}
 		}
 		for (int j = 0; j < DMAXY; j++) {
 			for (int i = 0; i < DMAXX; i++) { // NOLINT(modernize-loop-convert)
@@ -2089,10 +2092,21 @@ tl::expected<void, std::string> LoadLevel(LevelConversionData *levelConversionDa
 		}
 
 		// No need to load dLight, we can recreate it accurately from LightList
-		memcpy(dLight, dPreLight, sizeof(dLight));                                     // resets the light on entering a level to get rid of incorrect light
+		// MIGRATED to Tile API (Phase 4A)
+		for (int x = 0; x < MAXDUNX; x++) {
+			for (int y = 0; y < MAXDUNY; y++) {
+				Tile &tile = tileAt(Point { static_cast<WorldTileCoord>(x), static_cast<WorldTileCoord>(y) });
+				tile.setLight(tile.preLight());
+			}
+		}
 		ChangeLightXY(Players[MyPlayerId].lightId, Players[MyPlayerId].position.tile); // forces player light refresh
 	} else {
-		memset(dLight, 0, sizeof(dLight));
+		// MIGRATED to Tile API (Phase 4A)
+		for (int x = 0; x < MAXDUNX; x++) {
+			for (int y = 0; y < MAXDUNY; y++) {
+				tileAt(Point { static_cast<WorldTileCoord>(x), static_cast<WorldTileCoord>(y) }).setLight(0);
+			}
+		}
 	}
 
 	if (!gbSkipSync) {

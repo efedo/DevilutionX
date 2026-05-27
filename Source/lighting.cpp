@@ -76,18 +76,20 @@ void RotateRadius(DisplacementOf<int8_t> &offset, DisplacementOf<int8_t> &dist, 
 
 DVL_ALWAYS_INLINE void SetLight(Point position, uint8_t v)
 {
+	// MIGRATED to Tile API (Phase 4A)
 	if (LoadingMapObjects)
-		dPreLight[position.x][position.y] = v;
+		tileAt(position).setPreLight(v);
 	else
-		dLight[position.x][position.y] = v;
+		tileAt(position).setLight(v);
 }
 
 DVL_ALWAYS_INLINE uint8_t GetLight(Point position)
 {
+	// MIGRATED to Tile API (Phase 4A)
 	if (LoadingMapObjects)
-		return dPreLight[position.x][position.y];
+		return tileAt(position).preLight();
 
-	return dLight[position.x][position.y];
+	return tileAt(position).light();
 }
 
 bool TileAllowsLight(Point position)
@@ -99,14 +101,17 @@ bool TileAllowsLight(Point position)
 
 void DoVisionFlags(Point position, MapExplorationType doAutomap, bool visible)
 {
+	// MIGRATED to Tile API (Phase 4A)
+	Tile &tile = tileAt(position);
+
 	if (doAutomap != MAP_EXP_NONE) {
-		if (dFlags[position.x][position.y] != DungeonFlag::None)
+		if (tile.flags() != DungeonFlag::None)
 			SetAutomapView(position, doAutomap);
-		dFlags[position.x][position.y] |= DungeonFlag::Explored;
+		tile.addFlags(DungeonFlag::Explored);
 	}
 	if (visible)
-		dFlags[position.x][position.y] |= DungeonFlag::Lit;
-	dFlags[position.x][position.y] |= DungeonFlag::Visible;
+		tile.addFlags(DungeonFlag::Lit);
+	tile.addFlags(DungeonFlag::Visible);
 }
 
 } // namespace
@@ -119,8 +124,11 @@ void DoUnLight(Point position, uint8_t radius)
 	auto searchArea = PointsInRectangle(WorldTileRectangle { position, radius });
 
 	for (const WorldTilePosition targetPosition : searchArea) {
-		if (InDungeonBounds(targetPosition))
-			dLight[targetPosition.x][targetPosition.y] = dPreLight[targetPosition.x][targetPosition.y];
+		if (InDungeonBounds(targetPosition)) {
+			// MIGRATED to Tile API (Phase 4A)
+			Tile &tile = tileAt(targetPosition);
+			tile.setLight(tile.preLight());
+		}
 	}
 }
 
@@ -333,11 +341,23 @@ void ToggleLighting()
 	DisableLighting = !DisableLighting;
 
 	if (DisableLighting) {
-		memset(dLight, 0, sizeof(dLight));
+		// MIGRATED to Tile API (Phase 4A)
+		for (int x = 0; x < MAXDUNX; x++) {
+			for (int y = 0; y < MAXDUNY; y++) {
+				tileAt(Point { static_cast<WorldTileCoord>(x), static_cast<WorldTileCoord>(y) }).setLight(0);
+			}
+		}
 		return;
 	}
 
-	memcpy(dLight, dPreLight, sizeof(dLight));
+	// MIGRATED to Tile API (Phase 4A)
+	for (int x = 0; x < MAXDUNX; x++) {
+		for (int y = 0; y < MAXDUNY; y++) {
+			Tile &tile = tileAt(Point { static_cast<WorldTileCoord>(x), static_cast<WorldTileCoord>(y) });
+			tile.setLight(tile.preLight());
+		}
+	}
+
 	for (const Player &player : Players) {
 		if (player.plractive && player.isOnActiveLevel()) {
 			DoLighting(player.position.tile, player._pLightRad, {});
@@ -508,7 +528,13 @@ void ProcessLightList()
 
 void SavePreLighting()
 {
-	memcpy(dPreLight, dLight, sizeof(dPreLight));
+	// MIGRATED to Tile API (Phase 4A)
+	for (int x = 0; x < MAXDUNX; x++) {
+		for (int y = 0; y < MAXDUNY; y++) {
+			Tile &tile = tileAt(Point { static_cast<WorldTileCoord>(x), static_cast<WorldTileCoord>(y) });
+			tile.setPreLight(tile.light());
+		}
+	}
 }
 
 void ActivateVision(Point position, int r, size_t id)

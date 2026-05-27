@@ -29,6 +29,7 @@ set(tests
   missiles_test
   multi_logging_test
   pack_test
+  phase4a_lighting_test
   player_test
   quests_test
   scrollrt_test
@@ -74,6 +75,7 @@ set(benchmarks
   light_render_benchmark
   palette_blending_benchmark
   path_benchmark
+  phase4a_lighting_benchmark
 )
 
 include(test/Fixtures.cmake)

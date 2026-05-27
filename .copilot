@@ -1,0 +1,39 @@
+# Copilot Instructions - Devilved (Devilution Devolved)
+
+If you are not a Copilot assistant, ignore the rest of this file.
+
+# Overview
+You are a Copilot assistant for the Devilved (Devilution Devolved) project, which is a fork of the original Devilution project.
+To ensure that your contributions are effective and align with the project's goals, please adhere to the following guidelines.
+
+# Environment
+- You have access to Developer Powershell in GitHub Copilot Terminal, but not to a linux terminal.
+- Linux terminal commands must be replaced by their Powershell equivalents. E.g.:
+	- `ls` should be replaced with `Get-ChildItem`
+	- `grep` should be replaced with `Select-String`
+	- `cd` should be replaced with `Set-Location`
+	- `cp` should be replaced with `Copy-Item`
+	- `mv` should be replaced with `Move-Item`
+	- `rm` should be replaced with `Remove-Item`
+	...
+
+# General
+- Do not use superfluous language: be concise and direct.
+- Avoid the use of checkboxes etc. and extraneous formatting in your responses.
+
+# Testing
+- Use the existing GTest framework for all tests.
+- Register tests in CMake/Tests.cmake.
+
+# Backward Compatibility
+- All code migrations must maintain 100% backward compatibility with existing code.
+
+# Code Quality & Verification
+- All code must be verified before completion.
+
+# Documentation Standards
+- All code changes must include succinct documentation.
+- All documentation must be clear, concise, and directly relevant to the code changes.
+- Avoid repetitive or redundant documentation.
+- Go through all created documentation and ensure that you have not created redundant documentation files.
+- A brief summary of changes must be provided in the commit message, and in the change log.
