@@ -580,7 +580,7 @@ bool ItemPlace(Point position)
 		return false;
 	if (dPlayer[position.x][position.y] != 0)
 		return false;
-	if (dItem[position.x][position.y] != 0)
+	if (tileAt(position).item() != 0)
 		return false;
 	if (IsObjectAtPosition(position))
 		return false;
@@ -613,7 +613,7 @@ void AddInitItems()
 		const Point position = GetRandomAvailableItemPosition();
 		item.position = position;
 
-		dItem[position.x][position.y] = ii + 1;
+		tileAt(position).setItem(ii + 1);
 
 		item._iSeed = AdvanceRndSeed();
 		SetRndSeed(item._iSeed);
@@ -744,7 +744,7 @@ bool GetItemSpace(Point position, int8_t inum)
 	xx += position.x - 1;
 	yy += position.y - 1;
 	Items[inum].position = { xx, yy };
-	dItem[xx][yy] = static_cast<int8_t>(inum + 1);
+	tileAt(Point { xx, yy }).setItem(static_cast<int8_t>(inum + 1));
 
 	return true;
 }
@@ -1745,7 +1745,7 @@ void SpawnRock()
 	Item &item = Items[ii];
 
 	item.position = stand->position;
-	dItem[item.position.x][item.position.y] = ii + 1;
+	tileAt(item.position).setItem(ii + 1);
 	const int curlv = ItemsGetCurrlevel();
 	GetItemAttrs(item, IDI_ROCK, curlv);
 	SetupItem(item);
@@ -1766,10 +1766,10 @@ void ItemDoppel()
 	static int idoppely = 16;
 
 	for (int idoppelx = 16; idoppelx < 96; idoppelx++) {
-		if (dItem[idoppelx][idoppely] != 0) {
-			Item *i = &Items[dItem[idoppelx][idoppely] - 1];
+		if (tileAt(Point { idoppelx, idoppely }).item() != 0) {
+			Item *i = &Items[tileAt(Point { idoppelx, idoppely }).item() - 1];
 			if (i->position.x != idoppelx || i->position.y != idoppely)
-				dItem[idoppelx][idoppely] = 0;
+				tileAt(Point { idoppelx, idoppely }).setItem(0);
 		}
 	}
 
@@ -3220,11 +3220,11 @@ bool ItemSpaceOk(Point position)
 		return false;
 	}
 
-	if (dItem[position.x][position.y] != 0) {
+	if (tileAt(position).item() != 0) {
 		return false;
 	}
 
-	if (dMonster[position.x][position.y] != 0) {
+	if (tileAt(position).monster() != 0) {
 		return false;
 	}
 
@@ -3258,7 +3258,7 @@ uint8_t PlaceItemInWorld(Item &&item, WorldTilePosition position)
 	const uint8_t ii = ActiveItems[ActiveItemCount];
 	ActiveItemCount++;
 
-	dItem[position.x][position.y] = static_cast<int8_t>(ii + 1);
+	tileAt(position).setItem(static_cast<int8_t>(ii + 1));
 	auto &newItem = Items[ii];
 	newItem = std::move(item);
 	newItem.position = position;
@@ -3353,7 +3353,7 @@ Item *SpawnUnique(_unique_items uid, Point position, std::optional<int> level /*
 	auto &item = Items[ii];
 	if (exactPosition && CanPut(position)) {
 		item.position = position;
-		dItem[position.x][position.y] = ii + 1;
+		tileAt(position).setItem(ii + 1);
 	} else {
 		GetSuperItemSpace(position, ii);
 	}
@@ -3398,7 +3398,7 @@ void GetSuperItemSpace(Point position, int8_t inum)
 				if (!ItemSpaceOk(positionToCheck))
 					continue;
 				Items[inum].position = positionToCheck;
-				dItem[positionToCheck.x][positionToCheck.y] = inum + 1;
+				tileAt(positionToCheck).setItem(inum + 1);
 				return;
 			}
 		}
@@ -3764,15 +3764,15 @@ void CornerstoneLoad(Point position)
 
 	CornerStone.item.clear();
 	CornerStone.activated = true;
-	if (dItem[position.x][position.y] != 0) {
-		const int ii = dItem[position.x][position.y] - 1;
+	if (tileAt(position).item() != 0) {
+		const int ii = tileAt(position).item() - 1;
 		for (int i = 0; i < ActiveItemCount; i++) {
 			if (ActiveItems[i] == ii) {
 				DeleteItem(i);
 				break;
 			}
 		}
-		dItem[position.x][position.y] = 0;
+		tileAt(position).setItem(0);
 	}
 
 	if (strlen(GetOptions().Hellfire.szItem) < sizeof(ItemPack) * 2)
@@ -3783,7 +3783,7 @@ void CornerstoneLoad(Point position)
 	const int ii = AllocateItem();
 	auto &item = Items[ii];
 
-	dItem[position.x][position.y] = static_cast<int8_t>(ii + 1);
+	tileAt(position).setItem(static_cast<int8_t>(ii + 1));
 
 	UnPackItem(pkSItem, *MyPlayer, item, (pkSItem.dwBuff & CF_HELLFIRE) != 0);
 	item.position = position;
@@ -3822,7 +3822,7 @@ void SpawnQuestItem(_item_indexes itemid, Point position, int randarea, Selectio
 
 	item.position = position;
 
-	dItem[position.x][position.y] = ii + 1;
+	tileAt(position).setItem(ii + 1);
 
 	const int curlv = ItemsGetCurrlevel();
 	GetItemAttrs(item, itemid, curlv);
@@ -3854,7 +3854,7 @@ void SpawnRewardItem(_item_indexes itemid, Point position, bool sendmsg)
 	auto &item = Items[ii];
 
 	item.position = position;
-	dItem[position.x][position.y] = ii + 1;
+	tileAt(position).setItem(ii + 1);
 	const int curlv = ItemsGetCurrlevel();
 	GetItemAttrs(item, itemid, curlv);
 	item.setNewAnimation(true);

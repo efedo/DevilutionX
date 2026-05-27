@@ -36,7 +36,7 @@ void MoveLightToCorpse(Monster &monster)
 {
 	for (int dx = 0; dx < MAXDUNX; dx++) {
 		for (int dy = 0; dy < MAXDUNY; dy++) {
-			if ((dCorpse[dx][dy] & 0x1F) == monster.corpseId) {
+			if ((tileAt(Point { dx, dy }).corpseIndex()) == monster.corpseId) {
 				ChangeLightXY(monster.lightId, { dx, dy });
 				return;
 			}
@@ -92,7 +92,7 @@ void InitCorpses()
 
 void AddCorpse(Point tilePosition, int8_t dv, Direction ddir)
 {
-	dCorpse[tilePosition.x][tilePosition.y] = (dv & 0x1F) + (static_cast<int>(ddir) << 5);
+	tileAt(tilePosition).setCorpse((dv & 0x1F) + (static_cast<int>(ddir) << 5));
 }
 
 void MoveLightsToCorpses()

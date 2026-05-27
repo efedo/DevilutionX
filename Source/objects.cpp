@@ -254,7 +254,7 @@ bool IsAreaOk(Rectangle rect)
 
 bool CanPlaceWallTrap(Point pos)
 {
-	if (dObject[pos.x][pos.y] != 0)
+	if (tileAt(pos).object() != 0)
 		return false;
 	if (TileContainsSetPiece(pos))
 		return false;
@@ -723,7 +723,7 @@ void AddCryptBook(_object_id ot, int v2, Point position)
 		return;
 
 	const int oi = ObjectPoolAdapter::ReserveObjectSlot();
-	dObject[position.x][position.y] = oi + 1;
+	tileAt(position).setObject(oi + 1);
 	Object &object = Objects[oi];
 	SetupObject(object, position, ot);
 	AddCryptObject(object, v2);
@@ -895,7 +895,7 @@ void DeleteObject(int oi, int i)
 {
 	const Object &object = Objects[oi];
 	const Point position = object.position;
-	dObject[position.x][position.y] = 0;
+	tileAt(position).setObject(0);
 	ObjectPoolAdapter::ReleaseObjectSlot(oi, i);
 	if (ObjectUnderCursor == &object) // Unselect object if this was highlighted by player
 		ObjectUnderCursor = nullptr;
@@ -1186,7 +1186,7 @@ void AddDoor(Object &door)
 
 void AddSarcophagus(Object &sarcophagus)
 {
-	dObject[sarcophagus.position.x][sarcophagus.position.y - 1] = -(static_cast<int8_t>(sarcophagus.GetId()) + 1);
+	tileAt(Point { sarcophagus.position.x, sarcophagus.position.y - 1 }).setObject(-(static_cast<int8_t>(sarcophagus.GetId()) + 1));
 	sarcophagus._oVar1 = GenerateRnd(10);
 	sarcophagus._oRndSeed = AdvanceRndSeed();
 	if (sarcophagus._oVar1 >= 8) {
@@ -1330,9 +1330,9 @@ void AddLargeFountain(Object &fountain)
 	const int ox = fountain.position.x;
 	const int oy = fountain.position.y;
 	const uint8_t id = -(static_cast<int8_t>(fountain.GetId()) + 1);
-	dObject[ox][oy - 1] = id;
-	dObject[ox - 1][oy] = id;
-	dObject[ox - 1][oy - 1] = id;
+	tileAt(Point { ox, oy - 1 }).setObject(id);
+	tileAt(Point { ox - 1, oy }).setObject(id);
+	tileAt(Point { ox - 1, oy - 1 }).setObject(id);
 	fountain._oRndSeed = AdvanceRndSeed();
 }
 
@@ -1432,9 +1432,9 @@ void AddMushPatch()
 	if (ObjectPoolAdapter::HasFreeObjectSlot()) {
 		const int i = ObjectPoolAdapter::PeekNextAvailableObjectIndex();
 		const Point loc = GetRndObjLoc(5);
-		dObject[loc.x + 1][loc.y + 1] = -(i + 1);
-		dObject[loc.x + 2][loc.y + 1] = -(i + 1);
-		dObject[loc.x + 1][loc.y + 2] = -(i + 1);
+		tileAt(Point { loc.x + 1, loc.y + 1 }).setObject(-(i + 1));
+		tileAt(Point { loc.x + 2, loc.y + 1 }).setObject(-(i + 1));
+		tileAt(Point { loc.x + 1, loc.y + 2 }).setObject(-(i + 1));
 		AddObject(OBJ_MUSHPATCH, { loc.x + 2, loc.y + 2 });
 	}
 }
@@ -3604,7 +3604,7 @@ void UpdateState(Object &object, int frame)
 
 unsigned int Object::GetId() const
 {
-	return std::abs(dObject[position.x][position.y]) - 1;
+	return std::abs(tileAt(position).object()) - 1;
 }
 
 void Object::SetMapRange(WorldTilePosition topLeftPosition, WorldTilePosition bottomRightPosition)
@@ -3735,7 +3735,7 @@ Object *FindObjectAtPosition(Point position, bool considerLargeObjects)
 		return nullptr;
 	}
 
-	auto objectId = dObject[position.x][position.y];
+	auto objectId = tileAt(position).object();
 
 	if (objectId > 0 || (considerLargeObjects && objectId != 0)) {
 		return &Objects[std::abs(objectId) - 1];
@@ -3752,7 +3752,7 @@ bool IsObjectAtPosition(Point position)
 
 Object &ObjectAtPosition(Point position)
 {
-	return Objects[std::abs(dObject[position.x][position.y]) - 1];
+	return Objects[std::abs(tileAt(position).object()) - 1];
 }
 
 bool IsItemBlockingObjectAtPosition(Point position)
@@ -4113,7 +4113,7 @@ Object *AddObject(_object_id objType, Point objPos)
 		return nullptr;
 
 	const int oi = ObjectPoolAdapter::ReserveObjectSlot();
-	dObject[objPos.x][objPos.y] = oi + 1;
+	tileAt(objPos).setObject(oi + 1);
 	Object &object = Objects[oi];
 	SetupObject(object, objPos, objType);
 	switch (object._otype) {
