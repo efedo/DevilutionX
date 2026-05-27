@@ -83,9 +83,9 @@ bool TrySelectMonster(bool flipflag, Point tile, tl::function_ref<bool(const Mon
 {
 	auto checkPosition = [&](SelectionRegion selectionRegion, Displacement displacement) {
 		const Point posToCheck = tile + displacement;
-		if (!InDungeonBounds(posToCheck) || dMonster[posToCheck.x][posToCheck.y] == 0)
+		if (!InDungeonBounds(posToCheck) || tileAt(posToCheck).monster() == 0)
 			return;
-		const uint16_t monsterId = std::abs(dMonster[posToCheck.x][posToCheck.y]) - 1;
+		const uint16_t monsterId = std::abs(tileAt(posToCheck).monster()) - 1;
 		const Monster &monster = Monsters[monsterId];
 		if (IsTileLit(posToCheck) && HasAnyOf(monster.data().selectionRegion, selectionRegion) && isValidMonster(monster)) {
 			cursPosition = posToCheck;
@@ -111,9 +111,9 @@ bool TrySelectTowner(bool flipflag, Point tile)
 {
 	auto checkPosition = [&](Displacement displacement) {
 		const Point posToCheck = tile + displacement;
-		if (!InDungeonBounds(posToCheck) || dMonster[posToCheck.x][posToCheck.y] == 0)
+		if (!InDungeonBounds(posToCheck) || tileAt(posToCheck).monster() == 0)
 			return;
-		const uint16_t monsterId = std::abs(dMonster[posToCheck.x][posToCheck.y]) - 1;
+		const uint16_t monsterId = std::abs(tileAt(posToCheck).monster()) - 1;
 		cursPosition = posToCheck;
 		pcursmonst = monsterId;
 	};
@@ -128,24 +128,24 @@ bool TrySelectTowner(bool flipflag, Point tile)
 
 bool TrySelectPlayer(bool flipflag, const Point tile)
 {
-	if (!flipflag && tile.x + 1 < MAXDUNX && dPlayer[tile.x + 1][tile.y] != 0) {
-		const uint8_t playerId = std::abs(dPlayer[tile.x + 1][tile.y]) - 1;
+	if (!flipflag && tile.x + 1 < MAXDUNX && tileAt(tile.x + 1, tile.y).hasPlayer()) {
+		const uint8_t playerId = std::abs(tileAt(tile.x + 1, tile.y).player()) - 1;
 		Player &player = Players[playerId];
 		if (&player != MyPlayer && !player.hasNoLife()) {
 			cursPosition = tile + Displacement { 1, 0 };
 			PlayerUnderCursor = &player;
 		}
 	}
-	if (flipflag && tile.y + 1 < MAXDUNY && dPlayer[tile.x][tile.y + 1] != 0) {
-		const uint8_t playerId = std::abs(dPlayer[tile.x][tile.y + 1]) - 1;
+	if (flipflag && tile.y + 1 < MAXDUNY && tileAt(tile.x, tile.y + 1).hasPlayer()) {
+		const uint8_t playerId = std::abs(tileAt(tile.x, tile.y + 1).player()) - 1;
 		Player &player = Players[playerId];
 		if (&player != MyPlayer && !player.hasNoLife()) {
 			cursPosition = tile + Displacement { 0, 1 };
 			PlayerUnderCursor = &player;
 		}
 	}
-	if (dPlayer[tile.x][tile.y] != 0) {
-		const uint8_t playerId = std::abs(dPlayer[tile.x][tile.y]) - 1;
+	if (tileAt(tile).hasPlayer()) {
+		const uint8_t playerId = std::abs(tileAt(tile).player()) - 1;
 		Player &player = Players[playerId];
 		if (&player != MyPlayer) {
 			cursPosition = tile;
@@ -174,8 +174,8 @@ bool TrySelectPlayer(bool flipflag, const Point tile)
 			}
 		}
 	}
-	if (tile.x + 1 < MAXDUNX && tile.y + 1 < MAXDUNY && dPlayer[tile.x + 1][tile.y + 1] != 0) {
-		const uint8_t playerId = std::abs(dPlayer[tile.x + 1][tile.y + 1]) - 1;
+	if (tile.x + 1 < MAXDUNX && tile.y + 1 < MAXDUNY && tileAt(tile.x + 1, tile.y + 1).hasPlayer()) {
+		const uint8_t playerId = std::abs(tileAt(tile.x + 1, tile.y + 1).player()) - 1;
 		const Player &player = Players[playerId];
 		if (&player != MyPlayer && !player.hasNoLife()) {
 			cursPosition = tile + Displacement { 1, 1 };
@@ -222,29 +222,29 @@ bool TrySelectObject(bool flipflag, Point tile)
 
 bool TrySelectItem(bool flipflag, Point tile)
 {
-	if (!flipflag && tile.x + 1 < MAXDUNX && dItem[tile.x + 1][tile.y] > 0) {
-		const uint8_t itemId = dItem[tile.x + 1][tile.y] - 1;
+	if (!flipflag && tile.x + 1 < MAXDUNX && tileAt(tile.x + 1, tile.y).item() > 0) {
+		const uint8_t itemId = tileAt(tile.x + 1, tile.y).item() - 1;
 		if (HasAnyOf(Items[itemId].selectionRegion, SelectionRegion::Middle)) {
 			cursPosition = tile + Displacement { 1, 0 };
 			pcursitem = static_cast<int8_t>(itemId);
 		}
 	}
-	if (flipflag && tile.y + 1 < MAXDUNY && dItem[tile.x][tile.y + 1] > 0) {
-		const uint8_t itemId = dItem[tile.x][tile.y + 1] - 1;
+	if (flipflag && tile.y + 1 < MAXDUNY && tileAt(tile.x, tile.y + 1).item() > 0) {
+		const uint8_t itemId = tileAt(tile.x, tile.y + 1).item() - 1;
 		if (HasAnyOf(Items[itemId].selectionRegion, SelectionRegion::Middle)) {
 			cursPosition = tile + Displacement { 0, 1 };
 			pcursitem = static_cast<int8_t>(itemId);
 		}
 	}
-	if (dItem[tile.x][tile.y] > 0) {
-		const uint8_t itemId = dItem[tile.x][tile.y] - 1;
+	if (tileAt(tile).item() > 0) {
+		const uint8_t itemId = tileAt(tile).item() - 1;
 		if (HasAnyOf(Items[itemId].selectionRegion, SelectionRegion::Bottom)) {
 			cursPosition = tile;
 			pcursitem = static_cast<int8_t>(itemId);
 		}
 	}
-	if (tile.x + 1 < MAXDUNX && tile.y + 1 < MAXDUNY && dItem[tile.x + 1][tile.y + 1] > 0) {
-		const uint8_t itemId = dItem[tile.x + 1][tile.y + 1] - 1;
+	if (tile.x + 1 < MAXDUNX && tile.y + 1 < MAXDUNY && tileAt(tile.x + 1, tile.y + 1).item() > 0) {
+		const uint8_t itemId = tileAt(tile.x + 1, tile.y + 1).item() - 1;
 		if (HasAnyOf(Items[itemId].selectionRegion, SelectionRegion::Middle)) {
 			cursPosition = tile + Displacement { 1, 1 };
 			pcursitem = static_cast<int8_t>(itemId);
@@ -298,7 +298,7 @@ bool TrySelectPixelBased(Point tile)
 		if (!InDungeonBounds(adjacentTile))
 			continue;
 
-		int monsterId = dMonster[adjacentTile.x][adjacentTile.y];
+		int monsterId = tileAt(adjacentTile).monster();
 		// Never select a monster if a target-player-only spell is selected
 		if (monsterId != 0 && IsNoneOf(pcurs, CURSOR_HEALOTHER, CURSOR_RESURRECT)) {
 			monsterId = std::abs(monsterId) - 1;
@@ -325,7 +325,7 @@ bool TrySelectPixelBased(Point tile)
 			}
 		}
 
-		const int8_t dPlayerValue = dPlayer[adjacentTile.x][adjacentTile.y];
+		const int8_t dPlayerValue = tileAt(adjacentTile).player();
 		if (dPlayerValue != 0) {
 			const uint8_t playerId = std::abs(dPlayerValue) - 1;
 			if (playerId != MyPlayerId) {
@@ -364,7 +364,7 @@ bool TrySelectPixelBased(Point tile)
 			}
 		}
 
-		uint8_t itemId = dItem[adjacentTile.x][adjacentTile.y];
+		uint8_t itemId = tileAt(adjacentTile).item();
 		if (itemId != 0) {
 			itemId = itemId - 1;
 			const Item &item = Items[itemId];
