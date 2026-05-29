@@ -16,9 +16,7 @@ namespace {
 // Benchmark: DoUnLight operation (represents light restoration operations)
 static void BM_DoUnLightOperation(benchmark::State &state)
 {
-	// Initialize level once
-	currentLevel().init();
-
+	// Level is initialized via CurrentWorld
 	const Point testPos { 50, 50 };
 
 	for (auto _ : state) {
@@ -30,15 +28,12 @@ static void BM_DoUnLightOperation(benchmark::State &state)
 		DoUnLight(testPos, 1);
 		benchmark::ClobberMemory();
 	}
-
-	currentLevel().deinit();
 }
 
 // Benchmark: DoLighting operation (represents light application operations)
 static void BM_DoLightingOperation(benchmark::State &state)
 {
-	currentLevel().init();
-
+	// Level is initialized via CurrentWorld
 	const Point testPos { 50, 50 };
 
 	// Initialize region
@@ -55,15 +50,12 @@ static void BM_DoLightingOperation(benchmark::State &state)
 		DoLighting(testPos, 5, DisplacementOf<int8_t> { 0, 0 });
 		benchmark::ClobberMemory();
 	}
-
-	currentLevel().deinit();
 }
 
-// Benchmark: Multiple DoUnLight operations in sequence (DoUnLight pattern)
+// Benchmark: Multiple DoUnLight
 static void BM_MultiTileDoUnLight(benchmark::State &state)
 {
-	currentLevel().init();
-
+	// Level is initialized via CurrentWorld
 	// Initialize a region with light values
 	for (int x = 40; x < 60; x++) {
 		for (int y = 40; y < 60; y++) {
@@ -84,15 +76,13 @@ static void BM_MultiTileDoUnLight(benchmark::State &state)
 		benchmark::ClobberMemory();
 	}
 
-	currentLevel().deinit();
 	state.SetItemsProcessed(state.iterations() * 9); // 3x3 calls per iteration
 }
 
 // Benchmark: Tile flag operations (flag manipulation during lighting)
 static void BM_TileFlagOperations(benchmark::State &state)
 {
-	currentLevel().init();
-
+	// Level is initialized via CurrentWorld
 	const Point testPos { 50, 50 };
 	Tile &tile = tileAt(testPos);
 
@@ -103,15 +93,12 @@ static void BM_TileFlagOperations(benchmark::State &state)
 		tile.removeFlags(DungeonFlag::Visible);
 		benchmark::ClobberMemory();
 	}
-
-	currentLevel().deinit();
 }
 
-// Benchmark: Sequential tile light access (good cache locality)
+// Benchmark: Sequential tile light access
 static void BM_SequentialTileAccess(benchmark::State &state)
 {
-	currentLevel().init();
-
+	// Level is initialized via CurrentWorld
 	for (auto _ : state) {
 		// Sequential access pattern (good cache locality)
 		for (int x = 0; x < 50; x++) {
@@ -125,15 +112,13 @@ static void BM_SequentialTileAccess(benchmark::State &state)
 		benchmark::ClobberMemory();
 	}
 
-	currentLevel().deinit();
 	state.SetItemsProcessed(state.iterations() * 50 * 50);
 }
 
-// Benchmark: Random tile access (poor cache locality)
+// Benchmark: Random tile access
 static void BM_RandomTileAccess(benchmark::State &state)
 {
-	currentLevel().init();
-
+	// Level is initialized via CurrentWorld
 	// Pre-generate random positions
 	std::vector<Point> randomPositions;
 	std::mt19937 rng(42); // Fixed seed for reproducibility
@@ -154,15 +139,13 @@ static void BM_RandomTileAccess(benchmark::State &state)
 		benchmark::ClobberMemory();
 	}
 
-	currentLevel().deinit();
 	state.SetItemsProcessed(state.iterations() * 2500);
 }
 
-// Benchmark: Simulated lighting area update (common pattern)
+// Benchmark: Simulated lighting area update
 static void BM_LightingAreaUpdate(benchmark::State &state)
 {
-	currentLevel().init();
-
+	// Level is initialized via CurrentWorld
 	const Point centerPos { 100, 100 };
 	const uint8_t radius = 5;
 
@@ -183,7 +166,6 @@ static void BM_LightingAreaUpdate(benchmark::State &state)
 		benchmark::ClobberMemory();
 	}
 
-	currentLevel().deinit();
 	state.SetItemsProcessed(state.iterations() * 20 * 20);
 }
 

@@ -15,13 +15,12 @@ class Phase4ALightingTest : public ::testing::Test {
 protected:
 	void SetUp() override
 	{
-		// Initialize a test level
-		currentLevel().init();
+		// Level is already initialized via CurrentWorld
 	}
 
 	void TearDown() override
 	{
-		currentLevel().deinit();
+		// Level cleanup is handled by CurrentWorld
 	}
 };
 

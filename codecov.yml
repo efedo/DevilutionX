@@ -1,8 +1,8 @@
 codecov:
-  require_ci_to_pass: no
+  require_ci_to_pass: false
   notify:
-    wait_for_ci: no
-comment: no
+    wait_for_ci: false
+comment: false
 coverage:
   range: "45...85"
   status:
@@ -10,7 +10,7 @@ coverage:
       default:
         target: 0%
         threshold: 0.02%
-    patch: no
+    patch: false
 ignore:
   - "3rdParty"
   - "test"

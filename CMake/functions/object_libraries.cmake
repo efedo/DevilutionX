@@ -8,6 +8,10 @@
 #
 # https://gitlab.kitware.com/cmake/cmake/-/issues/18090#note_861617
 #
+# Note: CMake 4.x may not propagate INTERFACE include directories to OBJECT
+# libraries consistently through target_link_libraries(); this file mirrors
+# include directories for INTERFACE dependencies when needed.
+#
 # At the end of the main `CMakeLists.txt`, call `resolve_target_link_dependencies()`.
 
 # Behaves like target_link_libraries, but propagates OBJECT libraries' objects
@@ -104,6 +108,13 @@ function(_collect_linked_dependencies INITIAL_TARGET)
             set_property(TARGET ${TARGET} PROPERTY LINKED_OBJECTS "${TARGET_LINKED_OBJECTS}")
           else()
             target_sources(${TARGET} PRIVATE ${TARGET_LINKED_OBJECTS})
+          endif()
+        elseif(TARGET_TYPE STREQUAL "OBJECT_LIBRARY" AND LIBRARY_TYPE STREQUAL "INTERFACE_LIBRARY")
+          # CMake 4.x no longer reliably propagates INTERFACE include directories to OBJECT
+          # libraries via target_link_libraries(). Mirror include dirs explicitly.
+          get_target_property(LIBRARY_INTERFACE_INCLUDE_DIRS ${LIBRARY} INTERFACE_INCLUDE_DIRECTORIES)
+          if(NOT LIBRARY_INTERFACE_INCLUDE_DIRS STREQUAL "LIBRARY_INTERFACE_INCLUDE_DIRS-NOTFOUND")
+            target_include_directories(${TARGET} PRIVATE ${LIBRARY_INTERFACE_INCLUDE_DIRS})
           endif()
         endif()
       endif()
