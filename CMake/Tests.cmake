@@ -29,6 +29,7 @@ set(tests
   math_test
   missiles_test
   multi_logging_test
+  objects_test
   pack_test
   phase4a_lighting_test
   phase4b_entity_test

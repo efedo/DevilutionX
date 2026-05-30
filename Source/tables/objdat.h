@@ -10,6 +10,7 @@
 
 #include "cursor.h"
 #include "levels/gendung.h"
+#include "utils/attributes.h"
 #include "utils/enum_traits.h"
 
 namespace devilution {
@@ -237,7 +238,7 @@ struct ObjectData {
 };
 
 extern const _object_id ObjTypeConv[];
-extern std::vector<ObjectData> AllObjects;
+extern DVL_API_FOR_TEST std::vector<ObjectData> AllObjects;
 extern std::vector<std::string> ObjMasterLoadList;
 
 void LoadObjectData();

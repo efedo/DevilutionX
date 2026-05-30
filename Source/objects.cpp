@@ -484,7 +484,7 @@ void AddObjTraps()
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) {
 			Object *triggerObject = FindObjectAtPosition({ i, j }, false);
-			if (triggerObject == nullptr || GenerateRnd(100) >= rndv)
+			if (triggerObject == nullptr || triggerObject->_otype == OBJ_NULL || GenerateRnd(100) >= rndv)
 				continue;
 
 			if (!AllObjects[triggerObject->_otype].isTrap())
