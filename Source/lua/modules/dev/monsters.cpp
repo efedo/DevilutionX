@@ -74,7 +74,8 @@ std::string DebugCmdSpawnUniqueMonster(std::string name, std::optional<unsigned>
 
 	auto ret = Crawl(0, MaxCrawlRadius, [&](Displacement displacement) -> std::optional<std::string> {
 		Point pos = myPlayer.position.tile + displacement;
-		if (dPlayer[pos.x][pos.y] != 0 || dMonster[pos.x][pos.y] != 0)
+		const Tile &tile = tileAt(pos);
+		if (tile.hasPlayer() || tile.hasMonster())
 			return {};
 		if (!IsTileWalkable(pos))
 			return {};
@@ -152,7 +153,8 @@ std::string DebugCmdSpawnMonster(std::string name, std::optional<unsigned> count
 	size_t spawnedMonster = 0;
 	Crawl(0, MaxCrawlRadius, [&](Displacement displacement) {
 		Point pos = myPlayer.position.tile + displacement;
-		if (dPlayer[pos.x][pos.y] != 0 || dMonster[pos.x][pos.y] != 0)
+		const Tile &tile = tileAt(pos);
+		if (tile.hasPlayer() || tile.hasMonster())
 			return false;
 		if (!IsTileWalkable(pos))
 			return false;

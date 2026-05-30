@@ -195,5 +195,8 @@ void SyncBreakObj(const Player &player, Object &object);
 void SyncObjectAnim(Object &object);
 void GetObjectStr(const Object &object); // Updates the text drawn in the info box to describe the given object
 void SyncNakrulRoom();
+#ifdef BUILD_TESTING
+void TestObjSetMicro(Point position, int pn);
+#endif
 
 } // namespace devilution

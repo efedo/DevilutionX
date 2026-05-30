@@ -244,7 +244,8 @@ bool RndLocOk(Point p)
 		return false;
 	if (TileHasAny(p, TileProperties::Solid))
 		return false;
-	return IsNoneOf(leveltype, DTYPE_CATHEDRAL, DTYPE_CRYPT) || dPiece[p.x][p.y] <= 125 || dPiece[p.x][p.y] >= 143;
+	const uint16_t piece = tileAt(p).piece();
+	return IsNoneOf(leveltype, DTYPE_CATHEDRAL, DTYPE_CRYPT) || piece <= 125 || piece >= 143;
 }
 
 bool IsAreaOk(Rectangle rect)
@@ -335,7 +336,7 @@ void AddTortures()
 {
 	for (int oy = 0; oy < MAXDUNY; oy++) {
 		for (int ox = 0; ox < MAXDUNX; ox++) {
-			if (dPiece[ox][oy] == 366) {
+			if (tileAt(ox, oy).piece() == 366) {
 				AddObject(OBJ_TORTURE1, { ox, oy + 1 });
 				AddObject(OBJ_TORTURE3, { ox + 2, oy - 1 });
 				AddObject(OBJ_TORTURE2, { ox, oy + 3 });
@@ -449,7 +450,7 @@ void AddL2Torches()
 			if (TileContainsSetPiece(testPosition))
 				continue;
 
-			const int pn = dPiece[i][j];
+			const int pn = tileAt(testPosition).piece();
 			if (pn == 0 && FlipCoin(3)) {
 				AddObject(OBJ_TORCHL2, testPosition);
 			}
@@ -940,11 +941,12 @@ void AddChest(Object &chest)
 void ObjSetMicro(Point position, int pn)
 {
 	dPiece[position.x][position.y] = pn;
+	tileAt(position).setPiece(pn);
 }
 
 void DoorSet(Point position, bool isLeftDoor)
 {
-	const int pn = dPiece[position.x][position.y];
+	const int pn = tileAt(position).piece();
 	switch (pn) {
 	case 42:
 		ObjSetMicro(position, 391);
@@ -997,7 +999,7 @@ void DoorSet(Point position, bool isLeftDoor)
 
 void CryptDoorSet(Point position, bool isLeftDoor)
 {
-	const int pn = dPiece[position.x][position.y];
+	const int pn = tileAt(position).piece();
 	switch (pn) {
 	case 74:
 		ObjSetMicro(position, 203);
@@ -1102,7 +1104,7 @@ void SetDoorStateClosed(Object &door)
 
 		// Restore the normal tile where the open door used to be
 		auto openPosition = door.position + Direction::NorthEast;
-		if (door._oVar2 == 50 && dPiece[openPosition.x][openPosition.y] == 395)
+		if (door._oVar2 == 50 && tileAt(openPosition).piece() == 395)
 			ObjSetMicro(openPosition, 411);
 		else
 			ObjSetMicro(openPosition, door._oVar2 - 1);
@@ -1115,7 +1117,7 @@ void SetDoorStateClosed(Object &door)
 
 		// Restore the normal tile where the open door used to be
 		auto openPosition = door.position + Direction::NorthWest;
-		if (door._oVar2 == 50 && dPiece[openPosition.x][openPosition.y] == 395)
+		if (door._oVar2 == 50 && tileAt(openPosition).piece() == 395)
 			ObjSetMicro(openPosition, 410);
 		else
 			ObjSetMicro(openPosition, door._oVar2 - 1);
@@ -1142,7 +1144,7 @@ void SetDoorStateClosed(Object &door)
 
 		// Restore the normal tile where the open door used to be
 		auto openPosition = door.position + Direction::NorthEast;
-		if (door._oVar2 == 86 && dPiece[openPosition.x][openPosition.y] == 209)
+		if (door._oVar2 == 86 && tileAt(openPosition).piece() == 209)
 			ObjSetMicro(openPosition, 233);
 		else
 			ObjSetMicro(openPosition, door._oVar2 - 1);
@@ -1152,7 +1154,7 @@ void SetDoorStateClosed(Object &door)
 
 		// Restore the normal tile where the open door used to be
 		auto openPosition = door.position + Direction::NorthWest;
-		if (door._oVar2 == 86 && dPiece[openPosition.x][openPosition.y] == 209)
+		if (door._oVar2 == 86 && tileAt(openPosition).piece() == 209)
 			ObjSetMicro(openPosition, 231);
 		else
 			ObjSetMicro(openPosition, door._oVar2 - 1);
@@ -1169,13 +1171,13 @@ void AddDoor(Object &door)
 	switch (door._otype) {
 	case OBJ_L1LDOOR:
 	case OBJ_L5LDOOR:
-		door._oVar1 = dPiece[door.position.x][door.position.y] + 1;
-		door._oVar2 = dPiece[door.position.x][door.position.y - 1] + 1;
+		door._oVar1 = tileAt(door.position).piece() + 1;
+		door._oVar2 = tileAt(door.position + Direction::NorthEast).piece() + 1;
 		break;
 	case OBJ_L1RDOOR:
 	case OBJ_L5RDOOR:
-		door._oVar1 = dPiece[door.position.x][door.position.y] + 1;
-		door._oVar2 = dPiece[door.position.x - 1][door.position.y] + 1;
+		door._oVar1 = tileAt(door.position).piece() + 1;
+		door._oVar2 = tileAt(door.position + Direction::NorthWest).piece() + 1;
 		break;
 	default:
 		break;
@@ -1665,38 +1667,39 @@ void ObjL1Special(int x1, int y1, int x2, int y2)
 {
 	for (int i = y1; i <= y2; ++i) {
 		for (int j = x1; j <= x2; ++j) {
+			const uint16_t piece = tileAt(j, i).piece();
 			tileAt(j, i).setSpecial(0);
-			if (dPiece[j][i] == 11)
+			if (piece == 11)
 				tileAt(j, i).setSpecial(1);
-			if (dPiece[j][i] == 10)
+			if (piece == 10)
 				tileAt(j, i).setSpecial(2);
-			if (dPiece[j][i] == 70)
+			if (piece == 70)
 				tileAt(j, i).setSpecial(1);
-			if (dPiece[j][i] == 252)
+			if (piece == 252)
 				tileAt(j, i).setSpecial(3);
-			if (dPiece[j][i] == 266)
+			if (piece == 266)
 				tileAt(j, i).setSpecial(6);
-			if (dPiece[j][i] == 258)
+			if (piece == 258)
 				tileAt(j, i).setSpecial(5);
-			if (dPiece[j][i] == 248)
+			if (piece == 248)
 				tileAt(j, i).setSpecial(2);
-			if (dPiece[j][i] == 324)
+			if (piece == 324)
 				tileAt(j, i).setSpecial(2);
-			if (dPiece[j][i] == 320)
+			if (piece == 320)
 				tileAt(j, i).setSpecial(1);
-			if (dPiece[j][i] == 254)
+			if (piece == 254)
 				tileAt(j, i).setSpecial(4);
-			if (dPiece[j][i] == 210)
+			if (piece == 210)
 				tileAt(j, i).setSpecial(1);
-			if (dPiece[j][i] == 343)
+			if (piece == 343)
 				tileAt(j, i).setSpecial(2);
-			if (dPiece[j][i] == 340)
+			if (piece == 340)
 				tileAt(j, i).setSpecial(1);
-			if (dPiece[j][i] == 330)
+			if (piece == 330)
 				tileAt(j, i).setSpecial(2);
-			if (dPiece[j][i] == 417)
+			if (piece == 417)
 				tileAt(j, i).setSpecial(1);
-			if (dPiece[j][i] == 420)
+			if (piece == 420)
 				tileAt(j, i).setSpecial(2);
 		}
 	}
@@ -1706,26 +1709,28 @@ void ObjL2Special(int x1, int y1, int x2, int y2)
 {
 	for (int j = y1; j <= y2; j++) {
 		for (int i = x1; i <= x2; i++) {
+			const uint16_t piece = tileAt(i, j).piece();
 			tileAt(i, j).setSpecial(0);
-			if (dPiece[i][j] == 540)
+			if (piece == 540)
 				tileAt(i, j).setSpecial(5);
-			if (dPiece[i][j] == 177)
+			if (piece == 177)
 				tileAt(i, j).setSpecial(5);
-			if (dPiece[i][j] == 550)
+			if (piece == 550)
 				tileAt(i, j).setSpecial(5);
-			if (dPiece[i][j] == 541)
+			if (piece == 541)
 				tileAt(i, j).setSpecial(6);
-			if (dPiece[i][j] == 552)
+			if (piece == 552)
 				tileAt(i, j).setSpecial(6);
 		}
 	}
 	for (int j = y1; j <= y2; j++) {
 		for (int i = x1; i <= x2; i++) {
-			if (dPiece[i][j] == 131) {
+			const uint16_t piece = tileAt(i, j).piece();
+			if (piece == 131) {
 				tileAt(i, j + 1).setSpecial(2);
 				tileAt(i, j + 2).setSpecial(1);
 			}
-			if (dPiece[i][j] == 134 || dPiece[i][j] == 138) {
+			if (piece == 134 || piece == 138) {
 				tileAt(i + 1, j).setSpecial(3);
 				tileAt(i + 2, j).setSpecial(4);
 			}
@@ -3602,6 +3607,13 @@ void UpdateState(Object &object, int frame)
 
 } // namespace
 
+#ifdef BUILD_TESTING
+void TestObjSetMicro(Point position, int pn)
+{
+	ObjSetMicro(position, pn);
+}
+#endif
+
 unsigned int Object::GetId() const
 {
 	return std::abs(tileAt(position).object()) - 1;
@@ -3854,7 +3866,7 @@ void AddL1Objs(int x1, int y1, int x2, int y2)
 {
 	for (int j = y1; j < y2; j++) {
 		for (int i = x1; i < x2; i++) {
-			const int pn = dPiece[i][j];
+			const int pn = tileAt(i, j).piece();
 			if (pn == 269)
 				AddObject(OBJ_L1LIGHT, { i, j });
 			if (pn == 43 || pn == 50 || pn == 213)
@@ -3869,7 +3881,7 @@ void AddL2Objs(int x1, int y1, int x2, int y2)
 {
 	for (int j = y1; j < y2; j++) {
 		for (int i = x1; i < x2; i++) {
-			const int pn = dPiece[i][j];
+			const int pn = tileAt(i, j).piece();
 			if (pn == 12 || pn == 540)
 				AddObject(OBJ_L2LDOOR, { i, j });
 			if (pn == 16 || pn == 541)
@@ -3882,7 +3894,7 @@ void AddL3Objs(int x1, int y1, int x2, int y2)
 {
 	for (int j = y1; j < y2; j++) {
 		for (int i = x1; i < x2; i++) {
-			const int pn = dPiece[i][j];
+			const int pn = tileAt(i, j).piece();
 			if (pn == 530)
 				AddObject(OBJ_L3LDOOR, { i, j });
 			if (pn == 533)
@@ -3895,7 +3907,7 @@ void AddCryptObjects(int x1, int y1, int x2, int y2)
 {
 	for (int j = y1; j < y2; j++) {
 		for (int i = x1; i < x2; i++) {
-			const int pn = dPiece[i][j];
+			const int pn = tileAt(i, j).piece();
 			if (pn == 76)
 				AddObject(OBJ_L5LDOOR, { i, j });
 			if (pn == 79)
@@ -5017,10 +5029,10 @@ void GetObjectStr(const Object &object)
 
 void SyncNakrulRoom()
 {
-	dPiece[UberRow][UberCol] = 297;
-	dPiece[UberRow][UberCol - 1] = 300;
-	dPiece[UberRow][UberCol - 2] = 299;
-	dPiece[UberRow][UberCol + 1] = 298;
+	ObjSetMicro({ UberRow, UberCol }, 297);
+	ObjSetMicro({ UberRow, UberCol - 1 }, 300);
+	ObjSetMicro({ UberRow, UberCol - 2 }, 299);
+	ObjSetMicro({ UberRow, UberCol + 1 }, 298);
 }
 
 } // namespace devilution

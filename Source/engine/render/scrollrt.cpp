@@ -116,7 +116,7 @@ constexpr auto RightFrameDisplacement = Displacement { DunFrameWidth, 0 };
 
 [[nodiscard]] DVL_ALWAYS_INLINE bool IsWall(Point tilePosition)
 {
-	return !IsFloor(tilePosition) || dSpecial[tilePosition.x][tilePosition.y] != 0;
+	return !IsFloor(tilePosition) || tileAt(tilePosition).hasSpecial();
 }
 
 /**
@@ -132,9 +132,9 @@ bool CouldMissileCollide(Point tile, bool checkPlayerAndMonster)
 	if (!InDungeonBounds(tile))
 		return true;
 	if (checkPlayerAndMonster) {
-		if (dMonster[tile.x][tile.y] > 0)
+		if (tileAt(tile).monster() > 0)
 			return true;
-		if (dPlayer[tile.x][tile.y] > 0)
+		if (tileAt(tile).player() > 0)
 			return true;
 	}
 
@@ -500,11 +500,11 @@ void DrawPlayer(const Surface &out, const Player &player, Point tilePosition, Po
  */
 void DrawDeadPlayer(const Surface &out, Point tilePosition, Point targetBufferPosition, int lightTableIndex)
 {
-	dFlags[tilePosition.x][tilePosition.y] &= ~DungeonFlag::DeadPlayer;
+	tileAt(tilePosition).removeFlags(DungeonFlag::DeadPlayer);
 
 	for (const Player &player : Players) {
 		if (player.plractive && player.hasNoLife() && player.isOnActiveLevel() && player.position.tile == tilePosition) {
-			dFlags[tilePosition.x][tilePosition.y] |= DungeonFlag::DeadPlayer;
+			tileAt(tilePosition).addFlags(DungeonFlag::DeadPlayer);
 			const Point playerRenderPosition { targetBufferPosition };
 			DrawPlayer(out, player, tilePosition, playerRenderPosition, lightTableIndex);
 		}
@@ -1299,10 +1299,20 @@ void DrawGame(const Surface &fullOut, Point position, Displacement offset)
 	DunRenderStats.clear();
 #endif
 
-	Lightmap lightmap = Lightmap::build(*GetOptions().Graphics.perPixelLighting, position, Point {} + offset,
+	const bool perPixelLighting = *GetOptions().Graphics.perPixelLighting;
+	uint8_t tileLights[MAXDUNX][MAXDUNY];
+	if (perPixelLighting) {
+		for (int x = 0; x < MAXDUNX; x++) {
+			for (int y = 0; y < MAXDUNY; y++) {
+				tileLights[x][y] = tileAt(x, y).light();
+			}
+		}
+	}
+
+	Lightmap lightmap = Lightmap::build(perPixelLighting, position, Point {} + offset,
 	    gnScreenWidth, gnViewportHeight, rows, columns,
 	    out.at(0, 0), out.pitch(), LightTables, FullyLitLightTable, FullyDarkLightTable,
-	    dLight, MicroTileLen);
+	    tileLights, MicroTileLen);
 
 	DrawFloor(out, lightmap, position, Point {} + offset, rows, columns);
 	DrawTileContent(out, lightmap, position, Point {} + offset, rows, columns);

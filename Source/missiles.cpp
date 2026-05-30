@@ -205,12 +205,12 @@ void PutMissile(Missile &missile)
 		return;
 	}
 
-	DungeonFlag &flags = dFlags[position.x][position.y];
-	flags |= DungeonFlag::Missile;
+	Tile &tile = tileAt(position);
+	tile.addFlags(DungeonFlag::Missile);
 	if (missile._mitype == MissileID::FireWall)
-		flags |= DungeonFlag::MissileFireWall;
+		tile.addFlags(DungeonFlag::MissileFireWall);
 	if (missile._mitype == MissileID::LightningWall)
-		flags |= DungeonFlag::MissileLightningWall;
+		tile.addFlags(DungeonFlag::MissileLightningWall);
 
 	if (missile._miPreFlag)
 		MissilePreFlag = true;
@@ -743,7 +743,7 @@ bool CanPlaceWall(Point position)
 	if (!InDungeonBounds(position))
 		return false;
 
-	[[maybe_unused]] const int dp = dPiece[position.x][position.y];
+	[[maybe_unused]] const int dp = tileAt(position).piece();
 	assert(dp <= MAXTILES && dp >= 0);
 
 	return !TileHasAny(position, TileProperties::BlockMissile);
@@ -810,7 +810,7 @@ void SpawnLightning(Missile &missile, int dam)
 	MoveMissile(
 	    missile, [&](Point tile) {
 		    assert(InDungeonBounds(tile));
-		    [[maybe_unused]] const int pn = dPiece[tile.x][tile.y];
+		    [[maybe_unused]] const int pn = tileAt(tile).piece();
 		    assert(pn >= 0 && pn <= MAXTILES);
 
 		    if (!missile.IsTrap() || tile != missile.position.start) {
@@ -1236,7 +1236,7 @@ void InitMissiles()
 	Missiles.clear();
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) { // NOLINT(modernize-loop-convert)
-			dFlags[i][j] &= ~(DungeonFlag::Missile | DungeonFlag::MissileFireWall | DungeonFlag::MissileLightningWall);
+			tileAt(i, j).removeFlags(DungeonFlag::Missile | DungeonFlag::MissileFireWall | DungeonFlag::MissileLightningWall);
 		}
 	}
 }
@@ -3129,19 +3129,22 @@ void ProcessFireball(Missile &missile)
 					CheckMissileCol(missile, damageType, minDam, maxDam, false, missilePosition + offset, true);
 			}
 
-			if (!TransList[dTransVal[missilePosition.x][missilePosition.y]]
-			    || (missile.position.velocity.deltaX < 0 && ((TransList[dTransVal[missilePosition.x][missilePosition.y + 1]] && TileHasAny(missilePosition + Direction::SouthWest, TileProperties::Solid)) || (TransList[dTransVal[missilePosition.x][missilePosition.y - 1]] && TileHasAny(missilePosition + Direction::NorthEast, TileProperties::Solid))))) {
+			const auto transValAt = [](Point position) {
+				return tileAt(position).transVal();
+			};
+			if (!TransList[transValAt(missilePosition)]
+			    || (missile.position.velocity.deltaX < 0 && ((TransList[transValAt({ missilePosition.x, missilePosition.y + 1 })] && TileHasAny(missilePosition + Direction::SouthWest, TileProperties::Solid)) || (TransList[transValAt({ missilePosition.x, missilePosition.y - 1 })] && TileHasAny(missilePosition + Direction::NorthEast, TileProperties::Solid))))) {
 				missile.position.tile += Direction::South;
 				missile.position.offset.deltaY -= 32;
 			}
 			if (missile.position.velocity.deltaY > 0
-			    && ((TransList[dTransVal[missilePosition.x + 1][missilePosition.y]] && TileHasAny(missilePosition + Direction::SouthEast, TileProperties::Solid))
-			        || (TransList[dTransVal[missilePosition.x - 1][missilePosition.y]] && TileHasAny(missilePosition + Direction::NorthWest, TileProperties::Solid)))) {
+			    && ((TransList[transValAt({ missilePosition.x + 1, missilePosition.y })] && TileHasAny(missilePosition + Direction::SouthEast, TileProperties::Solid))
+			        || (TransList[transValAt({ missilePosition.x - 1, missilePosition.y })] && TileHasAny(missilePosition + Direction::NorthWest, TileProperties::Solid)))) {
 				missile.position.offset.deltaY -= 32;
 			}
 			if (missile.position.velocity.deltaX > 0
-			    && ((TransList[dTransVal[missilePosition.x][missilePosition.y + 1]] && TileHasAny(missilePosition + Direction::SouthWest, TileProperties::Solid))
-			        || (TransList[dTransVal[missilePosition.x][missilePosition.y - 1]] && TileHasAny(missilePosition + Direction::NorthEast, TileProperties::Solid)))) {
+			    && ((TransList[transValAt({ missilePosition.x, missilePosition.y + 1 })] && TileHasAny(missilePosition + Direction::SouthWest, TileProperties::Solid))
+			        || (TransList[transValAt({ missilePosition.x, missilePosition.y - 1 })] && TileHasAny(missilePosition + Direction::NorthEast, TileProperties::Solid)))) {
 				missile.position.offset.deltaX -= 32;
 			}
 			missile.setDefaultFrameGroup();
@@ -4222,7 +4225,7 @@ void ProcessMissiles()
 	for (auto &missile : Missiles) {
 		const auto &position = missile.position.tile;
 		if (InDungeonBounds(position)) {
-			dFlags[position.x][position.y] &= ~(DungeonFlag::Missile | DungeonFlag::MissileFireWall | DungeonFlag::MissileLightningWall);
+			tileAt(position).removeFlags(DungeonFlag::Missile | DungeonFlag::MissileFireWall | DungeonFlag::MissileLightningWall);
 		} else {
 			missile._miDelFlag = true;
 		}

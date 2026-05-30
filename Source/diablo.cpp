@@ -3162,7 +3162,7 @@ void LoadGameLevelSyncPlayerEntry(lvl_entry lvldir)
 				if (lvldir != ENTRY_LOAD)
 					player.syncInitialPosition();
 			} else {
-				dFlags[player.position.tile.x][player.position.tile.y] |= DungeonFlag::DeadPlayer;
+				tileAt(player.position.tile).addFlags(DungeonFlag::DeadPlayer);
 			}
 		}
 	}
@@ -3171,7 +3171,12 @@ void LoadGameLevelSyncPlayerEntry(lvl_entry lvldir)
 void LoadGameLevelLightVision()
 {
 	if (leveltype != DTYPE_TOWN) {
-		memcpy(dLight, dPreLight, sizeof(dLight));                                     // resets the light on entering a level to get rid of incorrect light
+		for (int x = 0; x < MAXDUNX; x++) {
+			for (int y = 0; y < MAXDUNY; y++) {
+				Tile &tile = tileAt(x, y);
+				tile.setLight(tile.preLight());
+			}
+		}
 		ChangeLightXY(Players[MyPlayerId].lightId, Players[MyPlayerId].position.tile); // forces player light refresh
 		ProcessLightList();
 		ProcessVisionList();
@@ -3209,7 +3214,7 @@ tl::expected<void, std::string> LoadGameLevelTown(bool firstflag, lvl_entry lvld
 {
 	for (int i = 0; i < MAXDUNX; i++) { // NOLINT(modernize-loop-convert)
 		for (int j = 0; j < MAXDUNY; j++) {
-			dFlags[i][j] |= DungeonFlag::Lit;
+			tileAt(i, j).addFlags(DungeonFlag::Lit);
 		}
 	}
 

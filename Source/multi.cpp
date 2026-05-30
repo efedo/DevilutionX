@@ -976,7 +976,7 @@ void recv_plrinfo(Player &player, const TCmdPlrInfoHdr &header, bool recv)
 	player._pmode = PM_DEATH;
 	player.setAnimation(player_graphic::Death, player.direction);
 	player.animInfo.currentFrame = player.animInfo.numberOfFrames - 2;
-	dFlags[player.position.tile.x][player.position.tile.y] |= DungeonFlag::DeadPlayer;
+	tileAt(player.position.tile).addFlags(DungeonFlag::DeadPlayer);
 }
 
 } // namespace devilution

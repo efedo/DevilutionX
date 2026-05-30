@@ -2340,7 +2340,7 @@ size_t OnPlayerJoinLevel(const TCmdLocParam2 &message, Player &player)
 				player._pmode = PM_DEATH;
 				player.setAnimation(player_graphic::Death, Direction::South);
 				player.animInfo.currentFrame = static_cast<int8_t>(player.animInfo.numberOfFrames - 2);
-				dFlags[player.position.tile.x][player.position.tile.y] |= DungeonFlag::DeadPlayer;
+				tileAt(player.position.tile).addFlags(DungeonFlag::DeadPlayer);
 			}
 
 			ActivateVision(player.position.tile, player._pLightRad, player.getId());

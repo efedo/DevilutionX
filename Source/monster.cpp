@@ -132,6 +132,11 @@ size_t totalmonsters;
 int monstimgtot;
 int uniquetrans;
 
+[[nodiscard]] bool IsSameTransparencyRegion(Point a, Point b)
+{
+	return tileAt(a).transVal() == tileAt(b).transVal();
+}
+
 constexpr const std::array<_monster_id, 12> SkeletonTypes {
 	MT_WSKELAX,
 	MT_TSKELAX,
@@ -339,7 +344,7 @@ void PlaceGroup(size_t typeIndex, size_t num, Monster *leader = nullptr, bool le
 		unsigned j = 0;
 		for (unsigned try2 = 0; j < num && try2 < 100; xp += Displacement(static_cast<Direction>(GenerateRnd(8))).deltaX, yp += Displacement(static_cast<Direction>(GenerateRnd(8))).deltaX) { /// BUGFIX: `yp += Point.y`
 			if (!CanPlaceMonster({ xp, yp })
-			    || (dTransVal[xp][yp] != dTransVal[x1][y1])
+			    || !IsSameTransparencyRegion({ xp, yp }, { x1, y1 })
 			    || (leashed && (std::abs(xp - x1) >= 4 || std::abs(yp - y1) >= 4))) {
 				try2++;
 				continue;
@@ -689,7 +694,7 @@ void UpdateEnemy(Monster &monster)
 			if (!player.plractive || !player.isOnActiveLevel() || player._pLvlChanging
 			    || (player.hasNoLife() && gbIsMultiplayer))
 				continue;
-			const bool sameroom = (dTransVal[position.x][position.y] == dTransVal[player.position.tile.x][player.position.tile.y]);
+			const bool sameroom = IsSameTransparencyRegion(position, player.position.tile);
 			const int dist = position.WalkingDistance(player.position.tile);
 			if ((sameroom && !bestsameroom)
 			    || ((sameroom || !bestsameroom) && dist < bestDist)
@@ -726,7 +731,7 @@ void UpdateEnemy(Monster &monster)
 		        && (otherMonster.flags & MFLAG_GOLEM) == 0)) {
 			continue;
 		}
-		const bool sameroom = dTransVal[position.x][position.y] == dTransVal[otherMonster.position.tile.x][otherMonster.position.tile.y];
+		const bool sameroom = IsSameTransparencyRegion(position, otherMonster.position.tile);
 		if ((sameroom && !bestsameroom)
 		    || ((sameroom || !bestsameroom) && dist < bestDist)
 		    || (menemy == -1)) {
@@ -1779,8 +1784,9 @@ bool IsTileSafe(const Monster &monster, Point position)
 	const bool fearsFire = (monster.resistance & IMMUNE_FIRE) == 0 || monster.type().type == MT_DIABLO;
 	const bool fearsLightning = (monster.resistance & IMMUNE_LIGHTNING) == 0 || monster.type().type == MT_DIABLO;
 
-	return !(fearsFire && HasAnyOf(dFlags[position.x][position.y], DungeonFlag::MissileFireWall))
-	    && !(fearsLightning && HasAnyOf(dFlags[position.x][position.y], DungeonFlag::MissileLightningWall));
+	const Tile &tile = tileAt(position);
+	return !(fearsFire && tile.hasAnyFlag(DungeonFlag::MissileFireWall))
+	    && !(fearsLightning && tile.hasAnyFlag(DungeonFlag::MissileLightningWall));
 }
 
 /**
@@ -1900,14 +1906,14 @@ void AiAvoidance(Monster &monster)
 		MonstCheckDoors(monster);
 	const int v = GenerateRnd(100);
 	const unsigned distanceToEnemy = monster.distanceToEnemy();
-	if (distanceToEnemy >= 2 && monster.activeForTicks == UINT8_MAX && dTransVal[monster.position.tile.x][monster.position.tile.y] == dTransVal[monster.enemyPosition.x][monster.enemyPosition.y]) {
+	if (distanceToEnemy >= 2 && monster.activeForTicks == UINT8_MAX && IsSameTransparencyRegion(monster.position.tile, monster.enemyPosition)) {
 		if (monster.goal == MonsterGoal::Move || (distanceToEnemy >= 4 && FlipCoin(4))) {
 			if (monster.goal != MonsterGoal::Move) {
 				monster.goalVar1 = 0;
 				monster.goalVar2 = GenerateRnd(2);
 			}
 			monster.goal = MonsterGoal::Move;
-			if ((monster.goalVar1++ >= static_cast<int>(2 * distanceToEnemy) && monster.isDirOK(md)) || dTransVal[monster.position.tile.x][monster.position.tile.y] != dTransVal[monster.enemyPosition.x][monster.enemyPosition.y]) {
+			if ((monster.goalVar1++ >= static_cast<int>(2 * distanceToEnemy) && monster.isDirOK(md)) || !IsSameTransparencyRegion(monster.position.tile, monster.enemyPosition)) {
 				monster.goal = MonsterGoal::Normal;
 			} else if (!RoundWalk(monster, md, &monster.goalVar2)) {
 				AiDelay(monster, GenerateRnd(10) + 10);
@@ -2023,7 +2029,7 @@ void AiRangedAvoidance(Monster &monster)
 	const MissileID missileType = GetMissileType(monster.ai);
 	int v = GenerateRnd(10000);
 	const unsigned distanceToEnemy = monster.distanceToEnemy();
-	if (distanceToEnemy >= 2 && monster.activeForTicks == UINT8_MAX && dTransVal[monster.position.tile.x][monster.position.tile.y] == dTransVal[monster.enemyPosition.x][monster.enemyPosition.y]) {
+	if (distanceToEnemy >= 2 && monster.activeForTicks == UINT8_MAX && IsSameTransparencyRegion(monster.position.tile, monster.enemyPosition)) {
 		if (monster.goal == MonsterGoal::Move || (distanceToEnemy >= 3 && FlipCoin(4 << lessmissiles))) {
 			if (monster.goal != MonsterGoal::Move) {
 				monster.goalVar1 = 0;
@@ -2270,7 +2276,7 @@ void RhinoAi(Monster &monster)
 				monster.goalVar2 = GenerateRnd(2);
 			}
 			monster.goal = MonsterGoal::Move;
-			if (monster.goalVar1++ >= static_cast<int>(2 * distanceToEnemy) || dTransVal[monster.position.tile.x][monster.position.tile.y] != dTransVal[monster.enemyPosition.x][monster.enemyPosition.y]) {
+			if (monster.goalVar1++ >= static_cast<int>(2 * distanceToEnemy) || !IsSameTransparencyRegion(monster.position.tile, monster.enemyPosition)) {
 				monster.goal = MonsterGoal::Normal;
 			} else if (!RoundWalk(monster, md, &monster.goalVar2)) {
 				AiDelay(monster, GenerateRnd(10) + 10);
@@ -2381,14 +2387,14 @@ void LeoricAi(Monster &monster)
 		MonstCheckDoors(monster);
 	int v = GenerateRnd(100);
 	const unsigned distanceToEnemy = monster.distanceToEnemy();
-	if (distanceToEnemy >= 2 && monster.activeForTicks == UINT8_MAX && dTransVal[monster.position.tile.x][monster.position.tile.y] == dTransVal[monster.enemyPosition.x][monster.enemyPosition.y]) {
+	if (distanceToEnemy >= 2 && monster.activeForTicks == UINT8_MAX && IsSameTransparencyRegion(monster.position.tile, monster.enemyPosition)) {
 		if (monster.goal == MonsterGoal::Move || (distanceToEnemy >= 3 && FlipCoin(4))) {
 			if (monster.goal != MonsterGoal::Move) {
 				monster.goalVar1 = 0;
 				monster.goalVar2 = GenerateRnd(2);
 			}
 			monster.goal = MonsterGoal::Move;
-			if ((monster.goalVar1++ >= static_cast<int>(2 * distanceToEnemy) && monster.isDirOK(md)) || dTransVal[monster.position.tile.x][monster.position.tile.y] != dTransVal[monster.enemyPosition.x][monster.enemyPosition.y]) {
+			if ((monster.goalVar1++ >= static_cast<int>(2 * distanceToEnemy) && monster.isDirOK(md)) || !IsSameTransparencyRegion(monster.position.tile, monster.enemyPosition)) {
 				monster.goal = MonsterGoal::Normal;
 			} else if (!RoundWalk(monster, md, &monster.goalVar2)) {
 				AiDelay(monster, GenerateRnd(10) + 10);
@@ -2738,7 +2744,7 @@ void CounselorAi(Monster &monster)
 			StartFadein(monster, md, true);
 		}
 	} else if (monster.goal == MonsterGoal::Move) {
-		if (distanceToEnemy >= 2 && monster.activeForTicks == UINT8_MAX && dTransVal[monster.position.tile.x][monster.position.tile.y] == dTransVal[monster.enemyPosition.x][monster.enemyPosition.y]) {
+		if (distanceToEnemy >= 2 && monster.activeForTicks == UINT8_MAX && IsSameTransparencyRegion(monster.position.tile, monster.enemyPosition)) {
 			if (monster.goalVar1++ < static_cast<int>(2 * distanceToEnemy) || !monster.isDirOK(md)) {
 				RoundWalk(monster, md, &monster.goalVar2);
 			} else {
@@ -2830,7 +2836,7 @@ void MegaAi(Monster &monster)
 	if (monster.activeForTicks < UINT8_MAX)
 		MonstCheckDoors(monster);
 	int v = GenerateRnd(100);
-	if (distanceToEnemy >= 2 && monster.activeForTicks == UINT8_MAX && dTransVal[monster.position.tile.x][monster.position.tile.y] == dTransVal[monster.enemyPosition.x][monster.enemyPosition.y]) {
+	if (distanceToEnemy >= 2 && monster.activeForTicks == UINT8_MAX && IsSameTransparencyRegion(monster.position.tile, monster.enemyPosition)) {
 		if (monster.goal == MonsterGoal::Move || distanceToEnemy >= 3) {
 			if (monster.goal != MonsterGoal::Move) {
 				monster.goalVar1 = 0;
@@ -3028,7 +3034,7 @@ void HorkDemonAi(Monster &monster)
 			monster.goalVar2 = GenerateRnd(2);
 		}
 		monster.goal = MonsterGoal::Move;
-		if (monster.goalVar1++ >= static_cast<int>(2 * distanceToEnemy) || dTransVal[monster.position.tile.x][monster.position.tile.y] != dTransVal[monster.enemyPosition.x][monster.enemyPosition.y]) {
+		if (monster.goalVar1++ >= static_cast<int>(2 * distanceToEnemy) || !IsSameTransparencyRegion(monster.position.tile, monster.enemyPosition)) {
 			monster.goal = MonsterGoal::Normal;
 		} else if (!RoundWalk(monster, md, &monster.goalVar2)) {
 			AiDelay(monster, GenerateRnd(10) + 10);

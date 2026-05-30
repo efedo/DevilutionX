@@ -205,7 +205,7 @@ void DoUnVision(Point position, uint8_t radius)
 
 	for (const WorldTilePosition targetPosition : searchArea) {
 		if (InDungeonBounds(targetPosition))
-			dFlags[targetPosition.x][targetPosition.y] &= ~(DungeonFlag::Visible | DungeonFlag::Lit);
+			tileAt(targetPosition).removeFlags(DungeonFlag::Visible | DungeonFlag::Lit);
 	}
 }
 
@@ -215,7 +215,7 @@ void DoVision(Point position, uint8_t radius, MapExplorationType doAutomap, bool
 		DoVisionFlags(rayPoint, doAutomap, visible);
 	};
 	auto markTransparentFn = [](Point rayPoint) {
-		const int8_t trans = dTransVal[rayPoint.x][rayPoint.y];
+		const int8_t trans = tileAt(rayPoint).transVal();
 		if (trans != 0)
 			TransList[trans] = true;
 	};

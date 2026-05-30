@@ -8,11 +8,16 @@
 
 #include <gtest/gtest.h>
 
+#include <memory>
+
 #include "engine/point.hpp"
 #include "engine/world_tile.hpp"
 #include "levels/gendung.h"
 #include "levels/level.hpp"
 #include "levels/tile.hpp"
+#include "levels/tile_properties.hpp"
+#include "objects.h"
+#include "utils/endian_swap.hpp"
 
 namespace devilution {
 
@@ -47,6 +52,57 @@ TEST_F(Phase4BEntityTest, PlayerEntityRead)
 	tile.setPlayer(1);
 	EXPECT_EQ(tile.player(), 1);
 	EXPECT_TRUE(tile.hasPlayer());
+}
+
+TEST_F(Phase4BEntityTest, LegacyGenerationPassUpdatesTilePieces)
+{
+	currentLevel().setId(Level::create(LevelId { .levelNum = 1, .type = DTYPE_CATHEDRAL }).id());
+	pMegaTiles = std::make_unique<MegaTile[]>(1);
+	pMegaTiles[0] = MegaTile {
+		Swap16LE(static_cast<uint16_t>(101)),
+		Swap16LE(static_cast<uint16_t>(102)),
+		Swap16LE(static_cast<uint16_t>(103)),
+		Swap16LE(static_cast<uint16_t>(104)),
+	};
+
+	for (auto &column : dungeon) {
+		for (uint8_t &tileId : column) {
+			tileId = 1;
+		}
+	}
+	tiles[16][16].clear();
+
+	DRLG_LPass3(0);
+
+	EXPECT_EQ(tileAt(16, 16).piece(), 101);
+	EXPECT_EQ(tileAt(17, 16).piece(), 102);
+	EXPECT_EQ(tileAt(16, 17).piece(), 103);
+	EXPECT_EQ(tileAt(17, 17).piece(), 104);
+}
+
+TEST_F(Phase4BEntityTest, ObjectMicroTileUpdatesTilePieces)
+{
+	const Point position { 60, 60 };
+	dPiece[position.x][position.y] = 0;
+	tileAt(position).setPiece(0);
+
+	TestObjSetMicro(position, 314);
+
+	EXPECT_EQ(dPiece[position.x][position.y], 314);
+	EXPECT_EQ(tileAt(position).piece(), 314);
+}
+
+TEST_F(Phase4BEntityTest, TileOccupancyQueriesUseTileEntities)
+{
+	const Point monsterPos { 50, 50 };
+	const Point playerPos { 51, 50 };
+	dMonster[monsterPos.x][monsterPos.y] = 0;
+	dPlayer[playerPos.x][playerPos.y] = 0;
+	tileAt(monsterPos).setMonster(7);
+	tileAt(playerPos).setPlayer(2);
+
+	EXPECT_TRUE(IsTileOccupied(monsterPos));
+	EXPECT_TRUE(IsTileOccupied(playerPos));
 }
 
 TEST_F(Phase4BEntityTest, PlayerEntityWrite)

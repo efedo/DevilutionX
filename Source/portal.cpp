@@ -116,7 +116,7 @@ void RemovePortalMissile(const Player &player)
 	const size_t id = player.getId();
 	Missiles.remove_if([id](Missile &missile) {
 		if (missile._mitype == MissileID::TownPortal && missile._misource == static_cast<int>(id)) {
-			dFlags[missile.position.tile.x][missile.position.tile.y] &= ~DungeonFlag::Missile;
+			tileAt(missile.position.tile).removeFlags(DungeonFlag::Missile);
 
 			if (Portals[id].level != 0)
 				AddUnLight(missile._mlid);

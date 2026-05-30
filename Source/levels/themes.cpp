@@ -362,7 +362,7 @@ void PlaceThemeMonsts(int t, int f)
 	const size_t mtype = scattertypes[GenerateRnd(numscattypes)];
 	for (int yp = 0; yp < MAXDUNY; yp++) {
 		for (int xp = 0; xp < MAXDUNX; xp++) {
-			if (dTransVal[xp][yp] == themes[t].ttval && IsTileNotSolid({ xp, yp }) && dItem[xp][yp] == 0 && !IsObjectAtPosition({ xp, yp })) {
+			if (dTransVal[xp][yp] == themes[t].ttval && IsTileNotSolid({ xp, yp }) && tileAt(xp, yp).item() == 0 && !IsObjectAtPosition({ xp, yp })) {
 				if (FlipCoin(f)) {
 					AddMonster({ xp, yp }, static_cast<Direction>(GenerateRnd(8)), mtype, true);
 				}
@@ -572,7 +572,7 @@ void Theme_Library(int t)
 
 	for (int yp = 1; yp < MAXDUNY - 1; yp++) {
 		for (int xp = 1; xp < MAXDUNX - 1; xp++) {
-			if (CheckThemeObj3({ xp, yp }, themes[t].ttval) && dMonster[xp][yp] == 0 && FlipCoin(librnd[leveltype - 1])) {
+			if (CheckThemeObj3({ xp, yp }, themes[t].ttval) && !tileAt(xp, yp).hasMonster() && FlipCoin(librnd[leveltype - 1])) {
 				Object *bookstand = AddObject(OBJ_BOOKSTAND, { xp, yp });
 				if (!FlipCoin(2 * librnd[leveltype - 1])) {
 					if (bookstand != nullptr) {
@@ -906,6 +906,7 @@ void HoldThemeRooms()
 			for (int x = 0; x < MAXDUNX; x++) {
 				if (dTransVal[x][y] == v) {
 					dFlags[x][y] |= DungeonFlag::Populated;
+					tileAt(x, y).addFlags(DungeonFlag::Populated);
 				}
 			}
 		}

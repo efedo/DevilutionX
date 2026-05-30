@@ -347,6 +347,12 @@ void InitGlobals()
 		defaultLight = 0;
 #endif
 	memset(dLight, defaultLight, sizeof(dLight));
+	for (auto &column : tiles) {
+		for (Tile &tile : column) {
+			tile.clear();
+			tile.setLight(defaultLight);
+		}
+	}
 
 	DRLG_InitTrans();
 
@@ -354,6 +360,21 @@ void InitGlobals()
 	dmaxPosition = WorldTilePosition(40, 40).megaToWorld();
 	SetPieceRoom = { { 0, 0 }, { 0, 0 } };
 	SetPiece = { { 0, 0 }, { 0, 0 } };
+}
+
+void SyncLegacyRenderingToTiles()
+{
+	for (int y = 0; y < MAXDUNY; y++) {
+		for (int x = 0; x < MAXDUNX; x++) {
+			Tile &tile = tileAt(x, y);
+			tile.setPiece(dPiece[x][y]);
+			tile.setTransVal(dTransVal[x][y]);
+			tile.setLight(dLight[x][y]);
+			tile.setPreLight(dPreLight[x][y]);
+			tile.setFlags(dFlags[x][y]);
+			tile.setSpecial(dSpecial[x][y]);
+		}
+	}
 }
 
 } // namespace
@@ -424,6 +445,7 @@ void CreateDungeon(uint32_t rseed, lvl_entry entry)
 	}
 
 	Make_SetPC(SetPiece);
+	SyncLegacyRenderingToTiles();
 }
 
 tl::expected<void, std::string> LoadLevelSOLData()
@@ -616,6 +638,7 @@ void LoadDungeonBase(const char *path, Point spawn, int floorId, int dirtId)
 	SetMapMonsters(dunData.get(), Point(0, 0).megaToWorld());
 	LevelBestiary.initAllGraphics();
 	SetMapObjects(dunData.get(), 0, 0);
+	SyncLegacyRenderingToTiles();
 }
 
 void Make_SetPC(WorldTileRectangle area)
@@ -626,6 +649,7 @@ void Make_SetPC(WorldTileRectangle area)
 	for (unsigned j = 0; j < size.height; j++) {
 		for (unsigned i = 0; i < size.width; i++) {
 			dFlags[position.x + i][position.y + j] |= DungeonFlag::Populated;
+			tileAt(position.x + i, position.y + j).addFlags(DungeonFlag::Populated);
 		}
 	}
 }
@@ -742,6 +766,10 @@ void DRLG_HoldThemeRooms()
 				dFlags[xx + 1][yy] |= DungeonFlag::Populated;
 				dFlags[xx][yy + 1] |= DungeonFlag::Populated;
 				dFlags[xx + 1][yy + 1] |= DungeonFlag::Populated;
+				tileAt(xx, yy).addFlags(DungeonFlag::Populated);
+				tileAt(xx + 1, yy).addFlags(DungeonFlag::Populated);
+				tileAt(xx, yy + 1).addFlags(DungeonFlag::Populated);
+				tileAt(xx + 1, yy + 1).addFlags(DungeonFlag::Populated);
 			}
 		}
 	}
@@ -767,6 +795,10 @@ void DRLG_LPass3(int lv)
 				dPiece[i + 1][j + 0] = v2;
 				dPiece[i + 0][j + 1] = v3;
 				dPiece[i + 1][j + 1] = v4;
+				tileAt(i + 0, j + 0).setPiece(v1);
+				tileAt(i + 1, j + 0).setPiece(v2);
+				tileAt(i + 0, j + 1).setPiece(v3);
+				tileAt(i + 1, j + 1).setPiece(v4);
 			}
 		}
 	}
@@ -781,6 +813,10 @@ void DRLG_LPass3(int lv)
 			dPiece[xx + 1][yy + 0] = Swap16LE(mega.micro2);
 			dPiece[xx + 0][yy + 1] = Swap16LE(mega.micro3);
 			dPiece[xx + 1][yy + 1] = Swap16LE(mega.micro4);
+			tileAt(xx + 0, yy + 0).setPiece(dPiece[xx + 0][yy + 0]);
+			tileAt(xx + 1, yy + 0).setPiece(dPiece[xx + 1][yy + 0]);
+			tileAt(xx + 0, yy + 1).setPiece(dPiece[xx + 0][yy + 1]);
+			tileAt(xx + 1, yy + 1).setPiece(dPiece[xx + 1][yy + 1]);
 			xx += 2;
 		}
 		yy += 2;

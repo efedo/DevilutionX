@@ -263,7 +263,7 @@ tl::expected<void, std::string> Bestiary::initAllGraphics()
 
     if (totalUniqueBytes > 0) {
         // Re-sync any already-spawned monster that had no sprite yet.
-        for (const int mi : MonsterPoolAdapter::ActiveMonsterIds()) {
+        for (const int mi : MonsterPoolAdapter::ActiveMonsterRange()) {
             Monster &monster = Monsters[mi];
             if (!monster.animInfo.sprites)
                 RETURN_IF_ERROR(monster.syncAnim());

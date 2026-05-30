@@ -1049,7 +1049,7 @@ bool DoDeath(Player &player)
 	if (player.animInfo.isLastFrame()) {
 		if (player.animInfo.tickCounterOfCurrentFrame == 0) {
 			player.animInfo.ticksPerFrame = 100;
-			dFlags[player.position.tile.x][player.position.tile.y] |= DungeonFlag::DeadPlayer;
+			tileAt(player.position.tile).addFlags(DungeonFlag::DeadPlayer);
 		} else if (&player == MyPlayer && player.animInfo.tickCounterOfCurrentFrame == 30) {
 			MyPlayerIsDead = true;
 		}
@@ -2801,7 +2801,7 @@ void PlrClrTrans(Point position)
 {
 	for (int i = position.y - 1; i <= position.y + 1; i++) {
 		for (int j = position.x - 1; j <= position.x + 1; j++) {
-			TransList[dTransVal[j][i]] = false;
+			TransList[tileAt(j, i).transVal()] = false;
 		}
 	}
 }
@@ -2815,8 +2815,9 @@ void PlrDoTrans(Point position)
 
 	for (int i = position.y - 1; i <= position.y + 1; i++) {
 		for (int j = position.x - 1; j <= position.x + 1; j++) {
-			if (IsTileNotSolid({ j, i }) && dTransVal[j][i] != 0) {
-				TransList[dTransVal[j][i]] = true;
+			const int8_t transVal = tileAt(j, i).transVal();
+			if (IsTileNotSolid({ j, i }) && transVal != 0) {
+				TransList[transVal] = true;
 			}
 		}
 	}
@@ -2986,7 +2987,7 @@ Player::startKill(DeathReason deathReason)
 	if (player.isOnActiveLevel()) {
 		player.fixLocation(player.direction);
 		FixPlrWalkTags(player);
-		dFlags[player.position.tile.x][player.position.tile.y] |= DungeonFlag::DeadPlayer;
+		tileAt(player.position.tile).addFlags(DungeonFlag::DeadPlayer);
 		player.saveOldPosition();
 
 		// Only generate drops once (for the local player)

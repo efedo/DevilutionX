@@ -8,6 +8,7 @@
 #include <algorithm>
 
 #include "inv_iterators.hpp"
+#include "levels/gendung.h"
 #include "options.h"
 #include "player.h"
 #include "utils/algorithm/container.hpp"
@@ -99,8 +100,9 @@ void AutoPickup(const Player &player)
 
 	for (auto pathDir : PathDirs) {
 		const Point tile = player.position.tile + pathDir;
-		if (dItem[tile.x][tile.y] != 0) {
-			const int itemIndex = dItem[tile.x][tile.y] - 1;
+		const int8_t itemId = tileAt(tile).item();
+		if (itemId != 0) {
+			const int itemIndex = itemId - 1;
 			auto &item = Items[itemIndex];
 			if (DoPickup(item)) {
 				NetSendCmdGItem(true, CMD_REQUESTAGITEM, player, itemIndex);

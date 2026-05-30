@@ -172,9 +172,9 @@ DVL_ALWAYS_INLINE constexpr bool InDungeonBounds(Point position)
  * @param position Coordinates of the dungeon tile to check
  * @return true if a missile exists at this position
  */
-constexpr bool TileContainsMissile(Point position)
+DVL_ALWAYS_INLINE bool TileContainsMissile(Point position)
 {
-	return InDungeonBounds(position) && HasAnyOf(dFlags[position.x][position.y], DungeonFlag::Missile);
+	return InDungeonBounds(position) && tileAt(position).hasAnyFlag(DungeonFlag::Missile);
 }
 
 /**
@@ -182,9 +182,9 @@ constexpr bool TileContainsMissile(Point position)
  * @param position Coordinates of the dungeon tile to check
  * @return true if a dead player exists at this position
  */
-constexpr bool TileContainsDeadPlayer(Point position)
+DVL_ALWAYS_INLINE bool TileContainsDeadPlayer(Point position)
 {
-	return InDungeonBounds(position) && HasAnyOf(dFlags[position.x][position.y], DungeonFlag::DeadPlayer);
+	return InDungeonBounds(position) && tileAt(position).hasAnyFlag(DungeonFlag::DeadPlayer);
 }
 
 /**
@@ -195,9 +195,9 @@ constexpr bool TileContainsDeadPlayer(Point position)
  * @param position Coordinates of the dungeon tile to check
  * @return true if a set piece was spawned at this position
  */
-constexpr bool TileContainsSetPiece(Point position)
+DVL_ALWAYS_INLINE bool TileContainsSetPiece(Point position)
 {
-	return InDungeonBounds(position) && HasAnyOf(dFlags[position.x][position.y], DungeonFlag::Populated);
+	return InDungeonBounds(position) && tileAt(position).hasAnyFlag(DungeonFlag::Populated);
 }
 
 /**
@@ -208,9 +208,9 @@ constexpr bool TileContainsSetPiece(Point position)
  * @param position Coordinates of the dungeon tile to check
  * @return true if the tile is within at least one players vision
  */
-constexpr bool IsTileVisible(Point position)
+DVL_ALWAYS_INLINE bool IsTileVisible(Point position)
 {
-	return InDungeonBounds(position) && HasAnyOf(dFlags[position.x][position.y], DungeonFlag::Visible);
+	return InDungeonBounds(position) && tileAt(position).hasAnyFlag(DungeonFlag::Visible);
 }
 
 /**
@@ -218,9 +218,9 @@ constexpr bool IsTileVisible(Point position)
  * @param position Coordinates of the dungeon tile to check
  * @return true if the tile is within the radius of at least one light source
  */
-constexpr bool IsTileLit(Point position)
+DVL_ALWAYS_INLINE bool IsTileLit(Point position)
 {
-	return InDungeonBounds(position) && HasAnyOf(dFlags[position.x][position.y], DungeonFlag::Lit);
+	return InDungeonBounds(position) && tileAt(position).hasAnyFlag(DungeonFlag::Lit);
 }
 
 struct Miniset {
@@ -262,7 +262,7 @@ struct Miniset {
 
 [[nodiscard]] DVL_ALWAYS_INLINE bool TileHasAny(Point coords, TileProperties property)
 {
-	return HasAnyOf(SOLData[dPiece[coords.x][coords.y]], property);
+	return HasAnyOf(SOLData[tileAt(coords).piece()], property);
 }
 
 tl::expected<void, std::string> LoadLevelSOLData();

@@ -36,6 +36,7 @@
 #include "hwcursor.hpp"
 #include "inv.h"
 #include "items.h"
+#include "levels/gendung.h"
 #include "levels/tile_properties.hpp"
 #include "levels/town.h"
 #include "levels/trigs.h"
@@ -173,7 +174,7 @@ void FindItemOrObject()
 
 	for (const WorldTilePosition targetPosition : searchArea) {
 		// As the player can not stand on the edge of the map this is safe from OOB
-		const int8_t itemId = dItem[targetPosition.x][targetPosition.y] - 1;
+		const int8_t itemId = tileAt(targetPosition).item() - 1;
 		if (itemId < 0) {
 			// there shouldn't be any items that occupy multiple ground tiles, but just in case only considering positive indexes here
 
@@ -266,7 +267,7 @@ bool CanTargetMonster(const Monster &monster)
 
 	const int mx = monster.position.tile.x;
 	const int my = monster.position.tile.y;
-	return dMonster[mx][my] != 0;
+	return tileAt(mx, my).hasMonster();
 }
 
 void FindRangedTarget()
@@ -275,7 +276,7 @@ void FindRangedTarget()
 	int distance = 0;
 	bool canTalk = false;
 
-	for (const int mi : MonsterPoolAdapter::ActiveMonsterIds()) {
+	for (const int mi : MonsterPoolAdapter::ActiveMonsterRange()) {
 		const Monster &monster = Monsters[mi];
 
 		if (!CanTargetMonster(monster))
@@ -340,8 +341,9 @@ void FindMeleeTarget()
 			if (!myPlayer.positionIsAvailable({ dx, dy })) {
 				visited[dx][dy] = true;
 
-				if (dMonster[dx][dy] != 0) {
-					const int mi = std::abs(dMonster[dx][dy]) - 1;
+				const int16_t monsterId = tileAt(dx, dy).monster();
+				if (monsterId != 0) {
+					const int mi = std::abs(monsterId) - 1;
 					const Monster &monster = Monsters[mi];
 					if (CanTargetMonster(monster)) {
 						const bool newCanTalk = monster.canTalk();
@@ -399,7 +401,7 @@ void CheckPlayerNearby()
 			continue;
 		const int mx = player.position.future.x;
 		const int my = player.position.future.y;
-		if (dPlayer[mx][my] == 0
+		if (!tileAt(mx, my).hasPlayer()
 		    || !IsTileLit(player.position.future)
 		    || (player.hasNoLife() && spl != SpellID::Resurrect))
 			continue;

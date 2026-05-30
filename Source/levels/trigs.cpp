@@ -712,6 +712,7 @@ void Freeupstairs()
 		for (int yy = -2; yy <= 2; yy++) {
 			for (int xx = -2; xx <= 2; xx++) {
 				dFlags[tx + xx][ty + yy] |= DungeonFlag::Populated;
+				tileAt(tx + xx, ty + yy).addFlags(DungeonFlag::Populated);
 			}
 		}
 	}

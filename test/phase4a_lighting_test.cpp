@@ -136,6 +136,18 @@ TEST_F(Phase4ALightingTest, TileFlagOperations)
 	EXPECT_TRUE(tile.isExplored()); // Other flag still set
 }
 
+TEST_F(Phase4ALightingTest, DungeonFlagHelpersUseTileFlags)
+{
+	const Point testPos { 31, 31 };
+	dFlags[testPos.x][testPos.y] = DungeonFlag::None;
+	Tile &tile = tileAt(testPos);
+	tile.setFlags(DungeonFlag::Visible | DungeonFlag::Lit | DungeonFlag::Populated);
+
+	EXPECT_TRUE(IsTileVisible(testPos));
+	EXPECT_TRUE(IsTileLit(testPos));
+	EXPECT_TRUE(TileContainsSetPiece(testPos));
+}
+
 // Test light boundary conditions (using Tile API)
 TEST_F(Phase4ALightingTest, LightBoundaries)
 {

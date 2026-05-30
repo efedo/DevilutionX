@@ -1975,7 +1975,7 @@ void SaveLevel(SaveWriter &saveWriter, LevelConversionData *levelConversionData)
 
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-			file.WriteLE<uint8_t>(static_cast<uint8_t>(dFlags[i][j] & DungeonFlag::SavedFlags));
+			file.WriteLE<uint8_t>(static_cast<uint8_t>(tileAt(Point { i, j }).flags() & DungeonFlag::SavedFlags));
 	}
 	SaveDroppedItemLocations(file, itemIndexes);
 
@@ -1990,11 +1990,11 @@ void SaveLevel(SaveWriter &saveWriter, LevelConversionData *levelConversionData)
 		}
 		for (int j = 0; j < MAXDUNY; j++) {
 			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				file.WriteLE<uint8_t>(dLight[i][j]);
+				file.WriteLE<uint8_t>(tileAt(Point { i, j }).light());
 		}
 		for (int j = 0; j < MAXDUNY; j++) {
 			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				file.WriteLE<uint8_t>(dPreLight[i][j]);
+				file.WriteLE<uint8_t>(tileAt(Point { i, j }).preLight());
 		}
 		for (int j = 0; j < DMAXY; j++) {
 			for (int i = 0; i < DMAXX; i++) // NOLINT(modernize-loop-convert)
@@ -2055,8 +2055,11 @@ tl::expected<void, std::string> LoadLevel(LevelConversionData *levelConversionDa
 	LoadDroppedItems(file, savedItemCount);
 
 	for (int j = 0; j < MAXDUNY; j++) {
-		for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-			dFlags[i][j] = static_cast<DungeonFlag>(file.NextLE<uint8_t>()) & DungeonFlag::LoadedFlags;
+		for (int i = 0; i < MAXDUNX; i++) { // NOLINT(modernize-loop-convert)
+			const DungeonFlag flags = static_cast<DungeonFlag>(file.NextLE<uint8_t>()) & DungeonFlag::LoadedFlags;
+			dFlags[i][j] = flags;
+			tileAt(Point { i, j }).setFlags(flags);
+		}
 	}
 
 	// skip dItem indexes, this gets populated in LoadDroppedItems
@@ -2081,7 +2084,8 @@ tl::expected<void, std::string> LoadLevel(LevelConversionData *levelConversionDa
 		for (int j = 0; j < MAXDUNY; j++) {
 			for (int i = 0; i < MAXDUNX; i++) { // NOLINT(modernize-loop-convert)
 				// MIGRATED to Tile API (Phase 4A)
-				uint8_t preLight = file.NextLE<uint8_t>();
+				const uint8_t preLight = file.NextLE<uint8_t>();
+				dPreLight[i][j] = preLight;
 				tileAt(Point { static_cast<WorldTileCoord>(i), static_cast<WorldTileCoord>(j) }).setPreLight(preLight);
 			}
 		}
@@ -2621,16 +2625,19 @@ tl::expected<void, std::string> LoadGame(bool firstflag)
 
 	file.Skip<uint8_t>(MAXDUNY * MAXDUNX); // dLight
 	for (int j = 0; j < MAXDUNY; j++) {
+		for (int i = 0; i < MAXDUNX; i++) { // NOLINT(modernize-loop-convert)
+			const DungeonFlag flags = static_cast<DungeonFlag>(file.NextLE<uint8_t>()) & DungeonFlag::LoadedFlags;
+			dFlags[i][j] = flags;
+			tileAt(Point { i, j }).setFlags(flags);
+		}
+	}
+	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				dFlags[i][j] = static_cast<DungeonFlag>(file.NextLE<uint8_t>()) & DungeonFlag::LoadedFlags;
-			}
-			for (int j = 0; j < MAXDUNY; j++) {
-				for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-					tileAt(Point { i, j }).setPlayer(file.NextLE<int8_t>());
-			}
+			tileAt(Point { i, j }).setPlayer(file.NextLE<int8_t>());
+	}
 
-			// skip dItem indexes, this gets populated in LoadDroppedItems
-			file.Skip<uint8_t>(MAXDUNX * MAXDUNY);
+	// skip dItem indexes, this gets populated in LoadDroppedItems
+	file.Skip<uint8_t>(MAXDUNX * MAXDUNY);
 
 	if (leveltype != DTYPE_TOWN) {
 		for (int j = 0; j < MAXDUNY; j++) {
@@ -2653,8 +2660,11 @@ tl::expected<void, std::string> LoadGame(bool firstflag)
 		}
 		file.Skip<uint8_t>(MAXDUNY * MAXDUNX); // dLight
 		for (int j = 0; j < MAXDUNY; j++) {
-			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				dPreLight[i][j] = file.NextLE<uint8_t>();
+			for (int i = 0; i < MAXDUNX; i++) { // NOLINT(modernize-loop-convert)
+				const uint8_t preLight = file.NextLE<uint8_t>();
+				dPreLight[i][j] = preLight;
+				tileAt(Point { i, j }).setPreLight(preLight);
+			}
 		}
 		for (int j = 0; j < DMAXY; j++) {
 			for (int i = 0; i < DMAXX; i++) { // NOLINT(modernize-loop-convert)
@@ -2665,10 +2675,18 @@ tl::expected<void, std::string> LoadGame(bool firstflag)
 		file.Skip(MAXDUNX * MAXDUNY); // dMissile
 
 		// No need to load dLight, we can recreate it accurately from LightList
-		memcpy(dLight, dPreLight, sizeof(dLight));               // resets the light on entering a level to get rid of incorrect light
+		for (int x = 0; x < MAXDUNX; x++) {
+			for (int y = 0; y < MAXDUNY; y++) {
+				tileAt(Point { x, y }).setLight(tileAt(Point { x, y }).preLight());
+			}
+		}
 		ChangeLightXY(myPlayer.lightId, myPlayer.position.tile); // forces player light refresh
 	} else {
-		memset(dLight, 0, sizeof(dLight));
+		for (int x = 0; x < MAXDUNX; x++) {
+			for (int y = 0; y < MAXDUNY; y++) {
+				tileAt(Point { x, y }).setLight(0);
+			}
+		}
 	}
 
 	PremiumItemCount = file.NextBE<int32_t>();
@@ -2892,11 +2910,11 @@ void SaveGameData(SaveWriter &saveWriter)
 
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-			file.WriteLE<uint8_t>(dLight[i][j]);
+			file.WriteLE<uint8_t>(tileAt(Point { i, j }).light());
 	}
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-			file.WriteLE<uint8_t>(static_cast<uint8_t>(dFlags[i][j] & DungeonFlag::SavedFlags));
+			file.WriteLE<uint8_t>(static_cast<uint8_t>(tileAt(Point { i, j }).flags() & DungeonFlag::SavedFlags));
 	}
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
@@ -2920,11 +2938,11 @@ void SaveGameData(SaveWriter &saveWriter)
 		}
 		for (int j = 0; j < MAXDUNY; j++) {
 			for (int i = 0; i < MAXDUNX; i++)        // NOLINT(modernize-loop-convert)
-				file.WriteLE<uint8_t>(dLight[i][j]); // BUGFIX: dLight got saved already
+				file.WriteLE<uint8_t>(tileAt(Point { i, j }).light()); // BUGFIX: dLight got saved already
 		}
 		for (int j = 0; j < MAXDUNY; j++) {
 			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				file.WriteLE<uint8_t>(dPreLight[i][j]);
+				file.WriteLE<uint8_t>(tileAt(Point { i, j }).preLight());
 		}
 		for (int j = 0; j < DMAXY; j++) {
 			for (int i = 0; i < DMAXX; i++) // NOLINT(modernize-loop-convert)

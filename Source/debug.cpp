@@ -170,7 +170,7 @@ bool GetDebugGridText(Point dungeonCoords, std::string &debugGridText)
 		break;
 	}
 	case DebugGridTextItem::microTiles: {
-		const MICROS &micros = DPieceMicros[dPiece[dungeonCoords.x][dungeonCoords.y]];
+		const MICROS &micros = DPieceMicros[tileAt(dungeonCoords).piece()];
 		for (const LevelCelBlock tile : micros.mt) {
 			if (!tile.hasValue()) break;
 			if (!debugGridText.empty()) debugGridText += '\n';
@@ -187,21 +187,21 @@ bool GetDebugGridText(Point dungeonCoords, std::string &debugGridText)
 		return !debugGridText.empty();
 	} break;
 	case DebugGridTextItem::DPiece:
-		info = dPiece[dungeonCoords.x][dungeonCoords.y];
+		info = tileAt(dungeonCoords).piece();
 		break;
 	case DebugGridTextItem::DTransVal:
-		info = dTransVal[dungeonCoords.x][dungeonCoords.y];
+		info = tileAt(dungeonCoords).transVal();
 		break;
 	case DebugGridTextItem::DLight:
-		info = dLight[dungeonCoords.x][dungeonCoords.y];
+		info = tileAt(dungeonCoords).light();
 		blankValue = LightsMax;
 		break;
 	case DebugGridTextItem::DPreLight:
-		info = dPreLight[dungeonCoords.x][dungeonCoords.y];
+		info = tileAt(dungeonCoords).preLight();
 		blankValue = LightsMax;
 		break;
 	case DebugGridTextItem::DFlags:
-		info = static_cast<int>(dFlags[dungeonCoords.x][dungeonCoords.y]);
+		info = static_cast<int>(tileAt(dungeonCoords).flags());
 		break;
 	case DebugGridTextItem::DPlayer:
 		info = tileAt(dungeonCoords).player();
