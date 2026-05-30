@@ -129,7 +129,7 @@ public:
 	constexpr void setCorpse(int8_t value) { corpse_ = value; }
 	[[nodiscard]] constexpr bool hasCorpse() const { return corpse_ != 0; }
 	[[nodiscard]] constexpr int8_t corpseIndex() const { return corpse_ & 0x1F; }
-	[[nodiscard]] constexpr int8_t corpseDirection() const { return corpse_ >> 5; }
+	[[nodiscard]] constexpr int8_t corpseDirection() const { return static_cast<uint8_t>(corpse_) >> 5; }
 
 	/**
 	 * @brief Object number at this tile (objects array index).

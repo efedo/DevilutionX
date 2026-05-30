@@ -47,20 +47,21 @@ TEST_F(Phase4ALightingTest, DoLightingAppliesLight)
 {
 	const Point centerPos { 50, 50 };
 
-	// Initialize the area around center with preLight
+	// Initialize the area around center to max darkness (255 = darkest in this lighting system)
 	for (int x = 45; x < 55; x++) {
 		for (int y = 45; y < 55; y++) {
 			Point pos { static_cast<WorldTileCoord>(x), static_cast<WorldTileCoord>(y) };
-			tileAt(pos).setPreLight(0);
-			tileAt(pos).setLight(0);
+			tileAt(pos).setPreLight(255);
+			tileAt(pos).setLight(255);
 		}
 	}
 
 	// Apply lighting
 	DoLighting(centerPos, 5, DisplacementOf<int8_t> { 0, 0 });
 
-	// Center should have light applied
-	EXPECT_GT(tileAt(centerPos).light(), 0);
+	// In this lighting system 0 = fully lit, 255 = darkest.
+	// After DoLighting the center tile must have been brightened (value < 255).
+	EXPECT_LT(tileAt(centerPos).light(), 255);
 }
 
 // Test that flags are preserved through lighting operations

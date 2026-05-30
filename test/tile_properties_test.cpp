@@ -13,23 +13,23 @@ namespace {
 
 TEST(TilePropertiesTest, Solid)
 {
-	dPiece[5][5] = 0;
+	tileAt(Point { 5, 5 }).setPiece(0);
 	SOLData[0] = TileProperties::Solid;
 	EXPECT_TRUE(IsTileSolid({ 5, 5 })) << "Solid in-bounds tiles are solid";
 	EXPECT_FALSE(IsTileNotSolid({ 5, 5 })) << "IsTileNotSolid returns the inverse of IsTileSolid for in-bounds tiles";
 
-	dPiece[6][6] = 1;
+	tileAt(Point { 6, 6 }).setPiece(1);
 	SOLData[1] = TileProperties::None;
 	EXPECT_FALSE(IsTileSolid({ 6, 6 })) << "Non-solid in-bounds tiles are not solid";
 	EXPECT_TRUE(IsTileNotSolid({ 6, 6 })) << "IsTileNotSolid returns the inverse of IsTileSolid for in-bounds tiles";
 
-	EXPECT_FALSE(IsTileSolid({ -1, 1 })) << "Out of bounds tiles are not solid"; // this reads out of bounds in the current code and may fail unexpectedly
+	EXPECT_FALSE(IsTileSolid({ -1, 1 })) << "Out of bounds tiles are not solid";
 	EXPECT_FALSE(IsTileNotSolid({ -1, 1 })) << "Out of bounds tiles are also not not solid";
 }
 
 TEST(TilePropertiesTest, Walkable)
 {
-	dPiece[5][5] = 0;
+	tileAt(Point { 5, 5 }).setPiece(0);
 	SOLData[0] = TileProperties::Solid; // Doing this manually to save running through the code in gendung.cpp
 	EXPECT_FALSE(IsTileWalkable({ 5, 5 })) << "Tile which is marked as solid should be considered blocked";
 	EXPECT_FALSE(IsTileWalkable({ 5, 5 }, true)) << "Solid non-door tiles remain unwalkable when ignoring doors";
@@ -39,6 +39,7 @@ TEST(TilePropertiesTest, Walkable)
 	EXPECT_TRUE(IsTileWalkable({ 5, 5 }, true)) << "Non-solid tiles remain walkable when ignoring doors";
 
 	dObject[5][5] = 1;
+	tileAt(Point { 5, 5 }).setObject(1);
 	Objects[0]._oSolidFlag = true;
 	EXPECT_FALSE(IsTileWalkable({ 5, 5 })) << "Tile occupied by a solid object is unwalkable";
 	EXPECT_FALSE(IsTileWalkable({ 5, 5 }, true)) << "Tile occupied by a solid non-door object are unwalkable when ignoring doors";
@@ -58,10 +59,10 @@ TEST(TilePropertiesTest, Walkable)
 
 TEST(TilePropertiesTest, CanStepTest)
 {
-	dPiece[0][0] = 0;
-	dPiece[0][1] = 0;
-	dPiece[1][0] = 0;
-	dPiece[1][1] = 0;
+	tileAt(Point { 0, 0 }).setPiece(0);
+	tileAt(Point { 0, 1 }).setPiece(0);
+	tileAt(Point { 1, 0 }).setPiece(0);
+	tileAt(Point { 1, 1 }).setPiece(0);
 	SOLData[0] = TileProperties::None;
 	EXPECT_TRUE(CanStep({ 0, 0 }, { 1, 1 })) << "A step in open space is free of solid pieces";
 	EXPECT_TRUE(CanStep({ 1, 1 }, { 0, 0 })) << "A step in open space is free of solid pieces";
@@ -69,7 +70,7 @@ TEST(TilePropertiesTest, CanStepTest)
 	EXPECT_TRUE(CanStep({ 0, 1 }, { 1, 0 })) << "A step in open space is free of solid pieces";
 
 	SOLData[1] = TileProperties::Solid;
-	dPiece[1][0] = 1;
+	tileAt(Point { 1, 0 }).setPiece(1);
 	EXPECT_TRUE(CanStep({ 0, 1 }, { 1, 0 })) << "Can path to a destination which is solid";
 	EXPECT_TRUE(CanStep({ 1, 0 }, { 0, 1 })) << "Can path from a starting position which is solid";
 	EXPECT_TRUE(CanStep({ 0, 1 }, { 1, 1 })) << "Stepping in a cardinal direction ignores solid pieces";
@@ -79,24 +80,24 @@ TEST(TilePropertiesTest, CanStepTest)
 
 	EXPECT_FALSE(CanStep({ 0, 0 }, { 1, 1 })) << "Can't cut a solid corner";
 	EXPECT_FALSE(CanStep({ 1, 1 }, { 0, 0 })) << "Can't cut a solid corner";
-	dPiece[0][1] = 1;
+	tileAt(Point { 0, 1 }).setPiece(1);
 	EXPECT_FALSE(CanStep({ 0, 0 }, { 1, 1 })) << "Can't walk through the boundary between two corners";
 	EXPECT_FALSE(CanStep({ 1, 1 }, { 0, 0 })) << "Can't walk through the boundary between two corners";
-	dPiece[1][0] = 0;
+	tileAt(Point { 1, 0 }).setPiece(0);
 	EXPECT_FALSE(CanStep({ 0, 0 }, { 1, 1 })) << "Can't cut a solid corner";
 	EXPECT_FALSE(CanStep({ 1, 1 }, { 0, 0 })) << "Can't cut a solid corner";
-	dPiece[0][1] = 0;
+	tileAt(Point { 0, 1 }).setPiece(0);
 
-	dPiece[0][0] = 1;
+	tileAt(Point { 0, 0 }).setPiece(1);
 	EXPECT_FALSE(CanStep({ 1, 0 }, { 0, 1 })) << "Can't cut a solid corner";
 	EXPECT_FALSE(CanStep({ 0, 1 }, { 1, 0 })) << "Can't cut a solid corner";
-	dPiece[1][1] = 1;
+	tileAt(Point { 1, 1 }).setPiece(1);
 	EXPECT_FALSE(CanStep({ 1, 0 }, { 0, 1 })) << "Can't walk through the boundary between two corners";
 	EXPECT_FALSE(CanStep({ 0, 1 }, { 1, 0 })) << "Can't walk through the boundary between two corners";
-	dPiece[0][0] = 0;
+	tileAt(Point { 0, 0 }).setPiece(0);
 	EXPECT_FALSE(CanStep({ 1, 0 }, { 0, 1 })) << "Can't cut a solid corner";
 	EXPECT_FALSE(CanStep({ 0, 1 }, { 1, 0 })) << "Can't cut a solid corner";
-	dPiece[1][1] = 0;
+	tileAt(Point { 1, 1 }).setPiece(0);
 }
 
 } // namespace
