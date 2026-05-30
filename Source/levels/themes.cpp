@@ -905,7 +905,6 @@ void HoldThemeRooms()
 		for (int y = 0; y < MAXDUNY; y++) {
 			for (int x = 0; x < MAXDUNX; x++) {
 				if (dTransVal[x][y] == v) {
-					dFlags[x][y] |= DungeonFlag::Populated;
 					tileAt(x, y).addFlags(DungeonFlag::Populated);
 				}
 			}

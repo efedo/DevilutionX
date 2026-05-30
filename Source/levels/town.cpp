@@ -151,35 +151,35 @@ void InitTownPieces()
 	for (int y = 0; y < MAXDUNY; y++) {
 		for (int x = 0; x < MAXDUNX; x++) {
 			if (dPiece[x][y] == 359) {
-				dSpecial[x][y] = 1;
+				tileAt(x, y).setSpecial(1);
 			} else if (dPiece[x][y] == 357) {
-				dSpecial[x][y] = 2;
+				tileAt(x, y).setSpecial(2);
 			} else if (dPiece[x][y] == 128) {
-				dSpecial[x][y] = 6;
+				tileAt(x, y).setSpecial(6);
 			} else if (dPiece[x][y] == 129) {
-				dSpecial[x][y] = 7;
+				tileAt(x, y).setSpecial(7);
 			} else if (dPiece[x][y] == 127) {
-				dSpecial[x][y] = 8;
+				tileAt(x, y).setSpecial(8);
 			} else if (dPiece[x][y] == 116) {
-				dSpecial[x][y] = 9;
+				tileAt(x, y).setSpecial(9);
 			} else if (dPiece[x][y] == 156) {
-				dSpecial[x][y] = 10;
+				tileAt(x, y).setSpecial(10);
 			} else if (dPiece[x][y] == 157) {
-				dSpecial[x][y] = 11;
+				tileAt(x, y).setSpecial(11);
 			} else if (dPiece[x][y] == 155) {
-				dSpecial[x][y] = 12;
+				tileAt(x, y).setSpecial(12);
 			} else if (dPiece[x][y] == 161) {
-				dSpecial[x][y] = 13;
+				tileAt(x, y).setSpecial(13);
 			} else if (dPiece[x][y] == 159) {
-				dSpecial[x][y] = 14;
+				tileAt(x, y).setSpecial(14);
 			} else if (dPiece[x][y] == 213) {
-				dSpecial[x][y] = 15;
+				tileAt(x, y).setSpecial(15);
 			} else if (dPiece[x][y] == 211) {
-				dSpecial[x][y] = 16;
+				tileAt(x, y).setSpecial(16);
 			} else if (dPiece[x][y] == 216) {
-				dSpecial[x][y] = 17;
+				tileAt(x, y).setSpecial(17);
 			} else if (dPiece[x][y] == 215) {
-				dSpecial[x][y] = 18;
+				tileAt(x, y).setSpecial(18);
 			}
 		}
 	}

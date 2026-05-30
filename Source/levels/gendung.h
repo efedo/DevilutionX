@@ -107,17 +107,7 @@ tl::expected<_setlevels, std::string> ParseSetLevel(std::string_view value);
 #define DPieceMicros  (currentLevel().DPieceMicros_)
 /** Specifies the transparency at each coordinate of the map. */
 #define dTransVal     (currentLevel().dTransVal_)
-/** Current realtime lighting. Per tile. */
-#define dLight        (currentLevel().dLight_)
-/** Precalculated static lights. dLight uses this as a base before applying lights. Per tile. */
-#define dPreLight     (currentLevel().dPreLight_)
 /** Holds various information about dungeon tiles, @see DungeonFlag */
-#define dFlags        (currentLevel().dFlags_)
-/** Contains the arch frame numbers of the map from the special tileset
- * (e.g. "levels/l1data/l1s"). Note, the special tileset of Tristram (i.e.
- * "levels/towndata/towns") contains trees rather than arches.
- */
-#define dSpecial      (currentLevel().dSpecial_)
 #define themeCount    (currentLevel().themeCount_)
 #define themeLoc      (currentLevel().themeLoc_)
 

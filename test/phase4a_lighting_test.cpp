@@ -140,7 +140,7 @@ TEST_F(Phase4ALightingTest, TileFlagOperations)
 TEST_F(Phase4ALightingTest, DungeonFlagHelpersUseTileFlags)
 {
 	const Point testPos { 31, 31 };
-	dFlags[testPos.x][testPos.y] = DungeonFlag::None;
+	tileAt(testPos).setFlags(DungeonFlag::None);
 	Tile &tile = tileAt(testPos);
 	tile.setFlags(DungeonFlag::Visible | DungeonFlag::Lit | DungeonFlag::Populated);
 

@@ -416,7 +416,7 @@ void InitDungeonPieces()
 			} else {
 				continue;
 			}
-			dSpecial[i][j] = pc;
+			tileAt(i, j).setSpecial(pc);
 		}
 	}
 }

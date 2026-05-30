@@ -1661,17 +1661,17 @@ void InitDungeonPieces()
 			} else {
 				continue;
 			}
-			dSpecial[i][j] = pc;
+			tileAt(i, j).setSpecial(pc);
 		}
 	}
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) {
 			if (dPiece[i][j] == 131) {
-				dSpecial[i][j + 1] = 2;
-				dSpecial[i][j + 2] = 1;
+				tileAt(i, j + 1).setSpecial(2);
+				tileAt(i, j + 2).setSpecial(1);
 			} else if (dPiece[i][j] == 134 || dPiece[i][j] == 138) {
-				dSpecial[i + 1][j] = 3;
-				dSpecial[i + 2][j] = 4;
+				tileAt(i + 1, j).setSpecial(3);
+				tileAt(i + 2, j).setSpecial(4);
 			}
 		}
 	}

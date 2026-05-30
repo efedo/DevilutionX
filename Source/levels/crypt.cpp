@@ -670,9 +670,9 @@ void InitCryptPieces()
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) {
 			if (dPiece[i][j] == 76) {
-				dSpecial[i][j] = 1;
+				tileAt(i, j).setSpecial(1);
 			} else if (dPiece[i][j] == 79) {
-				dSpecial[i][j] = 2;
+				tileAt(i, j).setSpecial(2);
 			}
 		}
 	}

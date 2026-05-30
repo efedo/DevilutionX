@@ -176,23 +176,14 @@ public:
 	/** Consolidated per-tile data. Each Tile contains all properties for one map tile. */
 	Tile tiles_[MAXDUNX][MAXDUNY] = {};
 
-	// LEGACY: Old separate arrays (kept temporarily for gradual migration)
-	// TODO: Remove these once all code is migrated to use tiles_[]
+	// LEGACY: Old separate arrays (partial migration remaining)
+	// TODO: Migrate dPiece_, DPieceMicros_, dTransVal_ to tiles_ and remove
 	/** @see dPiece */
 	uint16_t dPiece_[MAXDUNX][MAXDUNY] = {};
 	/** @see DPieceMicros */
 	MICROS DPieceMicros_[MAXTILES] = {};
 	/** @see dTransVal */
 	int8_t dTransVal_[MAXDUNX][MAXDUNY] = {};
-	/** @see dLight */
-	uint8_t dLight_[MAXDUNX][MAXDUNY] = {};
-	/** @see dPreLight */
-	uint8_t dPreLight_[MAXDUNX][MAXDUNY] = {};
-	/** @see dFlags */
-	DungeonFlag dFlags_[MAXDUNX][MAXDUNY] = {};
-	/** @see dSpecial */
-	int8_t dSpecial_[MAXDUNX][MAXDUNY] = {};
-
 	// -------------------------------------------------------------------------
 	// Theme rooms
 	// -------------------------------------------------------------------------

@@ -1695,9 +1695,9 @@ void InitAutomap()
 
 	memset(AutomapView, 0, sizeof(AutomapView));
 
-	for (auto &column : dFlags)
-		for (auto &dFlag : column)
-			dFlag &= ~DungeonFlag::Explored;
+	for (auto &column : tiles)
+		for (Tile &tile : column)
+			tile.removeFlags(DungeonFlag::Explored);
 }
 
 void StartAutomap()

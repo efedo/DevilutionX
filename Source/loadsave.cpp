@@ -2055,7 +2055,6 @@ tl::expected<void, std::string> LoadLevel(LevelConversionData *levelConversionDa
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) { // NOLINT(modernize-loop-convert)
 			const DungeonFlag flags = static_cast<DungeonFlag>(file.NextLE<uint8_t>()) & DungeonFlag::LoadedFlags;
-			dFlags[i][j] = flags;
 			tileAt(Point { i, j }).setFlags(flags);
 		}
 	}
@@ -2081,10 +2080,7 @@ tl::expected<void, std::string> LoadLevel(LevelConversionData *levelConversionDa
 		file.Skip<uint8_t>(MAXDUNY * MAXDUNX); // dLight
 		for (int j = 0; j < MAXDUNY; j++) {
 			for (int i = 0; i < MAXDUNX; i++) { // NOLINT(modernize-loop-convert)
-				// MIGRATED to Tile API (Phase 4A)
-				const uint8_t preLight = file.NextLE<uint8_t>();
-				dPreLight[i][j] = preLight;
-				tileAt(Point { static_cast<WorldTileCoord>(i), static_cast<WorldTileCoord>(j) }).setPreLight(preLight);
+				tileAt(Point { static_cast<WorldTileCoord>(i), static_cast<WorldTileCoord>(j) }).setPreLight(file.NextLE<uint8_t>());
 			}
 		}
 		for (int j = 0; j < DMAXY; j++) {
@@ -2625,7 +2621,6 @@ tl::expected<void, std::string> LoadGame(bool firstflag)
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) { // NOLINT(modernize-loop-convert)
 			const DungeonFlag flags = static_cast<DungeonFlag>(file.NextLE<uint8_t>()) & DungeonFlag::LoadedFlags;
-			dFlags[i][j] = flags;
 			tileAt(Point { i, j }).setFlags(flags);
 		}
 	}
@@ -2659,9 +2654,7 @@ tl::expected<void, std::string> LoadGame(bool firstflag)
 		file.Skip<uint8_t>(MAXDUNY * MAXDUNX); // dLight
 		for (int j = 0; j < MAXDUNY; j++) {
 			for (int i = 0; i < MAXDUNX; i++) { // NOLINT(modernize-loop-convert)
-				const uint8_t preLight = file.NextLE<uint8_t>();
-				dPreLight[i][j] = preLight;
-				tileAt(Point { i, j }).setPreLight(preLight);
+				tileAt(Point { i, j }).setPreLight(file.NextLE<uint8_t>());
 			}
 		}
 		for (int j = 0; j < DMAXY; j++) {
