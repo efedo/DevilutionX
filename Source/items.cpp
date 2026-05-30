@@ -2584,7 +2584,6 @@ void InitItemGFX()
 void InitItems()
 {
 	ActiveItemCount = 0;
-	memset(dItem, 0, sizeof(dItem));
 
 	for (int i = 0; i < MAXITEMS + 1; i++) {
 		Item &item = Items[i];

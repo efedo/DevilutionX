@@ -96,8 +96,6 @@ TEST_F(Phase4BEntityTest, TileOccupancyQueriesUseTileEntities)
 {
 	const Point monsterPos { 50, 50 };
 	const Point playerPos { 51, 50 };
-	dMonster[monsterPos.x][monsterPos.y] = 0;
-	dPlayer[playerPos.x][playerPos.y] = 0;
 	tileAt(monsterPos).setMonster(7);
 	tileAt(playerPos).setPlayer(2);
 

@@ -38,7 +38,6 @@ TEST(TilePropertiesTest, Walkable)
 	EXPECT_TRUE(IsTileWalkable({ 5, 5 })) << "Non-solid tiles are walkable";
 	EXPECT_TRUE(IsTileWalkable({ 5, 5 }, true)) << "Non-solid tiles remain walkable when ignoring doors";
 
-	dObject[5][5] = 1;
 	tileAt(Point { 5, 5 }).setObject(1);
 	Objects[0]._oSolidFlag = true;
 	EXPECT_FALSE(IsTileWalkable({ 5, 5 })) << "Tile occupied by a solid object is unwalkable";

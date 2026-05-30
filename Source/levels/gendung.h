@@ -113,35 +113,11 @@ tl::expected<_setlevels, std::string> ParseSetLevel(std::string_view value);
 #define dPreLight     (currentLevel().dPreLight_)
 /** Holds various information about dungeon tiles, @see DungeonFlag */
 #define dFlags        (currentLevel().dFlags_)
-/** Contains the player numbers (players array indices) of the map. */
-#define dPlayer       (currentLevel().dPlayer_)
-/**
- * Contains the NPC numbers of the map. The NPC number represents a
- * towner number (towners array index) in Tristram and a monster number
- * (monsters array index) in the dungeon.
- * Negative id indicates monsters moving.
- */
-#define dMonster      (currentLevel().dMonster_)
-/**
- * Contains the dead numbers (deads array indices) and dead direction of
- * the map, encoded as specified by the pseudo-code below.
- * dDead[x][y] & 0x1F - index of dead
- * dDead[x][y] >> 0x5 - direction
- */
-#define dCorpse       (currentLevel().dCorpse_)
-/**
- * Contains the object numbers (objects array indices) of the map.
- * Large objects have negative id for their extended area.
- */
-#define dObject       (currentLevel().dObject_)
-/**
- * Contains the arch frame numbers of the map from the special tileset
+/** Contains the arch frame numbers of the map from the special tileset
  * (e.g. "levels/l1data/l1s"). Note, the special tileset of Tristram (i.e.
  * "levels/towndata/towns") contains trees rather than arches.
  */
 #define dSpecial      (currentLevel().dSpecial_)
-/** Contains the item numbers (items array indices) at each tile on the map. */
-#define dItem         (currentLevel().dItem_)
 #define themeCount    (currentLevel().themeCount_)
 #define themeLoc      (currentLevel().themeLoc_)
 

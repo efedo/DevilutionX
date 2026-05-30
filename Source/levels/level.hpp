@@ -190,18 +190,8 @@ public:
 	uint8_t dPreLight_[MAXDUNX][MAXDUNY] = {};
 	/** @see dFlags */
 	DungeonFlag dFlags_[MAXDUNX][MAXDUNY] = {};
-	/** @see dPlayer */
-	int8_t dPlayer_[MAXDUNX][MAXDUNY] = {};
-	/** @see dMonster */
-	int16_t dMonster_[MAXDUNX][MAXDUNY] = {};
-	/** @see dCorpse */
-	int8_t dCorpse_[MAXDUNX][MAXDUNY] = {};
-	/** @see dObject */
-	int8_t dObject_[MAXDUNX][MAXDUNY] = {};
 	/** @see dSpecial */
 	int8_t dSpecial_[MAXDUNX][MAXDUNY] = {};
-	/** @see dItem */
-	int8_t dItem_[MAXDUNX][MAXDUNY] = {};
 
 	// -------------------------------------------------------------------------
 	// Theme rooms

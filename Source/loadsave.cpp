@@ -1132,8 +1132,6 @@ void LoadDroppedItems(LoadHelper &file, size_t savedItemCount)
 	// Reset ActiveItems, the Items array will be populated from the start
 	std::iota(ActiveItems, ActiveItems + MAXITEMS, uint8_t { 0 });
 	ActiveItemCount = 0;
-	// Clear dItem so we can populate valid drop locations
-	memset(dItem, 0, sizeof(dItem));
 
 	for (size_t i = 0; i < savedItemCount; i++) {
 		Item &item = Items[ActiveItemCount];

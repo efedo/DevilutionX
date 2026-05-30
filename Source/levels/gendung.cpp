@@ -335,11 +335,6 @@ void FindTransparencyValues(Point floor, uint8_t floorID)
 void InitGlobals()
 {
 	memset(dFlags, 0, sizeof(dFlags));
-	memset(dPlayer, 0, sizeof(dPlayer));
-	memset(dMonster, 0, sizeof(dMonster));
-	memset(dCorpse, 0, sizeof(dCorpse));
-	memset(dItem, 0, sizeof(dItem));
-	memset(dObject, 0, sizeof(dObject));
 	memset(dSpecial, 0, sizeof(dSpecial));
 	uint8_t defaultLight = leveltype == DTYPE_TOWN ? 0 : 15;
 #ifdef _DEBUG
