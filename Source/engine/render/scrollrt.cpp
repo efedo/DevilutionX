@@ -549,8 +549,15 @@ static void DrawDungeon(const Surface & /*out*/, const Lightmap & /*lightmap*/, 
 void DrawCell(const Surface &out, const Lightmap lightmap, Point tilePosition, Point targetBufferPosition, int lightTableIndex)
 {
 	const Tile &tile = tileAt(tilePosition);  // Migrated from dPiece[...] access
-	const uint16_t levelPieceId = tile.piece();
-	const MICROS *pMap = &DPieceMicros[levelPieceId];
+	uint16_t levelPieceId = tile.piece();
+	if (levelPieceId == 0) {
+		// HOTFIX: Some town generation paths still populate legacy dPiece without
+		// writing tile.piece(). Fall back to dPiece until town piece writes are
+		// fully migrated to Tile API.
+		// TODO: Remove this fallback once all generators set tileAt(...).setPiece(...).
+		levelPieceId = dPiece[tilePosition.x][tilePosition.y];
+	}
+	const MICROS *pMap = &levelMicros()[levelPieceId];
 
 	const uint8_t *tbl = LightTables[lightTableIndex].data();
 	const uint8_t *foliageTbl = tbl;
@@ -566,7 +573,10 @@ void DrawCell(const Surface &out, const Lightmap lightmap, Point tilePosition, P
 	}
 #endif
 
-	bool transparency = TileHasAny(tilePosition, TileProperties::Transparent) && TransList[tile.transVal()];  // Migrated from dTransVal[...]
+	const TileProperties pieceProperties = SOLData[levelPieceId];
+	const bool isFloorPiece = !HasAnyOf(pieceProperties, TileProperties::Solid | TileProperties::BlockMissile);
+	const int8_t transVal = tile.transVal() != 0 ? tile.transVal() : dTransVal[tilePosition.x][tilePosition.y];
+	bool transparency = HasAnyOf(pieceProperties, TileProperties::Transparent) && TransList[transVal];
 #ifdef _DEBUG
 	if ((SDL_GetModState() & SDL_KMOD_ALT) != 0) {
 		transparency = false;
@@ -578,9 +588,9 @@ void DrawCell(const Surface &out, const Lightmap lightmap, Point tilePosition, P
 			switch (tile) {
 			case TileType::LeftTrapezoid:
 			case TileType::TransparentSquare:
-				return TileHasAny(tilePosition, TileProperties::TransparentLeft)
-				    ? MaskType::Left
-				    : MaskType::Solid;
+				return HasAnyOf(pieceProperties, TileProperties::TransparentLeft)
+					? MaskType::Left
+					: MaskType::Solid;
 			case TileType::LeftTriangle:
 				return MaskType::Solid;
 			default:
@@ -595,9 +605,9 @@ void DrawCell(const Surface &out, const Lightmap lightmap, Point tilePosition, P
 			switch (tile) {
 			case TileType::RightTrapezoid:
 			case TileType::TransparentSquare:
-				return TileHasAny(tilePosition, TileProperties::TransparentRight)
-				    ? MaskType::Right
-				    : MaskType::Solid;
+				return HasAnyOf(pieceProperties, TileProperties::TransparentRight)
+					? MaskType::Right
+					: MaskType::Solid;
 			case TileType::RightTriangle:
 				return MaskType::Solid;
 			default:
@@ -613,7 +623,7 @@ void DrawCell(const Surface &out, const Lightmap lightmap, Point tilePosition, P
 
 	// If the first micro tile is a floor tile, it may be followed
 	// by foliage which should be rendered now.
-	const bool isFloor = IsFloor(tilePosition);
+	const bool isFloor = isFloorPiece;
 	if (const LevelCelBlock levelCelBlock { pMap->mt[0] }; levelCelBlock.hasValue()) {
 		const TileType tileType = levelCelBlock.type();
 		if (!isFloor || tileType == TileType::TransparentSquare) {
@@ -692,14 +702,14 @@ void DrawFloorTile(const Surface &out, const Lightmap &lightmap, Point tilePosit
 		tbl = GetPauseTRN();
 #endif
 	{
-		const LevelCelBlock levelCelBlock { DPieceMicros[levelPieceId].mt[0] };
+		const LevelCelBlock levelCelBlock { levelMicros()[levelPieceId].mt[0] };
 		if (levelCelBlock.hasValue()) {
 			RenderTileFrame(out, lightmap, targetBufferPosition, TileType::LeftTriangle,
 			    GetDunFrame(pDungeonCels.get(), levelCelBlock.frame()), DunFrameTriangleHeight, MaskType::Solid, tbl);
 		}
 	}
 	{
-		const LevelCelBlock levelCelBlock { DPieceMicros[levelPieceId].mt[1] };
+		const LevelCelBlock levelCelBlock { levelMicros()[levelPieceId].mt[1] };
 		if (levelCelBlock.hasValue()) {
 			RenderTileFrame(out, lightmap, targetBufferPosition + RightFrameDisplacement, TileType::RightTriangle,
 			    GetDunFrame(pDungeonCels.get(), levelCelBlock.frame()), DunFrameTriangleHeight, MaskType::Solid, tbl);

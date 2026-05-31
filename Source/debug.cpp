@@ -170,7 +170,7 @@ bool GetDebugGridText(Point dungeonCoords, std::string &debugGridText)
 		break;
 	}
 	case DebugGridTextItem::microTiles: {
-		const MICROS &micros = DPieceMicros[tileAt(dungeonCoords).piece()];
+		const MICROS &micros = levelMicros()[tileAt(dungeonCoords).piece()];
 		for (const LevelCelBlock tile : micros.mt) {
 			if (!tile.hasValue()) break;
 			if (!debugGridText.empty()) debugGridText += '\n';

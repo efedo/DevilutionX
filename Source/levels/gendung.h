@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <memory>
 #include <optional>
+#include <span>
 #include <string>
 #include <string_view>
 
@@ -104,6 +105,7 @@ tl::expected<_setlevels, std::string> ParseSetLevel(std::string_view value);
 /** Contains the piece IDs of each tile on the map. */
 #define dPiece        (currentLevel().dPiece_)
 /** Map of micros that comprises a full tile for any given dungeon piece. */
+// LEGACY macro kept for transition; prefer levelMicros() for new code.
 #define DPieceMicros  (currentLevel().DPieceMicros_)
 /** Specifies the transparency at each coordinate of the map. */
 #define dTransVal     (currentLevel().dTransVal_)
@@ -118,6 +120,20 @@ tl::expected<_setlevels, std::string> ParseSetLevel(std::string_view value);
 #define tiles         (currentLevel().tiles_)
 /** Accessor helper for getting a tile. Use tileAt(x, y) or tileAt(Point) */
 #define tileAt        (currentLevel().tileAt)
+
+// clang-format on
+
+/**
+ * @brief Returns a std::span over the level's MICROS lookup table.
+ *
+ * Prefer this over the legacy DPieceMicros macro for new code.
+ * The table is indexed by piece ID (0..MAXTILES-1) and maps each piece
+ * to its LevelCelBlock data for rendering.
+ */
+[[nodiscard]] inline std::span<MICROS, MAXTILES> levelMicros()
+{
+	return std::span<MICROS, MAXTILES>(currentLevel().DPieceMicros_);
+}
 
 // clang-format on
 

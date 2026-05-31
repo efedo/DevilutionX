@@ -27,6 +27,9 @@ public:
 
 	[[nodiscard]] uint8_t adjustColor(uint8_t color, uint8_t lightLevel) const
 	{
+		if (lightLevel >= NumLightingLevels) {
+			lightLevel = NumLightingLevels - 1;
+		}
 		return lightTables[lightLevel][color];
 	}
 
@@ -45,6 +48,9 @@ public:
 		const ptrdiff_t row = outDist / outPitch;
 		return lightmapBuffer.data() + row * lightmapPitch + rowOffset;
 	}
+
+	[[nodiscard]] const uint8_t *lightingData() const { return lightmapBuffer.data(); }
+	[[nodiscard]] size_t lightingSize() const { return lightmapBuffer.size(); }
 
 	[[nodiscard]] bool isFullyLitLightTable(const uint8_t *lightTable) const { return lightTable == fullyLitLightTable_; }
 	[[nodiscard]] bool isFullyDarkLightTable(const uint8_t *lightTable) const { return lightTable == fullyDarkLightTable_; }

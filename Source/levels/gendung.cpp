@@ -513,7 +513,7 @@ void SetDungeonMicros(std::unique_ptr<std::byte[]> &dungeonCels, uint_fast8_t &m
 		uint16_t *pieces = &levelPieces[blocks * levelPieceId];
 		for (uint32_t block = 0; block < blocks; block++) {
 			const LevelCelBlock levelCelBlock { Swap16LE(pieces[blocks - 2 + (block & 1) - (block & 0xE)]) };
-			DPieceMicros[levelPieceId].mt[block] = levelCelBlock;
+			levelMicros()[levelPieceId].mt[block] = levelCelBlock;
 			if (levelCelBlock.hasValue()) {
 				if (const auto it = frameToTypeMap.find(levelCelBlock.frame()); it == frameToTypeMap.end()) {
 					frameToTypeMap.emplace_hint(it, levelCelBlock.frame(),
@@ -532,7 +532,7 @@ void SetDungeonMicros(std::unique_ptr<std::byte[]> &dungeonCels, uint_fast8_t &m
 	if (celBlockAdjustments.size() == 0) return;
 	for (size_t levelPieceId = 0; levelPieceId < tileCount / blocks; levelPieceId++) {
 		for (uint32_t block = 0; block < blocks; block++) {
-			LevelCelBlock &levelCelBlock = DPieceMicros[levelPieceId].mt[block];
+			LevelCelBlock &levelCelBlock = levelMicros()[levelPieceId].mt[block];
 			const uint16_t frame = levelCelBlock.frame();
 			const auto pair = std::make_pair(frame, frame);
 			const auto it = std::upper_bound(celBlockAdjustments.begin(), celBlockAdjustments.end(), pair,
