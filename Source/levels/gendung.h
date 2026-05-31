@@ -139,6 +139,7 @@ tl::expected<_setlevels, std::string> ParseSetLevel(std::string_view value);
 
 #ifdef BUILD_TESTING
 std::optional<WorldTileSize> GetSizeForThemeRoom();
+void SyncTilesFromLegacyMapsForTesting();
 #endif
 
 dungeon_type GetLevelType(int level);
@@ -242,9 +243,13 @@ struct Miniset {
 	}
 };
 
-[[nodiscard]] DVL_ALWAYS_INLINE bool TileHasAny(Point coords, TileProperties property)
+DVL_ALWAYS_INLINE bool TileHasAny(Point coords, TileProperties property)
 {
-	return HasAnyOf(SOLData[tileAt(coords).piece()], property);
+	uint16_t piece = tileAt(coords).piece();
+	if (piece == 0) {
+		piece = dPiece[coords.x][coords.y];
+	}
+	return HasAnyOf(SOLData[piece], property);
 }
 
 tl::expected<void, std::string> LoadLevelSOLData();

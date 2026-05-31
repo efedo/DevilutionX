@@ -694,7 +694,10 @@ void DrawFloorTile(const Surface &out, const Lightmap &lightmap, Point tilePosit
 {
 	const Tile &tile = tileAt(tilePosition);  // Migrated from dLight[...] and dPiece[...] access
 	const int lightTableIndex = tile.light();
-	const uint16_t levelPieceId = tile.piece();
+	uint16_t levelPieceId = tile.piece();
+	if (levelPieceId == 0) {
+		levelPieceId = dPiece[tilePosition.x][tilePosition.y];
+	}
 
 	const uint8_t *tbl = LightTables[lightTableIndex].data();
 #ifdef _DEBUG

@@ -354,12 +354,30 @@ void InitGlobals()
 	SetPiece = { { 0, 0 }, { 0, 0 } };
 }
 
+void SyncTilesFromLegacyMaps()
+{
+	for (int x = 0; x < MAXDUNX; ++x) {
+		for (int y = 0; y < MAXDUNY; ++y) {
+			Tile &tile = tileAt(x, y);
+			if (tile.piece() == 0 && dPiece[x][y] != 0)
+				tile.setPiece(dPiece[x][y]);
+			if (tile.transVal() == 0 && dTransVal[x][y] != 0)
+				tile.setTransVal(dTransVal[x][y]);
+		}
+	}
+}
+
 } // namespace
 
 #ifdef BUILD_TESTING
 std::optional<WorldTileSize> GetSizeForThemeRoom()
 {
 	return GetSizeForThemeRoom(0, { 0, 0 }, 5, 10);
+}
+
+void SyncTilesFromLegacyMapsForTesting()
+{
+	SyncTilesFromLegacyMaps();
 }
 #endif
 
@@ -421,6 +439,7 @@ void CreateDungeon(uint32_t rseed, lvl_entry entry)
 		app_fatal("Invalid level type");
 	}
 
+	SyncTilesFromLegacyMaps();
 	Make_SetPC(SetPiece);
 }
 
