@@ -113,6 +113,7 @@ void DrawConsoleWindow()
 		return;
 
 	InitConsole();
+	SDLC_StartTextInput(ghMainWnd);
 
 	bool open = true;
 	ImGui::SetNextWindowSize(ImVec2(760.0F, 360.0F), ImGuiCond_FirstUseEver);
@@ -210,7 +211,30 @@ bool DebugOverlayHandleEvent(const SDL_Event &event)
 		return true;
 	}
 
-	return IsOverlayInputEvent(event);
+	// Let ImGui decide if it wants the event based on whether it's capturing keyboard/mouse input
+	const ImGuiIO &io = ImGui::GetIO();
+	if (IsOverlayInputEvent(event)) {
+		switch (event.type) {
+		case SDL_EVENT_KEY_DOWN:
+		case SDL_EVENT_KEY_UP:
+		case SDL_EVENT_TEXT_INPUT:
+#ifdef USE_SDL3
+		case SDL_EVENT_TEXT_EDITING:
+#else
+		case SDL_TEXTEDITING:
+#endif
+			return io.WantCaptureKeyboard || io.WantTextInput;
+		case SDL_EVENT_MOUSE_MOTION:
+		case SDL_EVENT_MOUSE_BUTTON_DOWN:
+		case SDL_EVENT_MOUSE_BUTTON_UP:
+		case SDL_EVENT_MOUSE_WHEEL:
+			return io.WantCaptureMouse;
+		default:
+			return false;
+		}
+	}
+
+	return false;
 }
 
 bool DebugOverlayIsAvailable()

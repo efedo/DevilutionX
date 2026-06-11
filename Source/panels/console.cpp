@@ -34,11 +34,13 @@
 #include "engine/size.hpp"
 #include "engine/surface.hpp"
 #include "lua/autocomplete.hpp"
+#include "lua/metadoc.hpp"
 #include "lua/repl.hpp"
 #include "utils/algorithm/container.hpp"
 #include "utils/display.h"
 #include "utils/sdl_compat.h"
 #include "utils/sdl_geometry.h"
+#include "utils/str_case.hpp"
 #include "utils/str_cat.hpp"
 #include "utils/str_split.hpp"
 
@@ -54,6 +56,26 @@ constexpr std::string_view HelpText =
     " Up/Down to fill the input from history,"
     " Shift+Up/Down to fill the input from output history,"
     " Ctrl+L to clear history, Esc to close.";
+
+constexpr std::string_view CommandHelpText =
+    "Debug console commands:\n"
+    "  help\n"
+    "    Show this command list.\n"
+    "  help <module>\n"
+    "    Show documented members for a Lua module (example: help dev.player).\n"
+    "\n"
+    "Common debug Lua commands:\n"
+    "  dev.player.god()\n"
+    "  dev.player.invisible()\n"
+    "  dev.display.grid()\n"
+    "  dev.display.vision()\n"
+    "  dev.level.seed()\n"
+    "\n"
+    "Other useful modules:\n"
+    "  dev.items, dev.level, dev.monsters, dev.quests, dev.search, dev.towners\n"
+    "\n"
+    "Tip: Tab autocompletes symbols (for example: dev.player.<Tab>).";
+
 std::optional<tl::expected<AssetData, std::string>> ConsolePrelude;
 
 bool IsConsoleVisible;
@@ -630,9 +652,100 @@ void InitConsole()
 		RunLuaReplLine(std::string_view(**ConsolePrelude));
 }
 
+std::string_view TrimWhitespace(std::string_view text)
+{
+	while (!text.empty() && (text.front() == ' ' || text.front() == '\t' || text.front() == '\n' || text.front() == '\r')) {
+		text.remove_prefix(1);
+	}
+	while (!text.empty() && (text.back() == ' ' || text.back() == '\t' || text.back() == '\n' || text.back() == '\r')) {
+		text.remove_suffix(1);
+	}
+	return text;
+}
+
+std::optional<std::string_view> GetHelpQuery(std::string_view code)
+{
+	code = TrimWhitespace(code);
+	if (!AsciiStrToLower(code).starts_with("help")) {
+		return std::nullopt;
+	}
+	code.remove_prefix(4);
+	code = TrimWhitespace(code);
+	return code;
+}
+
+std::optional<sol::table> ResolveLuaModulePath(std::string_view modulePath)
+{
+	sol::table table = GetLuaReplEnvironment();
+	if (modulePath.empty()) {
+		return table;
+	}
+	for (const std::string_view part : SplitByChar(modulePath, '.')) {
+		if (part.empty()) {
+			return std::nullopt;
+		}
+		const auto next = table.get<std::optional<sol::object>>(part);
+		if (!next.has_value() || next->get_type() != sol::type::table) {
+			return std::nullopt;
+		}
+		table = next->as<sol::table>();
+	}
+	return table;
+}
+
+std::string BuildModuleHelp(std::string_view modulePath)
+{
+	const std::optional<sol::table> module = ResolveLuaModulePath(modulePath);
+	if (!module.has_value()) {
+		return StrCat("Unknown module: ", modulePath);
+	}
+
+	std::vector<std::string> lines;
+	for (const auto &[key, value] : *module) {
+		if (key.get_type() != sol::type::string) {
+			continue;
+		}
+		std::string keyStr = key.as<std::string>();
+		if (keyStr.empty() || keyStr.starts_with("__") || value.get_type() == sol::type::lua_nil) {
+			continue;
+		}
+		std::string line = StrCat("  ", keyStr);
+		if (const std::optional<std::string> signature = GetSignature(*module, keyStr); signature.has_value() && !signature->empty()) {
+			line.append(*signature);
+		}
+		if (const std::optional<std::string> docstring = GetDocstring(*module, keyStr); docstring.has_value() && !docstring->empty()) {
+			std::string_view firstLine = *docstring;
+			if (const size_t newlinePos = firstLine.find('\n'); newlinePos != std::string_view::npos) {
+				firstLine = firstLine.substr(0, newlinePos);
+			}
+			StrAppend(line, " - ", firstLine);
+		}
+		lines.push_back(std::move(line));
+	}
+	c_sort(lines);
+
+	if (lines.empty()) {
+		return StrCat("No documented members found for module: ", modulePath);
+	}
+
+	std::string out = StrCat("Help for ", modulePath, ":");
+	for (const std::string &line : lines) {
+		StrAppend(out, "\n", line);
+	}
+	return out;
+}
+
 void RunInConsole(std::string_view code)
 {
 	AddConsoleLine(ConsoleLine { .type = ConsoleLineType::Input, .text = StrCat(Prompt, code) });
+	if (const std::optional<std::string_view> helpQuery = GetHelpQuery(code); helpQuery.has_value()) {
+		if (helpQuery->empty()) {
+			AddConsoleLine(ConsoleLine { .type = ConsoleLineType::Help, .text = std::string(CommandHelpText) });
+		} else {
+			AddConsoleLine(ConsoleLine { .type = ConsoleLineType::Help, .text = BuildModuleHelp(*helpQuery) });
+		}
+		return;
+	}
 	tl::expected<std::string, std::string> result = RunLuaReplLine(code);
 
 	if (result.has_value()) {
