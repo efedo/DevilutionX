@@ -25,6 +25,7 @@
 #include "controls/plrctrls.h"
 #include "cursor.h"
 #include "dead.h"
+#include "debug_overlay/imgui_overlay.hpp"
 #include "diablo_msg.hpp"
 #include "doom.h"
 #include "engine/backbuffer_state.hpp"
@@ -34,6 +35,7 @@
 #include "engine/render/clx_render.hpp"
 #include "engine/render/dun_render.hpp"
 #include "engine/render/light_render.hpp"
+#include "engine/render/primitive_render.hpp"
 #include "engine/render/text_render.hpp"
 #include "engine/trn.hpp"
 #include "engine/world_tile.hpp"
@@ -108,6 +110,47 @@ bool frameflag;
 namespace {
 
 constexpr auto RightFrameDisplacement = Displacement { DunFrameWidth, 0 };
+
+#ifdef _DEBUG
+void DrawDebugEditorSelection(const Surface &out, Point targetBufferPosition, int scale)
+{
+	constexpr uint8_t Color = PAL16_RED + 8;
+	const int tileWidth = TILE_WIDTH * scale;
+	const int tileHeight = TILE_HEIGHT * scale;
+	const Point left = targetBufferPosition + Displacement { 0, -tileHeight / 2 };
+	const Point top = targetBufferPosition + Displacement { tileWidth / 2, -tileHeight };
+	const Point right = targetBufferPosition + Displacement { tileWidth, -tileHeight / 2 };
+	const Point bottom = targetBufferPosition + Displacement { tileWidth / 2, 0 };
+
+	const auto drawLine = [&](Point from, Point to) {
+		const int dx = std::abs(to.x - from.x);
+		const int sx = from.x < to.x ? 1 : -1;
+		const int dy = -std::abs(to.y - from.y);
+		const int sy = from.y < to.y ? 1 : -1;
+		int error = dx + dy;
+		for (;;) {
+			if (out.InBounds(from))
+				*out.at(from.x, from.y) = Color;
+			if (from == to)
+				break;
+			const int doubledError = 2 * error;
+			if (doubledError >= dy) {
+				error += dy;
+				from.x += sx;
+			}
+			if (doubledError <= dx) {
+				error += dx;
+				from.y += sy;
+			}
+		}
+	};
+
+	drawLine(left, top);
+	drawLine(top, right);
+	drawLine(right, bottom);
+	drawLine(bottom, left);
+}
+#endif
 
 [[nodiscard]] DVL_ALWAYS_INLINE bool IsFloor(Point tilePosition)
 {
@@ -1437,6 +1480,17 @@ void DrawView(const Surface &out, Point startPosition)
 			}
 		}
 	}
+	const std::optional<Point> &selectedTile = DebugOverlaySelectedTile();
+	if (selectedTile.has_value()) {
+		const auto position = DebugCoordsMap.find(selectedTile->x + (selectedTile->y * MAXDUNX));
+		if (position != DebugCoordsMap.end()) {
+			Point pixelCoords = position->second;
+			const int scale = *GetOptions().Graphics.zoom ? 2 : 1;
+			if (scale != 1)
+				pixelCoords *= scale;
+			DrawDebugEditorSelection(out, pixelCoords, scale);
+		}
+	}
 #endif
 	DrawItemNameLabels(out);
 	DrawMonsterHealthBar(out);
@@ -1486,7 +1540,7 @@ void DrawView(const Surface &out, Point startPosition)
 	if (MyPlayerIsDead) {
 		RedBack(out);
 		DrawDeathText(out);
-	} else if (PauseMode != 0) {
+	} else if (PauseMode != 0 && !DebugOverlayEditorOwnsPause()) {
 		gmenu_draw_pause(out);
 	}
 	if (IsDiabloMsgAvailable()) {

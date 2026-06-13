@@ -260,6 +260,10 @@ add_devilutionx_object_library(libdevilutionx_debug_console_history
   debug_overlay/console_history.cpp
 )
 
+add_devilutionx_object_library(libdevilutionx_debug_overlay_state
+  debug_overlay/overlay_state.cpp
+)
+
 add_devilutionx_object_library(libdevilutionx_control_mode
   controls/control_mode.cpp
 )
@@ -931,6 +935,7 @@ target_link_dependencies(libdevilutionx PUBLIC
   libdevilutionx_control_mode
   libdevilutionx_crawl
   libdevilutionx_debug_console_history
+  libdevilutionx_debug_overlay_state
   libdevilutionx_direction
   libdevilutionx_dun_render
   libdevilutionx_surface

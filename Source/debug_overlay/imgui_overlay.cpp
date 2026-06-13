@@ -5,6 +5,7 @@
 #include <cfloat>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include <imgui.h>
 
@@ -18,11 +19,16 @@
 
 #include "cursor.h"
 #include "debug_overlay/console_history.hpp"
+#include "debug_overlay/overlay_state.hpp"
+#include "diablo.h"
+#include "engine/backbuffer_state.hpp"
 #include "engine/dx.h"
+#include "game_mode.hpp"
 #include "items.h"
 #include "levels/gendung.h"
 #include "levels/tile_properties.hpp"
 #include "monster.h"
+#include "multi.h"
 #include "objects.h"
 #include "panels/console.hpp"
 #include "utils/display.h"
@@ -38,14 +44,117 @@ char InputBuffer[4096];
 DebugConsoleHistory History;
 bool ScrollToBottom;
 bool RefocusInput;
+DebugOverlayState OverlayState;
 
-bool ConsoleWindowVisible = false;
-bool InspectorWindowVisible = false;
-bool InspectorWindowAlwaysActive = false;
+struct PiecePaletteEntry {
+	uint16_t piece;
+	std::string label;
+};
+
+Point PiecePaletteTarget;
+std::vector<PiecePaletteEntry> PiecePaletteEntries;
 
 std::string_view BoolToString(bool value)
 {
 	return value ? "true" : "false";
+}
+
+std::string_view TileTypeToString(TileType tileType)
+{
+	switch (tileType) {
+	case TileType::Square:
+		return "Square";
+	case TileType::TransparentSquare:
+		return "TransparentSquare";
+	case TileType::LeftTriangle:
+		return "LeftTriangle";
+	case TileType::RightTriangle:
+		return "RightTriangle";
+	case TileType::LeftTrapezoid:
+		return "LeftTrapezoid";
+	case TileType::RightTrapezoid:
+		return "RightTrapezoid";
+	}
+	return "???";
+}
+
+std::string BuildPieceLabel(uint16_t piece)
+{
+	if (piece == 0) {
+		return "0 [Empty]";
+	}
+
+	const MICROS &micros = levelMicros()[piece];
+	for (const LevelCelBlock block : micros.mt) {
+		if (!block.hasValue())
+			continue;
+		return StrCat(piece, " [", TileTypeToString(block.type()), " #", block.frame(), "]");
+	}
+
+	return StrCat(piece, " [Empty]");
+}
+
+void RefreshPiecePalette()
+{
+	PiecePaletteEntries.clear();
+	PiecePaletteEntries.reserve(MAXTILES);
+	PiecePaletteEntries.push_back(PiecePaletteEntry { .piece = 0, .label = BuildPieceLabel(0) });
+	for (uint16_t piece = 1; piece < MAXTILES; ++piece) {
+		const MICROS &micros = levelMicros()[piece];
+		bool hasValue = false;
+		for (const LevelCelBlock block : micros.mt) {
+			if (block.hasValue()) {
+				hasValue = true;
+				break;
+			}
+		}
+		if (!hasValue)
+			continue;
+		PiecePaletteEntries.push_back(PiecePaletteEntry { .piece = piece, .label = BuildPieceLabel(piece) });
+	}
+}
+
+void ApplyPieceToTile(Point position, uint16_t piece)
+{
+	dPiece[position.x][position.y] = piece;
+	tileAt(position).setPiece(piece);
+}
+
+void DrawPieceSelectorPopup()
+{
+	if (!ImGui::BeginPopupModal("Piece Selector", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+		return;
+	}
+
+	const Point target = PiecePaletteTarget;
+	ImGui::Text("Tile: %d, %d", target.x, target.y);
+	ImGui::Text("Current piece: %u", static_cast<unsigned>(tileAt(target).piece()));
+	ImGui::Separator();
+
+	if (PiecePaletteEntries.empty()) {
+		RefreshPiecePalette();
+	}
+
+	if (ImGui::BeginChild("PiecePaletteScroll", ImVec2(540.0F, 360.0F), true, ImGuiWindowFlags_HorizontalScrollbar)) {
+		ImGuiListClipper clipper;
+		clipper.Begin(static_cast<int>(PiecePaletteEntries.size()));
+		while (clipper.Step()) {
+			for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i) {
+				const PiecePaletteEntry &entry = PiecePaletteEntries[static_cast<size_t>(i)];
+				const bool selected = entry.piece == tileAt(target).piece();
+				if (ImGui::Selectable(entry.label.c_str(), selected)) {
+					ApplyPieceToTile(target, entry.piece);
+					ImGui::CloseCurrentPopup();
+				}
+			}
+		}
+	}
+	ImGui::EndChild();
+
+	if (ImGui::Button("Close")) {
+		ImGui::CloseCurrentPopup();
+	}
+	ImGui::EndPopup();
 }
 
 void DrawValue(const char *label, std::string_view value)
@@ -63,6 +172,16 @@ void DrawSectionHeader(const char *label)
 	ImGui::Spacing();
 	ImGui::TextUnformatted(label);
 	ImGui::Separator();
+}
+
+void DrawCompactSummaryLabel(const char *label, std::string_view value)
+{
+	ImGui::Text("%s: %.*s", label, static_cast<int>(value.size()), value.data());
+}
+
+void DrawCompactSummaryLabel(const char *label, int value)
+{
+	ImGui::Text("%s: %d", label, value);
 }
 
 void ProcessBackendEvent(const SDL_Event &event)
@@ -102,6 +221,27 @@ bool EnsureInitialized()
 	Initialized = true;
 	InitializedRenderer = renderer;
 	return true;
+}
+
+void ConfigureDisplaySize()
+{
+	int windowWidth;
+	int windowHeight;
+	SDL_GetWindowSize(ghMainWnd, &windowWidth, &windowHeight);
+
+	int logicalWidth = 0;
+	int logicalHeight = 0;
+#ifdef USE_SDL3
+	SDL_GetRenderLogicalPresentation(renderer, &logicalWidth, &logicalHeight, nullptr);
+#else
+	SDL_RenderGetLogicalSize(renderer, &logicalWidth, &logicalHeight);
+#endif
+
+	const DebugOverlayDisplaySize size = ResolveDebugOverlayDisplaySize(
+	    windowWidth, windowHeight, logicalWidth, logicalHeight);
+	ImGuiIO &io = ImGui::GetIO();
+	io.DisplaySize = ImVec2(size.width, size.height);
+	io.DisplayFramebufferScale = ImVec2(1.0F, 1.0F);
 }
 
 ImVec4 ColorForLine(ConsoleLineType type)
@@ -182,24 +322,20 @@ void DrawConsoleContent()
 
 void DrawInspectorContent()
 {
-	const Point tile = cursPosition;
+	const Point tile = OverlayState.GetSelectedEditorTile().value_or(cursPosition);
 	if (!InDungeonBounds(tile)) {
 		ImGui::TextUnformatted("Cursor tile is out of bounds.");
 		return;
 	}
 
 	const Tile &dungeonTile = tileAt(tile);
-	ImGui::Text("Hovered tile: %d, %d", tile.x, tile.y);
+	ImGui::Text("Tile: %d, %d", tile.x, tile.y);
 	ImGui::Text("Solid: %s   Walkable: %s   Occupied: %s", BoolToString(IsTileSolid(tile)).data(), BoolToString(IsTileWalkable(tile)).data(), BoolToString(IsTileOccupied(tile)).data());
-	DrawValue("Position", StrCat(tile.x, ", ", tile.y));
-	DrawValue("Piece", dungeonTile.piece());
+	DrawCompactSummaryLabel("Piece", dungeonTile.piece());
 	DrawValue("TransVal", dungeonTile.transVal());
 	DrawValue("Light", dungeonTile.light());
 	DrawValue("PreLight", dungeonTile.preLight());
 	DrawValue("Flags", static_cast<int>(dungeonTile.flags()));
-	DrawValue("Monster Index", dungeonTile.monster());
-	DrawValue("Object Index", dungeonTile.object());
-	DrawValue("Item Index", dungeonTile.item());
 	DrawValue("Corpse", dungeonTile.corpse());
 	DrawValue("Special", dungeonTile.special());
 	DrawValue("Player", dungeonTile.player());
@@ -209,8 +345,6 @@ void DrawInspectorContent()
 		if (ObjectUnderCursor != nullptr) {
 			const Object &object = *ObjectUnderCursor;
 			ImGui::Text("Object: %s (%d)", object.name().str().data(), static_cast<int>(object._otype));
-			DrawValue("Name", object.name().str());
-			DrawValue("Type", static_cast<int>(object._otype));
 			DrawValue("Solid", BoolToString(object._oSolidFlag));
 			DrawValue("Missile", BoolToString(object._oMissFlag));
 			DrawValue("Trap", BoolToString(object._oTrapFlag));
@@ -226,8 +360,6 @@ void DrawInspectorContent()
 		if (pcursmonst != -1) {
 			const Monster &monster = Monsters[pcursmonst];
 			ImGui::Text("Monster: %s (%d)", monster.name().data(), static_cast<int>(monster.mode));
-			DrawValue("Name", monster.name());
-			DrawValue("Mode", static_cast<int>(monster.mode));
 			DrawValue("Level Type", static_cast<int>(monster.levelType));
 			DrawValue("HP", monster.hitPoints);
 			DrawValue("Max HP", monster.maxHitPoints);
@@ -243,8 +375,6 @@ void DrawInspectorContent()
 		if (pcursitem != -1) {
 			const Item &item = Items[pcursitem];
 			ImGui::Text("Item: %s (%d)", item.getName().str().data(), static_cast<int>(item._itype));
-			DrawValue("Name", item.getName().str());
-			DrawValue("Type", static_cast<int>(item._itype));
 			DrawValue("Quality", static_cast<int>(item._iMagical));
 			DrawValue("CreateInfo", static_cast<int>(item._iCreateInfo));
 			DrawValue("Identified", BoolToString(item._iIdentified));
@@ -256,107 +386,146 @@ void DrawInspectorContent()
 	}
 }
 
-void DrawDebugToolbar()
+void DrawEditorContent()
 {
-	ImGui::SetNextWindowPos(ImVec2(10.0F, 10.0F), ImGuiCond_Always);
-	ImGui::SetNextWindowBgAlpha(0.85F);
-	constexpr ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
-	if (!ImGui::Begin("Debug Toolbar", nullptr, flags)) {
-		ImGui::End();
+	const std::optional<Point> &selectedTile = OverlayState.GetSelectedEditorTile();
+	if (!selectedTile.has_value()) {
+		ImGui::TextUnformatted("Click a tile in the game view to select it.");
 		return;
 	}
 
-	const auto drawToggleButton = [](const char *label, bool active) {
-		if (active) {
-			ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
-		}
-		const bool pressed = ImGui::Button(label);
-		if (active) {
-			ImGui::PopStyleColor(2);
-		}
-		return pressed;
-	};
+	const Point tile = *selectedTile;
+	const Tile &dungeonTile = tileAt(tile);
+	ImGui::Text("Tile: %d, %d", tile.x, tile.y);
+	ImGui::Text("Piece: %u", static_cast<unsigned>(dungeonTile.piece()));
+	ImGui::SameLine();
+	if (ImGui::SmallButton("Edit##Piece")) {
+		PiecePaletteTarget = tile;
+		RefreshPiecePalette();
+		ImGui::OpenPopup("Piece Selector");
+	}
+	DrawPieceSelectorPopup();
+}
 
-	if (drawToggleButton("Console", ConsoleWindowVisible)) {
-		ConsoleWindowVisible = !ConsoleWindowVisible;
-		if (ConsoleWindowVisible)
+void DrawOverlayToolbar()
+{
+	if (!OverlayState.IsActive())
+		return;
+
+	const ImGuiIO &io = ImGui::GetIO();
+	ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, 0.0f), ImGuiCond_Always, ImVec2(0.5f, 0.0f));
+	ImGui::SetNextWindowBgAlpha(0.85f);
+	constexpr ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration
+		| ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings
+		| ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing;
+
+	if (ImGui::Begin("##OverlayToolbar", nullptr, flags)) {
+		// Returns true when the button was just toggled ON.
+		auto ToggleButton = [](const char *label, DebugOverlayWindow window) -> bool {
+			const bool visible = OverlayState.IsWindowVisible(window);
+			if (visible)
+				ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
+			const bool clicked = ImGui::Button(label);
+			if (visible)
+				ImGui::PopStyleColor();
+			if (clicked)
+				OverlayState.ToggleWindow(window);
+			return clicked && OverlayState.IsWindowVisible(window);
+		};
+		if (ToggleButton("Console", DebugOverlayWindow::Console))
 			RefocusInput = true;
+		ImGui::SameLine();
+		ToggleButton("Inspector", DebugOverlayWindow::Inspector);
+		ImGui::SameLine();
+		ImGui::BeginDisabled(gbIsMultiplayer);
+		const bool editorVisible = OverlayState.IsWindowVisible(DebugOverlayWindow::Editor);
+		if (editorVisible)
+			ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
+		const bool editorClicked = ImGui::Button("Editor");
+		if (editorVisible)
+			ImGui::PopStyleColor();
+		ImGui::EndDisabled();
+		if (gbIsMultiplayer && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+			ImGui::SetTooltip("Editor is disabled in multiplayer.");
+		if (editorClicked) {
+			if (editorVisible) {
+				PauseMode = OverlayState.CloseEditor();
+				RedrawEverything();
+			} else if (OverlayState.TryOpenEditor(gbIsMultiplayer, PauseMode)) {
+				PauseMode = 2;
+				LastPlayerAction = PlayerActionType::None;
+				RedrawEverything();
+			}
+		}
 	}
-	ImGui::SameLine();
-	if (drawToggleButton("Inspector", InspectorWindowVisible)) {
-		InspectorWindowVisible = !InspectorWindowVisible;
-		InspectorWindowAlwaysActive = InspectorWindowVisible;
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("Hide All")) {
-		ConsoleWindowVisible = false;
-		InspectorWindowVisible = false;
-		InspectorWindowAlwaysActive = false;
-		CloseConsole();
-	}
-
 	ImGui::End();
 }
 
 void DrawConsoleWindow()
 {
-	if (!ConsoleWindowVisible)
+	if (!OverlayState.IsWindowVisible(DebugOverlayWindow::Console))
 		return;
-
-	InitConsole();
-	SDLC_StartTextInput(ghMainWnd);
 
 	bool open = true;
 	ImGui::SetNextWindowSize(ImVec2(760.0F, 360.0F), ImGuiCond_FirstUseEver);
-	if (!ImGui::Begin("Debug Console", &open, ImGuiWindowFlags_NoCollapse)) {
+	if (!ImGui::Begin("Console", &open, ImGuiWindowFlags_NoCollapse)) {
 		ImGui::End();
 		if (!open)
-			ConsoleWindowVisible = false;
+			OverlayState.SetWindowVisible(DebugOverlayWindow::Console, false);
 		return;
 	}
 	if (!open)
-		ConsoleWindowVisible = false;
+		OverlayState.SetWindowVisible(DebugOverlayWindow::Console, false);
 
+	InitConsole();
+	SDLC_StartTextInput(ghMainWnd);
 	DrawConsoleContent();
 	ImGui::End();
 }
 
 void DrawInspectorWindow()
 {
-	if (!InspectorWindowVisible)
+	if (!OverlayState.IsWindowVisible(DebugOverlayWindow::Inspector))
 		return;
 
 	bool open = true;
-	ImGui::SetNextWindowSize(ImVec2(180.0F, 0.0F), ImGuiCond_FirstUseEver);
-	if (!ImGui::Begin("Inspector", &open, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize)) {
+	ImGui::SetNextWindowSize(ImVec2(400.0F, 500.0F), ImGuiCond_FirstUseEver);
+	if (!ImGui::Begin("Inspector", &open, ImGuiWindowFlags_NoCollapse)) {
 		ImGui::End();
 		if (!open)
-			InspectorWindowVisible = false;
+			OverlayState.SetWindowVisible(DebugOverlayWindow::Inspector, false);
 		return;
 	}
 	if (!open)
-		InspectorWindowVisible = false;
+		OverlayState.SetWindowVisible(DebugOverlayWindow::Inspector, false);
 
 	DrawInspectorContent();
 	ImGui::End();
 }
 
-void DrawDebugOverlayWindow()
+void DrawEditorWindow()
 {
-	if (!IsConsoleOpen())
+	if (!OverlayState.IsWindowVisible(DebugOverlayWindow::Editor))
 		return;
 
-	DrawDebugToolbar();
-	if (ConsoleWindowVisible) {
-		DrawConsoleWindow();
-	} else {
-		SDLC_StopTextInput(ghMainWnd);
+	bool open = true;
+	ImGui::SetNextWindowSize(ImVec2(400.0F, 300.0F), ImGuiCond_FirstUseEver);
+	if (!ImGui::Begin("Editor", &open, ImGuiWindowFlags_NoCollapse)) {
+		ImGui::End();
+		if (!open) {
+			PauseMode = OverlayState.CloseEditor();
+			RedrawEverything();
+		}
+		return;
 	}
-	if (InspectorWindowAlwaysActive) {
-		DrawInspectorWindow();
-	} else if (InspectorWindowVisible) {
-		DrawInspectorWindow();
+
+	if (open)
+		DrawEditorContent();
+	ImGui::End();
+
+	if (!open) {
+		PauseMode = OverlayState.CloseEditor();
+		RedrawEverything();
 	}
 }
 
@@ -385,30 +554,57 @@ bool IsOverlayInputEvent(const SDL_Event &event)
 
 bool DebugOverlayHandleEvent(const SDL_Event &event)
 {
+	// Toggle before initialization so the toolbar can appear on the next render.
+	if (event.type == SDL_EVENT_KEY_DOWN && SDLC_EventScancode(event) == SDL_SCANCODE_GRAVE) {
+		if (OverlayState.IsActive()) {
+			if (OverlayState.EditorOwnsPause())
+				PauseMode = OverlayState.CloseEditor();
+			OverlayState.Close();
+			RedrawEverything();
+		} else {
+			OverlayState.ToggleActive();
+		}
+		if (!OverlayState.IsActive() && ghMainWnd != nullptr)
+			SDLC_StopTextInput(ghMainWnd);
+		return true;
+	}
+
+	if (!OverlayState.IsActive())
+		return false;
+
 	if (!EnsureInitialized()) {
 		return false;
 	}
 
 	ProcessBackendEvent(event);
 
-	if (event.type == SDL_EVENT_KEY_DOWN && SDLC_EventScancode(event) == SDL_SCANCODE_GRAVE) {
-		OpenConsole();
-		ConsoleWindowVisible = false;
-		InspectorWindowVisible = false;
-		InspectorWindowAlwaysActive = false;
-		return true;
-	}
-
-	if (!IsConsoleOpen())
-		return false;
-
 	if (event.type == SDL_EVENT_KEY_DOWN && SDLC_EventKey(event) == SDLK_ESCAPE) {
-		CloseConsole();
+		if (OverlayState.EditorOwnsPause())
+			PauseMode = OverlayState.CloseEditor();
+		OverlayState.Close();
+		SDLC_StopTextInput(ghMainWnd);
+		RedrawEverything();
 		return true;
 	}
 
 	// Let ImGui decide if it wants the event based on whether it's capturing keyboard/mouse input
 	const ImGuiIO &io = ImGui::GetIO();
+	if (OverlayState.IsWindowVisible(DebugOverlayWindow::Editor)) {
+		if (event.type == SDL_EVENT_MOUSE_MOTION) {
+			MousePosition = { SDLC_EventMotionIntX(event), SDLC_EventMotionIntY(event) };
+			if (!io.WantCaptureMouse)
+				CheckCursMove();
+		} else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN
+		    && OverlayState.ShouldSelectEditorTile(io.WantCaptureMouse, event.button.button == SDL_BUTTON_LEFT)) {
+			MousePosition = { SDLC_EventButtonIntX(event), SDLC_EventButtonIntY(event) };
+			CheckCursMove();
+			if (InDungeonBounds(cursPosition)) {
+				OverlayState.SelectEditorTile(cursPosition);
+				RedrawViewport();
+			}
+			return true;
+		}
+	}
 	if (IsOverlayInputEvent(event)) {
 		switch (event.type) {
 		case SDL_EVENT_KEY_DOWN:
@@ -438,6 +634,16 @@ bool DebugOverlayIsAvailable()
 	return renderer != nullptr;
 }
 
+bool DebugOverlayEditorOwnsPause()
+{
+	return OverlayState.EditorOwnsPause();
+}
+
+const std::optional<Point> &DebugOverlaySelectedTile()
+{
+	return OverlayState.GetSelectedEditorTile();
+}
+
 void DebugOverlayRender()
 {
 	if (!EnsureInitialized())
@@ -450,9 +656,17 @@ void DebugOverlayRender()
 	ImGui_ImplSDLRenderer2_NewFrame();
 	ImGui_ImplSDL2_NewFrame();
 #endif
+	ConfigureDisplaySize();
 	ImGui::NewFrame();
 
-	DrawDebugOverlayWindow();
+	DrawOverlayToolbar();
+	if (OverlayState.IsWindowVisible(DebugOverlayWindow::Console)) {
+		DrawConsoleWindow();
+	} else {
+		SDLC_StopTextInput(ghMainWnd);
+	}
+	DrawInspectorWindow();
+	DrawEditorWindow();
 
 	ImGui::Render();
 #ifdef USE_SDL3
@@ -493,6 +707,17 @@ bool DebugOverlayHandleEvent(const SDL_Event & /*event*/)
 bool DebugOverlayIsAvailable()
 {
 	return false;
+}
+
+bool DebugOverlayEditorOwnsPause()
+{
+	return false;
+}
+
+const std::optional<Point> &DebugOverlaySelectedTile()
+{
+	static const std::optional<Point> NoSelectedTile;
+	return NoSelectedTile;
 }
 
 void DebugOverlayRender()

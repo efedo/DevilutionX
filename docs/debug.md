@@ -4,9 +4,20 @@ If you compile the game in debug, you have multiple debug features available.
 
 ## Debug overlay and console
 
-Debug builds include a Dear ImGui overlay. Press <kbd>`</kbd> to open the
-debug console. The console runs Lua code in the same REPL environment used by
-the existing debug command-line support.
+Debug builds include a Dear ImGui overlay. Press <kbd>`</kbd> to toggle its
+top toolbar, then use **Console**, **Inspector**, and **Editor** to open or
+close their independent windows. Press <kbd>Escape</kbd> to close the toolbar
+and all overlay windows.
+
+The Console window runs Lua code in the same REPL environment used by the
+existing debug command-line support. The Inspector reports the tile and entity
+under the cursor, or the Editor's selected tile when one is selected.
+
+Opening Editor in single-player pauses gameplay without showing the normal
+pause label. Click a tile in the game view to select it; the selected tile is
+outlined in red and remains selected until Editor closes or another tile is
+clicked. Closing Editor restores the pause state that was active before it
+opened. Editor is disabled in multiplayer.
 
 The ImGui overlay is available on SDL2 and SDL3 builds that use the SDL
 renderer path. SDL1 and non-renderer builds keep the legacy in-game console

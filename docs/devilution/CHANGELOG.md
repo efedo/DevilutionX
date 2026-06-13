@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Debugging
 - Add a Dear ImGui debug overlay console for debug builds and document the Lua
   console workflow.
+- Fix the debug overlay toolbar toggle and keep Console, Inspector, and Editor
+  in independent windows.
+- Pause single-player while the debug Editor is open and add click-based tile
+  selection with a red world highlight.
 
 ### Bug Fixes
 

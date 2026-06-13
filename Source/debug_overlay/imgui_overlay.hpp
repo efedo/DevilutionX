@@ -6,10 +6,16 @@
 #include <SDL.h>
 #endif
 
+#include <optional>
+
+#include "engine/point.hpp"
+
 namespace devilution {
 
 bool DebugOverlayHandleEvent(const SDL_Event &event);
 bool DebugOverlayIsAvailable();
+bool DebugOverlayEditorOwnsPause();
+const std::optional<Point> &DebugOverlaySelectedTile();
 void DebugOverlayRender();
 void DebugOverlayShutdown();
 
