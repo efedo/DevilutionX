@@ -14,6 +14,64 @@ DebugOverlayDisplaySize ResolveDebugOverlayDisplaySize(
 	return { static_cast<float>(windowWidth), static_cast<float>(windowHeight) };
 }
 
+DebugOverlayDisplaySize ResolveDebugPiecePreviewSize(
+    int sourceWidth, int sourceHeight, float maximumWidth, float maximumHeight)
+{
+	const float scale = std::min(
+	    maximumWidth / static_cast<float>(sourceWidth),
+	    maximumHeight / static_cast<float>(sourceHeight));
+	return {
+		static_cast<float>(sourceWidth) * scale,
+		static_cast<float>(sourceHeight) * scale,
+	};
+}
+
+bool IsDebugPiecePreviewFoliage(bool isFloorPiece, std::size_t blockIndex, TileType tileType)
+{
+	return isFloorPiece && blockIndex < 2 && tileType == TileType::TransparentSquare;
+}
+
+void DebugPieceSelectorState::Open(uint16_t currentPiece)
+{
+	open_ = true;
+	selectedPiece_ = currentPiece;
+	appliedPiece_.reset();
+}
+
+bool DebugPieceSelectorState::IsOpen() const
+{
+	return open_;
+}
+
+void DebugPieceSelectorState::Select(uint16_t piece)
+{
+	selectedPiece_ = piece;
+}
+
+uint16_t DebugPieceSelectorState::GetSelectedPiece() const
+{
+	return selectedPiece_;
+}
+
+void DebugPieceSelectorState::Apply()
+{
+	appliedPiece_ = selectedPiece_;
+	open_ = false;
+}
+
+void DebugPieceSelectorState::Cancel()
+{
+	appliedPiece_.reset();
+	open_ = false;
+}
+
+std::optional<uint16_t> DebugPieceSelectorState::TakeAppliedPiece()
+{
+	std::optional<uint16_t> result = appliedPiece_;
+	appliedPiece_.reset();
+	return result;
+}
+
 bool DebugOverlayState::IsActive() const
 {
 	return active_;

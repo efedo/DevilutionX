@@ -2,7 +2,9 @@
 
 #if defined(_DEBUG) && !defined(USE_SDL1)
 
+#include <algorithm>
 #include <cfloat>
+#include <cstdint>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -23,16 +25,22 @@
 #include "diablo.h"
 #include "engine/backbuffer_state.hpp"
 #include "engine/dx.h"
+#include "engine/palette.h"
+#include "engine/render/dun_render.hpp"
+#include "engine/render/light_render.hpp"
+#include "engine/surface.hpp"
 #include "game_mode.hpp"
 #include "items.h"
 #include "levels/gendung.h"
 #include "levels/tile_properties.hpp"
+#include "lighting.h"
 #include "monster.h"
 #include "multi.h"
 #include "objects.h"
 #include "panels/console.hpp"
 #include "utils/display.h"
 #include "utils/sdl_compat.h"
+#include "utils/sdl_ptrs.h"
 #include "utils/str_cat.hpp"
 
 namespace devilution {
@@ -45,14 +53,34 @@ DebugConsoleHistory History;
 bool ScrollToBottom;
 bool RefocusInput;
 DebugOverlayState OverlayState;
+DebugPieceSelectorState PieceSelectorState;
 
 struct PiecePaletteEntry {
 	uint16_t piece;
 	std::string label;
+	SDLTextureUniquePtr texture;
+	uint64_t textureLastUsedFrame = 0;
 };
 
 Point PiecePaletteTarget;
 std::vector<PiecePaletteEntry> PiecePaletteEntries;
+
+constexpr int PiecePreviewWidth = TILE_WIDTH;
+constexpr int PiecePaletteColumns = 5;
+constexpr float PieceThumbnailWidth = 64.0F;
+constexpr float PieceThumbnailHeight = 96.0F;
+constexpr float PieceThumbnailCellHeight = 104.0F;
+constexpr float PiecePaletteWidth = 440.0F;
+constexpr float PiecePaletteHeight = 390.0F;
+constexpr float PieceLargePreviewWidth = 220.0F;
+constexpr float PieceLargePreviewHeight = 320.0F;
+
+uint64_t PiecePreviewFrame;
+
+int PiecePreviewHeight()
+{
+	return std::max<int>(TILE_HEIGHT, (MicroTileLen / 2) * TILE_HEIGHT);
+}
 
 std::string_view BoolToString(bool value)
 {
@@ -98,7 +126,7 @@ void RefreshPiecePalette()
 {
 	PiecePaletteEntries.clear();
 	PiecePaletteEntries.reserve(MAXTILES);
-	PiecePaletteEntries.push_back(PiecePaletteEntry { .piece = 0, .label = BuildPieceLabel(0) });
+	PiecePaletteEntries.push_back(PiecePaletteEntry { .piece = 0, .label = BuildPieceLabel(0), .texture = nullptr, .textureLastUsedFrame = 0 });
 	for (uint16_t piece = 1; piece < MAXTILES; ++piece) {
 		const MICROS &micros = levelMicros()[piece];
 		bool hasValue = false;
@@ -110,8 +138,76 @@ void RefreshPiecePalette()
 		}
 		if (!hasValue)
 			continue;
-		PiecePaletteEntries.push_back(PiecePaletteEntry { .piece = piece, .label = BuildPieceLabel(piece) });
+		PiecePaletteEntries.push_back(PiecePaletteEntry { .piece = piece, .label = BuildPieceLabel(piece), .texture = nullptr, .textureLastUsedFrame = 0 });
 	}
+}
+
+SDL_Texture *GetPiecePreviewTexture(PiecePaletteEntry &entry)
+{
+	entry.textureLastUsedFrame = PiecePreviewFrame;
+	if (entry.texture != nullptr)
+		return entry.texture.get();
+
+	// Render the assembled micro tiles once, then keep the SDL texture while this palette is open.
+	const int previewHeight = PiecePreviewHeight();
+	OwnedSurface previewSurface(PiecePreviewWidth, previewHeight);
+	for (int y = 0; y < previewHeight; ++y) {
+		std::fill_n(previewSurface.at(0, y), PiecePreviewWidth, uint8_t { 0 });
+	}
+	if (!SDLC_SetSurfacePalette(previewSurface.surface, Palette.get()))
+		return nullptr;
+
+	std::vector<uint8_t> lightmapBuffer(static_cast<size_t>(previewSurface.pitch()) * previewHeight, 0);
+	const Lightmap lightmap(
+	    previewSurface.begin(),
+	    lightmapBuffer,
+	    previewSurface.pitch(),
+	    LightTables,
+	    FullyLitLightTable,
+	    FullyDarkLightTable);
+	const uint8_t *const lightTable = FullyLitLightTable != nullptr ? FullyLitLightTable : LightTables[0].data();
+
+	const MICROS &micros = levelMicros()[entry.piece];
+	const TileProperties pieceProperties = SOLData[entry.piece];
+	const bool isFloorPiece = !HasAnyOf(pieceProperties, TileProperties::Solid | TileProperties::BlockMissile);
+	Point position { 0, previewHeight - 1 };
+	for (uint_fast8_t i = 0; i < MicroTileLen; i += 2) {
+		const LevelCelBlock left { micros.mt[i] };
+		if (left.hasValue()) {
+			if (IsDebugPiecePreviewFoliage(isFloorPiece, i, left.type())) {
+				RenderTileFoliage(previewSurface, lightmap, position, pDungeonCels.get(), left, lightTable);
+			} else {
+				RenderTile(previewSurface, lightmap, position, pDungeonCels.get(), left, MaskType::Solid, lightTable);
+			}
+		}
+
+		const LevelCelBlock right { micros.mt[i + 1] };
+		if (right.hasValue()) {
+			const Point rightPosition = position + Displacement { DunFrameWidth, 0 };
+			if (IsDebugPiecePreviewFoliage(isFloorPiece, i + 1, right.type())) {
+				RenderTileFoliage(previewSurface, lightmap, rightPosition, pDungeonCels.get(), right, lightTable);
+			} else {
+				RenderTile(previewSurface, lightmap, rightPosition, pDungeonCels.get(), right, MaskType::Solid, lightTable);
+			}
+		}
+		position.y -= TILE_HEIGHT;
+	}
+
+	entry.texture.reset(SDL_CreateTextureFromSurface(renderer, previewSurface.surface));
+	return entry.texture.get();
+}
+
+void ReleaseUnusedPiecePreviewTextures()
+{
+	for (PiecePaletteEntry &entry : PiecePaletteEntries) {
+		if (entry.texture != nullptr && entry.textureLastUsedFrame + 1 < PiecePreviewFrame)
+			entry.texture.reset();
+	}
+}
+
+ImTextureRef ToImTextureRef(SDL_Texture *texture)
+{
+	return ImTextureRef { static_cast<ImTextureID>(reinterpret_cast<uintptr_t>(texture)) };
 }
 
 void ApplyPieceToTile(Point position, uint16_t piece)
@@ -122,38 +218,107 @@ void ApplyPieceToTile(Point position, uint16_t piece)
 
 void DrawPieceSelectorPopup()
 {
-	if (!ImGui::BeginPopupModal("Piece Selector", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+	bool open = PieceSelectorState.IsOpen();
+	ImGui::SetNextWindowSize(ImVec2(760.0F, 475.0F), ImGuiCond_Appearing);
+	if (!ImGui::BeginPopupModal("Piece Selector", &open, ImGuiWindowFlags_NoResize)) {
+		if (!open)
+			PieceSelectorState.Cancel();
 		return;
 	}
 
 	const Point target = PiecePaletteTarget;
-	ImGui::Text("Tile: %d, %d", target.x, target.y);
-	ImGui::Text("Current piece: %u", static_cast<unsigned>(tileAt(target).piece()));
+	ImGui::Text("Tile: %d, %d   Current piece: %u", target.x, target.y, static_cast<unsigned>(tileAt(target).piece()));
 	ImGui::Separator();
 
 	if (PiecePaletteEntries.empty()) {
 		RefreshPiecePalette();
 	}
 
-	if (ImGui::BeginChild("PiecePaletteScroll", ImVec2(540.0F, 360.0F), true, ImGuiWindowFlags_HorizontalScrollbar)) {
+	bool applySelection = false;
+	if (ImGui::BeginChild("PiecePaletteScroll", ImVec2(PiecePaletteWidth, PiecePaletteHeight), true)) {
+		const int rowCount = static_cast<int>((PiecePaletteEntries.size() + PiecePaletteColumns - 1) / PiecePaletteColumns);
 		ImGuiListClipper clipper;
-		clipper.Begin(static_cast<int>(PiecePaletteEntries.size()));
+		clipper.Begin(rowCount, PieceThumbnailCellHeight + ImGui::GetStyle().ItemSpacing.y);
 		while (clipper.Step()) {
-			for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i) {
-				const PiecePaletteEntry &entry = PiecePaletteEntries[static_cast<size_t>(i)];
-				const bool selected = entry.piece == tileAt(target).piece();
-				if (ImGui::Selectable(entry.label.c_str(), selected)) {
-					ApplyPieceToTile(target, entry.piece);
-					ImGui::CloseCurrentPopup();
+			for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row) {
+				for (int column = 0; column < PiecePaletteColumns; ++column) {
+					const size_t index = static_cast<size_t>(row * PiecePaletteColumns + column);
+					if (index >= PiecePaletteEntries.size())
+						break;
+
+					PiecePaletteEntry &entry = PiecePaletteEntries[index];
+					const bool selected = entry.piece == PieceSelectorState.GetSelectedPiece();
+					if (column != 0)
+						ImGui::SameLine();
+
+					ImGui::PushID(static_cast<int>(entry.piece));
+					if (selected) {
+						ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.55F, 0.08F, 0.08F, 1.0F));
+						ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.72F, 0.12F, 0.12F, 1.0F));
+					}
+					SDL_Texture *texture = GetPiecePreviewTexture(entry);
+					const DebugOverlayDisplaySize thumbnailSize = ResolveDebugPiecePreviewSize(
+					    PiecePreviewWidth,
+					    PiecePreviewHeight(),
+					    PieceThumbnailWidth,
+					    PieceThumbnailHeight);
+					const bool clicked = texture != nullptr
+					    ? ImGui::ImageButton("##Piece", ToImTextureRef(texture), ImVec2(thumbnailSize.width, thumbnailSize.height))
+					    : ImGui::Button("No preview", ImVec2(PieceThumbnailWidth, PieceThumbnailHeight));
+					if (selected)
+						ImGui::PopStyleColor(2);
+					if (clicked)
+						PieceSelectorState.Select(entry.piece);
+					if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+						PieceSelectorState.Select(entry.piece);
+						applySelection = true;
+					}
+					if (ImGui::IsItemHovered())
+						ImGui::SetTooltip("%s", entry.label.c_str());
+					ImGui::PopID();
 				}
 			}
 		}
 	}
 	ImGui::EndChild();
 
-	if (ImGui::Button("Close")) {
+	ImGui::SameLine();
+	ImGui::BeginGroup();
+	ImGui::Text("Selected piece: %u", static_cast<unsigned>(PieceSelectorState.GetSelectedPiece()));
+	auto selectedEntry = std::find_if(PiecePaletteEntries.begin(), PiecePaletteEntries.end(), [](const PiecePaletteEntry &entry) {
+		return entry.piece == PieceSelectorState.GetSelectedPiece();
+	});
+	if (selectedEntry != PiecePaletteEntries.end()) {
+		if (SDL_Texture *texture = GetPiecePreviewTexture(*selectedEntry); texture != nullptr) {
+			const DebugOverlayDisplaySize previewSize = ResolveDebugPiecePreviewSize(
+			    PiecePreviewWidth,
+			    PiecePreviewHeight(),
+			    PieceLargePreviewWidth,
+			    PieceLargePreviewHeight);
+			ImGui::Image(ToImTextureRef(texture), ImVec2(previewSize.width, previewSize.height));
+		}
+		ImGui::TextWrapped("%s", selectedEntry->label.c_str());
+	}
+	ImGui::Spacing();
+	if (ImGui::Button("Apply", ImVec2(PieceLargePreviewWidth, 0.0F)))
+		applySelection = true;
+	if (ImGui::Button("Cancel", ImVec2(PieceLargePreviewWidth, 0.0F))) {
+		PieceSelectorState.Cancel();
 		ImGui::CloseCurrentPopup();
 	}
+	ImGui::TextWrapped("Double-click a thumbnail to apply it immediately.");
+	ImGui::EndGroup();
+
+	if (applySelection) {
+		PieceSelectorState.Apply();
+		ImGui::CloseCurrentPopup();
+	}
+	if (const std::optional<uint16_t> piece = PieceSelectorState.TakeAppliedPiece(); piece.has_value()) {
+		ApplyPieceToTile(target, *piece);
+		RedrawEverything();
+	}
+	if (!open)
+		PieceSelectorState.Cancel();
 	ImGui::EndPopup();
 }
 
@@ -402,6 +567,7 @@ void DrawEditorContent()
 	if (ImGui::SmallButton("Edit##Piece")) {
 		PiecePaletteTarget = tile;
 		RefreshPiecePalette();
+		PieceSelectorState.Open(dungeonTile.piece());
 		ImGui::OpenPopup("Piece Selector");
 	}
 	DrawPieceSelectorPopup();
@@ -649,6 +815,8 @@ void DebugOverlayRender()
 	if (!EnsureInitialized())
 		return;
 
+	++PiecePreviewFrame;
+	ReleaseUnusedPiecePreviewTextures();
 #ifdef USE_SDL3
 	ImGui_ImplSDLRenderer3_NewFrame();
 	ImGui_ImplSDL3_NewFrame();
@@ -681,6 +849,8 @@ void DebugOverlayShutdown()
 	if (!Initialized)
 		return;
 
+	PiecePaletteEntries.clear();
+	PieceSelectorState.Cancel();
 #ifdef USE_SDL3
 	ImGui_ImplSDLRenderer3_Shutdown();
 	ImGui_ImplSDL3_Shutdown();

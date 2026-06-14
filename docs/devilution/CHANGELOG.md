@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   in independent windows.
 - Pause single-player while the debug Editor is open and add click-based tile
   selection with a red world highlight.
+- Add graphical dungeon-piece thumbnails and a large preview to the debug
+  Editor's piece selector.
 
 ### Bug Fixes
 

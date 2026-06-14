@@ -138,3 +138,102 @@ TEST(DebugOverlayEditor, SelectsOnlyUncapturedWorldClicks)
 	state.CloseEditor();
 	EXPECT_FALSE(state.ShouldSelectEditorTile(/*mouseCaptured=*/false, /*leftButton=*/true));
 }
+
+TEST(DebugPieceSelector, OpensWithCurrentPieceSelected)
+{
+	DebugPieceSelectorState state;
+
+	state.Open(/*currentPiece=*/42);
+
+	EXPECT_TRUE(state.IsOpen());
+	EXPECT_EQ(state.GetSelectedPiece(), 42);
+}
+
+TEST(DebugPieceSelector, BrowsingDoesNotApplyUntilConfirmed)
+{
+	DebugPieceSelectorState state;
+	state.Open(/*currentPiece=*/42);
+
+	state.Select(/*piece=*/57);
+
+	EXPECT_EQ(state.GetSelectedPiece(), 57);
+	EXPECT_FALSE(state.TakeAppliedPiece().has_value());
+	EXPECT_TRUE(state.IsOpen());
+}
+
+TEST(DebugPieceSelector, ApplyReturnsSelectionAndCloses)
+{
+	DebugPieceSelectorState state;
+	state.Open(/*currentPiece=*/42);
+	state.Select(/*piece=*/57);
+
+	state.Apply();
+
+	EXPECT_EQ(state.TakeAppliedPiece(), 57);
+	EXPECT_FALSE(state.IsOpen());
+	EXPECT_FALSE(state.TakeAppliedPiece().has_value());
+}
+
+TEST(DebugPieceSelector, CancelClosesWithoutApplying)
+{
+	DebugPieceSelectorState state;
+	state.Open(/*currentPiece=*/42);
+	state.Select(/*piece=*/57);
+
+	state.Cancel();
+
+	EXPECT_FALSE(state.IsOpen());
+	EXPECT_FALSE(state.TakeAppliedPiece().has_value());
+}
+
+TEST(DebugPiecePreviewSize, PreservesAspectRatioWhenHeightLimited)
+{
+	const DebugOverlayDisplaySize size = ResolveDebugPiecePreviewSize(
+	    /*sourceWidth=*/64,
+	    /*sourceHeight=*/256,
+	    /*maximumWidth=*/128.0F,
+	    /*maximumHeight=*/320.0F);
+
+	EXPECT_FLOAT_EQ(size.width, 80.0F);
+	EXPECT_FLOAT_EQ(size.height, 320.0F);
+}
+
+TEST(DebugPiecePreviewSize, PreservesAspectRatioWhenWidthLimited)
+{
+	const DebugOverlayDisplaySize size = ResolveDebugPiecePreviewSize(
+	    /*sourceWidth=*/64,
+	    /*sourceHeight=*/96,
+	    /*maximumWidth=*/128.0F,
+	    /*maximumHeight=*/320.0F);
+
+	EXPECT_FLOAT_EQ(size.width, 128.0F);
+	EXPECT_FLOAT_EQ(size.height, 192.0F);
+}
+
+TEST(DebugPiecePreviewFoliage, UsesFoliageDecoderForFirstFloorBlocks)
+{
+	EXPECT_TRUE(IsDebugPiecePreviewFoliage(
+	    /*isFloorPiece=*/true,
+	    /*blockIndex=*/0,
+	    TileType::TransparentSquare));
+	EXPECT_TRUE(IsDebugPiecePreviewFoliage(
+	    /*isFloorPiece=*/true,
+	    /*blockIndex=*/1,
+	    TileType::TransparentSquare));
+}
+
+TEST(DebugPiecePreviewFoliage, UsesNormalDecoderForOtherBlocks)
+{
+	EXPECT_FALSE(IsDebugPiecePreviewFoliage(
+	    /*isFloorPiece=*/false,
+	    /*blockIndex=*/0,
+	    TileType::TransparentSquare));
+	EXPECT_FALSE(IsDebugPiecePreviewFoliage(
+	    /*isFloorPiece=*/true,
+	    /*blockIndex=*/2,
+	    TileType::TransparentSquare));
+	EXPECT_FALSE(IsDebugPiecePreviewFoliage(
+	    /*isFloorPiece=*/true,
+	    /*blockIndex=*/0,
+	    TileType::Square));
+}

@@ -1,9 +1,11 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 
 #include "engine/point.hpp"
+#include "levels/dun_tile.hpp"
 
 namespace devilution {
 
@@ -21,6 +23,25 @@ struct DebugOverlayDisplaySize {
 
 DebugOverlayDisplaySize ResolveDebugOverlayDisplaySize(
     int windowWidth, int windowHeight, int logicalWidth, int logicalHeight);
+DebugOverlayDisplaySize ResolveDebugPiecePreviewSize(
+    int sourceWidth, int sourceHeight, float maximumWidth, float maximumHeight);
+bool IsDebugPiecePreviewFoliage(bool isFloorPiece, std::size_t blockIndex, TileType tileType);
+
+class DebugPieceSelectorState {
+public:
+	void Open(uint16_t currentPiece);
+	bool IsOpen() const;
+	void Select(uint16_t piece);
+	uint16_t GetSelectedPiece() const;
+	void Apply();
+	void Cancel();
+	std::optional<uint16_t> TakeAppliedPiece();
+
+private:
+	bool open_ = false;
+	uint16_t selectedPiece_ = 0;
+	std::optional<uint16_t> appliedPiece_;
+};
 
 class DebugOverlayState {
 public:

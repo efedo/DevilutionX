@@ -19,6 +19,11 @@ outlined in red and remains selected until Editor closes or another tile is
 clicked. Closing Editor restores the pause state that was active before it
 opened. Editor is disabled in multiplayer.
 
+The Editor's piece selector displays a dense grid of assembled dungeon-piece
+thumbnails. Click a thumbnail to inspect its larger preview, then click
+**Apply** or double-click the thumbnail to place it. **Cancel** closes the
+selector without changing the tile.
+
 The ImGui overlay is available on SDL2 and SDL3 builds that use the SDL
 renderer path. SDL1 and non-renderer builds keep the legacy in-game console
 fallback.
