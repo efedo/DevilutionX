@@ -454,6 +454,8 @@ public:
 	// wParam1: First Parameter
 	// wParam2: Second Parameter
 	void UpdatePreviewCelSprite(_cmd_id cmdId, Point point, uint16_t wParam1, uint16_t wParam2);
+	ClxSprite getPortraitSprite(); // Get the current portrait sprite used for the party panel
+	bool isUnarmed() const;
 
 	[[nodiscard]] uint8_t getCharacterLevel() const { return _pLevel; }
 	void setCharacterLevel(uint8_t level); // Sets the character level to the target level or nearest valid
@@ -498,6 +500,7 @@ public:
 
 	bool hasNoLife() const;
 	bool hasNoMana() const;
+	void initDungeonMessages();
 
 	void loadGraphic(player_graphic graphic);
 	void initGraphics();
@@ -549,9 +552,6 @@ extern bool MyPlayerIsDead;
 
 Player *PlayerAtPosition(Point position, bool ignoreMovingPlayers = false);
 
-ClxSprite GetPlayerPortraitSprite(Player &player); // Get the players current portrait sprite which is used for the party panel
-bool IsPlayerUnarmed(Player &player);
-
 void AddPlrMonstExper(int lvl, unsigned int exp, char pmask);
 void InitPlayer(Player &player, bool FirstTime);
 void InitMultiView();
@@ -564,7 +564,6 @@ void RestartTownLvl(Player &player);
 void StartWarpLvl(Player &player, size_t pidx);
 void ProcessPlayers();
 void CheckPlrSpell(bool isShiftHeld, SpellID spellID = MyPlayer->_pRSpell, SpellType spellType = MyPlayer->_pRSplType);
-void InitDungMsgs(Player &player);
 void PlayDungMsgs();
 
 } // namespace devilution

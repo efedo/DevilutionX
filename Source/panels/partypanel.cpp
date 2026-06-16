@@ -206,12 +206,12 @@ void DrawPartyMemberInfoPanel(const Surface &out)
 		pos.y += HealthBarHeight;
 
 		// Get the players current portrait sprite
-		const ClxSprite playerPortraitSprite = GetPlayerPortraitSprite(player);
+		const ClxSprite playerPortraitSprite = player.getPortraitSprite();
 		// Get the offset of the sprite based on the players class so it get's rendered in the correct position
 		const PartySpriteOffset offsets = GetClassSpriteOffset(player._pClass);
 		Point offset = (player.isOnLevel(0)) ? offsets.inTownOffset : offsets.inDungeonOffset;
 
-		if (player.life.current <= 0 && IsPlayerUnarmed(player))
+		if (player.life.current <= 0 && player.isUnarmed())
 			offset = offsets.isDeadOffset;
 
 		// Calculate the players portait position

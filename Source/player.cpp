@@ -2234,8 +2234,9 @@ Player *PlayerAtPosition(Point position, bool ignoreMovingPlayers /*= false*/)
 	return &Players[std::abs(playerIndex) - 1];
 }
 
-ClxSprite GetPlayerPortraitSprite(Player &player)
+ClxSprite Player::getPortraitSprite()
 {
+	Player &player = *this;
 	const bool inDungeon = (player.plrlevel != 0);
 
 	const HeroClass cls = GetPlayerSpriteClass(player._pClass);
@@ -2275,8 +2276,9 @@ ClxSprite GetPlayerPortraitSprite(Player &player)
 	return spriteList[(graphic == player_graphic::Stand) ? 0 : spriteList.numSprites() - 1];
 }
 
-bool IsPlayerUnarmed(Player &player)
+bool Player::isUnarmed() const
 {
+	const Player &player = *this;
 	const PlayerWeaponGraphic animWeaponId = GetPlayerWeaponGraphic(player_graphic::Stand, static_cast<PlayerWeaponGraphic>(player._pgfxnum & 0xF));
 	return animWeaponId == PlayerWeaponGraphic::Unarmed;
 }
@@ -2553,7 +2555,7 @@ void Player::create(HeroClass c)
 	player.pDamAcFlags = ItemSpecialEffectHf::None;
 	player.wReflections = 0;
 
-	InitDungMsgs(player);
+	player.initDungeonMessages();
 	CreatePlrItems(player);
 	SetRndSeed(0);
 }
@@ -2797,6 +2799,8 @@ void InitMultiView()
 	ViewPosition = MyPlayer->position.tile;
 }
 
+// Clears the transparency flags for the 3x3 area around the player,
+// allowing the player to see through transparent tiles again after walking away from them.
 void PlrClrTrans(Point position)
 {
 	for (int i = position.y - 1; i <= position.y + 1; i++) {
@@ -2806,6 +2810,10 @@ void PlrClrTrans(Point position)
 	}
 }
 
+// Sets the transparency flags for the 3x3 area around the player,
+// allowing the player to see through transparent tiles. This is called when the player moves onto a new tile,
+// so that the player can see through any transparent tiles around the new position. If the player is in a level
+// without transparent tiles, the first transparency flag is set to true to allow the player to see through all tiles.
 void PlrDoTrans(Point position)
 {
 	if (IsNoneOf(leveltype, DTYPE_CATHEDRAL, DTYPE_CATACOMBS, DTYPE_CRYPT)) {
@@ -3699,8 +3707,9 @@ void Player::setVitality(int v)
 	CalcPlrInv(player, true);
 }
 
-void InitDungMsgs(Player &player)
+void Player::initDungeonMessages()
 {
+	Player &player = *this;
 	player.pDungMsgs = 0;
 	player.pDungMsgs2 = 0;
 }

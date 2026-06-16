@@ -204,3 +204,25 @@ TEST(Player, CreatePlayer)
 	Players[0].create(HeroClass::Rogue);
 	AssertPlayer(Players[0]);
 }
+
+TEST(Player, IsUnarmedChecksCurrentWeaponGraphic)
+{
+	Player player;
+	player._pgfxnum = static_cast<uint8_t>(PlayerWeaponGraphic::Unarmed);
+	EXPECT_TRUE(player.isUnarmed());
+
+	player._pgfxnum = static_cast<uint8_t>(PlayerWeaponGraphic::Sword);
+	EXPECT_FALSE(player.isUnarmed());
+}
+
+TEST(Player, InitDungeonMessagesClearsMessageFlags)
+{
+	Player player;
+	player.pDungMsgs = 0xFF;
+	player.pDungMsgs2 = 0xFF;
+
+	player.initDungeonMessages();
+
+	EXPECT_EQ(player.pDungMsgs, 0);
+	EXPECT_EQ(player.pDungMsgs2, 0);
+}
