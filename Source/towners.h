@@ -48,25 +48,18 @@ extern const std::unordered_map<_talker_id, const char *> TownerShortNames;     
 struct Towner : Actor {
 	OptionalOwnedClxSpriteList ownedAnim;
 	OptionalClxSpriteList anim;
-	/** Specifies the animation frame sequence. */
-	std::span<const uint8_t> animOrder;
+	std::span<const uint8_t> animOrder; /** Specifies the animation frame sequence. */
 	void (*talk)(Player &player, Towner &towner);
 
 	std::string_view name;
 
-	/** Tile position of NPC */
-	Point position;
-	/** Randomly chosen topic for discussion (picked when loading into town) */
-	_speech_id gossip;
+	Point position; // Tile position of NPC
+	_speech_id gossip; /** Randomly chosen topic for discussion (picked when loading into town) */
 	uint16_t _tAnimWidth;
-	/** Tick length of each frame in the current animation */
-	int16_t _tAnimDelay;
-	/** Increases by one each game tick, counting how close we are to _pAnimDelay */
-	int16_t _tAnimCnt;
-	/** Number of frames in current animation */
-	uint8_t _tAnimLen;
-	/** Current frame of animation. */
-	uint8_t _tAnimFrame;
+	int16_t _tAnimDelay; /** Tick length of each frame in the current animation */
+	int16_t _tAnimCnt; /** Increases by one each game tick, counting how close we are to _pAnimDelay */
+	uint8_t _tAnimLen; /** Number of frames in current animation */
+	uint8_t _tAnimFrame; /** Current frame of animation. */
 	uint8_t _tAnimFrameCnt;
 	_talker_id _ttype;
 
