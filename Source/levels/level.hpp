@@ -104,9 +104,9 @@ public:
 	[[nodiscard]] Tile &tileAt(Point position) { return tiles_[position.x][position.y]; }
 	[[nodiscard]] const Tile &tileAt(Point position) const { return tiles_[position.x][position.y]; }
 
-	// Direct access to the tile array (for bulk operations).
-	[[nodiscard]] Tile (&tiles())[MAXDUNX][MAXDUNY] { return tiles_; }
-	[[nodiscard]] const Tile (&tiles() const)[MAXDUNX][MAXDUNY] { return tiles_; }
+	// Direct access to the tile grid (for bulk operations).
+	[[nodiscard]] TileGrid &tiles() { return tiles_; }
+	[[nodiscard]] const TileGrid &tiles() const { return tiles_; }
 
 	[[nodiscard]] DungeonMegaTile &megaTileAt(int x, int y) { return megaTiles_[x][y]; }
 	[[nodiscard]] const DungeonMegaTile &megaTileAt(int x, int y) const { return megaTiles_[x][y]; }
@@ -124,6 +124,8 @@ public:
 	// -------------------------------------------------------------------------
 	// Coarse dungeon generation state
 	// -------------------------------------------------------------------------
+
+	// EF todo: further cleanup and consolidation
 	Bitset2d<DMAXX, DMAXY> DungeonMask_;            // Megatiles occupied during procedural generation.
 	DungeonMegaTile megaTiles_[DMAXX][DMAXY] = {};  // Active and replacement IDs for each dungeon megatile.
 	Bitset2d<DMAXX, DMAXY> Protected_;              // Megatiles that the level generator may not overwrite.
@@ -157,7 +159,7 @@ public:
 	// Per-tile maps  (MAXDUNX × MAXDUNY)
 	// -------------------------------------------------------------------------
 
-	Tile tiles_[MAXDUNX][MAXDUNY] = {}; // Runtime state for each world tile.
+	TileGrid tiles_; // Runtime state for each world tile.
 
 	// TODO: Migrate DPieceMicros_ to tiles_ and remove
 	MICROS DPieceMicros_[MAXTILES] = {}; // Microtile layout indexed by dungeon piece ID.

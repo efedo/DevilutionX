@@ -6,7 +6,10 @@
  */
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
+#include <iterator>
+#include <type_traits>
 
 #include "levels/dun_tile.hpp"
 #include "levels/gendung_defs.hpp"
@@ -268,5 +271,141 @@ private:
 
 // Verify that Tile is small and efficient
 static_assert(sizeof(Tile) <= 16, "Tile should be compact for cache efficiency");
+
+class TileGrid {
+	template <bool IsConst, bool ColumnMajor>
+	class Iterator {
+		using Grid = std::conditional_t<IsConst, const TileGrid, TileGrid>;
+
+	public:
+		using difference_type = std::ptrdiff_t;
+		using value_type = Tile;
+		using pointer = std::conditional_t<IsConst, const Tile *, Tile *>;
+		using reference = std::conditional_t<IsConst, const Tile &, Tile &>;
+		using iterator_category = std::forward_iterator_tag;
+
+		Iterator() = default;
+		Iterator(Grid *grid, size_t index)
+			: grid_(grid)
+			, index_(index)
+		{
+		}
+
+		template <bool OtherConst>
+			requires(IsConst && !OtherConst)
+		Iterator(const Iterator<OtherConst, ColumnMajor> &other)
+			: grid_(other.grid_)
+			, index_(other.index_)
+		{
+		}
+
+		reference operator*() const
+		{
+			const size_t x = ColumnMajor ? index_ / MAXDUNY : index_ % MAXDUNX;
+			const size_t y = ColumnMajor ? index_ % MAXDUNY : index_ / MAXDUNX;
+			return (*grid_)[x][y];
+		}
+
+		pointer operator->() const
+		{
+			return &operator*();
+		}
+
+		Iterator &operator++()
+		{
+			++index_;
+			return *this;
+		}
+
+		Iterator operator++(int)
+		{
+			Iterator previous = *this;
+			++*this;
+			return previous;
+		}
+
+		bool operator==(const Iterator &) const = default;
+
+	private:
+		template <bool, bool>
+		friend class Iterator;
+
+		Grid *grid_ = nullptr;
+		size_t index_ = 0;
+	};
+
+	template <bool IsConst>
+	class ColumnMajorRange {
+		using Grid = std::conditional_t<IsConst, const TileGrid, TileGrid>;
+
+	public:
+		explicit ColumnMajorRange(Grid &grid)
+			: grid_(&grid)
+		{
+		}
+
+		[[nodiscard]] auto begin() const
+		{
+			return Iterator<IsConst, true> { grid_, 0 };
+		}
+
+		[[nodiscard]] auto end() const
+		{
+			return Iterator<IsConst, true> { grid_, MAXDUNX * MAXDUNY };
+		}
+
+	private:
+		Grid *grid_;
+	};
+
+public:
+	using iterator = Iterator<false, false>;
+	using const_iterator = Iterator<true, false>;
+
+	[[nodiscard]] Tile *operator[](size_t x)
+	{
+		return tiles_[x];
+	}
+
+	[[nodiscard]] const Tile *operator[](size_t x) const
+	{
+		return tiles_[x];
+	}
+
+	[[nodiscard]] iterator begin()
+	{
+		return { this, 0 };
+	}
+
+	[[nodiscard]] iterator end()
+	{
+		return { this, MAXDUNX * MAXDUNY };
+	}
+
+	[[nodiscard]] const_iterator begin() const
+	{
+		return { this, 0 };
+	}
+
+	[[nodiscard]] const_iterator end() const
+	{
+		return { this, MAXDUNX * MAXDUNY };
+	}
+
+	[[nodiscard]] auto columnMajor()
+	{
+		return ColumnMajorRange<false> { *this };
+	}
+
+	[[nodiscard]] auto columnMajor() const
+	{
+		return ColumnMajorRange<true> { *this };
+	}
+
+private:
+	Tile tiles_[MAXDUNX][MAXDUNY] = {};
+};
+
+static_assert(sizeof(TileGrid) == sizeof(Tile[MAXDUNX][MAXDUNY]));
 
 } // namespace devilution

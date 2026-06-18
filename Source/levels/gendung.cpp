@@ -339,11 +339,9 @@ void InitGlobals()
 	if (DisableLighting)
 		defaultLight = 0;
 #endif
-	for (auto &column : tiles) {
-		for (Tile &tile : column) {
-			tile.clear();
-			tile.setLight(defaultLight);
-		}
+	for (Tile &tile : tiles) {
+		tile.clear();
+		tile.setLight(defaultLight);
 	}
 
 	DRLG_InitTrans();
@@ -547,10 +545,8 @@ void SetDungeonMicros(std::unique_ptr<std::byte[]> &dungeonCels, uint_fast8_t &m
 
 void DRLG_InitTrans()
 {
-	for (auto &column : tiles) {
-		for (Tile &tile : column)
-			tile.setTransVal(0);
-	}
+	for (Tile &tile : tiles)
+		tile.setTransVal(0);
 	TransList = {}; // TODO duplicate reset in InitLighting()
 	TransVal = 1;
 }

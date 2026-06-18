@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use unified tile storage for dungeon piece IDs
 - Use unified tile storage for transparency-region IDs
 - Use unified megatile storage for active and replacement dungeon layouts
+- Add ordered range iteration for level tiles
 
 ## DevilutionX 1.5.2
 

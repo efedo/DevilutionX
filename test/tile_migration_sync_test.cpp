@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <vector>
+
 #include "levels/gendung.h"
 #include "levels/level.hpp"
 #include "levels/town.h"
@@ -26,6 +28,7 @@ concept HasLegacyPDungeon = requires(T level) {
 static_assert(!HasLegacyDTransVal<Level>);
 static_assert(!HasLegacyDungeon<Level>);
 static_assert(!HasLegacyPDungeon<Level>);
+static_assert(sizeof(TileGrid) == sizeof(Tile[MAXDUNX][MAXDUNY]));
 
 void SelectTownLevel()
 {
@@ -42,6 +45,58 @@ TEST(TileMigrationSyncTest, TileHasAnyUsesTilePiece)
 	SOLData[230] = TileProperties::Solid;
 
 	EXPECT_TRUE(TileHasAny(Pos, TileProperties::Solid));
+}
+
+TEST(TileMigrationSyncTest, TileGridDefaultsToYMajorTraversal)
+{
+	TileGrid grid;
+	for (int x = 0; x < MAXDUNX; ++x) {
+		for (int y = 0; y < MAXDUNY; ++y)
+			grid[x][y].setPiece(static_cast<uint16_t>(y * MAXDUNX + x));
+	}
+
+	std::vector<uint16_t> pieces;
+	for (const Tile &tile : grid)
+		pieces.push_back(tile.piece());
+
+	ASSERT_EQ(pieces.size(), MAXDUNX * MAXDUNY);
+	for (size_t i = 0; i < pieces.size(); ++i)
+		EXPECT_EQ(pieces[i], i);
+}
+
+TEST(TileMigrationSyncTest, TileGridSupportsXMajorTraversal)
+{
+	TileGrid grid;
+	for (int x = 0; x < MAXDUNX; ++x) {
+		for (int y = 0; y < MAXDUNY; ++y)
+			grid[x][y].setPiece(static_cast<uint16_t>(x * MAXDUNY + y));
+	}
+
+	std::vector<uint16_t> pieces;
+	const TileGrid &constGrid = grid;
+	for (const Tile &tile : constGrid.columnMajor())
+		pieces.push_back(tile.piece());
+
+	ASSERT_EQ(pieces.size(), MAXDUNX * MAXDUNY);
+	for (size_t i = 0; i < pieces.size(); ++i)
+		EXPECT_EQ(pieces[i], i);
+}
+
+TEST(TileMigrationSyncTest, TileGridIterationSupportsMutationAndConstAccess)
+{
+	TileGrid grid;
+	for (Tile &tile : grid)
+		tile.setTransVal(7);
+
+	const TileGrid &constGrid = grid;
+	size_t visited = 0;
+	for (const Tile &tile : constGrid) {
+		EXPECT_EQ(tile.transVal(), 7);
+		++visited;
+	}
+
+	EXPECT_EQ(visited, MAXDUNX * MAXDUNY);
+	EXPECT_EQ(grid[3][4].transVal(), 7);
 }
 
 TEST(TileMigrationSyncTest, MegaTileStatesAreIndependent)
