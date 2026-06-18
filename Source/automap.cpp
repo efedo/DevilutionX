@@ -919,7 +919,7 @@ bool HasAutomapFlag(Point position, AutomapTile::Flags type)
 		return false;
 	}
 
-	return AutomapTypeTiles[dungeon[position.x][position.y]].hasFlag(type);
+	return AutomapTypeTiles[megaTileAt(position.x, position.y).current()].hasFlag(type);
 }
 
 /**
@@ -931,7 +931,7 @@ AutomapTile GetAutomapTileType(Point position)
 		return {};
 	}
 
-	AutomapTile tile = AutomapTypeTiles[dungeon[position.x][position.y]];
+	AutomapTile tile = AutomapTypeTiles[megaTileAt(position.x, position.y).current()];
 	if (tile.type == AutomapTile::Types::Corner) {
 		if (HasAutomapFlag({ position.x - 1, position.y }, AutomapTile::Flags::HorizontalArch)) {
 			if (HasAutomapFlag({ position.x, position.y - 1 }, AutomapTile::Flags::VerticalArch)) {
@@ -1695,9 +1695,8 @@ void InitAutomap()
 
 	memset(AutomapView, 0, sizeof(AutomapView));
 
-	for (auto &column : dFlags)
-		for (auto &dFlag : column)
-			dFlag &= ~DungeonFlag::Explored;
+	for (Tile &tile : tiles)
+		tile.removeFlags(DungeonFlag::Explored);
 }
 
 void StartAutomap()
@@ -1803,7 +1802,7 @@ void DrawAutomap(const Surface &out)
 
 		if (AutoMapShowItems)
 			SearchAutomapItem(out, myPlayerOffset, 8, [](Point position) {
-				return dItem[position.x][position.y] != 0;
+				return tileAt(position).item() != 0;
 			});
 	}
 
@@ -1866,7 +1865,7 @@ void DrawAutomap(const Surface &out)
 	}
 
 	if (AutoMapShowItems)
-		SearchAutomapItem(out, myPlayerOffset, 8, [](Point position) { return dItem[position.x][position.y] != 0; });
+		SearchAutomapItem(out, myPlayerOffset, 8, [](Point position) { return tileAt(position).item() != 0; });
 #ifdef _DEBUG
 	if (IsDebugAutomapHighlightNeeded())
 		SearchAutomapItem(out, myPlayerOffset, std::max(MAXDUNX, MAXDUNY), ShouldHighlightDebugAutomapTile);

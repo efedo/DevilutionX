@@ -12,7 +12,7 @@
 #include "levels/gendung.h"
 #include "lighting.h"
 #include "monster.h"
-#include "tables/misdat.h"
+#include "monster_pool.h"
 
 namespace devilution {
 
@@ -36,7 +36,7 @@ void MoveLightToCorpse(Monster &monster)
 {
 	for (int dx = 0; dx < MAXDUNX; dx++) {
 		for (int dy = 0; dy < MAXDUNY; dy++) {
-			if ((dCorpse[dx][dy] & 0x1F) == monster.corpseId) {
+			if ((tileAt(Point { dx, dy }).corpseIndex()) == monster.corpseId) {
 				ChangeLightXY(monster.lightId, { dx, dy });
 				return;
 			}
@@ -76,11 +76,11 @@ void InitCorpses()
 
 	stonendx = nd;
 
-	for (size_t i = 0; i < ActiveMonsterCount; i++) {
-		auto &monster = Monsters[ActiveMonsters[i]];
+	for (const unsigned m : MonsterPoolAdapter::ActiveMonsterRange()) {
+		auto &monster = Monsters[m];
 		if (monster.isUnique()) {
 			InitDeadAnimationFromMonster(Corpses[nd], monster.type());
-			Corpses[nd].translationPaletteIndex = ActiveMonsters[i] + 1;
+			Corpses[nd].translationPaletteIndex = m + 1;
 			nd++;
 
 			monster.corpseId = nd;
@@ -92,13 +92,13 @@ void InitCorpses()
 
 void AddCorpse(Point tilePosition, int8_t dv, Direction ddir)
 {
-	dCorpse[tilePosition.x][tilePosition.y] = (dv & 0x1F) + (static_cast<int>(ddir) << 5);
+	tileAt(tilePosition).setCorpse((dv & 0x1F) + (static_cast<int>(ddir) << 5));
 }
 
 void MoveLightsToCorpses()
 {
-	for (size_t i = 0; i < ActiveMonsterCount; i++) {
-		auto &monster = Monsters[ActiveMonsters[i]];
+	for (const unsigned m : MonsterPoolAdapter::ActiveMonsterRange()) {
+		auto &monster = Monsters[m];
 		if (!monster.isUnique())
 			continue;
 		MoveLightToCorpse(monster);

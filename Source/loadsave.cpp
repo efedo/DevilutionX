@@ -26,11 +26,14 @@
 #include "engine/world.hpp"
 #include "game_mode.hpp"
 #include "inv.h"
+#include "item_pool.h"
 #include "levels/dun_tile.hpp"
 #include "lighting.h"
 #include "menu.h"
 #include "missiles.h"
 #include "monster.h"
+#include "monster_pool.h"
+#include "object_pool.h"
 #include "monsters/validation.hpp"
 #include "mpq/mpq_common.hpp"
 #include "pfile.h"
@@ -490,27 +493,27 @@ void LoadPlayer(LoadHelper &file, Player &player)
 	TerminateUtf8(player._pName, PlayerNameLength);
 	player._pClass = static_cast<HeroClass>(file.NextLE<int8_t>());
 	file.Skip(3); // Alignment
-	player._pStrength = file.NextLE<int32_t>();
-	player._pBaseStr = file.NextLE<int32_t>();
-	player._pMagic = file.NextLE<int32_t>();
-	player._pBaseMag = file.NextLE<int32_t>();
-	player._pDexterity = file.NextLE<int32_t>();
-	player._pBaseDex = file.NextLE<int32_t>();
-	player._pVitality = file.NextLE<int32_t>();
-	player._pBaseVit = file.NextLE<int32_t>();
+	player.attributes.strength.current = file.NextLE<int32_t>();
+	player.attributes.strength.base = file.NextLE<int32_t>();
+	player.attributes.magic.current = file.NextLE<int32_t>();
+	player.attributes.magic.base = file.NextLE<int32_t>();
+	player.attributes.dexterity.current = file.NextLE<int32_t>();
+	player.attributes.dexterity.base = file.NextLE<int32_t>();
+	player.attributes.vitality.current = file.NextLE<int32_t>();
+	player.attributes.vitality.base = file.NextLE<int32_t>();
 	player._pStatPts = file.NextLE<int32_t>();
 	player._pDamageMod = file.NextLE<int32_t>();
 	file.Skip<int32_t>(); // Skip _pBaseToBlk - always a copy of PlayerData.blockBonus
-	player._pHPBase = file.NextLE<int32_t>();
-	player._pMaxHPBase = file.NextLE<int32_t>();
-	player.hitPoints = file.NextLE<int32_t>();
-	player.maxHitPoints = file.NextLE<int32_t>();
-	file.Skip<int32_t>(); // Skip _pHPPer - always derived from hp and maxHP.
-	player._pManaBase = file.NextLE<int32_t>();
-	player._pMaxManaBase = file.NextLE<int32_t>();
-	player._pMana = file.NextLE<int32_t>();
-	player._pMaxMana = file.NextLE<int32_t>();
-	file.Skip<int32_t>(); // Skip _pManaPer - always derived from mana and maxMana
+	player.life.base = file.NextLE<int32_t>();
+	player.life.maximumBase = file.NextLE<int32_t>();
+	player.life.current = file.NextLE<int32_t>();
+	player.life.maximum = file.NextLE<int32_t>();
+	file.Skip<int32_t>(); // Skip life.percentage - always derived from hp and maxHP.
+	player.mana.base = file.NextLE<int32_t>();
+	player.mana.maximumBase = file.NextLE<int32_t>();
+	player.mana.current = file.NextLE<int32_t>();
+	player.mana.maximum = file.NextLE<int32_t>();
+	file.Skip<int32_t>(); // Skip mana.percentage - always derived from mana and maxMana
 	player.setCharacterLevel(file.NextLE<uint8_t>());
 	file.Skip<uint8_t>(); // Skip _pMaxLevel - unused
 	file.Skip(2);         // Alignment
@@ -590,13 +593,13 @@ void LoadPlayer(LoadHelper &file, Player &player)
 
 	LoadAndValidateItemData(file, player.HoldItem);
 
-	player._pIMinDam = file.NextLE<int32_t>();
-	player._pIMaxDam = file.NextLE<int32_t>();
+	player.damageBonuses.physical.minimum = file.NextLE<int32_t>();
+	player.damageBonuses.physical.maximum = file.NextLE<int32_t>();
 	player._pIAC = file.NextLE<int32_t>();
-	player._pIBonusDam = file.NextLE<int32_t>();
+	player.damageBonuses.percent = file.NextLE<int32_t>();
 	player._pIBonusToHit = file.NextLE<int32_t>();
 	player._pIBonusAC = file.NextLE<int32_t>();
-	player._pIBonusDamMod = file.NextLE<int32_t>();
+	player.damageBonuses.flat = file.NextLE<int32_t>();
 	file.Skip(4); // Alignment
 
 	player._pISpells = file.NextLE<uint64_t>();
@@ -606,11 +609,11 @@ void LoadPlayer(LoadHelper &file, Player &player)
 	file.Skip(1);         // Unused
 	file.Skip(2);         // Alignment
 	file.Skip<int32_t>(); // _pISplDur
-	player._pIEnAc = file.NextLE<int32_t>();
-	player._pIFMinDam = file.NextLE<int32_t>();
-	player._pIFMaxDam = file.NextLE<int32_t>();
-	player._pILMinDam = file.NextLE<int32_t>();
-	player._pILMaxDam = file.NextLE<int32_t>();
+	player.damageBonuses.armorPiercing = file.NextLE<int32_t>();
+	player.damageBonuses.fire.minimum = file.NextLE<int32_t>();
+	player.damageBonuses.fire.maximum = file.NextLE<int32_t>();
+	player.damageBonuses.lightning.minimum = file.NextLE<int32_t>();
+	player.damageBonuses.lightning.maximum = file.NextLE<int32_t>();
 	player._pOilType = static_cast<item_misc_id>(file.NextLE<int32_t>());
 	player.pTownWarps = file.NextLE<uint8_t>();
 	player.pDungMsgs = file.NextLE<uint8_t>();
@@ -783,7 +786,7 @@ bool gbSkipSync = false;
 
 void LoadMonsters(LoadHelper &file, ankerl::unordered_dense::set<unsigned> &removedMonsterIds, const bool applyLight, LevelConversionData *levelConversionData)
 {
-	for (unsigned &monsterId : ActiveMonsters)
+	for (unsigned &monsterId : MonsterPoolAdapter::ActiveMonsterIds())
 		monsterId = file.NextBE<uint32_t>();
 
 	for (size_t i = 0; i < ActiveMonsterCount;) {
@@ -809,8 +812,8 @@ void LoadMonsters(LoadHelper &file, ankerl::unordered_dense::set<unsigned> &remo
 	}
 
 	for (const unsigned removedMonsterId : removedMonsterIds) {
-		for (size_t i = 0; i < ActiveMonsterCount; i++) {
-			Monster &activeMonster = Monsters[ActiveMonsters[i]];
+		for (const unsigned m : MonsterPoolAdapter::ActiveMonsterRange()) {
+			Monster &activeMonster = Monsters[m];
 			if ((activeMonster.flags & MFLAG_TARGETS_MONSTER) != 0 && activeMonster.enemy == removedMonsterId) {
 				activeMonster.flags |= MFLAG_NO_ENEMY;
 			}
@@ -830,8 +833,8 @@ void SyncPackSize(Monster &leader)
 
 	leader.packSize = 0;
 
-	for (size_t i = 0; i < ActiveMonsterCount; i++) {
-		const Monster &minion = Monsters[ActiveMonsters[i]];
+	for (const unsigned m : MonsterPoolAdapter::ActiveMonsterRange()) {
+		const Monster &minion = Monsters[m];
 		if (minion.leaderRelation == LeaderRelation::Leashed && minion.getLeader() == &leader)
 			leader.packSize++;
 	}
@@ -1129,8 +1132,6 @@ void LoadDroppedItems(LoadHelper &file, size_t savedItemCount)
 	// Reset ActiveItems, the Items array will be populated from the start
 	std::iota(ActiveItems, ActiveItems + MAXITEMS, uint8_t { 0 });
 	ActiveItemCount = 0;
-	// Clear dItem so we can populate valid drop locations
-	memset(dItem, 0, sizeof(dItem));
 
 	for (size_t i = 0; i < savedItemCount; i++) {
 		Item &item = Items[ActiveItemCount];
@@ -1140,7 +1141,7 @@ void LoadDroppedItems(LoadHelper &file, size_t savedItemCount)
 			// Loaded a valid item
 			ActiveItemCount++;
 			// populate its location in the lookup table with the offset in the Items array + 1 (so 0 can be used for "no item")
-			dItem[item.position.x][item.position.y] = ActiveItemCount;
+			tileAt(item.position).setItem(ActiveItemCount);
 		}
 	}
 }
@@ -1346,28 +1347,28 @@ void SavePlayer(SaveHelper &file, const Player &player)
 	file.WriteBytes(player._pName, PlayerNameLength);
 	file.WriteLE<int8_t>(static_cast<int8_t>(player._pClass));
 	file.Skip(3); // Alignment
-	file.WriteLE<int32_t>(player._pStrength);
-	file.WriteLE<int32_t>(player._pBaseStr);
-	file.WriteLE<int32_t>(player._pMagic);
-	file.WriteLE<int32_t>(player._pBaseMag);
-	file.WriteLE<int32_t>(player._pDexterity);
-	file.WriteLE<int32_t>(player._pBaseDex);
-	file.WriteLE<int32_t>(player._pVitality);
-	file.WriteLE<int32_t>(player._pBaseVit);
+	file.WriteLE<int32_t>(player.attributes.strength.current);
+	file.WriteLE<int32_t>(player.attributes.strength.base);
+	file.WriteLE<int32_t>(player.attributes.magic.current);
+	file.WriteLE<int32_t>(player.attributes.magic.base);
+	file.WriteLE<int32_t>(player.attributes.dexterity.current);
+	file.WriteLE<int32_t>(player.attributes.dexterity.base);
+	file.WriteLE<int32_t>(player.attributes.vitality.current);
+	file.WriteLE<int32_t>(player.attributes.vitality.base);
 	file.WriteLE<int32_t>(player._pStatPts);
 	file.WriteLE<int32_t>(player._pDamageMod);
 
 	file.WriteLE<int32_t>(player.getBaseToBlock()); // set _pBaseToBlk for backwards compatibility
-	file.WriteLE<int32_t>(player._pHPBase);
-	file.WriteLE<int32_t>(player._pMaxHPBase);
-	file.WriteLE<int32_t>(player.hitPoints);
-	file.WriteLE<int32_t>(player.maxHitPoints);
-	file.Skip<int32_t>(); // Skip _pHPPer
-	file.WriteLE<int32_t>(player._pManaBase);
-	file.WriteLE<int32_t>(player._pMaxManaBase);
-	file.WriteLE<int32_t>(player._pMana);
-	file.WriteLE<int32_t>(player._pMaxMana);
-	file.Skip<int32_t>(); // Skip _pManaPer
+	file.WriteLE<int32_t>(player.life.base);
+	file.WriteLE<int32_t>(player.life.maximumBase);
+	file.WriteLE<int32_t>(player.life.current);
+	file.WriteLE<int32_t>(player.life.maximum);
+	file.Skip<int32_t>(); // Skip life.percentage
+	file.WriteLE<int32_t>(player.mana.base);
+	file.WriteLE<int32_t>(player.mana.maximumBase);
+	file.WriteLE<int32_t>(player.mana.current);
+	file.WriteLE<int32_t>(player.mana.maximum);
+	file.Skip<int32_t>(); // Skip mana.percentage
 	file.WriteLE<uint8_t>(player.getCharacterLevel());
 	file.Skip<uint8_t>(); // skip _pMaxLevel, this value is uninitialised in most cases in Diablo/Hellfire so there's no point setting it.
 	file.Skip(2);         // Alignment
@@ -1447,13 +1448,13 @@ void SavePlayer(SaveHelper &file, const Player &player)
 
 	SaveItem(file, player.HoldItem);
 
-	file.WriteLE<int32_t>(player._pIMinDam);
-	file.WriteLE<int32_t>(player._pIMaxDam);
+	file.WriteLE<int32_t>(player.damageBonuses.physical.minimum);
+	file.WriteLE<int32_t>(player.damageBonuses.physical.maximum);
 	file.WriteLE<int32_t>(player._pIAC);
-	file.WriteLE<int32_t>(player._pIBonusDam);
+	file.WriteLE<int32_t>(player.damageBonuses.percent);
 	file.WriteLE<int32_t>(player._pIBonusToHit);
 	file.WriteLE<int32_t>(player._pIBonusAC);
-	file.WriteLE<int32_t>(player._pIBonusDamMod);
+	file.WriteLE<int32_t>(player.damageBonuses.flat);
 	file.Skip(4); // Alignment
 
 	file.WriteLE<uint64_t>(player._pISpells);
@@ -1464,11 +1465,11 @@ void SavePlayer(SaveHelper &file, const Player &player)
 	file.Skip<uint8_t>(); // Skip _pISplCost
 	file.Skip(2);         // Alignment
 	file.Skip<int32_t>(); // _pISplDur
-	file.WriteLE<int32_t>(player._pIEnAc);
-	file.WriteLE<int32_t>(player._pIFMinDam);
-	file.WriteLE<int32_t>(player._pIFMaxDam);
-	file.WriteLE<int32_t>(player._pILMinDam);
-	file.WriteLE<int32_t>(player._pILMaxDam);
+	file.WriteLE<int32_t>(player.damageBonuses.armorPiercing);
+	file.WriteLE<int32_t>(player.damageBonuses.fire.minimum);
+	file.WriteLE<int32_t>(player.damageBonuses.fire.maximum);
+	file.WriteLE<int32_t>(player.damageBonuses.lightning.minimum);
+	file.WriteLE<int32_t>(player.damageBonuses.lightning.maximum);
 	file.WriteLE<int32_t>(player._pOilType);
 	file.WriteLE<uint8_t>(player.pTownWarps);
 	file.WriteLE<uint8_t>(player.pDungMsgs);
@@ -1854,7 +1855,7 @@ void SaveDroppedItemLocations(SaveHelper &file, const ankerl::unordered_dense::m
 {
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-			file.WriteLE<uint8_t>(itemIndexes.at(dItem[i][j]));
+			file.WriteLE<uint8_t>(itemIndexes.at(tileAt(Point { i, j }).item()));
 	}
 }
 
@@ -1942,29 +1943,29 @@ void SaveLevel(SaveWriter &saveWriter, LevelConversionData *levelConversionData)
 	if (leveltype != DTYPE_TOWN) {
 		for (int j = 0; j < MAXDUNY; j++) {
 			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				file.WriteLE<int8_t>(dCorpse[i][j]);
+				file.WriteLE<int8_t>(tileAt(Point { i, j }).corpse());
 		}
 	}
 
-	file.WriteBE(static_cast<int32_t>(ActiveMonsterCount));
+	file.WriteBE(static_cast<int32_t>(MonsterPoolAdapter::ActiveMonsterCountValue()));
 	file.WriteBE<int32_t>(ActiveItemCount);
-	file.WriteBE<int32_t>(ActiveObjectCount);
+	file.WriteBE<int32_t>(ObjectPoolAdapter::ActiveObjectCountValue());
 
 	if (leveltype != DTYPE_TOWN) {
-		for (const unsigned monsterId : ActiveMonsters)
+		for (const unsigned monsterId : MonsterPoolAdapter::ActiveMonsterIds())
 			file.WriteBE<uint32_t>(monsterId);
-		for (size_t i = 0; i < ActiveMonsterCount; i++) {
+		for (const unsigned mId : MonsterPoolAdapter::ActiveMonsterRange()) {
 			MonsterConversionData *monsterConversionData = nullptr;
 			if (levelConversionData != nullptr)
-				monsterConversionData = &levelConversionData->monsterConversionData[ActiveMonsters[i]];
-			SaveMonster(&file, Monsters[ActiveMonsters[i]], monsterConversionData);
+				monsterConversionData = &levelConversionData->monsterConversionData[mId];
+			SaveMonster(&file, Monsters[mId], monsterConversionData);
 		}
-		for (const int objectId : ActiveObjects)
+		for (const int objectId : ObjectPoolAdapter::ActiveObjectIds())
 			file.WriteLE<int8_t>(objectId);
-		for (const int objectId : AvailableObjects)
+		for (const int objectId : ObjectPoolAdapter::AvailableObjectIds())
 			file.WriteLE<int8_t>(objectId);
-		for (int i = 0; i < ActiveObjectCount; i++) {
-			SaveObject(file, Objects[ActiveObjects[i]]);
+		for (Object &object : ObjectPoolAdapter::ActiveObjectsRange()) {
+			SaveObject(file, object);
 		}
 	}
 
@@ -1972,26 +1973,26 @@ void SaveLevel(SaveWriter &saveWriter, LevelConversionData *levelConversionData)
 
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-			file.WriteLE<uint8_t>(static_cast<uint8_t>(dFlags[i][j] & DungeonFlag::SavedFlags));
+			file.WriteLE<uint8_t>(static_cast<uint8_t>(tileAt(Point { i, j }).flags() & DungeonFlag::SavedFlags));
 	}
 	SaveDroppedItemLocations(file, itemIndexes);
 
 	if (leveltype != DTYPE_TOWN) {
 		for (int j = 0; j < MAXDUNY; j++) {
 			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				file.WriteBE<int32_t>(dMonster[i][j]);
+				file.WriteBE<int32_t>(tileAt(Point { i, j }).monster());
 		}
 		for (int j = 0; j < MAXDUNY; j++) {
 			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				file.WriteLE<int8_t>(dObject[i][j]);
+				file.WriteLE<int8_t>(tileAt(Point { i, j }).object());
 		}
 		for (int j = 0; j < MAXDUNY; j++) {
 			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				file.WriteLE<uint8_t>(dLight[i][j]);
+				file.WriteLE<uint8_t>(tileAt(Point { i, j }).light());
 		}
 		for (int j = 0; j < MAXDUNY; j++) {
 			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				file.WriteLE<uint8_t>(dPreLight[i][j]);
+				file.WriteLE<uint8_t>(tileAt(Point { i, j }).preLight());
 		}
 		for (int j = 0; j < DMAXY; j++) {
 			for (int i = 0; i < DMAXX; i++) // NOLINT(modernize-loop-convert)
@@ -2019,14 +2020,14 @@ tl::expected<void, std::string> LoadLevel(LevelConversionData *levelConversionDa
 	if (leveltype != DTYPE_TOWN) {
 		for (int j = 0; j < MAXDUNY; j++) {
 			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				dCorpse[i][j] = file.NextLE<int8_t>();
+				tileAt(Point { i, j }).setCorpse(file.NextLE<int8_t>());
 		}
 		MoveLightsToCorpses();
 	}
 
 	ActiveMonsterCount = file.NextBE<int32_t>();
 	auto savedItemCount = file.NextBE<uint32_t>();
-	ActiveObjectCount = file.NextBE<int32_t>();
+	ObjectPoolAdapter::SetActiveObjectCountValue(file.NextBE<int32_t>());
 
 	ankerl::unordered_dense::set<unsigned> removedMonsterIds;
 
@@ -2034,26 +2035,28 @@ tl::expected<void, std::string> LoadLevel(LevelConversionData *levelConversionDa
 		LoadMonsters(file, removedMonsterIds, true, levelConversionData);
 
 		if (!gbSkipSync) {
-			for (size_t i = 0; i < ActiveMonsterCount; i++)
-				RETURN_IF_ERROR(Monsters[ActiveMonsters[i]].syncAnim());
+			for (const unsigned m : MonsterPoolAdapter::ActiveMonsterRange())
+				RETURN_IF_ERROR(Monsters[m].syncAnim());
 		}
-		for (int &objectId : ActiveObjects)
+		for (int &objectId : ObjectPoolAdapter::ActiveObjectIds())
 			objectId = file.NextLE<int8_t>();
-		for (int &objectId : AvailableObjects)
+		for (int &objectId : ObjectPoolAdapter::AvailableObjectIds())
 			objectId = file.NextLE<int8_t>();
-		for (int i = 0; i < ActiveObjectCount; i++)
-			LoadObject(file, Objects[ActiveObjects[i]]);
+		for (Object &object : ObjectPoolAdapter::ActiveObjectsRange())
+			LoadObject(file, object);
 		if (!gbSkipSync) {
-			for (int i = 0; i < ActiveObjectCount; i++)
-				SyncObjectAnim(Objects[ActiveObjects[i]]);
+			for (Object &object : ObjectPoolAdapter::ActiveObjectsRange())
+				SyncObjectAnim(object);
 		}
 	}
 
 	LoadDroppedItems(file, savedItemCount);
 
 	for (int j = 0; j < MAXDUNY; j++) {
-		for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-			dFlags[i][j] = static_cast<DungeonFlag>(file.NextLE<uint8_t>()) & DungeonFlag::LoadedFlags;
+		for (int i = 0; i < MAXDUNX; i++) { // NOLINT(modernize-loop-convert)
+			const DungeonFlag flags = static_cast<DungeonFlag>(file.NextLE<uint8_t>()) & DungeonFlag::LoadedFlags;
+			tileAt(Point { i, j }).setFlags(flags);
+		}
 	}
 
 	// skip dItem indexes, this gets populated in LoadDroppedItems
@@ -2063,20 +2066,22 @@ tl::expected<void, std::string> LoadLevel(LevelConversionData *levelConversionDa
 		for (int j = 0; j < MAXDUNY; j++) {
 			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
 			{
-				dMonster[i][j] = file.NextBE<int32_t>();
-				if (dMonster[i][j] > 0 && removedMonsterIds.contains(std::abs(dMonster[i][j]) - 1)) {
-					dMonster[i][j] = 0;
+				int32_t monsterVal = file.NextBE<int32_t>();
+				if (monsterVal > 0 && removedMonsterIds.contains(std::abs(monsterVal) - 1)) {
+					monsterVal = 0;
 				}
+				tileAt(Point { i, j }).setMonster(monsterVal);
 			}
 		}
 		for (int j = 0; j < MAXDUNY; j++) {
 			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				dObject[i][j] = file.NextLE<int8_t>();
+				tileAt(Point { i, j }).setObject(file.NextLE<int8_t>());
 		}
 		file.Skip<uint8_t>(MAXDUNY * MAXDUNX); // dLight
 		for (int j = 0; j < MAXDUNY; j++) {
-			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				dPreLight[i][j] = file.NextLE<uint8_t>();
+			for (int i = 0; i < MAXDUNX; i++) { // NOLINT(modernize-loop-convert)
+				tileAt(Point { static_cast<WorldTileCoord>(i), static_cast<WorldTileCoord>(j) }).setPreLight(file.NextLE<uint8_t>());
+			}
 		}
 		for (int j = 0; j < DMAXY; j++) {
 			for (int i = 0; i < DMAXX; i++) { // NOLINT(modernize-loop-convert)
@@ -2086,10 +2091,21 @@ tl::expected<void, std::string> LoadLevel(LevelConversionData *levelConversionDa
 		}
 
 		// No need to load dLight, we can recreate it accurately from LightList
-		memcpy(dLight, dPreLight, sizeof(dLight));                                     // resets the light on entering a level to get rid of incorrect light
+		// MIGRATED to Tile API (Phase 4A)
+		for (int x = 0; x < MAXDUNX; x++) {
+			for (int y = 0; y < MAXDUNY; y++) {
+				Tile &tile = tileAt(Point { static_cast<WorldTileCoord>(x), static_cast<WorldTileCoord>(y) });
+				tile.setLight(tile.preLight());
+			}
+		}
 		ChangeLightXY(Players[MyPlayerId].lightId, Players[MyPlayerId].position.tile); // forces player light refresh
 	} else {
-		memset(dLight, 0, sizeof(dLight));
+		// MIGRATED to Tile API (Phase 4A)
+		for (int x = 0; x < MAXDUNX; x++) {
+			for (int y = 0; y < MAXDUNY; y++) {
+				tileAt(Point { static_cast<WorldTileCoord>(x), static_cast<WorldTileCoord>(y) }).setLight(0);
+			}
+		}
 	}
 
 	if (!gbSkipSync) {
@@ -2538,12 +2554,12 @@ tl::expected<void, std::string> LoadGame(bool firstflag)
 	}
 
 	RETURN_IF_ERROR(LoadGameLevel(firstflag, ENTRY_LOAD));
-	SetPlrAnims(myPlayer);
-	SyncPlrAnim(myPlayer);
+	myPlayer.setAnimations();
+	myPlayer.syncAnimation();
 
 	ViewPosition = { viewX, viewY };
 	ActiveMonsterCount = tmpNummonsters;
-	ActiveObjectCount = tmpNobjects;
+	ObjectPoolAdapter::SetActiveObjectCountValue(tmpNobjects);
 
 	for (size_t i = 0; i < MonstersData.size(); ++i) {
 		int &monstkill = MonsterKillCounts[i];
@@ -2557,8 +2573,8 @@ tl::expected<void, std::string> LoadGame(bool firstflag)
 	if (leveltype != DTYPE_TOWN) {
 		LoadMonsters(file, removedMonsterIds, false, nullptr);
 
-		for (size_t i = 0; i < ActiveMonsterCount; i++)
-			SyncPackSize(Monsters[ActiveMonsters[i]]);
+		for (const unsigned m : MonsterPoolAdapter::ActiveMonsterRange())
+			SyncPackSize(Monsters[m]);
 		// Skip ActiveMissiles
 		file.Skip<int8_t>(MaxMissilesForSaveGame);
 		// Skip AvailableMissiles
@@ -2567,15 +2583,16 @@ tl::expected<void, std::string> LoadGame(bool firstflag)
 			LoadMissile(&file);
 		// For petrified monsters, the data in missile.var1 must be used to
 		// load the appropriate animation data for the monster in missile.var2
-		for (size_t i = 0; i < ActiveMonsterCount; i++)
-			RETURN_IF_ERROR(Monsters[ActiveMonsters[i]].syncAnim());
-		for (int &objectId : ActiveObjects)
-		for (int &objectId : AvailableObjects)
+		for (const unsigned m : MonsterPoolAdapter::ActiveMonsterRange())
+			RETURN_IF_ERROR(Monsters[m].syncAnim());
+		for (int &objectId : ObjectPoolAdapter::ActiveObjectIds())
 			objectId = file.NextLE<int8_t>();
-		for (int i = 0; i < ActiveObjectCount; i++)
-			LoadObject(file, Objects[ActiveObjects[i]]);
-		for (int i = 0; i < ActiveObjectCount; i++)
-			SyncObjectAnim(Objects[ActiveObjects[i]]);
+		for (int &objectId : ObjectPoolAdapter::AvailableObjectIds())
+			objectId = file.NextLE<int8_t>();
+		for (Object &object : ObjectPoolAdapter::ActiveObjectsRange())
+			LoadObject(file, object);
+		for (Object &object : ObjectPoolAdapter::ActiveObjectsRange())
+			SyncObjectAnim(object);
 
 		ActiveLightCount = file.NextBE<int32_t>();
 
@@ -2602,12 +2619,14 @@ tl::expected<void, std::string> LoadGame(bool firstflag)
 
 	file.Skip<uint8_t>(MAXDUNY * MAXDUNX); // dLight
 	for (int j = 0; j < MAXDUNY; j++) {
-		for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-			dFlags[i][j] = static_cast<DungeonFlag>(file.NextLE<uint8_t>()) & DungeonFlag::LoadedFlags;
+		for (int i = 0; i < MAXDUNX; i++) { // NOLINT(modernize-loop-convert)
+			const DungeonFlag flags = static_cast<DungeonFlag>(file.NextLE<uint8_t>()) & DungeonFlag::LoadedFlags;
+			tileAt(Point { i, j }).setFlags(flags);
+		}
 	}
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-			dPlayer[i][j] = file.NextLE<int8_t>();
+			tileAt(Point { i, j }).setPlayer(file.NextLE<int8_t>());
 	}
 
 	// skip dItem indexes, this gets populated in LoadDroppedItems
@@ -2617,24 +2636,26 @@ tl::expected<void, std::string> LoadGame(bool firstflag)
 		for (int j = 0; j < MAXDUNY; j++) {
 			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
 			{
-				dMonster[i][j] = file.NextBE<int32_t>();
-				if (dMonster[i][j] > 0 && removedMonsterIds.contains(std::abs(dMonster[i][j]) - 1)) {
-					dMonster[i][j] = 0;
+				int32_t monsterVal = file.NextBE<int32_t>();
+				if (monsterVal > 0 && removedMonsterIds.contains(std::abs(monsterVal) - 1)) {
+					monsterVal = 0;
 				}
+				tileAt(Point { i, j }).setMonster(monsterVal);
 			}
 		}
 		for (int j = 0; j < MAXDUNY; j++) {
 			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				dCorpse[i][j] = file.NextLE<int8_t>();
+				tileAt(Point { i, j }).setCorpse(file.NextLE<int8_t>());
 		}
 		for (int j = 0; j < MAXDUNY; j++) {
 			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				dObject[i][j] = file.NextLE<int8_t>();
+				tileAt(Point { i, j }).setObject(file.NextLE<int8_t>());
 		}
 		file.Skip<uint8_t>(MAXDUNY * MAXDUNX); // dLight
 		for (int j = 0; j < MAXDUNY; j++) {
-			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				dPreLight[i][j] = file.NextLE<uint8_t>();
+			for (int i = 0; i < MAXDUNX; i++) { // NOLINT(modernize-loop-convert)
+				tileAt(Point { i, j }).setPreLight(file.NextLE<uint8_t>());
+			}
 		}
 		for (int j = 0; j < DMAXY; j++) {
 			for (int i = 0; i < DMAXX; i++) { // NOLINT(modernize-loop-convert)
@@ -2645,10 +2666,18 @@ tl::expected<void, std::string> LoadGame(bool firstflag)
 		file.Skip(MAXDUNX * MAXDUNY); // dMissile
 
 		// No need to load dLight, we can recreate it accurately from LightList
-		memcpy(dLight, dPreLight, sizeof(dLight));               // resets the light on entering a level to get rid of incorrect light
+		for (int x = 0; x < MAXDUNX; x++) {
+			for (int y = 0; y < MAXDUNY; y++) {
+				tileAt(Point { x, y }).setLight(tileAt(Point { x, y }).preLight());
+			}
+		}
 		ChangeLightXY(myPlayer.lightId, myPlayer.position.tile); // forces player light refresh
 	} else {
-		memset(dLight, 0, sizeof(dLight));
+		for (int x = 0; x < MAXDUNX; x++) {
+			for (int y = 0; y < MAXDUNY; y++) {
+				tileAt(Point { x, y }).setLight(0);
+			}
+		}
 	}
 
 	PremiumItemCount = file.NextBE<int32_t>();
@@ -2795,13 +2824,13 @@ void SaveGameData(SaveWriter &saveWriter)
 	file.WriteBE<int32_t>(ViewPosition.y);
 	file.WriteLE<uint8_t>(invflag ? 1 : 0);
 	file.WriteLE<uint8_t>(CharFlag ? 1 : 0);
-	file.WriteBE(static_cast<int32_t>(ActiveMonsterCount));
+	file.WriteBE(static_cast<int32_t>(MonsterPoolAdapter::ActiveMonsterCountValue()));
 	file.WriteBE<int32_t>(ActiveItemCount);
-	// ActiveMissileCount will be a value from 0-125 (for vanilla compatibility). Writing an unsigned value here to avoid
+	// ActiveMissileCount will be a value from 0-125
 	// warnings about casting from unsigned to signed, but there's no sign extension issues when reading this as a signed
 	// value later so it doesn't have to match in LoadGameData().
 	file.WriteBE<uint32_t>(static_cast<uint32_t>(std::min(Missiles.size(), MaxMissilesForSaveGame)));
-	file.WriteBE<int32_t>(ActiveObjectCount);
+	file.WriteBE<int32_t>(ObjectPoolAdapter::ActiveObjectCountValue());
 
 	for (uint8_t i = 0; i < giNumberOfLevels; i++) {
 		file.WriteBE<uint32_t>(DungeonSeeds[i]);
@@ -2823,10 +2852,10 @@ void SaveGameData(SaveWriter &saveWriter)
 	file.Skip(4 * (MaxMonsters - MonstersData.size()));
 
 	if (leveltype != DTYPE_TOWN) {
-		for (const unsigned monsterId : ActiveMonsters)
+		for (const unsigned monsterId : MonsterPoolAdapter::ActiveMonsterIds())
 			file.WriteBE<uint32_t>(monsterId);
-		for (size_t i = 0; i < ActiveMonsterCount; i++)
-			SaveMonster(&file, Monsters[ActiveMonsters[i]]);
+		for (const unsigned m : MonsterPoolAdapter::ActiveMonsterRange())
+			SaveMonster(&file, Monsters[m]);
 		// Write ActiveMissiles
 		for (uint8_t activeMissile = 0; activeMissile < MaxMissilesForSaveGame; activeMissile++)
 			file.WriteLE<uint8_t>(activeMissile);
@@ -2843,12 +2872,12 @@ void SaveGameData(SaveWriter &saveWriter)
 				SaveMissile(&file, *it);
 			}
 		}
-		for (const int objectId : ActiveObjects)
+		for (const int objectId : ObjectPoolAdapter::ActiveObjectIds())
 			file.WriteLE(static_cast<int8_t>(objectId));
-		for (const int objectId : AvailableObjects)
+		for (const int objectId : ObjectPoolAdapter::AvailableObjectIds())
 			file.WriteLE(static_cast<int8_t>(objectId));
-		for (int i = 0; i < ActiveObjectCount; i++)
-			SaveObject(file, Objects[ActiveObjects[i]]);
+		for (Object &object : ObjectPoolAdapter::ActiveObjectsRange())
+			SaveObject(file, object);
 
 		file.WriteBE<int32_t>(ActiveLightCount);
 
@@ -2872,15 +2901,15 @@ void SaveGameData(SaveWriter &saveWriter)
 
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-			file.WriteLE<uint8_t>(dLight[i][j]);
+			file.WriteLE<uint8_t>(tileAt(Point { i, j }).light());
 	}
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-			file.WriteLE<uint8_t>(static_cast<uint8_t>(dFlags[i][j] & DungeonFlag::SavedFlags));
+			file.WriteLE<uint8_t>(static_cast<uint8_t>(tileAt(Point { i, j }).flags() & DungeonFlag::SavedFlags));
 	}
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-			file.WriteLE<int8_t>(dPlayer[i][j]);
+			file.WriteLE<int8_t>(tileAt(Point { i, j }).player());
 	}
 
 	SaveDroppedItemLocations(file, itemIndexes);
@@ -2888,23 +2917,23 @@ void SaveGameData(SaveWriter &saveWriter)
 	if (leveltype != DTYPE_TOWN) {
 		for (int j = 0; j < MAXDUNY; j++) {
 			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				file.WriteBE<int32_t>(dMonster[i][j]);
+				file.WriteBE<int32_t>(tileAt(Point { i, j }).monster());
 		}
 		for (int j = 0; j < MAXDUNY; j++) {
 			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				file.WriteLE<int8_t>(dCorpse[i][j]);
+				file.WriteLE<int8_t>(tileAt(Point { i, j }).corpse());
 		}
 		for (int j = 0; j < MAXDUNY; j++) {
 			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				file.WriteLE<int8_t>(dObject[i][j]);
+				file.WriteLE<int8_t>(tileAt(Point { i, j }).object());
 		}
 		for (int j = 0; j < MAXDUNY; j++) {
 			for (int i = 0; i < MAXDUNX; i++)        // NOLINT(modernize-loop-convert)
-				file.WriteLE<uint8_t>(dLight[i][j]); // BUGFIX: dLight got saved already
+				file.WriteLE<uint8_t>(tileAt(Point { i, j }).light()); // BUGFIX: dLight got saved already
 		}
 		for (int j = 0; j < MAXDUNY; j++) {
 			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				file.WriteLE<uint8_t>(dPreLight[i][j]);
+				file.WriteLE<uint8_t>(tileAt(Point { i, j }).preLight());
 		}
 		for (int j = 0; j < DMAXY; j++) {
 			for (int i = 0; i < DMAXX; i++) // NOLINT(modernize-loop-convert)

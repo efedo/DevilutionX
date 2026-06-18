@@ -86,7 +86,7 @@ protected:
 		gbIsHellfire = false;
 		gbIsMultiplayer = false;
 
-		CreatePlayer(*MyPlayer, HeroClass::Warrior);
+		MyPlayer->create(HeroClass::Warrior);
 		MyPlayer->setCharacterLevel(25);
 
 		// CreatePlayer() calls CreatePlrItems() which does InitCursor()/FreeCursor().

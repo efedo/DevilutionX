@@ -87,7 +87,7 @@ public:
 		MyPlayer = &Players[0];
 		gbIsHellfire = false;
 		PremiumItemLevel = 1;
-		CreatePlayer(*MyPlayer, HeroClass::Warrior);
+		MyPlayer->create(HeroClass::Warrior);
 		SetRndSeed(SEED);
 	}
 

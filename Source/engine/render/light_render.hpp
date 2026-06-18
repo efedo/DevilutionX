@@ -27,6 +27,9 @@ public:
 
 	[[nodiscard]] uint8_t adjustColor(uint8_t color, uint8_t lightLevel) const
 	{
+		if (lightLevel >= NumLightingLevels) {
+			lightLevel = NumLightingLevels - 1;
+		}
 		return lightTables[lightLevel][color];
 	}
 
@@ -46,6 +49,9 @@ public:
 		return lightmapBuffer.data() + row * lightmapPitch + rowOffset;
 	}
 
+	[[nodiscard]] const uint8_t *lightingData() const { return lightmapBuffer.data(); }
+	[[nodiscard]] size_t lightingSize() const { return lightmapBuffer.size(); }
+
 	[[nodiscard]] bool isFullyLitLightTable(const uint8_t *lightTable) const { return lightTable == fullyLitLightTable_; }
 	[[nodiscard]] bool isFullyDarkLightTable(const uint8_t *lightTable) const { return lightTable == fullyDarkLightTable_; }
 
@@ -54,7 +60,7 @@ public:
 	    const uint8_t *outBuffer, uint16_t outPitch,
 	    std::span<const std::array<uint8_t, LightTableSize>, NumLightingLevels> lightTables,
 	    const uint8_t *fullyLitLightTable, const uint8_t *fullyDarkLightTable,
-	    const uint8_t tileLights[MAXDUNX][MAXDUNY],
+	    const uint8_t tileLights[MAXDUNX][MAXDUNY], // move to level?
 	    uint_fast8_t microTileLen);
 
 	static Lightmap bleedUp(bool perPixelLighting, const Lightmap &source, Point targetBufferPosition, std::span<uint8_t> lightmapBuffer);

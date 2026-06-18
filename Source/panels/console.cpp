@@ -23,6 +23,7 @@
 
 #include "DiabloUI/text_input.hpp"
 #include "control/control.hpp"
+#include "debug_overlay/imgui_overlay.hpp"
 #include "engine/assets.hpp"
 #include "engine/displacement.hpp"
 #include "engine/dx.h"
@@ -33,11 +34,13 @@
 #include "engine/size.hpp"
 #include "engine/surface.hpp"
 #include "lua/autocomplete.hpp"
+#include "lua/metadoc.hpp"
 #include "lua/repl.hpp"
 #include "utils/algorithm/container.hpp"
 #include "utils/display.h"
 #include "utils/sdl_compat.h"
 #include "utils/sdl_geometry.h"
+#include "utils/str_case.hpp"
 #include "utils/str_cat.hpp"
 #include "utils/str_split.hpp"
 
@@ -53,6 +56,26 @@ constexpr std::string_view HelpText =
     " Up/Down to fill the input from history,"
     " Shift+Up/Down to fill the input from output history,"
     " Ctrl+L to clear history, Esc to close.";
+
+constexpr std::string_view CommandHelpText =
+    "Debug console commands:\n"
+    "  help\n"
+    "    Show this command list.\n"
+    "  help <module>\n"
+    "    Show documented members for a Lua module (example: help dev.player).\n"
+    "\n"
+    "Common debug Lua commands:\n"
+    "  dev.player.god()\n"
+    "  dev.player.invisible()\n"
+    "  dev.display.grid()\n"
+    "  dev.display.vision()\n"
+    "  dev.level.seed()\n"
+    "\n"
+    "Other useful modules:\n"
+    "  dev.items, dev.level, dev.monsters, dev.quests, dev.search, dev.towners\n"
+    "\n"
+    "Tip: Tab autocompletes symbols (for example: dev.player.<Tab>).";
+
 std::optional<tl::expected<AssetData, std::string>> ConsolePrelude;
 
 bool IsConsoleVisible;
@@ -78,30 +101,6 @@ std::vector<LuaAutocompleteSuggestion> AutocompleteSuggestions;
 int AutocompleteSuggestionsMaxWidth = -1;
 int AutocompleteSuggestionFocusIndex = -1;
 constexpr size_t MaxSuggestions = 12;
-
-struct ConsoleLine {
-	enum Type : uint8_t {
-		Help,
-		Input,
-		Output,
-		Warning,
-		Error
-	};
-
-	Type type;
-	std::string text;
-	std::string wrapped = {};
-	int numLines = 0;
-
-	[[nodiscard]] std::string_view textWithoutPrompt() const
-	{
-		std::string_view result = text;
-		if (type == ConsoleLine::Input) {
-			result.remove_prefix(Prompt.size());
-		}
-		return result;
-	}
-};
 
 std::vector<ConsoleLine> ConsoleLines;
 size_t NumPreparedConsoleLines;
@@ -141,15 +140,18 @@ int PendingScrollPages;
 int ScrollOffset;
 constexpr int ScrollStep = LineHeight * 3;
 
-void CloseConsole()
-{
-	IsConsoleVisible = false;
-	SDLC_StopTextInput(ghMainWnd);
-}
-
 int GetConsoleLinesInnerWidth()
 {
 	return OuterRect.size.width - (2 * TextPaddingX);
+}
+
+std::string_view TextWithoutPrompt(const ConsoleLine &line)
+{
+	std::string_view result = line.text;
+	if (line.type == ConsoleLineType::Input) {
+		result.remove_prefix(Prompt.size());
+	}
+	return result;
 }
 
 void PrepareForRender(ConsoleLine &consoleLine)
@@ -299,20 +301,20 @@ void DrawConsoleLines(const Surface &out)
 			const std::string_view line = std::string_view(consoleLine.wrapped.data() + begin, end - begin);
 			lineYEnd -= LineHeight;
 			switch (consoleLine.type) {
-			case ConsoleLine::Input:
+			case ConsoleLineType::Input:
 				DrawString(out, line, { 0, lineYEnd },
 				    TextRenderOptions { .flags = InputTextUiFlags, .spacing = TextSpacing });
 				break;
-			case ConsoleLine::Output:
-			case ConsoleLine::Help:
+			case ConsoleLineType::Output:
+			case ConsoleLineType::Help:
 				DrawString(out, line, { 0, lineYEnd },
 				    TextRenderOptions { .flags = OutputTextUiFlags, .spacing = TextSpacing });
 				break;
-			case ConsoleLine::Warning:
+			case ConsoleLineType::Warning:
 				DrawString(out, line, { 0, lineYEnd },
 				    TextRenderOptions { .flags = WarningTextUiFlags, .spacing = TextSpacing });
 				break;
-			case ConsoleLine::Error:
+			case ConsoleLineType::Error:
 				DrawString(out, line, { 0, lineYEnd },
 				    TextRenderOptions { .flags = ErrorTextUiFlags, .spacing = TextSpacing });
 				break;
@@ -338,7 +340,7 @@ void SetHistoryIndex(int index)
 		return;
 	}
 	const ConsoleLine &line = ConsoleLines[index];
-	ConsoleInputState.assign(line.textWithoutPrompt());
+	ConsoleInputState.assign(TextWithoutPrompt(line));
 }
 
 void PrevHistoryItem(tl::function_ref<bool(const ConsoleLine &line)> filter)
@@ -372,13 +374,13 @@ void NextHistoryItem(tl::function_ref<bool(const ConsoleLine &line)> filter)
 
 bool IsHistoryInputLine(const ConsoleLine &line)
 {
-	if (line.type != ConsoleLine::Input)
+	if (line.type != ConsoleLineType::Input)
 		return false;
 	std::string_view text = line.text;
 	text.remove_prefix(Prompt.size());
 	if (text.empty())
 		return false;
-	return HistoryIndex == -1 || GetConsoleLineFromEnd(HistoryIndex).textWithoutPrompt() != text;
+	return HistoryIndex == -1 || TextWithoutPrompt(GetConsoleLineFromEnd(HistoryIndex)) != text;
 }
 
 void PrevInput()
@@ -394,9 +396,9 @@ void NextInput()
 bool IsHistoryOutputLine(const ConsoleLine &line)
 {
 	return !line.text.empty()
-	    && (line.type == ConsoleLine::Output || line.type == ConsoleLine::Warning || line.type == ConsoleLine::Error)
+	    && (line.type == ConsoleLineType::Output || line.type == ConsoleLineType::Warning || line.type == ConsoleLineType::Error)
 	    && (HistoryIndex == -1
-	        || GetConsoleLineFromEnd(HistoryIndex).textWithoutPrompt() != line.text);
+	        || TextWithoutPrompt(GetConsoleLineFromEnd(HistoryIndex)) != line.text);
 }
 
 void PrevOutput()
@@ -415,10 +417,10 @@ void AddInitialConsoleLines()
 		std::string_view prelude { **ConsolePrelude };
 		if (!prelude.empty() && prelude.back() == '\n')
 			prelude.remove_suffix(1);
-		AddConsoleLine(ConsoleLine { .type = ConsoleLine::Help, .text = StrCat(HelpText, "\n", prelude) });
+		AddConsoleLine(ConsoleLine { .type = ConsoleLineType::Help, .text = StrCat(HelpText, "\n", prelude) });
 	} else {
-		AddConsoleLine(ConsoleLine { .type = ConsoleLine::Help, .text = std::string(HelpText) });
-		AddConsoleLine(ConsoleLine { .type = ConsoleLine::Error, .text = ConsolePrelude->error() });
+		AddConsoleLine(ConsoleLine { .type = ConsoleLineType::Help, .text = std::string(HelpText) });
+		AddConsoleLine(ConsoleLine { .type = ConsoleLineType::Error, .text = ConsolePrelude->error() });
 	}
 }
 
@@ -443,6 +445,17 @@ void OpenConsole()
 {
 	IsConsoleVisible = true;
 	FirstRender = true;
+}
+
+void CloseConsole()
+{
+	IsConsoleVisible = false;
+	SDLC_StopTextInput(ghMainWnd);
+}
+
+const std::vector<ConsoleLine> &GetConsoleLines()
+{
+	return ConsoleLines;
 }
 
 void AcceptSuggestion()
@@ -559,6 +572,9 @@ bool ConsoleHandleEvent(const SDL_Event &event)
 
 void DrawConsole(const Surface &out)
 {
+	if (DebugOverlayIsAvailable())
+		return;
+
 	if (!IsConsoleVisible)
 		return;
 
@@ -636,32 +652,123 @@ void InitConsole()
 		RunLuaReplLine(std::string_view(**ConsolePrelude));
 }
 
+std::string_view TrimWhitespace(std::string_view text)
+{
+	while (!text.empty() && (text.front() == ' ' || text.front() == '\t' || text.front() == '\n' || text.front() == '\r')) {
+		text.remove_prefix(1);
+	}
+	while (!text.empty() && (text.back() == ' ' || text.back() == '\t' || text.back() == '\n' || text.back() == '\r')) {
+		text.remove_suffix(1);
+	}
+	return text;
+}
+
+std::optional<std::string_view> GetHelpQuery(std::string_view code)
+{
+	code = TrimWhitespace(code);
+	if (!AsciiStrToLower(code).starts_with("help")) {
+		return std::nullopt;
+	}
+	code.remove_prefix(4);
+	code = TrimWhitespace(code);
+	return code;
+}
+
+std::optional<sol::table> ResolveLuaModulePath(std::string_view modulePath)
+{
+	sol::table table = GetLuaReplEnvironment();
+	if (modulePath.empty()) {
+		return table;
+	}
+	for (const std::string_view part : SplitByChar(modulePath, '.')) {
+		if (part.empty()) {
+			return std::nullopt;
+		}
+		const auto next = table.get<std::optional<sol::object>>(part);
+		if (!next.has_value() || next->get_type() != sol::type::table) {
+			return std::nullopt;
+		}
+		table = next->as<sol::table>();
+	}
+	return table;
+}
+
+std::string BuildModuleHelp(std::string_view modulePath)
+{
+	const std::optional<sol::table> module = ResolveLuaModulePath(modulePath);
+	if (!module.has_value()) {
+		return StrCat("Unknown module: ", modulePath);
+	}
+
+	std::vector<std::string> lines;
+	for (const auto &[key, value] : *module) {
+		if (key.get_type() != sol::type::string) {
+			continue;
+		}
+		std::string keyStr = key.as<std::string>();
+		if (keyStr.empty() || keyStr.starts_with("__") || value.get_type() == sol::type::lua_nil) {
+			continue;
+		}
+		std::string line = StrCat("  ", keyStr);
+		if (const std::optional<std::string> signature = GetSignature(*module, keyStr); signature.has_value() && !signature->empty()) {
+			line.append(*signature);
+		}
+		if (const std::optional<std::string> docstring = GetDocstring(*module, keyStr); docstring.has_value() && !docstring->empty()) {
+			std::string_view firstLine = *docstring;
+			if (const size_t newlinePos = firstLine.find('\n'); newlinePos != std::string_view::npos) {
+				firstLine = firstLine.substr(0, newlinePos);
+			}
+			StrAppend(line, " - ", firstLine);
+		}
+		lines.push_back(std::move(line));
+	}
+	c_sort(lines);
+
+	if (lines.empty()) {
+		return StrCat("No documented members found for module: ", modulePath);
+	}
+
+	std::string out = StrCat("Help for ", modulePath, ":");
+	for (const std::string &line : lines) {
+		StrAppend(out, "\n", line);
+	}
+	return out;
+}
+
 void RunInConsole(std::string_view code)
 {
-	AddConsoleLine(ConsoleLine { .type = ConsoleLine::Input, .text = StrCat(Prompt, code) });
+	AddConsoleLine(ConsoleLine { .type = ConsoleLineType::Input, .text = StrCat(Prompt, code) });
+	if (const std::optional<std::string_view> helpQuery = GetHelpQuery(code); helpQuery.has_value()) {
+		if (helpQuery->empty()) {
+			AddConsoleLine(ConsoleLine { .type = ConsoleLineType::Help, .text = std::string(CommandHelpText) });
+		} else {
+			AddConsoleLine(ConsoleLine { .type = ConsoleLineType::Help, .text = BuildModuleHelp(*helpQuery) });
+		}
+		return;
+	}
 	tl::expected<std::string, std::string> result = RunLuaReplLine(code);
 
 	if (result.has_value()) {
 		if (!result->empty()) {
-			AddConsoleLine(ConsoleLine { .type = ConsoleLine::Output, .text = *std::move(result) });
+			AddConsoleLine(ConsoleLine { .type = ConsoleLineType::Output, .text = *std::move(result) });
 		}
 	} else {
 		if (!result.error().empty()) {
-			AddConsoleLine(ConsoleLine { .type = ConsoleLine::Error, .text = std::move(result).error() });
+			AddConsoleLine(ConsoleLine { .type = ConsoleLineType::Error, .text = std::move(result).error() });
 		} else {
-			AddConsoleLine(ConsoleLine { .type = ConsoleLine::Error, .text = "Unknown error" });
+			AddConsoleLine(ConsoleLine { .type = ConsoleLineType::Error, .text = "Unknown error" });
 		}
 	}
 }
 
 void PrintToConsole(std::string_view text)
 {
-	AddConsoleLine(ConsoleLine { .type = ConsoleLine::Output, .text = std::string(text) });
+	AddConsoleLine(ConsoleLine { .type = ConsoleLineType::Output, .text = std::string(text) });
 }
 
 void PrintWarningToConsole(std::string_view text)
 {
-	AddConsoleLine(ConsoleLine { .type = ConsoleLine::Warning, .text = std::string(text) });
+	AddConsoleLine(ConsoleLine { .type = ConsoleLineType::Warning, .text = std::string(text) });
 }
 
 } // namespace devilution

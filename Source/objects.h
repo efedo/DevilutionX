@@ -2,6 +2,18 @@
  * @file objects.h
  *
  * Interface of object functionality, interaction, spawning, loading, etc.
+ *
+ * MODERNIZATION STRATEGY:
+ * This interface is gradually being refactored through a facade pattern (see ObjectManager).
+ * New code should prefer the cleaner ObjectManager API; legacy callers continue to work.
+ * Direct use of these functions is acceptable but discouraged for new features.
+ * When migrating call sites, batch mechanical changes first, then clean up internals in a follow-up pass.
+ *
+ * CONTAINER MODERNIZATION:
+ * A modern, type-safe DenseEntityPool<Object> is available via object_pool.h.
+ * Legacy Objects[]/AvailableObjects[]/ActiveObjects[] globals remain unchanged for compatibility.
+ * The pool can be used for new hot-path optimizations or for incremental migration.
+ * See docs/ENTITY_POOL_MODERNIZATION.md for strategy and design rationale.
  */
 #pragma once
 
@@ -50,15 +62,13 @@ struct Object {
 	bool _oDelFlag = false;
 	int8_t _oBreak = 0;
 	bool _oSolidFlag = false;
-	/** True if the object allows missiles to pass through, false if it collides with missiles */
-	bool _oMissFlag = false;
+	bool _oMissFlag = false; // True if the object allows missiles to pass through, false if it collides with missiles
 	SelectionRegion selectionRegion = SelectionRegion::None;
 	bool _oPreFlag = false;
 	int _olid = 0;
-	/**
-	 * Saves the absolute value of the engine state (typically from a call to AdvanceRndSeed()) to later use when spawning items from a container object
-	 * This is an unsigned value to avoid implementation defined behaviour when reading from this variable.
-	 */
+
+	// Saves the absolute value of the engine state (typically from a call to AdvanceRndSeed()) to later use when spawning items from a container object
+	// This is an unsigned value to avoid implementation-defined behavior when reading from this variable.
 	uint32_t _oRndSeed = 0;
 	int _oVar1 = 0;
 	int _oVar2 = 0;
@@ -68,265 +78,93 @@ struct Object {
 	uint32_t _oVar6 = 0;
 	int _oVar8 = 0;
 
-	/**
-	 * @brief ID of a quest message to play when this object is activated.
-	 *
-	 * Used by spell book objects which trigger quest progress for Halls of the Blind, Valor, or Warlord of Blood
-	 */
+	// ID of a quest message to play when this object is activated.
+	// Used by spell book objects which trigger quest progress for Halls of the Blind, Valor, or Warlord of Blood
 	_speech_id bookMessage = TEXT_NONE;
 
-	/**
-	 * @brief Returns the network identifier for this object
-	 *
-	 * This is currently the index into the Objects array, but may change in the future.
-	 */
+	// Returns the network identifier for this object
+	// This is currently the index into the Objects array, but may change in the future.
 	[[nodiscard]] unsigned int GetId() const;
 
-	/**
-	 * @brief Marks the map region to be refreshed when the player interacts with the object.
-	 *
-	 * Some objects will cause a map region to change when a player interacts with them (e.g. Skeleton King
-	 * antechamber levers). The coordinates used for this region are based on a 40*40 grid overlaying the central
-	 * 80*80 region of the dungeon.
-	 *
-	 * @param topLeftPosition corner of the map region closest to the origin.
-	 * @param bottomRightPosition corner of the map region furthest from the origin.
-	 */
-	constexpr void SetMapRange(WorldTilePosition topLeftPosition, WorldTilePosition bottomRightPosition)
-	{
-		_oVar1 = topLeftPosition.x;
-		_oVar2 = topLeftPosition.y;
-		_oVar3 = bottomRightPosition.x;
-		_oVar4 = bottomRightPosition.y;
-	}
+	// Marks the map region to be refreshed when the player interacts with the object.
+	// Some objects will cause a map region to change when a player interacts with them (e.g. Skeleton King
+	// antechamber levers). The coordinates used for this region are based on a 40*40 grid overlaying the central
+	// 80*80 region of the dungeon.
+	// topLeftPosition: corner of the map region closest to the origin
+	// bottomRightPosition: corner of the map region furthest from the origin
+	void SetMapRange(WorldTilePosition topLeftPosition, WorldTilePosition bottomRightPosition);
 
-	/**
-	 * @brief Convenience function for SetMapRange(Point, Point).
-	 * @param mapRange A rectangle defining the top left corner and size of the affected region.
-	 */
-	constexpr void SetMapRange(WorldTileRectangle mapRange)
-	{
-		SetMapRange(mapRange.position, mapRange.position + DisplacementOf<uint8_t>(mapRange.size));
-	}
+	// Convenience function for SetMapRange(Point, Point).
+	// mapRange: A rectangle defining the top left corner and size of the affected region.
+	void SetMapRange(WorldTileRectangle mapRange);
 
-	/**
-	 * @brief Sets up a generic quest book which will trigger a change in the map when activated.
-	 *
-	 * Books of this type use a generic message (see OperateSChambBook()) compared to the more specific quest books
-	 * initialized by IntializeQuestBook().
-	 *
-	 * @param mapRange The region to be updated when this object is activated.
-	 */
-	constexpr void InitializeBook(WorldTileRectangle mapRange)
-	{
-		SetMapRange(mapRange);
-		_oVar6 = _oAnimFrame + 1; // Save the frame number for the open book frame
-	}
+	// Sets up a generic quest book which will trigger a change in the map when activated.
+	// Books of this type use a generic message (see OperateSChambBook()) compared to the more specific quest books
+	// initialized by InitializeQuestBook().
+	// mapRange: The region to be updated when this object is activated.
+	void InitializeBook(WorldTileRectangle mapRange);
 
-	/**
-	 * @brief Initializes this object as a quest book which will cause further changes and play a message when activated.
-	 * @param mapRange The region to be updated when this object is activated.
-	 * @param leverID An ID (distinct from the object index) to identify the new objects spawned after updating the map.
-	 * @param message The quest text to play when this object is activated.
-	 */
-	constexpr void InitializeQuestBook(WorldTileRectangle mapRange, int leverID, _speech_id message)
-	{
-		InitializeBook(mapRange);
-		_oVar8 = leverID;
-		bookMessage = message;
-	}
+	// Initializes this object as a quest book which will cause further changes and play a message when activated.
+	// mapRange: The region to be updated when this object is activated.
+	// leverID: An ID (distinct from the object index) to identify the new objects spawned after updating the map.
+	// message: The quest text to play when this object is activated.
+	void InitializeQuestBook(WorldTileRectangle mapRange, int leverID, _speech_id message);
 
-	/**
-	 * @brief Marks an object which was spawned from a sublevel in response to a lever activation.
-	 * @param mapRange The region which was updated to spawn this object.
-	 * @param leverID The id (*not* an object ID/index) of the lever responsible for the map change.
-	 */
-	constexpr void InitializeLoadedObject(WorldTileRectangle mapRange, int leverID)
-	{
-		SetMapRange(mapRange);
-		_oVar8 = leverID;
-	}
+	// Marks an object which was spawned from a sublevel in response to a lever activation.
+	// mapRange: The region which was updated to spawn this object.
+	// leverID: The ID (*not* an object ID/index) of the lever responsible for the map change.
+	void InitializeLoadedObject(WorldTileRectangle mapRange, int leverID);
 
-	/**
-	 * @brief Check if the object can be broken (is an intact barrel or crux)
-	 * @return True if the object is intact and breakable, false if already broken or not a breakable object.
-	 */
-	[[nodiscard]] constexpr bool IsBreakable() const
-	{
-		return _oBreak == 1;
-	}
+	[[nodiscard]] bool IsBreakable() const; // Is breakable (i.e. is an intact barrel or crux)?
+	[[nodiscard]] bool IsBroken() const; // Is broken?
+	[[nodiscard]] bool IsDisabled() const; // Returns true if the object is a harmful shrine and 
+										   // the player has disabled permanent shrine effects.
+	[[nodiscard]] bool canInteractWith() const;
+	[[nodiscard]] bool IsBarrel() const; // Is barrel (or explosive barrel)?
+	[[nodiscard]] bool isExplosive() const; // Contains explosives or caustic material?
 
-	/**
-	 * @brief Check if the object has been broken
-	 * @return True if the object is breakable and has been broken, false if unbroken or not a breakable object.
-	 */
-	[[nodiscard]] constexpr bool IsBroken() const
-	{
-		return _oBreak == -1;
-	}
+	// Check if this object is any of the chest (or trapped chest) types (see _object_id).
+	// Trapped chests get their base type change in addition to having the trap flag set, but if they get "refilled" by
+	// a Thaumaturgic shrine the base type is not reverted. This means you need to consider both the base type and the
+	// trap flag to differentiate between chests that are currently trapped and chests which have never been trapped.
+	[[nodiscard]] bool IsChest() const;
 
-	/**
-	 * Returns true if the object is a harmful shrine and the player has disabled permanent shrine effects.
-	 */
-	[[nodiscard]] bool IsDisabled() const;
+	[[nodiscard]] bool IsTrappedChest() const; // Is a trapped chest (i.e. has an active trap)?
+	[[nodiscard]] bool IsUntrappedChest() const; // Is an untrapped chest (i.e. has no active trap)?
+	[[nodiscard]] bool IsCrux() const; // Is a crucifix?
+	[[nodiscard]] bool isDoor() const; // Is a door?
+	[[nodiscard]] bool IsShrine() const; // Is a shrine?
+	[[nodiscard]] bool IsTrap() const; // Is a trap?
 
-	[[nodiscard]] constexpr bool canInteractWith() const
-	{
-		return selectionRegion != SelectionRegion::None;
-	}
+	[[nodiscard]] StringOrView name() const; // Name of the object as shown in the info box
 
-	/**
-	 * @brief Check if this object is barrel (or explosive barrel)
-	 * @return True if the object is one of the barrel types (see _object_id)
-	 */
-	[[nodiscard]] constexpr bool IsBarrel() const
-	{
-		return IsAnyOf(_otype, _object_id::OBJ_BARREL, _object_id::OBJ_BARRELEX, _object_id::OBJ_POD, _object_id::OBJ_PODEX, _object_id::OBJ_URN, _object_id::OBJ_URNEX);
-	}
+	[[nodiscard]] ClxSprite currentSprite() const;
 
-	/**
-	 * @brief Check if this object contains explosives or caustic material
-	 */
-	[[nodiscard]] constexpr bool isExplosive() const
-	{
-		return IsAnyOf(_otype, _object_id::OBJ_BARRELEX, _object_id::OBJ_PODEX, _object_id::OBJ_URNEX);
-	}
-
-	/**
-	 * @brief Check if this object is a chest (or trapped chest).
-	 *
-	 * Trapped chests get their base type change in addition to having the trap flag set, but if they get "refilled" by
-	 * a Thaumaturgic shrine the base type is not reverted. This means you need to consider both the base type and the
-	 * trap flag to differentiate between chests that are currently trapped and chests which have never been trapped.
-	 *
-	 * @return True if the object is any of the chest types (see _object_id)
-	 */
-	[[nodiscard]] constexpr bool IsChest() const
-	{
-		return IsAnyOf(_otype, _object_id::OBJ_CHEST1, _object_id::OBJ_CHEST2, _object_id::OBJ_CHEST3, _object_id::OBJ_TCHEST1, _object_id::OBJ_TCHEST2, _object_id::OBJ_TCHEST3);
-	}
-
-	/**
-	 * @brief Check if this object is a trapped chest (specifically a chest which is currently trapped).
-	 * @return True if the object is one of the trapped chest types (see _object_id) and has an active trap.
-	 */
-	[[nodiscard]] constexpr bool IsTrappedChest() const
-	{
-		return IsAnyOf(_otype, _object_id::OBJ_TCHEST1, _object_id::OBJ_TCHEST2, _object_id::OBJ_TCHEST3) && _oTrapFlag;
-	}
-
-	/**
-	 * @brief Check if this object is an untrapped chest (specifically a chest which has not been trapped).
-	 * @return True if the object is one of the untrapped chest types (see _object_id) and has no active trap.
-	 */
-	[[nodiscard]] constexpr bool IsUntrappedChest() const
-	{
-		return IsAnyOf(_otype, _object_id::OBJ_CHEST1, _object_id::OBJ_CHEST2, _object_id::OBJ_CHEST3) && !_oTrapFlag;
-	}
-
-	/**
-	 * @brief Check if this object is a crucifix
-	 * @return True if the object is one of the crux types (see _object_id)
-	 */
-	[[nodiscard]] constexpr bool IsCrux() const
-	{
-		return IsAnyOf(_otype, _object_id::OBJ_CRUX1, _object_id::OBJ_CRUX2, _object_id::OBJ_CRUX3);
-	}
-
-	/**
-	 * @brief Check if this object is a door
-	 * @return True if the object is one of the door types (see _object_id)
-	 */
-	[[nodiscard]] constexpr bool isDoor() const
-	{
-		return IsAnyOf(_otype, _object_id::OBJ_L1LDOOR, _object_id::OBJ_L1RDOOR, _object_id::OBJ_L2LDOOR, _object_id::OBJ_L2RDOOR, _object_id::OBJ_L3LDOOR, _object_id::OBJ_L3RDOOR, _object_id::OBJ_L5LDOOR, _object_id::OBJ_L5RDOOR);
-	}
-
-	/**
-	 * @brief Check if this object is a shrine
-	 * @return True if the object is one of the shrine types (see _object_id)
-	 */
-	[[nodiscard]] constexpr bool IsShrine() const
-	{
-		return IsAnyOf(_otype, _object_id::OBJ_SHRINEL, _object_id::OBJ_SHRINER);
-	}
-
-	/**
-	 * @brief Check if this object is a trap source
-	 * @return True if the object is one of the trap types (see _object_id)
-	 */
-	[[nodiscard]] constexpr bool IsTrap() const
-	{
-		return IsAnyOf(_otype, _object_id::OBJ_TRAPL, _object_id::OBJ_TRAPR);
-	}
-
-	/**
-	 * @brief Returns the name of the object as shown in the info box
-	 */
-	[[nodiscard]] StringOrView name() const;
-
-	[[nodiscard]] ClxSprite currentSprite() const
-	{
-		return (*_oAnimData)[_oAnimFrame - 1];
-	}
-	[[nodiscard]] Displacement getRenderingOffset(const ClxSprite sprite, Point tilePosition) const
-	{
-		Displacement offset = Displacement { -CalculateSpriteTileCenterX(sprite.width()), 0 };
-		if (position != tilePosition) {
-			// drawing a large or offset object, calculate the correct position for the center of the sprite
-			Displacement worldOffset = position - tilePosition;
-			offset -= worldOffset.worldToScreen();
-		}
-		return offset;
-	}
+	[[nodiscard]] Displacement getRenderingOffset(const ClxSprite sprite, Point tilePosition) const;
 };
 
-extern DVL_API_FOR_TEST Object Objects[MAXOBJECTS];
-extern int AvailableObjects[MAXOBJECTS];
-extern int ActiveObjects[MAXOBJECTS];
-extern int ActiveObjectCount;
-/** @brief Indicates that objects are being loaded during gameplay and pre calculated data should be updated. */
-extern bool LoadingMapObjects;
-/** Tracks progress through the tome sequence that spawns Na-Krul (see OperateNakrulBook()) */
-extern int NaKrulTomeSequence;
+extern DVL_API_FOR_TEST Object *Objects;
+extern DVL_API_FOR_TEST int *AvailableObjects;
+extern DVL_API_FOR_TEST int *ActiveObjects;
+extern DVL_API_FOR_TEST int &ActiveObjectCount;
+extern bool LoadingMapObjects; // Indicates that objects are being loaded during gameplay and pre-calculated data should be updated
+extern int NaKrulTomeSequence; // Tracks progress through the tome sequence that spawns Na-Krul (see OperateNakrulBook())
 
-/**
- * @brief Find an object given a point in map coordinates
- *
- * @param position The map coordinate to test
- * @param considerLargeObjects Default behaviour will return a pointer to a large object that covers this tile, set
- *                             this param to false if you only want the object whose base position matches this tile
- * @return A pointer to the object or nullptr if no object exists at this location
- */
+// Find an object given a point in map coordinates
+// considerLargeObjects: Default behavior will return a pointer to a large object that covers this tile; set
+//                             this parameter to false if you only want the object whose base position matches this tile
+// return: A pointer to the object or nullptr if no object exists at this location
 Object *FindObjectAtPosition(Point position, bool considerLargeObjects = true);
 
-/**
- * @brief Check whether an item occupies this tile position
- * @param position The map coordinate to test
- * @return true if the tile is occupied
- */
-inline bool IsObjectAtPosition(Point position)
-{
-	return FindObjectAtPosition(position) != nullptr;
-}
+// Check whether an object occupies this tile position
+bool IsObjectAtPosition(Point position);
 
-/**
- * @brief Get a reference to the object located at this tile
- *
- * This function is unchecked. Trying to access an invalid position will result in out of bounds memory access
- * @param position The map coordinate of the object
- * @return a reference to the object
- */
-inline Object &ObjectAtPosition(Point position)
-{
-	return Objects[std::abs(dObject[position.x][position.y]) - 1];
-}
+// Get a reference to the object located at this tile
+// N.b. This function is unchecked. Trying to access an invalid position will result in out of bounds memory access
+Object &ObjectAtPosition(Point position);
 
-/**
- * @brief Check whether an item blocking object (solid object or open door) is located at this tile position
- * @param position The map coordinate to test
- * @return true if the tile is blocked
- */
+// Check whether an item blocking object (solid object or open door) is located at this tile position
+// return: true if the tile is blocked
 bool IsItemBlockingObjectAtPosition(Point position);
 
 tl::expected<void, std::string> InitObjectGFX();
@@ -337,12 +175,7 @@ void AddL3Objs(int x1, int y1, int x2, int y2);
 void AddCryptObjects(int x1, int y1, int x2, int y2);
 void InitObjects();
 void SetMapObjects(const uint16_t *dunData, int startx, int starty);
-/**
- * @brief Spawns an object of the given type at the map coordinates provided
- * @param objType Type specifier
- * @param objPos tile coordinates
- */
-Object *AddObject(_object_id objType, Point objPos);
+Object *AddObject(_object_id objType, Point objPos); // Spawns an object of the given type at the map coordinates provided
 bool UpdateTrapState(Object &trap);
 void OperateTrap(Object &trap);
 void ProcessObjects();
@@ -360,11 +193,10 @@ void DeltaSyncCloseObj(Object &object);
 void DeltaSyncBreakObj(Object &object);
 void SyncBreakObj(const Player &player, Object &object);
 void SyncObjectAnim(Object &object);
-/**
- * @brief Updates the text drawn in the info box to describe the given object
- * @param object The currently highlighted object
- */
-void GetObjectStr(const Object &object);
+void GetObjectStr(const Object &object); // Updates the text drawn in the info box to describe the given object
 void SyncNakrulRoom();
+#ifdef BUILD_TESTING
+void TestObjSetMicro(Point position, int pn);
+#endif
 
 } // namespace devilution

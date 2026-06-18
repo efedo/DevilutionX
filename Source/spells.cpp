@@ -123,7 +123,7 @@ int GetManaAmount(const Player &player, SpellID sn)
 	if (sn == SpellID::Healing || sn == SpellID::HealOther) {
 		ma = (GetSpellData(SpellID::Healing).sManaCost + 2 * player.getCharacterLevel() - adj);
 	} else if (GetSpellData(sn).sManaCost == 255) {
-		ma = (player._pMaxManaBase >> 6) - adj;
+		ma = (player.mana.maximumBase >> 6) - adj;
 	} else {
 		ma = (GetSpellData(sn).sManaCost - adj);
 	}
@@ -162,16 +162,16 @@ void ConsumeSpell(Player &player, SpellID sn)
 			break;
 #endif
 		int ma = GetManaAmount(player, sn);
-		player._pMana -= ma;
-		player._pManaBase -= ma;
+		player.mana.current -= ma;
+		player.mana.base -= ma;
 		RedrawComponent(PanelDrawComponent::Mana);
 		break;
 	}
 	if (sn == SpellID::BloodStar) {
-		ApplyPlrDamage(DamageType::Physical, player, 5);
+		player.applyDamage(DamageType::Physical, 5);
 	}
 	if (sn == SpellID::BoneSpirit) {
-		ApplyPlrDamage(DamageType::Physical, player, 6);
+		player.applyDamage(DamageType::Physical, 6);
 	}
 }
 
@@ -201,7 +201,7 @@ SpellCheckResult CheckSpell(const Player &player, SpellID sn, SpellType st, bool
 		return SpellCheckResult::Fail_Level0;
 	}
 
-	if (player._pMana < GetManaAmount(player, sn) || HasAnyOf(player._pIFlags, ItemSpecialEffect::NoMana)) {
+	if (player.mana.current < GetManaAmount(player, sn) || HasAnyOf(player._pIFlags, ItemSpecialEffect::NoMana)) {
 		return SpellCheckResult::Fail_NoMana;
 	}
 
@@ -254,27 +254,27 @@ void ApplyResurrect(Player &target)
 		RedrawComponent(PanelDrawComponent::Mana);
 	}
 
-	ClrPlrPath(target);
+	target.clearPath();
 	target.destAction = ACTION_NONE;
 	target._pInvincible = false;
-	SyncInitPlrPos(target);
+	target.syncInitialPosition();
 
 	int hp = 10 << 6;
-	if (target._pMaxHPBase < (10 << 6)) {
-		hp = target._pMaxHPBase;
+	if (target.life.maximumBase < (10 << 6)) {
+		hp = target.life.maximumBase;
 	}
-	SetPlayerHitPoints(target, hp);
+	target.setHitPoints(hp);
 
-	target._pHPBase = target.hitPoints + (target._pMaxHPBase - target.maxHitPoints); // CODEFIX: does the same stuff as SetPlayerHitPoints above, can be removed
-	target._pMana = 0;
-	target._pManaBase = target._pMana + (target._pMaxManaBase - target._pMaxMana);
+	target.life.base = target.life.current + (target.life.maximumBase - target.life.maximum); // CODEFIX: does the same stuff as SetPlayerHitPoints above, can be removed
+	target.mana.current = 0;
+	target.mana.base = target.mana.current + (target.mana.maximumBase - target.mana.maximum);
 
 	target._pmode = PM_STAND;
 
 	CalcPlrInv(target, true);
 
 	if (target.isOnActiveLevel()) {
-		StartStand(target, target.direction);
+		target.startStand(target.direction);
 	}
 }
 
@@ -300,8 +300,8 @@ void DoHealOther(const Player &caster, Player &target)
 		hp *= 3;
 	}
 
-	target.hitPoints = std::min(target.hitPoints + hp, target.maxHitPoints);
-	target._pHPBase = std::min(target._pHPBase + hp, target._pMaxHPBase);
+	target.life.current = std::min(target.life.current + hp, target.life.maximum);
+	target.life.base = std::min(target.life.base + hp, target.life.maximumBase);
 
 	if (&target == MyPlayer) {
 		RedrawComponent(PanelDrawComponent::Health);

@@ -19,6 +19,7 @@
 
 #include "controls/control_mode.hpp"
 #include "controls/plrctrls.h"
+#include "debug_overlay/imgui_overlay.hpp"
 #include "engine/render/primitive_render.hpp"
 #include "headless_mode.hpp"
 #include "init.hpp"
@@ -119,6 +120,9 @@ Surface GlobalBackBuffer()
 
 void dx_cleanup()
 {
+#ifdef _DEBUG
+	DebugOverlayShutdown();
+#endif
 #ifndef USE_SDL1
 	if (ghMainWnd != nullptr)
 		SDL_HideWindow(ghMainWnd);
@@ -257,6 +261,9 @@ void RenderPresent()
 		if (ControlMode == ControlTypes::VirtualGamepad) {
 			RenderVirtualGamepad(renderer);
 		}
+#ifdef _DEBUG
+		DebugOverlayRender();
+#endif
 		SDL_RenderPresent(renderer);
 
 		if (*GetOptions().Graphics.frameRateControl != FrameRateControl::VerticalSync) {

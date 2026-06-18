@@ -106,7 +106,7 @@ std::optional<WorldTileSize> GetSizeForThemeRoom(uint8_t floor, WorldTilePositio
 		WorldTileCoord width = i < room.height ? i : 0;
 		if (i < maxHeight) {
 			while (width < room.width) {
-				if (dungeon[origin.x + width][origin.y + i] != floor)
+				if (megaTileAt(origin.x + width, origin.y + i).current() != floor)
 					break;
 
 				width++;
@@ -116,7 +116,7 @@ std::optional<WorldTileSize> GetSizeForThemeRoom(uint8_t floor, WorldTilePositio
 		WorldTileCoord height = i < room.width ? i : 0;
 		if (i < maxWidth) {
 			while (height < room.height) {
-				if (dungeon[origin.x + i][origin.y + height] != floor)
+				if (megaTileAt(origin.x + i, origin.y + height).current() != floor)
 					break;
 
 				height++;
@@ -146,79 +146,79 @@ void CreateThemeRoom(int themeIndex)
 		for (int xx = lx; xx < hx; xx++) {
 			if (leveltype == DTYPE_CATACOMBS) {
 				if (yy == ly || yy == hy - 1) {
-					dungeon[xx][yy] = 2;
+					megaTileAt(xx, yy).setCurrent(2);
 				} else if (xx == lx || xx == hx - 1) {
-					dungeon[xx][yy] = 1;
+					megaTileAt(xx, yy).setCurrent(1);
 				} else {
-					dungeon[xx][yy] = 3;
+					megaTileAt(xx, yy).setCurrent(3);
 				}
 			}
 			if (IsAnyOf(leveltype, DTYPE_CAVES, DTYPE_NEST)) {
 				if (yy == ly || yy == hy - 1) {
-					dungeon[xx][yy] = 134;
+					megaTileAt(xx, yy).setCurrent(134);
 				} else if (xx == lx || xx == hx - 1) {
-					dungeon[xx][yy] = 137;
+					megaTileAt(xx, yy).setCurrent(137);
 				} else {
-					dungeon[xx][yy] = 7;
+					megaTileAt(xx, yy).setCurrent(7);
 				}
 			}
 			if (leveltype == DTYPE_HELL) {
 				if (yy == ly || yy == hy - 1) {
-					dungeon[xx][yy] = 2;
+					megaTileAt(xx, yy).setCurrent(2);
 				} else if (xx == lx || xx == hx - 1) {
-					dungeon[xx][yy] = 1;
+					megaTileAt(xx, yy).setCurrent(1);
 				} else {
-					dungeon[xx][yy] = 6;
+					megaTileAt(xx, yy).setCurrent(6);
 				}
 			}
 		}
 	}
 
 	if (leveltype == DTYPE_CATACOMBS) {
-		dungeon[lx][ly] = 8;
-		dungeon[hx - 1][ly] = 7;
-		dungeon[lx][hy - 1] = 9;
-		dungeon[hx - 1][hy - 1] = 6;
+		megaTileAt(lx, ly).setCurrent(8);
+		megaTileAt(hx - 1, ly).setCurrent(7);
+		megaTileAt(lx, hy - 1).setCurrent(9);
+		megaTileAt(hx - 1, hy - 1).setCurrent(6);
 	}
 	if (IsAnyOf(leveltype, DTYPE_CAVES, DTYPE_NEST)) {
-		dungeon[lx][ly] = 150;
-		dungeon[hx - 1][ly] = 151;
-		dungeon[lx][hy - 1] = 152;
-		dungeon[hx - 1][hy - 1] = 138;
+		megaTileAt(lx, ly).setCurrent(150);
+		megaTileAt(hx - 1, ly).setCurrent(151);
+		megaTileAt(lx, hy - 1).setCurrent(152);
+		megaTileAt(hx - 1, hy - 1).setCurrent(138);
 	}
 	if (leveltype == DTYPE_HELL) {
-		dungeon[lx][ly] = 9;
-		dungeon[hx - 1][ly] = 16;
-		dungeon[lx][hy - 1] = 15;
-		dungeon[hx - 1][hy - 1] = 12;
+		megaTileAt(lx, ly).setCurrent(9);
+		megaTileAt(hx - 1, ly).setCurrent(16);
+		megaTileAt(lx, hy - 1).setCurrent(15);
+		megaTileAt(hx - 1, hy - 1).setCurrent(12);
 	}
 
 	if (leveltype == DTYPE_CATACOMBS) {
 		if (FlipCoin())
-			dungeon[hx - 1][(ly + hy) / 2] = 4;
+			megaTileAt(hx - 1, (ly + hy) / 2).setCurrent(4);
 		else
-			dungeon[(lx + hx) / 2][hy - 1] = 5;
+			megaTileAt((lx + hx) / 2, hy - 1).setCurrent(5);
 	}
 	if (IsAnyOf(leveltype, DTYPE_CAVES, DTYPE_NEST)) {
 		if (FlipCoin())
-			dungeon[hx - 1][(ly + hy) / 2] = 147;
+			megaTileAt(hx - 1, (ly + hy) / 2).setCurrent(147);
 		else
-			dungeon[(lx + hx) / 2][hy - 1] = 146;
+			megaTileAt((lx + hx) / 2, hy - 1).setCurrent(146);
 	}
 	if (leveltype == DTYPE_HELL) {
 		if (FlipCoin()) {
 			const int yy = (ly + hy) / 2;
-			dungeon[hx - 1][yy - 1] = 53;
-			dungeon[hx - 1][yy] = 6;
-			dungeon[hx - 1][yy + 1] = 52;
-			dungeon[hx - 2][yy - 1] = 54;
+			megaTileAt(hx - 1, yy - 1).setCurrent(53);
+			megaTileAt(hx - 1, yy).setCurrent(6);
+			megaTileAt(hx - 1, yy + 1).setCurrent(52);
+			megaTileAt(hx - 2, yy - 1).setCurrent(54);
 		} else {
 			const int xx = (lx + hx) / 2;
-			dungeon[xx - 1][hy - 1] = 57;
-			dungeon[xx][hy - 1] = 6;
-			dungeon[xx + 1][hy - 1] = 56;
-			dungeon[xx][hy - 2] = 59;
-			dungeon[xx - 1][hy - 2] = 58;
+			megaTileAt(xx - 1, hy - 1).setCurrent(57);
+			megaTileAt(xx, hy - 1).setCurrent(6);
+			megaTileAt(xx + 1, hy - 1).setCurrent(56);
+			megaTileAt(xx, hy - 2).setCurrent(59);
+			megaTileAt(xx - 1, hy - 2).setCurrent(58);
 		}
 	}
 }
@@ -231,7 +231,7 @@ bool IsFloor(Point p, uint8_t floorID)
 		return false;
 	if (j < 0 || j >= DMAXY)
 		return false;
-	return dungeon[i][j] == floorID;
+	return megaTileAt(i, j).current() == floorID;
 }
 
 void FillTransparencyValues(Point floor, uint8_t floorID)
@@ -252,10 +252,10 @@ void FillTransparencyValues(Point floor, uint8_t floorID)
 	for (const Direction dir : allDirections) {
 		const Point adjacent = floor + dir;
 		if (!IsFloor(adjacent, floorID))
-			dTransVal[adjacent.x][adjacent.y] = TransVal;
+			tileAt(adjacent).setTransVal(TransVal);
 	}
 
-	dTransVal[floor.x][floor.y] = TransVal;
+	tileAt(floor).setTransVal(TransVal);
 }
 
 void FindTransparencyValues(Point floor, uint8_t floorID)
@@ -273,7 +273,7 @@ void FindTransparencyValues(Point floor, uint8_t floorID)
 	seedStack.push({ floor.x, floor.x + 1, floor.y, 1 });
 
 	const auto isInside = [floorID](int x, int y) {
-		if (dTransVal[x][y] != 0)
+		if (tileAt(x, y).transVal() != 0)
 			return false;
 		return IsFloor({ x, y }, floorID);
 	};
@@ -334,19 +334,15 @@ void FindTransparencyValues(Point floor, uint8_t floorID)
 
 void InitGlobals()
 {
-	memset(dFlags, 0, sizeof(dFlags));
-	memset(dPlayer, 0, sizeof(dPlayer));
-	memset(dMonster, 0, sizeof(dMonster));
-	memset(dCorpse, 0, sizeof(dCorpse));
-	memset(dItem, 0, sizeof(dItem));
-	memset(dObject, 0, sizeof(dObject));
-	memset(dSpecial, 0, sizeof(dSpecial));
 	uint8_t defaultLight = leveltype == DTYPE_TOWN ? 0 : 15;
 #ifdef _DEBUG
 	if (DisableLighting)
 		defaultLight = 0;
 #endif
-	memset(dLight, defaultLight, sizeof(dLight));
+	for (Tile &tile : tiles) {
+		tile.clear();
+		tile.setLight(defaultLight);
+	}
 
 	DRLG_InitTrans();
 
@@ -363,6 +359,7 @@ std::optional<WorldTileSize> GetSizeForThemeRoom()
 {
 	return GetSizeForThemeRoom(0, { 0, 0 }, 5, 10);
 }
+
 #endif
 
 dungeon_type GetLevelType(int level)
@@ -515,7 +512,7 @@ void SetDungeonMicros(std::unique_ptr<std::byte[]> &dungeonCels, uint_fast8_t &m
 		uint16_t *pieces = &levelPieces[blocks * levelPieceId];
 		for (uint32_t block = 0; block < blocks; block++) {
 			const LevelCelBlock levelCelBlock { Swap16LE(pieces[blocks - 2 + (block & 1) - (block & 0xE)]) };
-			DPieceMicros[levelPieceId].mt[block] = levelCelBlock;
+			levelMicros()[levelPieceId].mt[block] = levelCelBlock;
 			if (levelCelBlock.hasValue()) {
 				if (const auto it = frameToTypeMap.find(levelCelBlock.frame()); it == frameToTypeMap.end()) {
 					frameToTypeMap.emplace_hint(it, levelCelBlock.frame(),
@@ -534,7 +531,7 @@ void SetDungeonMicros(std::unique_ptr<std::byte[]> &dungeonCels, uint_fast8_t &m
 	if (celBlockAdjustments.size() == 0) return;
 	for (size_t levelPieceId = 0; levelPieceId < tileCount / blocks; levelPieceId++) {
 		for (uint32_t block = 0; block < blocks; block++) {
-			LevelCelBlock &levelCelBlock = DPieceMicros[levelPieceId].mt[block];
+			LevelCelBlock &levelCelBlock = levelMicros()[levelPieceId].mt[block];
 			const uint16_t frame = levelCelBlock.frame();
 			const auto pair = std::make_pair(frame, frame);
 			const auto it = std::upper_bound(celBlockAdjustments.begin(), celBlockAdjustments.end(), pair,
@@ -548,9 +545,26 @@ void SetDungeonMicros(std::unique_ptr<std::byte[]> &dungeonCels, uint_fast8_t &m
 
 void DRLG_InitTrans()
 {
-	memset(dTransVal, 0, sizeof(dTransVal));
+	for (Tile &tile : tiles)
+		tile.setTransVal(0);
 	TransList = {}; // TODO duplicate reset in InitLighting()
 	TransVal = 1;
+}
+
+void FillCurrentMegaTiles(uint8_t value)
+{
+	for (auto &column : currentLevel().megaTiles()) {
+		for (DungeonMegaTile &megaTile : column)
+			megaTile.setCurrent(value);
+	}
+}
+
+void SnapshotReplacementMegaTiles()
+{
+	for (auto &column : currentLevel().megaTiles()) {
+		for (DungeonMegaTile &megaTile : column)
+			megaTile.snapshotReplacement();
+	}
 }
 
 void DRLG_RectTrans(WorldTileRectangle area)
@@ -560,7 +574,7 @@ void DRLG_RectTrans(WorldTileRectangle area)
 
 	for (int j = position.y; j <= position.y + size.height; j++) {
 		for (int i = position.x; i <= position.x + size.width; i++) {
-			dTransVal[i][j] = TransVal;
+			tileAt(i, j).setTransVal(TransVal);
 		}
 	}
 
@@ -579,7 +593,7 @@ void DRLG_MRectTrans(WorldTilePosition origin, WorldTilePosition extent)
 
 void DRLG_CopyTrans(int sx, int sy, int dx, int dy)
 {
-	dTransVal[dx][dy] = dTransVal[sx][sy];
+	tileAt(dx, dy).setTransVal(tileAt(sx, sy).transVal());
 }
 
 void LoadTransparency(const uint16_t *dunData)
@@ -595,7 +609,7 @@ void LoadTransparency(const uint16_t *dunData)
 
 	for (WorldTileCoord j = 0; j < size.height; j++) {
 		for (WorldTileCoord i = 0; i < size.width; i++) {
-			dTransVal[16 + i][16 + j] = static_cast<int8_t>(Swap16LE(*transparentLayer));
+			tileAt(16 + i, 16 + j).setTransVal(static_cast<int8_t>(Swap16LE(*transparentLayer)));
 			transparentLayer++;
 		}
 	}
@@ -607,7 +621,7 @@ void LoadDungeonBase(const char *path, Point spawn, int floorId, int dirtId)
 
 	InitGlobals();
 
-	memset(dungeon, dirtId, sizeof(dungeon));
+	FillCurrentMegaTiles(dirtId);
 
 	auto dunData = LoadFileInMem<uint16_t>(path);
 	PlaceDunTiles(dunData.get(), { 0, 0 }, floorId);
@@ -625,7 +639,7 @@ void Make_SetPC(WorldTileRectangle area)
 
 	for (unsigned j = 0; j < size.height; j++) {
 		for (unsigned i = 0; i < size.width; i++) {
-			dFlags[position.x + i][position.y + j] |= DungeonFlag::Populated;
+			tileAt(position.x + i, position.y + j).addFlags(DungeonFlag::Populated);
 		}
 	}
 }
@@ -684,10 +698,10 @@ void PlaceDunTiles(const uint16_t *dunData, Point position, int floorId)
 		for (WorldTileCoord i = 0; i < size.width; i++) {
 			auto tileId = static_cast<uint8_t>(Swap16LE(tileLayer[(j * size.width) + i]));
 			if (tileId != 0) {
-				dungeon[position.x + i][position.y + j] = tileId;
+				megaTileAt(position.x + i, position.y + j).setCurrent(tileId);
 				Protected.set(position.x + i, position.y + j);
 			} else if (floorId != 0) {
-				dungeon[position.x + i][position.y + j] = floorId;
+				megaTileAt(position.x + i, position.y + j).setCurrent(floorId);
 			}
 		}
 	}
@@ -699,7 +713,7 @@ void DRLG_PlaceThemeRooms(int minSize, int maxSize, int floor, int freq, bool rn
 	memset(themeLoc, 0, sizeof(*themeLoc));
 	for (WorldTileCoord j = 0; j < DMAXY; j++) {
 		for (WorldTileCoord i = 0; i < DMAXX; i++) {
-			if (dungeon[i][j] == floor && FlipCoin(freq)) {
+			if (megaTileAt(i, j).current() == floor && FlipCoin(freq)) {
 				std::optional<WorldTileSize> themeSize = GetSizeForThemeRoom(floor, { i, j }, minSize, maxSize);
 
 				if (!themeSize)
@@ -738,10 +752,10 @@ void DRLG_HoldThemeRooms()
 			for (int x = themeLoc[i].room.position.x; x < themeLoc[i].room.position.x + themeLoc[i].room.size.width - 1; x++) {
 				const int xx = (2 * x) + 16;
 				const int yy = (2 * y) + 16;
-				dFlags[xx][yy] |= DungeonFlag::Populated;
-				dFlags[xx + 1][yy] |= DungeonFlag::Populated;
-				dFlags[xx][yy + 1] |= DungeonFlag::Populated;
-				dFlags[xx + 1][yy + 1] |= DungeonFlag::Populated;
+				tileAt(xx, yy).addFlags(DungeonFlag::Populated);
+				tileAt(xx + 1, yy).addFlags(DungeonFlag::Populated);
+				tileAt(xx, yy + 1).addFlags(DungeonFlag::Populated);
+				tileAt(xx + 1, yy + 1).addFlags(DungeonFlag::Populated);
 			}
 		}
 	}
@@ -763,10 +777,10 @@ void DRLG_LPass3(int lv)
 
 		for (int j = 0; j < MAXDUNY; j += 2) {
 			for (int i = 0; i < MAXDUNX; i += 2) {
-				dPiece[i + 0][j + 0] = v1;
-				dPiece[i + 1][j + 0] = v2;
-				dPiece[i + 0][j + 1] = v3;
-				dPiece[i + 1][j + 1] = v4;
+				tileAt(i + 0, j + 0).setPiece(v1);
+				tileAt(i + 1, j + 0).setPiece(v2);
+				tileAt(i + 0, j + 1).setPiece(v3);
+				tileAt(i + 1, j + 1).setPiece(v4);
 			}
 		}
 	}
@@ -775,12 +789,12 @@ void DRLG_LPass3(int lv)
 	for (int j = 0; j < DMAXY; j++) {
 		int xx = 16;
 		for (int i = 0; i < DMAXX; i++) { // NOLINT(modernize-loop-convert)
-			const int tileId = dungeon[i][j] - 1;
+			const int tileId = megaTileAt(i, j).current() - 1;
 			const MegaTile mega = pMegaTiles[tileId];
-			dPiece[xx + 0][yy + 0] = Swap16LE(mega.micro1);
-			dPiece[xx + 1][yy + 0] = Swap16LE(mega.micro2);
-			dPiece[xx + 0][yy + 1] = Swap16LE(mega.micro3);
-			dPiece[xx + 1][yy + 1] = Swap16LE(mega.micro4);
+			tileAt(xx + 0, yy + 0).setPiece(Swap16LE(mega.micro1));
+			tileAt(xx + 1, yy + 0).setPiece(Swap16LE(mega.micro2));
+			tileAt(xx + 0, yy + 1).setPiece(Swap16LE(mega.micro3));
+			tileAt(xx + 1, yy + 1).setPiece(Swap16LE(mega.micro4));
 			xx += 2;
 		}
 		yy += 2;
@@ -811,7 +825,7 @@ void FloodTransparencyValues(uint8_t floorID)
 	for (int j = 0; j < DMAXY; j++) {
 		int xx = 16;
 		for (int i = 0; i < DMAXX; i++) {
-			if (dungeon[i][j] == floorID && dTransVal[xx][yy] == 0) {
+			if (megaTileAt(i, j).current() == floorID && tileAt(xx, yy).transVal() == 0) {
 				FindTransparencyValues({ xx, yy }, floorID);
 				TransVal++;
 			}

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <cstdint>
 #include <cstring>
 #include <execution>
@@ -69,6 +70,8 @@ DVL_ALWAYS_INLINE DVL_ATTRIBUTE_HOT void BlitFillWithLightmap(uint8_t *dst, unsi
 {
 	DVL_ASSUME(length != 0);
 	const uint8_t *light = lightmap.getLightingAt(dst);
+	assert(light >= lightmap.lightingData());
+	assert(light + length <= lightmap.lightingData() + lightmap.lightingSize());
 	std::transform(DEVILUTIONX_BLIT_EXECUTION_POLICY light, light + length, dst, [color, &lightmap](uint8_t lightLevel) {
 		return lightmap.adjustColor(color, lightLevel);
 	});
@@ -78,6 +81,8 @@ DVL_ALWAYS_INLINE DVL_ATTRIBUTE_HOT void BlitPixelsWithLightmap(uint8_t *DVL_RES
 {
 	DVL_ASSUME(length != 0);
 	const uint8_t *light = lightmap.getLightingAt(dst);
+	assert(light >= lightmap.lightingData());
+	assert(light + length <= lightmap.lightingData() + lightmap.lightingSize());
 	std::transform(DEVILUTIONX_BLIT_EXECUTION_POLICY src, src + length, light, dst, [&lightmap](uint8_t srcColor, uint8_t lightLevel) {
 		return lightmap.adjustColor(srcColor, lightLevel);
 	});
@@ -148,6 +153,8 @@ DVL_ALWAYS_INLINE DVL_ATTRIBUTE_HOT void BlitFillBlendedWithLightmap(uint8_t *ds
 {
 	DVL_ASSUME(length != 0);
 	const uint8_t *light = lightmap.getLightingAt(dst);
+	assert(light >= lightmap.lightingData());
+	assert(light + length <= lightmap.lightingData() + lightmap.lightingSize());
 	std::transform(DEVILUTIONX_BLIT_EXECUTION_POLICY light, light + length, dst, dst, [color, &lightmap, pal = paletteTransparencyLookup](uint8_t lightLevel, uint8_t dstColor) {
 		uint8_t srcColor = lightmap.adjustColor(color, lightLevel);
 		return pal[srcColor][dstColor];
@@ -158,6 +165,8 @@ DVL_ALWAYS_INLINE DVL_ATTRIBUTE_HOT void BlitPixelsBlendedWithLightmap(uint8_t *
 {
 	DVL_ASSUME(length != 0);
 	const uint8_t *light = lightmap.getLightingAt(dst);
+	assert(light >= lightmap.lightingData());
+	assert(light + length <= lightmap.lightingData() + lightmap.lightingSize());
 
 	if (length < 1024) {
 		uint8_t litSrc[1024];

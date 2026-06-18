@@ -118,30 +118,31 @@ struct PlayerNetPack {
 	uint8_t friendlyMode;
 	uint8_t isOnSetLevel;
 
-	// For validation
-	int32_t pStrength;
-	int32_t pMagic;
-	int32_t pDexterity;
-	int32_t pVitality;
-	int32_t pHitPoints;
-	int32_t pMaxHP;
-	int32_t pMana;
-	int32_t pMaxMana;
+	// Validation-only mirrors of runtime fields. These names are clearer than the
+	// legacy `_p*` names, but the field order must remain stable for network compatibility.
+	int32_t currentStrength;
+	int32_t currentMagic;
+	int32_t currentDexterity;
+	int32_t currentVitality;
+	int32_t currentHitPoints;
+	int32_t maximumHitPoints;
+	int32_t currentMana;
+	int32_t maximumMana;
 	int32_t pDamageMod;
 	int32_t pBaseToBlk;
-	int32_t pIMinDam;
-	int32_t pIMaxDam;
+	int32_t physicalDamageMinimum;
+	int32_t physicalDamageMaximum;
 	int32_t pIAC;
-	int32_t pIBonusDam;
+	int32_t damagePercentBonus;
 	int32_t pIBonusToHit;
 	int32_t pIBonusAC;
-	int32_t pIBonusDamMod;
+	int32_t damageFlatBonus;
 	int32_t pIGetHit;
-	int32_t pIEnAc;
-	int32_t pIFMinDam;
-	int32_t pIFMaxDam;
-	int32_t pILMinDam;
-	int32_t pILMaxDam;
+	int32_t armorPiercing;
+	int32_t fireDamageMinimum;
+	int32_t fireDamageMaximum;
+	int32_t lightningDamageMinimum;
+	int32_t lightningDamageMaximum;
 };
 #pragma pack(pop)
 

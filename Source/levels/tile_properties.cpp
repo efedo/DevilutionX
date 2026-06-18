@@ -50,10 +50,11 @@ bool IsTileOccupied(Point position)
 	if (IsTileSolid(position)) {
 		return true;
 	}
-	if (dMonster[position.x][position.y] != 0) {
+	const Tile &tile = tileAt(position);
+	if (tile.hasMonster()) {
 		return true;
 	}
-	if (dPlayer[position.x][position.y] != 0) {
+	if (tile.hasPlayer()) {
 		return true;
 	}
 	if (IsObjectAtPosition(position)) {

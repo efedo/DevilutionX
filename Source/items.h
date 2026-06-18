@@ -1,8 +1,4 @@
-/**
- * @file items.h
- *
- * Interface of item functionality.
- */
+// Item data, attributes, and floor/inventory management.
 #pragma once
 
 #include <cstdint>
@@ -21,15 +17,14 @@
 
 namespace devilution {
 
-#define MAXITEMS 127
-#define ITEMTYPES 43
+constexpr int MAXITEMS = 127;
+constexpr int ITEMTYPES = 43;
 
-#define GOLD_SMALL_LIMIT 1000
-#define GOLD_MEDIUM_LIMIT 2500
-#define GOLD_MAX_LIMIT 5000
+constexpr int GOLD_SMALL_LIMIT = 1000;
+constexpr int GOLD_MEDIUM_LIMIT = 2500;
+constexpr int GOLD_MAX_LIMIT = 5000;
 
-// Item indestructible durability
-#define DUR_INDESTRUCTIBLE 255
+constexpr uint8_t DUR_INDESTRUCTIBLE = 255; // Sentinel: item cannot be damaged.
 
 constexpr int ItemNameLength = 64;
 constexpr int MaxVendorValue = 140000;
@@ -186,15 +181,12 @@ constexpr int ItemAnimWidth = 96;
 struct Player;
 
 struct Item {
-	/** Randomly generated identifier */
-	uint32_t _iSeed = 0;
+	
+	uint32_t _iSeed = 0; // Randomly generated identifier
 	uint16_t _iCreateInfo = 0;
 	ItemType _itype = ItemType::None;
 	bool _iAnimFlag = false;
 	Point position = { 0, 0 };
-	/*
-	 * @brief Contains Information for current Animation
-	 */
 	AnimationInfo animInfo;
 	bool _iDelFlag = false; // set when item is flagged for deletion, deprecated in 1.02
 	SelectionRegion selectionRegion = SelectionRegion::None;
@@ -236,8 +228,7 @@ struct Item {
 	int16_t _iPLLight = 0;
 	int8_t _iSplLvlAdd = 0;
 	bool _iRequest = false;
-	/** Unique item ID, used as an index into UniqueItemList */
-	int _iUid = 0;
+	int _iUid = 0; // Unique item ID, used as an index into UniqueItemList
 	int16_t _iFMinDam = 0;
 	int16_t _iFMaxDam = 0;
 	int16_t _iLMinDam = 0;
@@ -256,216 +247,39 @@ struct Item {
 	ItemSpecialEffectHf _iDamAcFlags = ItemSpecialEffectHf::None;
 	uint32_t dwBuff = 0;
 
-	/**
-	 * @brief Clears this item and returns the old value
-	 */
-	Item pop() &
-	{
-		Item temp = std::move(*this);
-		clear();
-		return temp;
-	}
+	Item pop() &; // Clears this item and returns the old value
 
-	/**
-	 * @brief Resets the item so isEmpty() returns true without needing to reinitialise the whole object
-	 */
-	DVL_REINITIALIZES void clear()
-	{
-		this->_itype = ItemType::None;
-	}
-
-	/**
-	 * @brief Checks whether this item is empty or not.
-	 * @return 'True' in case the item is empty and 'False' otherwise.
-	 */
-	bool isEmpty() const
-	{
-		return this->_itype == ItemType::None;
-	}
-
-	/**
-	 * @brief Checks whether this item is an equipment.
-	 * @return 'True' in case the item is an equipment and 'False' otherwise.
-	 */
-	bool isEquipment() const
-	{
-		if (this->isEmpty()) {
-			return false;
-		}
-
-		switch (this->_iLoc) {
-		case ILOC_AMULET:
-		case ILOC_ARMOR:
-		case ILOC_HELM:
-		case ILOC_ONEHAND:
-		case ILOC_RING:
-		case ILOC_TWOHAND:
-			return true;
-
-		default:
-			return false;
-		}
-	}
-
-	/**
-	 * @brief Checks whether this item is a weapon.
-	 * @return 'True' in case the item is a weapon and 'False' otherwise.
-	 */
-	bool isWeapon() const
-	{
-		switch (this->_itype) {
-		case ItemType::Axe:
-		case ItemType::Bow:
-		case ItemType::Mace:
-		case ItemType::Staff:
-		case ItemType::Sword:
-			return true;
-
-		default:
-			return false;
-		}
-	}
-
-	/**
-	 * @brief Checks whether this item is an armor.
-	 * @return 'True' in case the item is an armor and 'False' otherwise.
-	 */
-	bool isArmor() const
-	{
-		switch (this->_itype) {
-		case ItemType::HeavyArmor:
-		case ItemType::LightArmor:
-		case ItemType::MediumArmor:
-			return true;
-
-		default:
-			return false;
-		}
-	}
-
-	/**
-	 * @brief Checks whether this item is gold.
-	 * @return 'True' in case the item is gold and 'False' otherwise.
-	 */
-	bool isGold() const
-	{
-		return this->_itype == ItemType::Gold;
-	}
-
-	/**
-	 * @brief Checks whether this item is a helm.
-	 * @return 'True' in case the item is a helm and 'False' otherwise.
-	 */
-	bool isHelm() const
-	{
-		return this->_itype == ItemType::Helm;
-	}
-
-	/**
-	 * @brief Checks whether this item is a shield.
-	 * @return 'True' in case the item is a shield and 'False' otherwise.
-	 */
-	bool isShield() const
-	{
-		return this->_itype == ItemType::Shield;
-	}
-
-	/**
-	 * @brief Checks whether this item is a jewelry.
-	 * @return 'True' in case the item is a jewelry and 'False' otherwise.
-	 */
-	bool isJewelry() const
-	{
-		switch (this->_itype) {
-		case ItemType::Amulet:
-		case ItemType::Ring:
-			return true;
-
-		default:
-			return false;
-		}
-	}
-
-	[[nodiscard]] bool isScroll() const
-	{
-		return IsAnyOf(_iMiscId, IMISC_SCROLL, IMISC_SCROLLT);
-	}
-
-	[[nodiscard]] bool isScrollOf(SpellID spellId) const
-	{
-		return isScroll() && _iSpell == spellId;
-	}
-
-	[[nodiscard]] bool isRune() const
-	{
-		return _iMiscId > IMISC_RUNEFIRST && _iMiscId < IMISC_RUNELAST;
-	}
-
-	[[nodiscard]] bool isRuneOf(SpellID spellId) const
-	{
-		if (!isRune())
-			return false;
-		switch (_iMiscId) {
-		case IMISC_RUNEF:
-			return spellId == SpellID::RuneOfFire;
-		case IMISC_RUNEL:
-			return spellId == SpellID::RuneOfLight;
-		case IMISC_GR_RUNEL:
-			return spellId == SpellID::RuneOfNova;
-		case IMISC_GR_RUNEF:
-			return spellId == SpellID::RuneOfImmolation;
-		case IMISC_RUNES:
-			return spellId == SpellID::RuneOfStone;
-		default:
-			return false;
-		}
-	}
-
+	// Resets the item so isEmpty() returns true.
+	DVL_REINITIALIZES void clear();
+	bool isEmpty() const;
+	bool isEquipment() const;
+	bool isWeapon() const;
+	bool isArmor() const;
+	bool isGold() const;
+	bool isHelm() const;
+	bool isShield() const;
+	bool isJewelry() const;
+	[[nodiscard]] bool isScroll() const;
+	[[nodiscard]] bool isScrollOf(SpellID spellId) const;
+	[[nodiscard]] bool isRune() const;
+	[[nodiscard]] bool isRuneOf(SpellID spellId) const;
 	[[nodiscard]] bool isUsable() const;
+	[[nodiscard]] bool keyAttributesMatch(uint32_t seed, _item_indexes itemIndex, uint16_t createInfo) const;
 
-	[[nodiscard]] bool keyAttributesMatch(uint32_t seed, _item_indexes itemIndex, uint16_t createInfo) const
-	{
-		return _iSeed == seed && IDidx == itemIndex && _iCreateInfo == createInfo;
-	}
+	UiFlags getTextColor() const;
 
-	UiFlags getTextColor() const
-	{
-		switch (_iMagical) {
-		case ITEM_QUALITY_MAGIC:
-			return UiFlags::ColorBlue;
-		case ITEM_QUALITY_UNIQUE:
-			return UiFlags::ColorWhitegold;
-		default:
-			return UiFlags::ColorWhite;
-		}
-	}
+	UiFlags getTextColorWithStatCheck() const;
 
-	UiFlags getTextColorWithStatCheck() const
-	{
-		if (!_iStatFlag)
-			return UiFlags::ColorRed;
-		return getTextColor();
-	}
-
-	/**
-	 * @brief Sets the current Animation for the Item
-	 * @param showAnimation Definies if the Animation (Flipping) is shown or if only the final Frame (item on the ground) is shown
-	 */
+	// showAnimation: true plays the flip animation; false shows only the final ground frame.
 	void setNewAnimation(bool showAnimation);
 
-	/**
-	 * @brief If this item is a spell book, calculates the magic requirement to learn a new level, then for all items sets _iStatFlag
-	 * @param player Player to compare stats against requirements
-	 */
+	// For spell books, recalculates the magic requirement for the next level; sets _iStatFlag for all items.
 	void updateRequiredStatsCacheForPlayer(const Player &player);
 
-	/** @brief Returns the translated item name to display (respects identified flag) */
+	// Returns the translated item name to display (respects identified flag).
 	StringOrView getName() const;
 
-	[[nodiscard]] Displacement getRenderingOffset(const ClxSprite sprite) const
-	{
-		return { -CalculateSpriteTileCenterX(sprite.width()), 0 };
-	}
+	[[nodiscard]] Displacement getRenderingOffset(const ClxSprite sprite) const;
 };
 
 struct ItemGetRecordStruct {
@@ -482,12 +296,8 @@ struct CornerStoneStruct {
 	bool isAvailable();
 };
 
-/** Contains the items on ground in the current game. */
-extern Item Items[MAXITEMS + 1];
-extern uint8_t ActiveItems[MAXITEMS];
-extern uint8_t ActiveItemCount;
-/** Contains the location of dropped items. */
-extern int8_t dItem[MAXDUNX][MAXDUNY];
+/** Contains the items on ground in the current game. Storage is owned by gItemPool (item_pool.cpp). */
+extern Item *Items;
 extern bool ShowUniqueItemInfoBox;
 extern CornerStoneStruct CornerStone;
 extern DVL_API_FOR_TEST bool UniqueItemFlags[128];
@@ -503,20 +313,14 @@ void InitializeItem(Item &item, _item_indexes itemData);
 void GenerateNewSeed(Item &item);
 int GetGoldCursor(int value);
 
-/**
- * @brief Update the gold cursor on the given gold item
- * @param gold The item to update
- */
+// Updates the gold cursor sprite to match the item's value
 void SetPlrHandGoldCurs(Item &gold);
 void CreatePlrItems(Player &player);
 bool ItemSpaceOk(Point position);
 int AllocateItem();
-/**
- * @brief Moves the item onto the floor of the current dungeon level
- * @param item The source of the item data, should not be used after calling this function
- * @param position Coordinates of the tile to place the item on
- * @return The index assigned to the item
- */
+
+// Places item on the dungeon floor at position; item should not be used after this call.
+// Returns the index assigned to the item.
 uint8_t PlaceItemInWorld(Item &&item, WorldTilePosition position);
 Point GetSuperItemLoc(Point position);
 void GetItemAttrs(Item &item, _item_indexes itemData, int lvl);
@@ -572,18 +376,12 @@ bool GetItemRecord(uint32_t nSeed, uint16_t wCI, int nIndex);
 void SetItemRecord(uint32_t nSeed, uint16_t wCI, int nIndex);
 void PutItemRecord(uint32_t nSeed, uint16_t wCI, int nIndex);
 
-/**
- * @brief Resets item get records.
- */
-void initItemGetRecords();
+void initItemGetRecords(); // Resets item get records.
 
 void RepairItem(Item &item, int lvl);
 void RechargeItem(Item &item, Player &player);
 bool ApplyOilToItem(Item &item, Player &player);
-/**
- * @brief Checks if the item is generated in vanilla hellfire. If yes it updates dwBuff to include CF_HELLFIRE.
- */
-void UpdateHellfireFlag(Item &item, const char *identifiedItemName);
+void UpdateHellfireFlag(Item &item, const char *identifiedItemName); // Sets CF_HELLFIRE in dwBuff if the item was generated in vanilla Hellfire.
 
 /* data */
 

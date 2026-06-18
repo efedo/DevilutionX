@@ -9,7 +9,9 @@
 
 #include "levels/gendung.h"
 #include "lighting.h"
+#include "item_pool.h"
 #include "monster.h"
+#include "monster_pool.h"
 #include "monsters/validation.hpp"
 #include "player.h"
 #include "utils/endian_swap.hpp"
@@ -27,8 +29,7 @@ int sgnSyncPInv;
 
 void SyncOneMonster()
 {
-	for (size_t i = 0; i < ActiveMonsterCount; i++) {
-		const unsigned m = ActiveMonsters[i];
+	for (const unsigned m : MonsterPoolAdapter::ActiveMonsterRange()) {
 		const Monster &monster = Monsters[m];
 		sgnMonsterPriority[m] = MyPlayer->position.tile.ManhattanDistance(monster.position.tile);
 		if (monster.activeForTicks == 0) {
@@ -59,11 +60,10 @@ bool SyncMonsterActive(TSyncMonster &monsterSync)
 	unsigned ndx = std::numeric_limits<unsigned>::max();
 	uint32_t lru = 0xFFFFFFFF;
 
-	for (size_t i = 0; i < ActiveMonsterCount; i++) {
-		const unsigned m = ActiveMonsters[i];
+	for (const unsigned m : MonsterPoolAdapter::ActiveMonsterRange()) {
 		if (sgnMonsterPriority[m] < lru && sgwLRU[m] < 0xFFFE) {
 			lru = sgnMonsterPriority[m];
-			ndx = ActiveMonsters[i];
+			ndx = m;
 		}
 	}
 
@@ -79,15 +79,16 @@ bool SyncMonsterActive2(TSyncMonster &monsterSync)
 {
 	unsigned ndx = std::numeric_limits<unsigned>::max();
 	uint32_t lru = 0xFFFE;
+	const size_t activeCount = MonsterPoolAdapter::ActiveMonsterCountValue();
 
-	for (size_t i = 0; i < ActiveMonsterCount; i++) {
-		if (sgnMonsters >= ActiveMonsterCount) {
+	for (size_t i = 0; i < activeCount; i++) {
+		if (sgnMonsters >= activeCount) {
 			sgnMonsters = 0;
 		}
 		const unsigned m = ActiveMonsters[sgnMonsters];
 		if (sgwLRU[m] < lru) {
 			lru = sgwLRU[m];
-			ndx = ActiveMonsters[sgnMonsters];
+			ndx = m;
 		}
 		sgnMonsters++;
 	}
@@ -103,11 +104,11 @@ bool SyncMonsterActive2(TSyncMonster &monsterSync)
 void SyncPlrInv(TSyncHeader *pHdr)
 {
 	pHdr->bItemI = -1;
-	if (ActiveItemCount > 0) {
-		if (sgnSyncItem >= ActiveItemCount) {
+	if (ItemPoolAdapter::ActiveItemCountValue() > 0) {
+		if (sgnSyncItem >= ItemPoolAdapter::ActiveItemCountValue()) {
 			sgnSyncItem = 0;
 		}
-		pHdr->bItemI = ActiveItems[sgnSyncItem];
+		pHdr->bItemI = ItemPoolAdapter::ActiveItemIds()[sgnSyncItem];
 		sgnSyncItem++;
 		auto &item = Items[pHdr->bItemI];
 		pHdr->bItemX = item.position.x;
@@ -191,7 +192,7 @@ void SyncMonster(bool isOwner, const TSyncMonster &monsterSync)
 				monster.activeForTicks = std::numeric_limits<uint8_t>::max();
 			}
 		}
-	} else if (dMonster[position.x][position.y] == 0) {
+	} else if (tileAt(position).monster() == 0) {
 		monster.clearSquares();
 		monster.occupyTile(position, false);
 		monster.position.tile = position;
@@ -232,7 +233,7 @@ bool IsTSyncEnemyValid(const TSyncMonster &monsterSync)
 
 size_t sync_all_monsters(std::byte *pbBuf, size_t dwMaxLen)
 {
-	if (ActiveMonsterCount < 1) {
+	if (MonsterPoolAdapter::ActiveMonsterCountValue() < 1) {
 		return dwMaxLen;
 	}
 	if (dwMaxLen < sizeof(TSyncHeader) + sizeof(TSyncMonster)) {
@@ -253,7 +254,8 @@ size_t sync_all_monsters(std::byte *pbBuf, size_t dwMaxLen)
 	assert(dwMaxLen <= 0xffff);
 	SyncOneMonster();
 
-	for (size_t i = 0; i < ActiveMonsterCount && dwMaxLen >= sizeof(TSyncMonster); i++) {
+	const size_t activeCount = MonsterPoolAdapter::ActiveMonsterCountValue();
+	for (size_t i = 0; i < activeCount && dwMaxLen >= sizeof(TSyncMonster); i++) {
 		auto &monsterSync = *reinterpret_cast<TSyncMonster *>(pbBuf);
 		bool sync = false;
 		if (i < 2) {

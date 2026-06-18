@@ -96,21 +96,21 @@ void InitPlayerUserType(sol::state_view &lua)
 	LuaSetDocFn(playerType, "restoreFullLife", "()",
 	    "Restore player's HP to maximum",
 	    [](Player &player) {
-		    player.hitPoints = player.maxHitPoints;
-		    player._pHPBase = player._pMaxHPBase;
+		    player.life.current = player.life.maximum;
+		    player.life.base = player.life.maximumBase;
 	    });
 	LuaSetDocFn(playerType, "restoreFullMana", "()",
 	    "Restore player's mana to maximum",
 	    [](Player &player) {
-		    player._pMana = player._pMaxMana;
-		    player._pManaBase = player._pMaxManaBase;
+		    player.mana.current = player.mana.maximum;
+		    player.mana.base = player.mana.maximumBase;
 	    });
 	LuaSetDocReadonlyProperty(playerType, "mana", "number",
 	    "Current mana (readonly)",
-	    [](Player &player) { return player._pMana >> 6; });
+	    [](Player &player) { return player.mana.current >> 6; });
 	LuaSetDocReadonlyProperty(playerType, "maxMana", "number",
 	    "Maximum mana (readonly)",
-	    [](Player &player) { return player._pMaxMana >> 6; });
+	    [](Player &player) { return player.mana.maximum >> 6; });
 }
 } // namespace
 

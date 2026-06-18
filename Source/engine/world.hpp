@@ -28,6 +28,7 @@
 
 #include "levels/level.hpp"
 #include "levels/gendung_defs.hpp"
+#include "utils/attributes.h"
 
 namespace devilution {
 
@@ -100,7 +101,7 @@ private:
 // ---------------------------------------------------------------------------
 
 /** @brief The single global World instance for the current game session. */
-extern World CurrentWorld;
+extern DVL_API_FOR_TEST World CurrentWorld;
 
 /**
  * @brief Returns the Level the local player is currently on.

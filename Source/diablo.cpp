@@ -32,6 +32,7 @@
 #include "dead.h"
 #ifdef _DEBUG
 #include "debug.h"
+#include "debug_overlay/imgui_overlay.hpp"
 #endif
 #include "DiabloUI/diabloui.h"
 #include "controls/control_mode.hpp"
@@ -77,6 +78,7 @@
 #include "menu.h"
 #include "minitext.h"
 #include "missiles.h"
+#include "monster_pool.h"
 #include "movie.h"
 #include "multi.h"
 #include "nthread.h"
@@ -209,7 +211,7 @@ void FreeGame()
 	FreeStoreMem();
 
 	for (Player &player : Players)
-		ResetPlayerGFX(player);
+		player.resetGraphics();
 
 	FreeCursor();
 #ifdef _DEBUG
@@ -544,7 +546,7 @@ void PressKey(SDL_Keycode vkey, uint16_t modState)
 		}
 	}
 	// Disallow player from accessing escape menu during the frames before the death message appears
-	if (vkey == SDLK_ESCAPE && MyPlayer->hitPoints > 0) {
+	if (vkey == SDLK_ESCAPE && MyPlayer->life.current > 0) {
 		if (!PressEscKey()) {
 			LastPlayerAction = PlayerActionType::None;
 			gamemenu_on();
@@ -762,6 +764,9 @@ void GameEventHandler(const SDL_Event &event, uint16_t modState)
 	}
 
 #ifdef _DEBUG
+	if (DebugOverlayHandleEvent(event)) {
+		return;
+	}
 	if (ConsoleHandleEvent(event)) {
 		return;
 	}
@@ -1487,8 +1492,8 @@ void UnstuckChargers()
 			return;
 		}
 	}
-	for (size_t i = 0; i < ActiveMonsterCount; i++) {
-		Monster &monster = Monsters[ActiveMonsters[i]];
+	for (const unsigned m : MonsterPoolAdapter::ActiveMonsterRange()) {
+		Monster &monster = Monsters[m];
 		if (monster.mode == MonsterMode::Charge)
 			monster.mode = MonsterMode::Stand;
 	}
@@ -1496,8 +1501,8 @@ void UnstuckChargers()
 
 void UpdateMonsterLights()
 {
-	for (size_t i = 0; i < ActiveMonsterCount; i++) {
-		Monster &monster = Monsters[ActiveMonsters[i]];
+	for (const unsigned m : MonsterPoolAdapter::ActiveMonsterRange()) {
+		Monster &monster = Monsters[m];
 
 		if ((monster.flags & MFLAG_BERSERK) != 0) {
 			const int lightRadius = leveltype == DTYPE_NEST ? 9 : 3;
@@ -2681,7 +2686,7 @@ bool StartGame(bool bNewGame, bool bSinglePlayer)
 			InitLevels();
 			InitQuests();
 			InitPortals();
-			InitDungMsgs(*MyPlayer);
+			MyPlayer->initDungeonMessages();
 			DeltaSyncJunk();
 		}
 		giNumberOfLevels = gbIsHellfire ? 25 : 17;
@@ -3153,11 +3158,11 @@ void LoadGameLevelSyncPlayerEntry(lvl_entry lvldir)
 {
 	for (Player &player : Players) {
 		if (player.plractive && player.isOnActiveLevel() && (!player._pLvlChanging || &player == MyPlayer)) {
-			if (player.hitPoints > 0) {
+			if (player.life.current > 0) {
 				if (lvldir != ENTRY_LOAD)
-					SyncInitPlrPos(player);
+					player.syncInitialPosition();
 			} else {
-				dFlags[player.position.tile.x][player.position.tile.y] |= DungeonFlag::DeadPlayer;
+				tileAt(player.position.tile).addFlags(DungeonFlag::DeadPlayer);
 			}
 		}
 	}
@@ -3166,7 +3171,12 @@ void LoadGameLevelSyncPlayerEntry(lvl_entry lvldir)
 void LoadGameLevelLightVision()
 {
 	if (leveltype != DTYPE_TOWN) {
-		memcpy(dLight, dPreLight, sizeof(dLight));                                     // resets the light on entering a level to get rid of incorrect light
+		for (int x = 0; x < MAXDUNX; x++) {
+			for (int y = 0; y < MAXDUNY; y++) {
+				Tile &tile = tileAt(x, y);
+				tile.setLight(tile.preLight());
+			}
+		}
 		ChangeLightXY(Players[MyPlayerId].lightId, Players[MyPlayerId].position.tile); // forces player light refresh
 		ProcessLightList();
 		ProcessVisionList();
@@ -3184,7 +3194,7 @@ void LoadGameLevelInitPlayers(bool firstflag, lvl_entry lvldir)
 {
 	for (Player &player : Players) {
 		if (player.plractive && player.isOnActiveLevel()) {
-			InitPlayerGFX(player);
+			player.initGraphics();
 			if (lvldir != ENTRY_LOAD)
 				InitPlayer(player, firstflag);
 		}
@@ -3204,7 +3214,7 @@ tl::expected<void, std::string> LoadGameLevelTown(bool firstflag, lvl_entry lvld
 {
 	for (int i = 0; i < MAXDUNX; i++) { // NOLINT(modernize-loop-convert)
 		for (int j = 0; j < MAXDUNY; j++) {
-			dFlags[i][j] |= DungeonFlag::Lit;
+			tileAt(i, j).addFlags(DungeonFlag::Lit);
 		}
 	}
 
@@ -3254,7 +3264,7 @@ tl::expected<void, std::string> LoadGameLevelSetLevel(bool firstflag, lvl_entry 
 
 	for (Player &player : Players) {
 		if (player.plractive && player.isOnActiveLevel()) {
-			InitPlayerGFX(player);
+			player.initGraphics();
 			if (lvldir != ENTRY_LOAD)
 				InitPlayer(player, firstflag);
 		}

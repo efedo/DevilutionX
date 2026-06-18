@@ -38,6 +38,8 @@
 #include "minitext.h"
 #include "missiles.h"
 #include "monster.h"
+#include "object_pool.h"
+#include "item_pool.h"
 #include "options.h"
 #include "qol/stash.h"
 #include "stores.h"
@@ -53,10 +55,6 @@
 
 namespace devilution {
 
-Object Objects[MAXOBJECTS];
-int AvailableObjects[MAXOBJECTS];
-int ActiveObjects[MAXOBJECTS];
-int ActiveObjectCount;
 bool LoadingMapObjects;
 int NaKrulTomeSequence;
 
@@ -236,9 +234,9 @@ _speech_id StoryText[3][3] = {
 
 bool RndLocOk(Point p)
 {
-	if (dMonster[p.x][p.y] != 0)
+	if (tileAt(p).hasMonster())
 		return false;
-	if (dPlayer[p.x][p.y] != 0)
+	if (tileAt(p).hasPlayer())
 		return false;
 	if (IsObjectAtPosition(p))
 		return false;
@@ -246,7 +244,8 @@ bool RndLocOk(Point p)
 		return false;
 	if (TileHasAny(p, TileProperties::Solid))
 		return false;
-	return IsNoneOf(leveltype, DTYPE_CATHEDRAL, DTYPE_CRYPT) || dPiece[p.x][p.y] <= 125 || dPiece[p.x][p.y] >= 143;
+	const uint16_t piece = tileAt(p).piece();
+	return IsNoneOf(leveltype, DTYPE_CATHEDRAL, DTYPE_CRYPT) || piece <= 125 || piece >= 143;
 }
 
 bool IsAreaOk(Rectangle rect)
@@ -256,7 +255,7 @@ bool IsAreaOk(Rectangle rect)
 
 bool CanPlaceWallTrap(Point pos)
 {
-	if (dObject[pos.x][pos.y] != 0)
+	if (tileAt(pos).object() != 0)
 		return false;
 	if (TileContainsSetPiece(pos))
 		return false;
@@ -324,14 +323,10 @@ void InitRndLocObj5x5(int min, int max, _object_id objtype)
 
 void ClrAllObjects()
 {
-	for (Object &object : Objects) {
-		object = {};
-	}
-	ActiveObjectCount = 0;
 	for (int i = 0; i < MAXOBJECTS; i++) {
-		AvailableObjects[i] = i;
+		Objects[i] = {};
 	}
-	memset(ActiveObjects, 0, sizeof(ActiveObjects));
+	ObjectPoolAdapter::ResetLegacyObjectPools();
 	trapdir = 0;
 	trapid = 1;
 	leverid = 1;
@@ -341,7 +336,7 @@ void AddTortures()
 {
 	for (int oy = 0; oy < MAXDUNY; oy++) {
 		for (int ox = 0; ox < MAXDUNX; ox++) {
-			if (dPiece[ox][oy] == 366) {
+			if (tileAt(ox, oy).piece() == 366) {
 				AddObject(OBJ_TORTURE1, { ox, oy + 1 });
 				AddObject(OBJ_TORTURE3, { ox + 2, oy - 1 });
 				AddObject(OBJ_TORTURE2, { ox, oy + 3 });
@@ -455,7 +450,7 @@ void AddL2Torches()
 			if (TileContainsSetPiece(testPosition))
 				continue;
 
-			const int pn = dPiece[i][j];
+			const int pn = tileAt(testPosition).piece();
 			if (pn == 0 && FlipCoin(3)) {
 				AddObject(OBJ_TORCHL2, testPosition);
 			}
@@ -489,7 +484,7 @@ void AddObjTraps()
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) {
 			Object *triggerObject = FindObjectAtPosition({ i, j }, false);
-			if (triggerObject == nullptr || GenerateRnd(100) >= rndv)
+			if (triggerObject == nullptr || triggerObject->_otype == OBJ_NULL || GenerateRnd(100) >= rndv)
 				continue;
 
 			if (!AllObjects[triggerObject->_otype].isTrap())
@@ -725,17 +720,15 @@ void SetupObject(Object &object, Point position, _object_id ot)
 
 void AddCryptBook(_object_id ot, int v2, Point position)
 {
-	if (ActiveObjectCount >= MAXOBJECTS)
+	if (!ObjectPoolAdapter::HasFreeObjectSlot())
 		return;
 
-	const int oi = AvailableObjects[0];
-	AvailableObjects[0] = AvailableObjects[MAXOBJECTS - 1 - ActiveObjectCount];
-	ActiveObjects[ActiveObjectCount] = oi;
-	dObject[position.x][position.y] = oi + 1;
+	const int oi = ObjectPoolAdapter::ReserveObjectSlot();
+	tileAt(position).setObject(oi + 1);
 	Object &object = Objects[oi];
 	SetupObject(object, position, ot);
 	AddCryptObject(object, v2);
-	ActiveObjectCount++;
+	ObjectPoolAdapter::CommitReservedObjectSlot();
 }
 
 void AddCryptStoryBook(int s)
@@ -827,13 +820,13 @@ void AddHookedBodies(int freq)
 		const WorldTileCoord jj = 16 + (j * 2);
 		for (WorldTileCoord i = 0; i < DMAXX; i++) {
 			const WorldTileCoord ii = 16 + (i * 2);
-			if (dungeon[i][j] != 1 && dungeon[i][j] != 2)
+			if (megaTileAt(i, j).current() != 1 && megaTileAt(i, j).current() != 2)
 				continue;
 			if (!FlipCoin(freq))
 				continue;
 			if (IsNearThemeRoom({ i, j }))
 				continue;
-			if (dungeon[i][j] == 1 && dungeon[i + 1][j] == 6) {
+			if (megaTileAt(i, j).current() == 1 && megaTileAt(i + 1, j).current() == 6) {
 				switch (GenerateRnd(3)) {
 				case 0:
 					AddObject(OBJ_TORTURE1, { ii + 1, jj });
@@ -847,7 +840,7 @@ void AddHookedBodies(int freq)
 				}
 				continue;
 			}
-			if (dungeon[i][j] == 2 && dungeon[i][j + 1] == 6) {
+			if (megaTileAt(i, j).current() == 2 && megaTileAt(i, j + 1).current() == 6) {
 				AddObject(PickRandomlyAmong({ OBJ_TORTURE3, OBJ_TORTURE4 }), { ii, jj });
 			}
 		}
@@ -903,13 +896,10 @@ void DeleteObject(int oi, int i)
 {
 	const Object &object = Objects[oi];
 	const Point position = object.position;
-	dObject[position.x][position.y] = 0;
-	AvailableObjects[-ActiveObjectCount + MAXOBJECTS] = oi;
-	ActiveObjectCount--;
+	tileAt(position).setObject(0);
+	ObjectPoolAdapter::ReleaseObjectSlot(oi, i);
 	if (ObjectUnderCursor == &object) // Unselect object if this was highlighted by player
 		ObjectUnderCursor = nullptr;
-	if (ActiveObjectCount > 0 && i != ActiveObjectCount)
-		ActiveObjects[i] = ActiveObjects[ActiveObjectCount];
 }
 
 void AddChest(Object &chest)
@@ -950,12 +940,12 @@ void AddChest(Object &chest)
 
 void ObjSetMicro(Point position, int pn)
 {
-	dPiece[position.x][position.y] = pn;
+	tileAt(position).setPiece(pn);
 }
 
 void DoorSet(Point position, bool isLeftDoor)
 {
-	const int pn = dPiece[position.x][position.y];
+	const int pn = tileAt(position).piece();
 	switch (pn) {
 	case 42:
 		ObjSetMicro(position, 391);
@@ -1008,7 +998,7 @@ void DoorSet(Point position, bool isLeftDoor)
 
 void CryptDoorSet(Point position, bool isLeftDoor)
 {
-	const int pn = dPiece[position.x][position.y];
+	const int pn = tileAt(position).piece();
 	switch (pn) {
 	case 74:
 		ObjSetMicro(position, 203);
@@ -1063,21 +1053,21 @@ void SetDoorStateOpen(Object &door)
 		// 407: blood pool
 		// 392: open door (no frame)
 		ObjSetMicro(door.position, door._oVar1 == 214 ? 407 : 392);
-		dSpecial[door.position.x][door.position.y] = 7;
+		tileAt(door.position).setSpecial(7);
 		DoorSet(door.position + Direction::NorthEast, true);
 		break;
 	case OBJ_L1RDOOR:
 		ObjSetMicro(door.position, 394);
-		dSpecial[door.position.x][door.position.y] = 8;
+		tileAt(door.position).setSpecial(8);
 		DoorSet(door.position + Direction::NorthWest, false);
 		break;
 	case OBJ_L2LDOOR:
 		ObjSetMicro(door.position, 12);
-		dSpecial[door.position.x][door.position.y] = 5;
+		tileAt(door.position).setSpecial(5);
 		break;
 	case OBJ_L2RDOOR:
 		ObjSetMicro(door.position, 16);
-		dSpecial[door.position.x][door.position.y] = 6;
+		tileAt(door.position).setSpecial(6);
 		break;
 	case OBJ_L3LDOOR:
 		ObjSetMicro(door.position, 537);
@@ -1108,12 +1098,12 @@ void SetDoorStateClosed(Object &door)
 	switch (door._otype) {
 	case OBJ_L1LDOOR: {
 		// Clear overlapping arches
-		dSpecial[door.position.x][door.position.y] = 0;
+		tileAt(door.position).setSpecial(0);
 		ObjSetMicro(door.position, door._oVar1 - 1);
 
 		// Restore the normal tile where the open door used to be
 		auto openPosition = door.position + Direction::NorthEast;
-		if (door._oVar2 == 50 && dPiece[openPosition.x][openPosition.y] == 395)
+		if (door._oVar2 == 50 && tileAt(openPosition).piece() == 395)
 			ObjSetMicro(openPosition, 411);
 		else
 			ObjSetMicro(openPosition, door._oVar2 - 1);
@@ -1121,12 +1111,12 @@ void SetDoorStateClosed(Object &door)
 	} break;
 	case OBJ_L1RDOOR: {
 		// Clear overlapping arches
-		dSpecial[door.position.x][door.position.y] = 0;
+		tileAt(door.position).setSpecial(0);
 		ObjSetMicro(door.position, door._oVar1 - 1);
 
 		// Restore the normal tile where the open door used to be
 		auto openPosition = door.position + Direction::NorthWest;
-		if (door._oVar2 == 50 && dPiece[openPosition.x][openPosition.y] == 395)
+		if (door._oVar2 == 50 && tileAt(openPosition).piece() == 395)
 			ObjSetMicro(openPosition, 410);
 		else
 			ObjSetMicro(openPosition, door._oVar2 - 1);
@@ -1134,12 +1124,12 @@ void SetDoorStateClosed(Object &door)
 	} break;
 	case OBJ_L2LDOOR:
 		// Clear overlapping arches
-		dSpecial[door.position.x][door.position.y] = 0;
+		tileAt(door.position).setSpecial(0);
 		ObjSetMicro(door.position, 537);
 		break;
 	case OBJ_L2RDOOR:
 		// Clear overlapping arches
-		dSpecial[door.position.x][door.position.y] = 0;
+		tileAt(door.position).setSpecial(0);
 		ObjSetMicro(door.position, 539);
 		break;
 	case OBJ_L3LDOOR:
@@ -1153,7 +1143,7 @@ void SetDoorStateClosed(Object &door)
 
 		// Restore the normal tile where the open door used to be
 		auto openPosition = door.position + Direction::NorthEast;
-		if (door._oVar2 == 86 && dPiece[openPosition.x][openPosition.y] == 209)
+		if (door._oVar2 == 86 && tileAt(openPosition).piece() == 209)
 			ObjSetMicro(openPosition, 233);
 		else
 			ObjSetMicro(openPosition, door._oVar2 - 1);
@@ -1163,7 +1153,7 @@ void SetDoorStateClosed(Object &door)
 
 		// Restore the normal tile where the open door used to be
 		auto openPosition = door.position + Direction::NorthWest;
-		if (door._oVar2 == 86 && dPiece[openPosition.x][openPosition.y] == 209)
+		if (door._oVar2 == 86 && tileAt(openPosition).piece() == 209)
 			ObjSetMicro(openPosition, 231);
 		else
 			ObjSetMicro(openPosition, door._oVar2 - 1);
@@ -1180,13 +1170,13 @@ void AddDoor(Object &door)
 	switch (door._otype) {
 	case OBJ_L1LDOOR:
 	case OBJ_L5LDOOR:
-		door._oVar1 = dPiece[door.position.x][door.position.y] + 1;
-		door._oVar2 = dPiece[door.position.x][door.position.y - 1] + 1;
+		door._oVar1 = tileAt(door.position).piece() + 1;
+		door._oVar2 = tileAt(door.position + Direction::NorthEast).piece() + 1;
 		break;
 	case OBJ_L1RDOOR:
 	case OBJ_L5RDOOR:
-		door._oVar1 = dPiece[door.position.x][door.position.y] + 1;
-		door._oVar2 = dPiece[door.position.x - 1][door.position.y] + 1;
+		door._oVar1 = tileAt(door.position).piece() + 1;
+		door._oVar2 = tileAt(door.position + Direction::NorthWest).piece() + 1;
 		break;
 	default:
 		break;
@@ -1197,7 +1187,7 @@ void AddDoor(Object &door)
 
 void AddSarcophagus(Object &sarcophagus)
 {
-	dObject[sarcophagus.position.x][sarcophagus.position.y - 1] = -(static_cast<int8_t>(sarcophagus.GetId()) + 1);
+	tileAt(Point { sarcophagus.position.x, sarcophagus.position.y - 1 }).setObject(-(static_cast<int8_t>(sarcophagus.GetId()) + 1));
 	sarcophagus._oVar1 = GenerateRnd(10);
 	sarcophagus._oRndSeed = AdvanceRndSeed();
 	if (sarcophagus._oVar1 >= 8) {
@@ -1341,9 +1331,9 @@ void AddLargeFountain(Object &fountain)
 	const int ox = fountain.position.x;
 	const int oy = fountain.position.y;
 	const uint8_t id = -(static_cast<int8_t>(fountain.GetId()) + 1);
-	dObject[ox][oy - 1] = id;
-	dObject[ox - 1][oy] = id;
-	dObject[ox - 1][oy - 1] = id;
+	tileAt(Point { ox, oy - 1 }).setObject(id);
+	tileAt(Point { ox - 1, oy }).setObject(id);
+	tileAt(Point { ox - 1, oy - 1 }).setObject(id);
 	fountain._oRndSeed = AdvanceRndSeed();
 }
 
@@ -1440,12 +1430,12 @@ Point GetRndObjLoc(int randarea)
 
 void AddMushPatch()
 {
-	if (ActiveObjectCount < MAXOBJECTS) {
-		const int i = AvailableObjects[0];
+	if (ObjectPoolAdapter::HasFreeObjectSlot()) {
+		const int i = ObjectPoolAdapter::PeekNextAvailableObjectIndex();
 		const Point loc = GetRndObjLoc(5);
-		dObject[loc.x + 1][loc.y + 1] = -(i + 1);
-		dObject[loc.x + 2][loc.y + 1] = -(i + 1);
-		dObject[loc.x + 1][loc.y + 2] = -(i + 1);
+		tileAt(Point { loc.x + 1, loc.y + 1 }).setObject(-(i + 1));
+		tileAt(Point { loc.x + 2, loc.y + 1 }).setObject(-(i + 1));
+		tileAt(Point { loc.x + 1, loc.y + 2 }).setObject(-(i + 1));
 		AddObject(OBJ_MUSHPATCH, { loc.x + 2, loc.y + 2 });
 	}
 }
@@ -1527,8 +1517,8 @@ void UpdateCircle(Object &circle)
 			LastPlayerAction = PlayerActionType::None;
 			sgbMouseDown = CLICK_NONE;
 		}
-		ClrPlrPath(*playerOnCircle);
-		StartStand(*playerOnCircle, Direction::South);
+		playerOnCircle->clearPath();
+		playerOnCircle->startStand(Direction::South);
 	}
 }
 
@@ -1550,10 +1540,10 @@ void ObjectStopAnim(Object &object)
  */
 inline bool IsDoorClear(const Object &door)
 {
-	return dCorpse[door.position.x][door.position.y] == 0
-	    && dMonster[door.position.x][door.position.y] == 0
-	    && dItem[door.position.x][door.position.y] == 0
-	    && dPlayer[door.position.x][door.position.y] == 0;
+	return tileAt(door.position).corpse() == 0
+		&& tileAt(door.position).monster() == 0
+		&& tileAt(door.position).item() == 0
+		&& tileAt(door.position).player() == 0;
 }
 
 void UpdateDoor(Object &door)
@@ -1573,8 +1563,7 @@ void UpdateSarcophagus(Object &sarcophagus)
 
 void ActivateTrapLine(int ttype, int tid)
 {
-	for (int i = 0; i < ActiveObjectCount; i++) {
-		Object &trap = Objects[ActiveObjects[i]];
+	for (Object &trap : ObjectPoolAdapter::ActiveObjectsRange()) {
 		if (trap._otype == ttype && trap._oVar1 == tid) {
 			trap._oVar4 = 1;
 			trap._oAnimFlag = true;
@@ -1601,7 +1590,7 @@ void UpdateFlameTrap(Object &trap)
 			int x = trap.position.x - 2;
 			const int y = trap.position.y;
 			for (int j = 0; j < 5; j++) {
-				if (dPlayer[x][y] != 0 || dMonster[x][y] != 0)
+				if (tileAt(Point { x, y }).hasPlayer() || tileAt(Point { x, y }).hasMonster())
 					trap._oVar4 = 1;
 				x++;
 			}
@@ -1609,7 +1598,7 @@ void UpdateFlameTrap(Object &trap)
 			const int x = trap.position.x;
 			int y = trap.position.y - 2;
 			for (int k = 0; k < 5; k++) {
-				if (dPlayer[x][y] != 0 || dMonster[x][y] != 0)
+				if (tileAt(Point { x, y }).hasPlayer() || tileAt(Point { x, y }).hasMonster())
 					trap._oVar4 = 1;
 				y++;
 			}
@@ -1655,7 +1644,7 @@ void UpdateBurningCrossDamage(Object &cross)
 	if (myPlayer.position.tile != cross.position + Displacement { 0, -1 })
 		return;
 
-	ApplyPlrDamage(DamageType::Fire, myPlayer, 0, 0, damage[leveltype - 1]);
+	myPlayer.applyDamage(DamageType::Fire, 0, 0, damage[leveltype - 1]);
 	if (!myPlayer.hasNoLife()) {
 		myPlayer.Say(HeroSpeech::Argh);
 	}
@@ -1677,39 +1666,40 @@ void ObjL1Special(int x1, int y1, int x2, int y2)
 {
 	for (int i = y1; i <= y2; ++i) {
 		for (int j = x1; j <= x2; ++j) {
-			dSpecial[j][i] = 0;
-			if (dPiece[j][i] == 11)
-				dSpecial[j][i] = 1;
-			if (dPiece[j][i] == 10)
-				dSpecial[j][i] = 2;
-			if (dPiece[j][i] == 70)
-				dSpecial[j][i] = 1;
-			if (dPiece[j][i] == 252)
-				dSpecial[j][i] = 3;
-			if (dPiece[j][i] == 266)
-				dSpecial[j][i] = 6;
-			if (dPiece[j][i] == 258)
-				dSpecial[j][i] = 5;
-			if (dPiece[j][i] == 248)
-				dSpecial[j][i] = 2;
-			if (dPiece[j][i] == 324)
-				dSpecial[j][i] = 2;
-			if (dPiece[j][i] == 320)
-				dSpecial[j][i] = 1;
-			if (dPiece[j][i] == 254)
-				dSpecial[j][i] = 4;
-			if (dPiece[j][i] == 210)
-				dSpecial[j][i] = 1;
-			if (dPiece[j][i] == 343)
-				dSpecial[j][i] = 2;
-			if (dPiece[j][i] == 340)
-				dSpecial[j][i] = 1;
-			if (dPiece[j][i] == 330)
-				dSpecial[j][i] = 2;
-			if (dPiece[j][i] == 417)
-				dSpecial[j][i] = 1;
-			if (dPiece[j][i] == 420)
-				dSpecial[j][i] = 2;
+			const uint16_t piece = tileAt(j, i).piece();
+			tileAt(j, i).setSpecial(0);
+			if (piece == 11)
+				tileAt(j, i).setSpecial(1);
+			if (piece == 10)
+				tileAt(j, i).setSpecial(2);
+			if (piece == 70)
+				tileAt(j, i).setSpecial(1);
+			if (piece == 252)
+				tileAt(j, i).setSpecial(3);
+			if (piece == 266)
+				tileAt(j, i).setSpecial(6);
+			if (piece == 258)
+				tileAt(j, i).setSpecial(5);
+			if (piece == 248)
+				tileAt(j, i).setSpecial(2);
+			if (piece == 324)
+				tileAt(j, i).setSpecial(2);
+			if (piece == 320)
+				tileAt(j, i).setSpecial(1);
+			if (piece == 254)
+				tileAt(j, i).setSpecial(4);
+			if (piece == 210)
+				tileAt(j, i).setSpecial(1);
+			if (piece == 343)
+				tileAt(j, i).setSpecial(2);
+			if (piece == 340)
+				tileAt(j, i).setSpecial(1);
+			if (piece == 330)
+				tileAt(j, i).setSpecial(2);
+			if (piece == 417)
+				tileAt(j, i).setSpecial(1);
+			if (piece == 420)
+				tileAt(j, i).setSpecial(2);
 		}
 	}
 }
@@ -1718,28 +1708,30 @@ void ObjL2Special(int x1, int y1, int x2, int y2)
 {
 	for (int j = y1; j <= y2; j++) {
 		for (int i = x1; i <= x2; i++) {
-			dSpecial[i][j] = 0;
-			if (dPiece[i][j] == 540)
-				dSpecial[i][j] = 5;
-			if (dPiece[i][j] == 177)
-				dSpecial[i][j] = 5;
-			if (dPiece[i][j] == 550)
-				dSpecial[i][j] = 5;
-			if (dPiece[i][j] == 541)
-				dSpecial[i][j] = 6;
-			if (dPiece[i][j] == 552)
-				dSpecial[i][j] = 6;
+			const uint16_t piece = tileAt(i, j).piece();
+			tileAt(i, j).setSpecial(0);
+			if (piece == 540)
+				tileAt(i, j).setSpecial(5);
+			if (piece == 177)
+				tileAt(i, j).setSpecial(5);
+			if (piece == 550)
+				tileAt(i, j).setSpecial(5);
+			if (piece == 541)
+				tileAt(i, j).setSpecial(6);
+			if (piece == 552)
+				tileAt(i, j).setSpecial(6);
 		}
 	}
 	for (int j = y1; j <= y2; j++) {
 		for (int i = x1; i <= x2; i++) {
-			if (dPiece[i][j] == 131) {
-				dSpecial[i][j + 1] = 2;
-				dSpecial[i][j + 2] = 1;
+			const uint16_t piece = tileAt(i, j).piece();
+			if (piece == 131) {
+				tileAt(i, j + 1).setSpecial(2);
+				tileAt(i, j + 2).setSpecial(1);
 			}
-			if (dPiece[i][j] == 134 || dPiece[i][j] == 138) {
-				dSpecial[i + 1][j] = 3;
-				dSpecial[i + 2][j] = 4;
+			if (piece == 134 || piece == 138) {
+				tileAt(i + 1, j).setSpecial(3);
+				tileAt(i + 2, j).setSpecial(4);
 			}
 		}
 	}
@@ -1784,11 +1776,10 @@ void OperateDoor(Object &door, bool sendflag)
 
 bool AreAllLeversActivated(int leverId)
 {
-	for (int j = 0; j < ActiveObjectCount; j++) {
-		const Object &lever = Objects[ActiveObjects[j]];
+	for (const Object &lever : ObjectPoolAdapter::ActiveObjectsRange()) {
 		if (lever._otype == OBJ_SWITCHSKL
-		    && lever._oVar8 == leverId
-		    && lever.canInteractWith()) {
+			&& lever._oVar8 == leverId
+			&& lever.canInteractWith()) {
 			return false;
 		}
 	}
@@ -1916,14 +1907,14 @@ void OperateBook(Player &player, Object &book, bool sendmsg)
 		    book._oVar2,
 		    book._oVar3,
 		    book._oVar4);
-		for (int j = 0; j < ActiveObjectCount; j++)
-			SyncObjectAnim(Objects[ActiveObjects[j]]);
+		for (Object &object : ObjectPoolAdapter::ActiveObjectsRange())
+			SyncObjectAnim(object);
 	}
 }
 
 void OperateBookLever(Object &questBook, bool sendmsg)
 {
-	if (ActiveItemCount >= MAXITEMS) {
+	if (!ItemPoolAdapter::HasFreeItemSlot()) {
 		return;
 	}
 	if (questBook.canInteractWith() && !qtextflag) {
@@ -1974,8 +1965,8 @@ void OperateChamberOfBoneBook(Object &questBook, bool sendmsg)
 
 	if (questBook._oAnimFrame != questBook._oVar6) {
 		ObjChangeMapResync(questBook._oVar1, questBook._oVar2, questBook._oVar3, questBook._oVar4);
-		for (int j = 0; j < ActiveObjectCount; j++) {
-			SyncObjectAnim(Objects[ActiveObjects[j]]);
+		for (Object &object : ObjectPoolAdapter::ActiveObjectsRange()) {
+			SyncObjectAnim(object);
 		}
 	}
 	questBook._oAnimFrame = questBook._oVar6;
@@ -2072,7 +2063,7 @@ void OperateChest(const Player &player, Object &chest, bool sendLootMsg)
 
 void OperateMushroomPatch(const Player &player, Object &mushroomPatch)
 {
-	if (ActiveItemCount >= MAXITEMS) {
+	if (!ItemPoolAdapter::HasFreeItemSlot()) {
 		return;
 	}
 
@@ -2103,7 +2094,7 @@ void OperateMushroomPatch(const Player &player, Object &mushroomPatch)
 
 void OperateInnSignChest(const Player &player, Object &questContainer, bool sendmsg)
 {
-	if (ActiveItemCount >= MAXITEMS) {
+	if (!ItemPoolAdapter::HasFreeItemSlot()) {
 		return;
 	}
 
@@ -2163,8 +2154,7 @@ void OperateTrapLever(Object &flameLever)
 
 	if (flameLever._oAnimFrame == 1) {
 		flameLever._oAnimFrame = 2;
-		for (int j = 0; j < ActiveObjectCount; j++) {
-			Object &target = Objects[ActiveObjects[j]];
+		for (Object &target : ObjectPoolAdapter::ActiveObjectsRange()) {
 			if (target._otype == flameLever._oVar2 && target._oVar1 == flameLever._oVar1) {
 				target._oVar2 = 1;
 				target._oAnimFlag = false;
@@ -2174,8 +2164,7 @@ void OperateTrapLever(Object &flameLever)
 	}
 
 	flameLever._oAnimFrame--;
-	for (int j = 0; j < ActiveObjectCount; j++) {
-		Object &target = Objects[ActiveObjects[j]];
+	for (Object &target : ObjectPoolAdapter::ActiveObjectsRange()) {
 		if (target._otype == flameLever._oVar2 && target._oVar1 == flameLever._oVar1) {
 			target._oVar2 = 0;
 			if (target._oVar4 != 0) {
@@ -2206,7 +2195,7 @@ void OperateSarcophagus(Object &sarcophagus, bool sendMsg, bool sendLootMsg)
 
 void OperatePedestal(Player &player, Object &pedestal, bool sendmsg)
 {
-	if (ActiveItemCount >= MAXITEMS) {
+	if (!ItemPoolAdapter::HasFreeItemSlot()) {
 		return;
 	}
 
@@ -2252,27 +2241,27 @@ void OperateShrineMysterious(DiabloGenerator &rng, Player &player)
 	if (&player != MyPlayer)
 		return;
 
-	ModifyPlrStr(player, -1);
-	ModifyPlrMag(player, -1);
-	ModifyPlrDex(player, -1);
-	ModifyPlrVit(player, -1);
+	player.modifyStrength(-1);
+	player.modifyMagic(-1);
+	player.modifyDexterity(-1);
+	player.modifyVitality(-1);
 
 	switch (static_cast<CharacterAttribute>(rng.generateRnd(4))) {
 	case CharacterAttribute::Strength:
-		ModifyPlrStr(player, 6);
+		player.modifyStrength(6);
 		break;
 	case CharacterAttribute::Magic:
-		ModifyPlrMag(player, 6);
+		player.modifyMagic(6);
 		break;
 	case CharacterAttribute::Dexterity:
-		ModifyPlrDex(player, 6);
+		player.modifyDexterity(6);
 		break;
 	case CharacterAttribute::Vitality:
-		ModifyPlrVit(player, 6);
+		player.modifyVitality(6);
 		break;
 	}
 
-	CheckStats(player);
+	player.checkStats();
 	CalcPlrInv(player, true);
 	RedrawEverything();
 
@@ -2486,8 +2475,7 @@ void OperateShrineEnchanted(DiabloGenerator &rng, Player &player)
 
 void OperateShrineThaumaturgic(DiabloGenerator &rng, const Player &player)
 {
-	for (int j = 0; j < ActiveObjectCount; j++) {
-		Object &object = Objects[ActiveObjects[j]];
+	for (Object &object : ObjectPoolAdapter::ActiveObjectsRange()) {
 		if (object.IsChest() && !object.canInteractWith()) {
 			object._oRndSeed = rng.advanceRndSeed();
 			object.selectionRegion = SelectionRegion::Bottom;
@@ -2524,20 +2512,20 @@ void OperateShrineCostOfWisdom(Player &player, SpellID spellId, diablo_message m
 		}
 	}
 
-	int maxBase = player._pMaxManaBase;
+	int maxBase = player.mana.maximumBase;
 
 	if (maxBase < 0) {
 		// Fix bugged state; do not turn this into a "negative penalty" mana boost.
-		player._pMaxManaBase = 0;
+		player.mana.maximumBase = 0;
 		maxBase = 0;
 	}
 
 	const int penalty = maxBase / 10; // 10% of max base mana (>= 0)
 
-	player._pMaxManaBase -= penalty; // will remain >= 0
-	player._pManaBase -= penalty;    // may go negative, allowed
-	player._pMaxMana -= penalty;     // may go negative, allowed
-	player._pMana -= penalty;        // may go negative, allowed
+	player.mana.maximumBase -= penalty; // will remain >= 0
+	player.mana.base -= penalty;    // may go negative, allowed
+	player.mana.maximum -= penalty;     // may go negative, allowed
+	player.mana.current -= penalty;        // may go negative, allowed
 
 	RedrawEverything();
 	InitDiabloMsg(message);
@@ -2558,8 +2546,8 @@ void OperateShrineCryptic(Player &player)
 	if (&player != MyPlayer)
 		return;
 
-	player._pMana = player._pMaxMana;
-	player._pManaBase = player._pMaxManaBase;
+	player.mana.current = player.mana.maximum;
+	player.mana.base = player.mana.maximumBase;
 
 	InitDiabloMsg(EMSG_SHRINE_CRYPTIC);
 
@@ -2604,8 +2592,8 @@ void OperateShrineEerie(Player &player)
 	if (&player != MyPlayer)
 		return;
 
-	ModifyPlrMag(player, 2);
-	CheckStats(player);
+	player.modifyMagic(2);
+	player.checkStats();
 	CalcPlrInv(player, true);
 	RedrawEverything();
 
@@ -2631,10 +2619,10 @@ void OperateShrineDivine(Player &player, Point spawnPosition)
 		CreateTypeItem(spawnPosition, false, ItemType::Misc, IMISC_FULLREJUV, false, false, true);
 	}
 
-	player._pMana = player._pMaxMana;
-	player._pManaBase = player._pMaxManaBase;
-	player.hitPoints = player.maxHitPoints;
-	player._pHPBase = player._pMaxHPBase;
+	player.mana.current = player.mana.maximum;
+	player.mana.base = player.mana.maximumBase;
+	player.life.current = player.life.maximum;
+	player.life.base = player.life.maximumBase;
 
 	RedrawEverything();
 
@@ -2679,10 +2667,10 @@ void OperateShrineSpooky(const Player &player)
 
 	Player &myPlayer = *MyPlayer;
 
-	myPlayer.hitPoints = myPlayer.maxHitPoints;
-	myPlayer._pHPBase = myPlayer._pMaxHPBase;
-	myPlayer._pMana = myPlayer._pMaxMana;
-	myPlayer._pManaBase = myPlayer._pMaxManaBase;
+	myPlayer.life.current = myPlayer.life.maximum;
+	myPlayer.life.base = myPlayer.life.maximumBase;
+	myPlayer.mana.current = myPlayer.mana.maximum;
+	myPlayer.mana.base = myPlayer.mana.maximumBase;
 
 	RedrawEverything();
 
@@ -2694,8 +2682,8 @@ void OperateShrineAbandoned(Player &player)
 	if (&player != MyPlayer)
 		return;
 
-	ModifyPlrDex(player, 2);
-	CheckStats(player);
+	player.modifyDexterity(2);
+	player.checkStats();
 	CalcPlrInv(player, true);
 	RedrawEverything();
 
@@ -2707,8 +2695,8 @@ void OperateShrineCreepy(Player &player)
 	if (&player != MyPlayer)
 		return;
 
-	ModifyPlrStr(player, 2);
-	CheckStats(player);
+	player.modifyStrength(2);
+	player.checkStats();
 	CalcPlrInv(player, true);
 	RedrawEverything();
 
@@ -2720,8 +2708,8 @@ void OperateShrineQuiet(Player &player)
 	if (&player != MyPlayer)
 		return;
 
-	ModifyPlrVit(player, 2);
-	CheckStats(player);
+	player.modifyVitality(2);
+	player.checkStats();
 	CalcPlrInv(player, true);
 	RedrawEverything();
 
@@ -2773,12 +2761,12 @@ void OperateShrineTainted(DiabloGenerator &rng, const Player &player)
 
 	Player &myPlayer = *MyPlayer;
 
-	ModifyPlrStr(myPlayer, v1);
-	ModifyPlrMag(myPlayer, v2);
-	ModifyPlrDex(myPlayer, v3);
-	ModifyPlrVit(myPlayer, v4);
+	myPlayer.modifyStrength(v1);
+	myPlayer.modifyMagic(v2);
+	myPlayer.modifyDexterity(v3);
+	myPlayer.modifyVitality(v4);
 
-	CheckStats(myPlayer);
+	myPlayer.checkStats();
 	CalcPlrInv(myPlayer, true);
 	RedrawEverything();
 
@@ -2798,30 +2786,30 @@ void OperateShrineOily(Player &player, Point spawnPosition)
 
 	switch (player._pClass) {
 	case HeroClass::Warrior:
-		ModifyPlrStr(player, 2);
+		player.modifyStrength(2);
 		break;
 	case HeroClass::Rogue:
-		ModifyPlrDex(player, 2);
+		player.modifyDexterity(2);
 		break;
 	case HeroClass::Sorcerer:
-		ModifyPlrMag(player, 2);
+		player.modifyMagic(2);
 		break;
 	case HeroClass::Barbarian:
-		ModifyPlrVit(player, 2);
+		player.modifyVitality(2);
 		break;
 	case HeroClass::Monk:
-		ModifyPlrStr(player, 1);
-		ModifyPlrDex(player, 1);
+		player.modifyStrength(1);
+		player.modifyDexterity(1);
 		break;
 	case HeroClass::Bard:
-		ModifyPlrDex(player, 1);
-		ModifyPlrMag(player, 1);
+		player.modifyDexterity(1);
+		player.modifyMagic(1);
 		break;
 	default:
 		break;
 	}
 
-	CheckStats(player);
+	player.checkStats();
 	CalcPlrInv(player, true);
 	RedrawEverything();
 
@@ -2844,7 +2832,7 @@ void OperateShrineGlowing(Player &player)
 		return;
 
 	// Add 0-5 points to Magic (0.1% of the players XP)
-	ModifyPlrMag(player, static_cast<int>(std::min<uint32_t>(player._pExperience / 1000, 5)));
+	player.modifyMagic(static_cast<int>(std::min<uint32_t>(player._pExperience / 1000, 5)));
 
 	// Take 5% of the players experience to offset the bonus, unless they're very low level in which case take all their experience.
 	if (player._pExperience > 5000)
@@ -2852,7 +2840,7 @@ void OperateShrineGlowing(Player &player)
 	else
 		player._pExperience = 0;
 
-	CheckStats(player);
+	player.checkStats();
 	RedrawEverything();
 
 	InitDiabloMsg(EMSG_SHRINE_GLOWING);
@@ -2927,8 +2915,8 @@ void OperateShrineShimmering(Player &player)
 	if (&player != MyPlayer)
 		return;
 
-	player._pMana = player._pMaxMana;
-	player._pManaBase = player._pMaxManaBase;
+	player.mana.current = player.mana.maximum;
+	player.mana.base = player.mana.maximumBase;
 
 	RedrawEverything();
 
@@ -2945,19 +2933,19 @@ void OperateShrineSolar(Player &player)
 	const int hour = localtimeResult != nullptr ? localtimeResult->tm_hour : 20;
 	if (hour >= 20 || hour < 4) {
 		InitDiabloMsg(EMSG_SHRINE_SOLAR4);
-		ModifyPlrVit(player, 2);
+		player.modifyVitality(2);
 	} else if (hour >= 18) {
 		InitDiabloMsg(EMSG_SHRINE_SOLAR3);
-		ModifyPlrMag(player, 2);
+		player.modifyMagic(2);
 	} else if (hour >= 12) {
 		InitDiabloMsg(EMSG_SHRINE_SOLAR2);
-		ModifyPlrStr(player, 2);
+		player.modifyStrength(2);
 	} else /* 4:00 to 11:59 */ {
 		InitDiabloMsg(EMSG_SHRINE_SOLAR1);
-		ModifyPlrDex(player, 2);
+		player.modifyDexterity(2);
 	}
 
-	CheckStats(player);
+	player.checkStats();
 	CalcPlrInv(player, true);
 	RedrawEverything();
 }
@@ -3229,13 +3217,13 @@ bool OperateFountains(Player &player, Object &fountain)
 		if (&player != MyPlayer)
 			return false;
 
-		if (player.hitPoints < player.maxHitPoints) {
+		if (player.life.current < player.life.maximum) {
 			PlaySfxLoc(SfxID::OperateFountain, fountain.position);
-			player.hitPoints += 64;
-			player._pHPBase += 64;
-			if (player.hitPoints > player.maxHitPoints) {
-				player.hitPoints = player.maxHitPoints;
-				player._pHPBase = player._pMaxHPBase;
+			player.life.current += 64;
+			player.life.base += 64;
+			if (player.life.current > player.life.maximum) {
+				player.life.current = player.life.maximum;
+				player.life.base = player.life.maximumBase;
 			}
 			applied = true;
 		} else
@@ -3245,14 +3233,14 @@ bool OperateFountains(Player &player, Object &fountain)
 		if (&player != MyPlayer)
 			return false;
 
-		if (player._pMana < player._pMaxMana) {
+		if (player.mana.current < player.mana.maximum) {
 			PlaySfxLoc(SfxID::OperateFountain, fountain.position);
 
-			player._pMana += 64;
-			player._pManaBase += 64;
-			if (player._pMana > player._pMaxMana) {
-				player._pMana = player._pMaxMana;
-				player._pManaBase = player._pMaxManaBase;
+			player.mana.current += 64;
+			player.mana.base += 64;
+			if (player.mana.current > player.mana.maximum) {
+				player.mana.current = player.mana.maximum;
+				player.mana.base = player.mana.maximumBase;
 			}
 
 			applied = true;
@@ -3295,21 +3283,21 @@ bool OperateFountains(Player &player, Object &fountain)
 		for (const auto &[stat, delta] : alterations) {
 			switch (stat) {
 			case 0:
-				ModifyPlrStr(player, delta);
+				player.modifyStrength(delta);
 				break;
 			case 1:
-				ModifyPlrMag(player, delta);
+				player.modifyMagic(delta);
 				break;
 			case 2:
-				ModifyPlrDex(player, delta);
+				player.modifyDexterity(delta);
 				break;
 			case 3:
-				ModifyPlrVit(player, delta);
+				player.modifyVitality(delta);
 				break;
 			}
 		}
 
-		CheckStats(player);
+		player.checkStats();
 		applied = true;
 		if (&player == MyPlayer)
 			NetSendCmdLoc(MyPlayerId, false, CMD_OPERATEOBJ, fountain.position);
@@ -3396,7 +3384,7 @@ void OperateStoryBook(Object &storyBook)
 
 void OperateLazStand(Object &stand)
 {
-	if (ActiveItemCount >= MAXITEMS) {
+	if (!ItemPoolAdapter::HasFreeItemSlot()) {
 		return;
 	}
 
@@ -3422,8 +3410,7 @@ void OperateLazStand(Object &stand)
  */
 bool AreAllCruxesOfTypeBroken(int cruxType)
 {
-	for (int j = 0; j < ActiveObjectCount; j++) {
-		const auto &testObject = Objects[ActiveObjects[j]];
+	for (const auto &testObject : ObjectPoolAdapter::ActiveObjectsRange()) {
 		if (!testObject.IsCrux())
 			continue; // Not a Crux object, keep searching
 		if (cruxType != testObject._oVar8 || testObject._oBreak == -1)
@@ -3619,9 +3606,124 @@ void UpdateState(Object &object, int frame)
 
 } // namespace
 
+#ifdef BUILD_TESTING
+void TestObjSetMicro(Point position, int pn)
+{
+	ObjSetMicro(position, pn);
+}
+#endif
+
 unsigned int Object::GetId() const
 {
-	return std::abs(dObject[position.x][position.y]) - 1;
+	return std::abs(tileAt(position).object()) - 1;
+}
+
+void Object::SetMapRange(WorldTilePosition topLeftPosition, WorldTilePosition bottomRightPosition)
+{
+	_oVar1 = topLeftPosition.x;
+	_oVar2 = topLeftPosition.y;
+	_oVar3 = bottomRightPosition.x;
+	_oVar4 = bottomRightPosition.y;
+}
+
+void Object::SetMapRange(WorldTileRectangle mapRange)
+{
+	SetMapRange(mapRange.position, mapRange.position + DisplacementOf<uint8_t>(mapRange.size));
+}
+
+void Object::InitializeBook(WorldTileRectangle mapRange)
+{
+	SetMapRange(mapRange);
+	_oVar6 = _oAnimFrame + 1; // Save the frame number for the open book frame
+}
+
+void Object::InitializeQuestBook(WorldTileRectangle mapRange, int leverID, _speech_id message)
+{
+	InitializeBook(mapRange);
+	_oVar8 = leverID;
+	bookMessage = message;
+}
+
+void Object::InitializeLoadedObject(WorldTileRectangle mapRange, int leverID)
+{
+	SetMapRange(mapRange);
+	_oVar8 = leverID;
+}
+
+bool Object::IsBreakable() const
+{
+	return _oBreak == 1;
+}
+
+bool Object::IsBroken() const
+{
+	return _oBreak == -1;
+}
+
+bool Object::canInteractWith() const
+{
+	return selectionRegion != SelectionRegion::None;
+}
+
+bool Object::IsBarrel() const
+{
+	return IsAnyOf(_otype, _object_id::OBJ_BARREL, _object_id::OBJ_BARRELEX, _object_id::OBJ_POD, _object_id::OBJ_PODEX, _object_id::OBJ_URN, _object_id::OBJ_URNEX);
+}
+
+bool Object::isExplosive() const
+{
+	return IsAnyOf(_otype, _object_id::OBJ_BARRELEX, _object_id::OBJ_PODEX, _object_id::OBJ_URNEX);
+}
+
+bool Object::IsChest() const
+{
+	return IsAnyOf(_otype, _object_id::OBJ_CHEST1, _object_id::OBJ_CHEST2, _object_id::OBJ_CHEST3, _object_id::OBJ_TCHEST1, _object_id::OBJ_TCHEST2, _object_id::OBJ_TCHEST3);
+}
+
+bool Object::IsTrappedChest() const
+{
+	return IsAnyOf(_otype, _object_id::OBJ_TCHEST1, _object_id::OBJ_TCHEST2, _object_id::OBJ_TCHEST3) && _oTrapFlag;
+}
+
+bool Object::IsUntrappedChest() const
+{
+	return IsAnyOf(_otype, _object_id::OBJ_CHEST1, _object_id::OBJ_CHEST2, _object_id::OBJ_CHEST3) && !_oTrapFlag;
+}
+
+bool Object::IsCrux() const
+{
+	return IsAnyOf(_otype, _object_id::OBJ_CRUX1, _object_id::OBJ_CRUX2, _object_id::OBJ_CRUX3);
+}
+
+bool Object::isDoor() const
+{
+	return IsAnyOf(_otype, _object_id::OBJ_L1LDOOR, _object_id::OBJ_L1RDOOR, _object_id::OBJ_L2LDOOR, _object_id::OBJ_L2RDOOR, _object_id::OBJ_L3LDOOR, _object_id::OBJ_L3RDOOR, _object_id::OBJ_L5LDOOR, _object_id::OBJ_L5RDOOR);
+}
+
+bool Object::IsShrine() const
+{
+	return IsAnyOf(_otype, _object_id::OBJ_SHRINEL, _object_id::OBJ_SHRINER);
+}
+
+bool Object::IsTrap() const
+{
+	return IsAnyOf(_otype, _object_id::OBJ_TRAPL, _object_id::OBJ_TRAPR);
+}
+
+ClxSprite Object::currentSprite() const
+{
+	return (*_oAnimData)[_oAnimFrame - 1];
+}
+
+Displacement Object::getRenderingOffset(const ClxSprite sprite, Point tilePosition) const
+{
+	Displacement offset = Displacement { -CalculateSpriteTileCenterX(sprite.width()), 0 };
+	if (position != tilePosition) {
+		// drawing a large or offset object, calculate the correct position for the center of the sprite
+		Displacement worldOffset = position - tilePosition;
+		offset -= worldOffset.worldToScreen();
+	}
+	return offset;
 }
 
 bool Object::IsDisabled() const
@@ -3644,7 +3746,7 @@ Object *FindObjectAtPosition(Point position, bool considerLargeObjects)
 		return nullptr;
 	}
 
-	auto objectId = dObject[position.x][position.y];
+	auto objectId = tileAt(position).object();
 
 	if (objectId > 0 || (considerLargeObjects && objectId != 0)) {
 		return &Objects[std::abs(objectId) - 1];
@@ -3652,6 +3754,16 @@ Object *FindObjectAtPosition(Point position, bool considerLargeObjects)
 
 	// nothing at this position, return a nullptr
 	return nullptr;
+}
+
+bool IsObjectAtPosition(Point position)
+{
+	return FindObjectAtPosition(position) != nullptr;
+}
+
+Object &ObjectAtPosition(Point position)
+{
+	return Objects[std::abs(tileAt(position).object()) - 1];
 }
 
 bool IsItemBlockingObjectAtPosition(Point position)
@@ -3753,7 +3865,7 @@ void AddL1Objs(int x1, int y1, int x2, int y2)
 {
 	for (int j = y1; j < y2; j++) {
 		for (int i = x1; i < x2; i++) {
-			const int pn = dPiece[i][j];
+			const int pn = tileAt(i, j).piece();
 			if (pn == 269)
 				AddObject(OBJ_L1LIGHT, { i, j });
 			if (pn == 43 || pn == 50 || pn == 213)
@@ -3768,7 +3880,7 @@ void AddL2Objs(int x1, int y1, int x2, int y2)
 {
 	for (int j = y1; j < y2; j++) {
 		for (int i = x1; i < x2; i++) {
-			const int pn = dPiece[i][j];
+			const int pn = tileAt(i, j).piece();
 			if (pn == 12 || pn == 540)
 				AddObject(OBJ_L2LDOOR, { i, j });
 			if (pn == 16 || pn == 541)
@@ -3781,7 +3893,7 @@ void AddL3Objs(int x1, int y1, int x2, int y2)
 {
 	for (int j = y1; j < y2; j++) {
 		for (int i = x1; i < x2; i++) {
-			const int pn = dPiece[i][j];
+			const int pn = tileAt(i, j).piece();
 			if (pn == 530)
 				AddObject(OBJ_L3LDOOR, { i, j });
 			if (pn == 533)
@@ -3794,7 +3906,7 @@ void AddCryptObjects(int x1, int y1, int x2, int y2)
 {
 	for (int j = y1; j < y2; j++) {
 		for (int i = x1; i < x2; i++) {
-			const int pn = dPiece[i][j];
+			const int pn = tileAt(i, j).piece();
 			if (pn == 76)
 				AddObject(OBJ_L5LDOOR, { i, j });
 			if (pn == 79)
@@ -3811,6 +3923,7 @@ void AddSlainHero()
 
 void InitObjects()
 {
+	InitializeObjectPool();
 	ClrAllObjects();
 	NaKrulTomeSequence = 0;
 	if (currlevel == 16) {
@@ -4007,13 +4120,11 @@ void SetMapObjects(const uint16_t *dunData, int startx, int starty)
 
 Object *AddObject(_object_id objType, Point objPos)
 {
-	if (ActiveObjectCount >= MAXOBJECTS)
+	if (!ObjectPoolAdapter::HasFreeObjectSlot())
 		return nullptr;
 
-	const int oi = AvailableObjects[0];
-	AvailableObjects[0] = AvailableObjects[MAXOBJECTS - 1 - ActiveObjectCount];
-	ActiveObjects[ActiveObjectCount] = oi;
-	dObject[objPos.x][objPos.y] = oi + 1;
+	const int oi = ObjectPoolAdapter::ReserveObjectSlot();
+	tileAt(objPos).setObject(oi + 1);
 	Object &object = Objects[oi];
 	SetupObject(object, objPos, objType);
 	switch (object._otype) {
@@ -4130,7 +4241,7 @@ Object *AddObject(_object_id objType, Point objPos)
 
 	AddObjectLight(object);
 
-	ActiveObjectCount++;
+	ObjectPoolAdapter::CommitReservedObjectSlot();
 	return &object;
 }
 
@@ -4183,7 +4294,7 @@ void OperateTrap(Object &trap)
 
 	auto searchArea = PointsInRectangle(Rectangle { target, 1 });
 	// look for a player near the trigger (using a reverse search to match vanilla behaviour)
-	auto foundPosition = std::find_if(searchArea.crbegin(), searchArea.crend(), [](Point testPosition) { return InDungeonBounds(testPosition) && dPlayer[testPosition.x][testPosition.y] != 0; });
+	auto foundPosition = std::find_if(searchArea.crbegin(), searchArea.crend(), [](Point testPosition) { return InDungeonBounds(testPosition) && tileAt(testPosition).hasPlayer(); });
 	if (foundPosition != searchArea.crend()) {
 		// if a player is standing near the trigger then target them instead
 		target = *foundPosition;
@@ -4196,8 +4307,7 @@ void OperateTrap(Object &trap)
 
 void ProcessObjects()
 {
-	for (int i = 0; i < ActiveObjectCount; ++i) {
-		Object &object = Objects[ActiveObjects[i]];
+	for (Object &object : ObjectPoolAdapter::ActiveObjectsRange()) {
 		switch (object._otype) {
 		case OBJ_L1LIGHT:
 		case OBJ_SKFIRE:
@@ -4276,9 +4386,9 @@ void ProcessObjects()
 			object._oAnimFrame = 1;
 	}
 
-	for (int i = 0; i < ActiveObjectCount;) {
-		const int oi = ActiveObjects[i];
-		if (Objects[oi]._oDelFlag) {
+	for (int i = 0; i < ObjectPoolAdapter::ActiveObjectCountValue();) {
+		const int oi = ObjectPoolAdapter::ActiveObjectIndexAt(i);
+		if (ObjectPoolAdapter::ActiveObjectAt(i)._oDelFlag) {
 			DeleteObject(oi, i);
 		} else {
 			i++;
@@ -4315,8 +4425,9 @@ void ObjChangeMap(int x1, int y1, int x2, int y2)
 {
 	for (int j = y1; j <= y2; j++) {
 		for (int i = x1; i <= x2; i++) {
-			ObjSetMini({ i, j }, pdungeon[i][j]);
-			dungeon[i][j] = pdungeon[i][j];
+			DungeonMegaTile &megaTile = megaTileAt(i, j);
+			megaTile.applyReplacement();
+			ObjSetMini({ i, j }, megaTile.current());
 		}
 	}
 
@@ -4345,8 +4456,9 @@ void ObjChangeMapResync(int x1, int y1, int x2, int y2)
 {
 	for (int j = y1; j <= y2; j++) {
 		for (int i = x1; i <= x2; i++) {
-			ObjSetMini({ i, j }, pdungeon[i][j]);
-			dungeon[i][j] = pdungeon[i][j];
+			DungeonMegaTile &megaTile = megaTileAt(i, j);
+			megaTile.applyReplacement();
+			ObjSetMini({ i, j }, megaTile.current());
 		}
 	}
 
@@ -4918,10 +5030,10 @@ void GetObjectStr(const Object &object)
 
 void SyncNakrulRoom()
 {
-	dPiece[UberRow][UberCol] = 297;
-	dPiece[UberRow][UberCol - 1] = 300;
-	dPiece[UberRow][UberCol - 2] = 299;
-	dPiece[UberRow][UberCol + 1] = 298;
+	ObjSetMicro({ UberRow, UberCol }, 297);
+	ObjSetMicro({ UberRow, UberCol - 1 }, 300);
+	ObjSetMicro({ UberRow, UberCol - 2 }, 299);
+	ObjSetMicro({ UberRow, UberCol + 1 }, 298);
 }
 
 } // namespace devilution

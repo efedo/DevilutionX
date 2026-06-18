@@ -447,8 +447,8 @@ TEST_F(PackTest, UnPackItem_diablo)
 	gbIsMultiplayer = false;
 	gbIsSpawn = false;
 
-	MyPlayer->_pMaxManaBase = 125 << 6;
-	MyPlayer->_pMaxHPBase = 125 << 6;
+	MyPlayer->mana.maximumBase = 125 << 6;
+	MyPlayer->life.maximumBase = 125 << 6;
 
 	for (size_t i = 0; i < sizeof(PackedDiabloItems) / sizeof(*PackedDiabloItems); i++) {
 		const ItemPack packed = SwappedLE(PackedDiabloItems[i]);
@@ -520,8 +520,8 @@ TEST_F(PackTest, UnPackItem_spawn)
 	gbIsMultiplayer = false;
 	gbIsSpawn = true;
 
-	MyPlayer->_pMaxManaBase = 125 << 6;
-	MyPlayer->_pMaxHPBase = 125 << 6;
+	MyPlayer->mana.maximumBase = 125 << 6;
+	MyPlayer->life.maximumBase = 125 << 6;
 
 	for (size_t i = 0; i < sizeof(PackedSpawnItems) / sizeof(*PackedSpawnItems); i++) {
 		const ItemPack packed = SwappedLE(PackedSpawnItems[i]);
@@ -565,8 +565,8 @@ TEST_F(PackTest, UnPackItem_diablo_multiplayer)
 	gbIsMultiplayer = true;
 	gbIsSpawn = false;
 
-	MyPlayer->_pMaxManaBase = 125 << 6;
-	MyPlayer->_pMaxHPBase = 125 << 6;
+	MyPlayer->mana.maximumBase = 125 << 6;
+	MyPlayer->life.maximumBase = 125 << 6;
 
 	for (size_t i = 0; i < sizeof(PackedDiabloMPItems) / sizeof(*PackedDiabloMPItems); i++) {
 		const ItemPack packed = SwappedLE(PackedDiabloMPItems[i]);
@@ -785,8 +785,8 @@ TEST_F(PackTest, UnPackItem_hellfire)
 	gbIsMultiplayer = false;
 	gbIsSpawn = false;
 
-	MyPlayer->_pMaxManaBase = 125 << 6;
-	MyPlayer->_pMaxHPBase = 125 << 6;
+	MyPlayer->mana.maximumBase = 125 << 6;
+	MyPlayer->life.maximumBase = 125 << 6;
 
 	for (size_t i = 0; i < sizeof(PackedHellfireItems) / sizeof(*PackedHellfireItems); i++) {
 		const ItemPack packed = SwappedLE(PackedHellfireItems[i]);
@@ -1041,40 +1041,40 @@ TEST_F(NetPackTest, UnPackNetPlayer_invalid_plrlevel)
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_hpBase)
 {
-	MyPlayer->_pHPBase = -64;
+	MyPlayer->life.base = -64;
 	ASSERT_FALSE(TestNetPackValidation());
 
-	MyPlayer->_pHPBase = MyPlayer->_pMaxHPBase + 64;
+	MyPlayer->life.base = MyPlayer->life.maximumBase + 64;
 	ASSERT_FALSE(TestNetPackValidation());
 }
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_manaBase)
 {
-	MyPlayer->_pManaBase = MyPlayer->_pMaxManaBase + 64;
+	MyPlayer->mana.base = MyPlayer->mana.maximumBase + 64;
 	ASSERT_FALSE(TestNetPackValidation());
 }
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_baseStr)
 {
-	MyPlayer->_pBaseStr = MyPlayer->GetMaximumAttributeValue(CharacterAttribute::Strength) + 1;
+	MyPlayer->attributes.strength.base = MyPlayer->GetMaximumAttributeValue(CharacterAttribute::Strength) + 1;
 	ASSERT_FALSE(TestNetPackValidation());
 }
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_baseMag)
 {
-	MyPlayer->_pBaseMag = MyPlayer->GetMaximumAttributeValue(CharacterAttribute::Magic) + 1;
+	MyPlayer->attributes.magic.base = MyPlayer->GetMaximumAttributeValue(CharacterAttribute::Magic) + 1;
 	ASSERT_FALSE(TestNetPackValidation());
 }
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_baseDex)
 {
-	MyPlayer->_pBaseDex = MyPlayer->GetMaximumAttributeValue(CharacterAttribute::Dexterity) + 1;
+	MyPlayer->attributes.dexterity.base = MyPlayer->GetMaximumAttributeValue(CharacterAttribute::Dexterity) + 1;
 	ASSERT_FALSE(TestNetPackValidation());
 }
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_baseVit)
 {
-	MyPlayer->_pBaseVit = MyPlayer->GetMaximumAttributeValue(CharacterAttribute::Vitality) + 1;
+	MyPlayer->attributes.vitality.base = MyPlayer->GetMaximumAttributeValue(CharacterAttribute::Vitality) + 1;
 	ASSERT_FALSE(TestNetPackValidation());
 }
 
@@ -1086,49 +1086,49 @@ TEST_F(NetPackTest, UnPackNetPlayer_invalid_numInv)
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_strength)
 {
-	MyPlayer->_pStrength++;
+	MyPlayer->attributes.strength.current++;
 	ASSERT_FALSE(TestNetPackValidation());
 }
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_magic)
 {
-	MyPlayer->_pMagic++;
+	MyPlayer->attributes.magic.current++;
 	ASSERT_FALSE(TestNetPackValidation());
 }
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_dexterity)
 {
-	MyPlayer->_pDexterity++;
+	MyPlayer->attributes.dexterity.current++;
 	ASSERT_FALSE(TestNetPackValidation());
 }
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_vitality)
 {
-	MyPlayer->_pVitality++;
+	MyPlayer->attributes.vitality.current++;
 	ASSERT_FALSE(TestNetPackValidation());
 }
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_hitPoints)
 {
-	MyPlayer->hitPoints++;
+	MyPlayer->life.current++;
 	ASSERT_FALSE(TestNetPackValidation());
 }
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_maxHP)
 {
-	MyPlayer->maxHitPoints++;
+	MyPlayer->life.maximum++;
 	ASSERT_FALSE(TestNetPackValidation());
 }
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_mana)
 {
-	MyPlayer->_pMana++;
+	MyPlayer->mana.current++;
 	ASSERT_FALSE(TestNetPackValidation());
 }
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_maxMana)
 {
-	MyPlayer->_pMaxMana++;
+	MyPlayer->mana.maximum++;
 	ASSERT_FALSE(TestNetPackValidation());
 }
 
@@ -1148,7 +1148,7 @@ TEST_F(NetPackTest, UnPackNetPlayer_invalid_baseToBlk)
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_iMinDam)
 {
-	MyPlayer->_pIMinDam++;
+	MyPlayer->damageBonuses.physical.minimum++;
 	ASSERT_FALSE(TestNetPackValidation());
 
 	CalcPlrItemVals(*MyPlayer, false);
@@ -1161,7 +1161,7 @@ TEST_F(NetPackTest, UnPackNetPlayer_invalid_iMinDam)
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_iMaxDam)
 {
-	MyPlayer->_pIMaxDam++;
+	MyPlayer->damageBonuses.physical.maximum++;
 	ASSERT_FALSE(TestNetPackValidation());
 
 	CalcPlrItemVals(*MyPlayer, false);
@@ -1187,7 +1187,7 @@ TEST_F(NetPackTest, UnPackNetPlayer_invalid_iAC)
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_iBonusDam)
 {
-	MyPlayer->_pIBonusDam++;
+	MyPlayer->damageBonuses.percent++;
 	ASSERT_FALSE(TestNetPackValidation());
 
 	CalcPlrItemVals(*MyPlayer, false);
@@ -1226,7 +1226,7 @@ TEST_F(NetPackTest, UnPackNetPlayer_invalid_iBonusAC)
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_iBonusDamMod)
 {
-	MyPlayer->_pIBonusDamMod++;
+	MyPlayer->damageBonuses.flat++;
 	ASSERT_FALSE(TestNetPackValidation());
 
 	CalcPlrItemVals(*MyPlayer, false);
@@ -1252,7 +1252,7 @@ TEST_F(NetPackTest, UnPackNetPlayer_invalid_iGetHit)
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_iEnAc)
 {
-	MyPlayer->_pIEnAc++;
+	MyPlayer->damageBonuses.armorPiercing++;
 	ASSERT_FALSE(TestNetPackValidation());
 
 	CalcPlrItemVals(*MyPlayer, false);
@@ -1265,7 +1265,7 @@ TEST_F(NetPackTest, UnPackNetPlayer_invalid_iEnAc)
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_iFMinDam)
 {
-	MyPlayer->_pIFMinDam++;
+	MyPlayer->damageBonuses.fire.minimum++;
 	ASSERT_FALSE(TestNetPackValidation());
 
 	CalcPlrItemVals(*MyPlayer, false);
@@ -1278,7 +1278,7 @@ TEST_F(NetPackTest, UnPackNetPlayer_invalid_iFMinDam)
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_iFMaxDam)
 {
-	MyPlayer->_pIFMaxDam++;
+	MyPlayer->damageBonuses.fire.maximum++;
 	ASSERT_FALSE(TestNetPackValidation());
 
 	CalcPlrItemVals(*MyPlayer, false);
@@ -1291,7 +1291,7 @@ TEST_F(NetPackTest, UnPackNetPlayer_invalid_iFMaxDam)
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_iLMinDam)
 {
-	MyPlayer->_pILMinDam++;
+	MyPlayer->damageBonuses.lightning.minimum++;
 	ASSERT_FALSE(TestNetPackValidation());
 
 	CalcPlrItemVals(*MyPlayer, false);
@@ -1304,7 +1304,7 @@ TEST_F(NetPackTest, UnPackNetPlayer_invalid_iLMinDam)
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_iLMaxDam)
 {
-	MyPlayer->_pILMaxDam++;
+	MyPlayer->damageBonuses.lightning.maximum++;
 	ASSERT_FALSE(TestNetPackValidation());
 
 	CalcPlrItemVals(*MyPlayer, false);
@@ -1317,13 +1317,13 @@ TEST_F(NetPackTest, UnPackNetPlayer_invalid_iLMaxDam)
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_maxHPBase)
 {
-	MyPlayer->_pMaxHPBase++;
+	MyPlayer->life.maximumBase++;
 	ASSERT_FALSE(TestNetPackValidation());
 }
 
 TEST_F(NetPackTest, UnPackNetPlayer_invalid_maxManaBase)
 {
-	MyPlayer->_pMaxManaBase++;
+	MyPlayer->mana.maximumBase++;
 	ASSERT_FALSE(TestNetPackValidation());
 }
 

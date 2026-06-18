@@ -41,9 +41,12 @@
 #include "lighting.h"
 #include "missiles.h"
 #include "monster.h"
+#include "monster_pool.h"
+#include "item_pool.h"
 #include "monsters/validation.hpp"
 #include "nthread.h"
 #include "objects.h"
+#include "object_pool.h"
 #include "options.h"
 #include "pack.h"
 #include "pfile.h"
@@ -921,8 +924,7 @@ void DeltaLoadObjects(DLevel &deltaLevel)
 		}
 	}
 
-	for (int i = 0; i < ActiveObjectCount; i++) {
-		Object &object = Objects[ActiveObjects[i]];
+	for (Object &object : ObjectPoolAdapter::ActiveObjectsRange()) {
 		if (object.IsTrap()) {
 			UpdateTrapState(object);
 		}
@@ -941,9 +943,10 @@ void DeltaLoadItems(const DLevel &deltaLevel)
 			    static_cast<_item_indexes>(Swap16LE(deltaItem.def.wIndx)),
 			    Swap16LE(deltaItem.def.wCI));
 			if (activeItemIndex != -1) {
-				const auto &position = Items[ActiveItems[activeItemIndex]].position;
-				if (dItem[position.x][position.y] == ActiveItems[activeItemIndex] + 1)
-					dItem[position.x][position.y] = 0;
+				const uint8_t itemId = ItemPoolAdapter::ActiveItemIds()[activeItemIndex];
+				const auto &position = Items[itemId].position;
+				if (tileAt(position).item() == itemId + 1)
+					tileAt(position).setItem(0);
 				DeleteItem(activeItemIndex);
 			}
 		}
@@ -955,7 +958,7 @@ void DeltaLoadItems(const DLevel &deltaLevel)
 			const int x = deltaItem.x;
 			const int y = deltaItem.y;
 			item.position = GetItemPosition({ x, y });
-			dItem[item.position.x][item.position.y] = static_cast<int8_t>(ii + 1);
+			tileAt(item.position).setItem(static_cast<int8_t>(ii + 1));
 			RespawnItem(Items[ii], false);
 		}
 	}
@@ -1023,8 +1026,7 @@ void DeltaLeaveSync(uint8_t bLevel)
 
 	DLevel &deltaLevel = GetDeltaLevel(bLevel);
 
-	for (size_t i = 0; i < ActiveMonsterCount; i++) {
-		const unsigned ma = ActiveMonsters[i];
+	for (const unsigned ma : MonsterPoolAdapter::ActiveMonsterRange()) {
 		Monster &monster = Monsters[ma];
 		if (monster.hitPoints == 0)
 			continue;
@@ -1208,8 +1210,8 @@ size_t OnWalk(const TCmdLoc &message, Player &player)
 	const Point position { message.x, message.y };
 
 	if (gbBufferMsgs != 1 && player.isOnActiveLevel() && InDungeonBounds(position)) {
-		ClrPlrPath(player);
-		MakePlrPath(player, position, true);
+		player.clearPath();
+		player.makePath(position, true);
 		player.destAction = ACTION_NONE;
 	}
 
@@ -1221,7 +1223,7 @@ size_t OnAddStrength(const TCmdParam1 &message, Player &player)
 	if (gbBufferMsgs == 1)
 		BufferMessage(player, &message, sizeof(message));
 	else if (message.wParam1 <= 256)
-		ModifyPlrStr(player, Swap16LE(message.wParam1));
+		player.modifyStrength(Swap16LE(message.wParam1));
 
 	return sizeof(message);
 }
@@ -1231,7 +1233,7 @@ size_t OnAddMagic(const TCmdParam1 &message, Player &player)
 	if (gbBufferMsgs == 1)
 		BufferMessage(player, &message, sizeof(message));
 	else if (message.wParam1 <= 256)
-		ModifyPlrMag(player, Swap16LE(message.wParam1));
+		player.modifyMagic(Swap16LE(message.wParam1));
 
 	return sizeof(message);
 }
@@ -1241,7 +1243,7 @@ size_t OnAddDexterity(const TCmdParam1 &message, Player &player)
 	if (gbBufferMsgs == 1)
 		BufferMessage(player, &message, sizeof(message));
 	else if (message.wParam1 <= 256)
-		ModifyPlrDex(player, Swap16LE(message.wParam1));
+		player.modifyDexterity(Swap16LE(message.wParam1));
 
 	return sizeof(message);
 }
@@ -1251,7 +1253,7 @@ size_t OnAddVitality(const TCmdParam1 &message, Player &player)
 	if (gbBufferMsgs == 1)
 		BufferMessage(player, &message, sizeof(message));
 	else if (message.wParam1 <= 256)
-		ModifyPlrVit(player, Swap16LE(message.wParam1));
+		player.modifyVitality(Swap16LE(message.wParam1));
 
 	return sizeof(message);
 }
@@ -1261,7 +1263,7 @@ size_t OnGotoGetItem(const TCmdLocParam1 &message, Player &player)
 	const Point position { message.x, message.y };
 
 	if (gbBufferMsgs != 1 && player.isOnActiveLevel() && InDungeonBounds(position) && Swap16LE(message.wParam1) < MAXITEMS + 1) {
-		MakePlrPath(player, position, false);
+		player.makePath(position, false);
 		player.destAction = ACTION_PICKUPITEM;
 		player.destParam1 = Swap16LE(message.wParam1);
 	}
@@ -1439,7 +1441,7 @@ size_t OnRequestGetItem(const TCmdGItem &message, Player &player)
 
 	int ii = -1;
 	if (InDungeonBounds(position)) {
-		ii = std::abs(dItem[position.x][position.y]) - 1;
+		ii = std::abs(tileAt(position).item()) - 1;
 		if (ii >= 0 && !Items[ii].keyAttributesMatch(dwSeed, wIndx, wCI)) {
 			ii = -1;
 		}
@@ -1449,7 +1451,7 @@ size_t OnRequestGetItem(const TCmdGItem &message, Player &player)
 		// No item at the target position or the key attributes don't match, so try find a matching item.
 		const int activeItemIndex = FindGetItem(dwSeed, wIndx, wCI);
 		if (activeItemIndex != -1) {
-			ii = ActiveItems[activeItemIndex];
+			ii = ItemPoolAdapter::ActiveItemIds()[activeItemIndex];
 		}
 	}
 
@@ -1501,7 +1503,7 @@ size_t OnGetItem(const TCmdGItem &message, Player &player)
 			InvGetItem(*MyPlayer, ii);
 	} else {
 		const int activeItemIndex = FindGetItem(dwSeed, wIndx, wCI);
-		InvGetItem(*MyPlayer, ActiveItems[activeItemIndex]);
+		InvGetItem(*MyPlayer, ItemPoolAdapter::ActiveItemIds()[activeItemIndex]);
 	}
 
 	return sizeof(message);
@@ -1513,7 +1515,7 @@ size_t OnGotoAutoGetItem(const TCmdLocParam1 &message, Player &player)
 
 	const uint16_t itemIdx = Swap16LE(message.wParam1);
 	if (gbBufferMsgs != 1 && player.isOnActiveLevel() && InDungeonBounds(position) && itemIdx < MAXITEMS + 1) {
-		MakePlrPath(player, position, false);
+		player.makePath(position, false);
 		player.destAction = ACTION_PICKUPAITEM;
 		player.destParam1 = itemIdx;
 	}
@@ -1665,7 +1667,7 @@ size_t OnStandingAttackTile(const TCmdLoc &message, Player &player)
 	const Point position { message.x, message.y };
 
 	if (gbBufferMsgs != 1 && player.isOnActiveLevel() && leveltype != DTYPE_TOWN && InDungeonBounds(position)) {
-		ClrPlrPath(player);
+		player.clearPath();
 		player.destAction = ACTION_ATTACK;
 		player.destParam1 = position.x;
 		player.destParam2 = position.y;
@@ -1679,7 +1681,7 @@ size_t OnRangedAttackTile(const TCmdLoc &message, Player &player)
 	const Point position { message.x, message.y };
 
 	if (gbBufferMsgs != 1 && player.isOnActiveLevel() && leveltype != DTYPE_TOWN && InDungeonBounds(position)) {
-		ClrPlrPath(player);
+		player.clearPath();
 		player.destAction = ACTION_RATTACK;
 		player.destParam1 = position.x;
 		player.destParam2 = position.y;
@@ -1739,7 +1741,7 @@ size_t OnSpellWall(const TCmdLocParam4 &message, Player &player)
 	if (!InitNewSpell(player, message.wParam1, message.wParam2, message.wParam4))
 		return sizeof(message);
 
-	ClrPlrPath(player);
+	player.clearPath();
 	player.destAction = ACTION_SPELLWALL;
 	player.destParam1 = position.x;
 	player.destParam2 = position.y;
@@ -1763,7 +1765,7 @@ size_t OnSpellTile(const TCmdLocParam3 &message, Player &player)
 	if (!InitNewSpell(player, message.wParam1, message.wParam2, message.wParam3))
 		return sizeof(message);
 
-	ClrPlrPath(player);
+	player.clearPath();
 	player.destAction = ACTION_SPELL;
 	player.destParam1 = position.x;
 	player.destParam2 = position.y;
@@ -1779,7 +1781,7 @@ size_t OnObjectTileAction(const TCmdLoc &message, Player &player, action_id acti
 
 	if (gbBufferMsgs != 1 && player.isOnActiveLevel() && object != nullptr) {
 		if (pathToObject)
-			MakePlrPath(player, position, !object->_oSolidFlag && !object->_oDoorFlag);
+			player.makePath(position, !object->_oSolidFlag && !object->_oDoorFlag);
 
 		player.destAction = action;
 		player.destParam1 = static_cast<int>(object->GetId());
@@ -1809,7 +1811,7 @@ size_t OnAttackMonster(const TCmdParam1 &message, Player &player)
 	if (gbBufferMsgs != 1 && player.isOnActiveLevel() && leveltype != DTYPE_TOWN && monsterIdx < MaxMonsters) {
 		const Point position = Monsters[monsterIdx].position.future;
 		if (player.position.tile.WalkingDistance(position) > 1)
-			MakePlrPath(player, position, false);
+			player.makePath(position, false);
 		player.destAction = ACTION_ATTACKMON;
 		player.destParam1 = monsterIdx;
 	}
@@ -1822,7 +1824,7 @@ size_t OnAttackPlayer(const TCmdParam1 &message, Player &player)
 	const uint16_t playerIdx = Swap16LE(message.wParam1);
 
 	if (gbBufferMsgs != 1 && player.isOnActiveLevel() && leveltype != DTYPE_TOWN && playerIdx < Players.size()) {
-		MakePlrPath(player, Players[playerIdx].position.future, false);
+		player.makePath(Players[playerIdx].position.future, false);
 		player.destAction = ACTION_ATTACKPLR;
 		player.destParam1 = playerIdx;
 	}
@@ -1835,7 +1837,7 @@ size_t OnRangedAttackMonster(const TCmdParam1 &message, Player &player)
 	const uint16_t monsterIdx = Swap16LE(message.wParam1);
 
 	if (gbBufferMsgs != 1 && player.isOnActiveLevel() && leveltype != DTYPE_TOWN && monsterIdx < MaxMonsters) {
-		ClrPlrPath(player);
+		player.clearPath();
 		player.destAction = ACTION_RATTACKMON;
 		player.destParam1 = monsterIdx;
 	}
@@ -1848,7 +1850,7 @@ size_t OnRangedAttackPlayer(const TCmdParam1 &message, Player &player)
 	const uint16_t playerIdx = Swap16LE(message.wParam1);
 
 	if (gbBufferMsgs != 1 && player.isOnActiveLevel() && leveltype != DTYPE_TOWN && playerIdx < Players.size()) {
-		ClrPlrPath(player);
+		player.clearPath();
 		player.destAction = ACTION_RATTACKPLR;
 		player.destParam1 = playerIdx;
 	}
@@ -1871,7 +1873,7 @@ size_t OnSpellMonster(const TCmdParam4 &message, Player &player)
 	if (!InitNewSpell(player, message.wParam2, message.wParam3, message.wParam4))
 		return sizeof(message);
 
-	ClrPlrPath(player);
+	player.clearPath();
 	player.destAction = ACTION_SPELLMON;
 	player.destParam1 = monsterIdx;
 	player.destParam2 = player.GetSpellLevel(player.queuedSpell.spellId);
@@ -1892,7 +1894,7 @@ size_t OnSpellPlayer(const TCmdParam4 &message, Player &player)
 	if (!InitNewSpell(player, message.wParam2, message.wParam3, message.wParam4))
 		return sizeof(message);
 
-	ClrPlrPath(player);
+	player.clearPath();
 	player.destAction = ACTION_SPELLPLR;
 	player.destParam1 = playerIdx;
 	player.destParam2 = player.GetSpellLevel(player.queuedSpell.spellId);
@@ -1929,7 +1931,7 @@ size_t OnResurrect(const TCmdParam1 &message, Player &caster)
 
 	SpawnResurrectBeam(caster, target);
 
-	if (&target == MyPlayer && target.hitPoints <= 0) {
+	if (&target == MyPlayer && target.life.current <= 0) {
 		NetSendCmd(true, CMD_PLRALIVE);
 	}
 
@@ -1967,7 +1969,7 @@ size_t OnTalkXY(const TCmdLocParam1 &message, Player &player)
 	const uint16_t townerIdx = Swap16LE(message.wParam1);
 
 	if (gbBufferMsgs != 1 && player.isOnActiveLevel() && InDungeonBounds(position) && townerIdx < GetNumTowners()) {
-		MakePlrPath(player, position, false);
+		player.makePath(position, false);
 		player.destAction = ACTION_TALK;
 		player.destParam1 = townerIdx;
 	}
@@ -2073,7 +2075,7 @@ size_t OnPlayerDeath(const TCmdParam1 &message, Player &player)
 
 	if (gbBufferMsgs != 1) {
 		if (&player != MyPlayer)
-			StartPlayerKill(player, deathReason);
+			player.startKill(deathReason);
 		else
 			pfile_update(true);
 	} else {
@@ -2090,7 +2092,7 @@ size_t OnPlayerDamage(const TCmdDamage &message, Player &player)
 	Player &target = Players[message.bPlr];
 	if (&target == MyPlayer && leveltype != DTYPE_TOWN && gbBufferMsgs != 1) {
 		if (player.isOnActiveLevel() && damage <= 192000 && !target.hasNoLife()) {
-			ApplyPlrDamage(message.damageType, target, 0, 0, static_cast<int>(damage), DeathReason::Player);
+			target.applyDamage(message.damageType, 0, 0, static_cast<int>(damage), DeathReason::Player);
 		}
 	}
 
@@ -2310,7 +2312,7 @@ size_t OnPlayerJoinLevel(const TCmdLocParam2 &message, Player &player)
 
 	player._pLvlChanging = false;
 	if (player._pName[0] != '\0' && !player.plractive) {
-		ResetPlayerGFX(player);
+		player.resetGraphics();
 		player.plractive = true;
 		gbActivePlayers++;
 		EventPlrMsg(fmt::format(fmt::runtime(_("Player '{:s}' (level {:d}) just joined the game")), player._pName, player.getCharacterLevel()));
@@ -2319,26 +2321,26 @@ size_t OnPlayerJoinLevel(const TCmdLocParam2 &message, Player &player)
 	if (player.plractive && &player != MyPlayer) {
 		if (player.isOnActiveLevel()) {
 			RemoveEnemyReferences(player);
-			RemovePlrMissiles(player);
+			player.removeMissiles();
 			FixPlrWalkTags(player);
 		}
 		player.position.tile = position;
-		SetPlayerOld(player);
+		player.saveOldPosition();
 		if (isSetLevel)
 			player.setLevel(static_cast<_setlevels>(playerLevel));
 		else
 			player.setLevel(playerLevel);
-		ResetPlayerGFX(player);
+		player.resetGraphics();
 		if (player.isOnActiveLevel()) {
-			SyncInitPlr(player);
+			player.syncInitialState();
 			if (!player.hasNoLife()) {
-				StartStand(player, Direction::South);
+				player.startStand(Direction::South);
 			} else {
 				player._pgfxnum &= ~0xFU;
 				player._pmode = PM_DEATH;
-				NewPlrAnim(player, player_graphic::Death, Direction::South);
+				player.setAnimation(player_graphic::Death, Direction::South);
 				player.animInfo.currentFrame = static_cast<int8_t>(player.animInfo.numberOfFrames - 2);
-				dFlags[player.position.tile.x][player.position.tile.y] |= DungeonFlag::DeadPlayer;
+				tileAt(player.position.tile).addFlags(DungeonFlag::DeadPlayer);
 			}
 
 			ActivateVision(player.position.tile, player._pLightRad, player.getId());
@@ -2420,7 +2422,7 @@ size_t OnSetStrength(const TCmdParam1 &message, Player &player)
 
 	if (gbBufferMsgs != 1) {
 		if (value <= 750 && &player != MyPlayer)
-			SetPlrStr(player, value);
+			player.setStrength(value);
 	} else {
 		BufferMessage(player, &message, sizeof(message));
 	}
@@ -2434,7 +2436,7 @@ size_t OnSetDexterity(const TCmdParam1 &message, Player &player)
 
 	if (gbBufferMsgs != 1) {
 		if (value <= 750 && &player != MyPlayer)
-			SetPlrDex(player, value);
+			player.setDexterity(value);
 	} else {
 		BufferMessage(player, &message, sizeof(message));
 	}
@@ -2448,7 +2450,7 @@ size_t OnSetMagic(const TCmdParam1 &message, Player &player)
 
 	if (gbBufferMsgs != 1) {
 		if (value <= 750 && &player != MyPlayer)
-			SetPlrMag(player, value);
+			player.setMagic(value);
 	} else {
 		BufferMessage(player, &message, sizeof(message));
 	}
@@ -2462,7 +2464,7 @@ size_t OnSetVitality(const TCmdParam1 &message, Player &player)
 
 	if (gbBufferMsgs != 1) {
 		if (value <= 750 && &player != MyPlayer)
-			SetPlrVit(player, value);
+			player.setVitality(value);
 	} else {
 		BufferMessage(player, &message, sizeof(message));
 	}
@@ -2515,7 +2517,7 @@ size_t OnCheatExperience(const TCmd &cmd, Player &player) // NOLINT(misc-unused-
 		if (*GetOptions().Gameplay.experienceBar) {
 			RedrawEverything();
 		}
-		NextPlrLevel(player);
+		player.advanceLevel();
 	}
 #endif
 	return sizeof(cmd);
@@ -2925,7 +2927,7 @@ void DeltaSaveLevel()
 
 	for (Player &player : Players) {
 		if (&player != MyPlayer)
-			ResetPlayerGFX(player);
+			player.resetGraphics();
 	}
 	uint8_t localLevel;
 	if (setlevel) {

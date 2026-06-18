@@ -102,25 +102,25 @@ void DrawFlaskLower(const Surface &out, const Surface &sourceBuffer, int offset,
 void DrawLifeFlaskUpper(const Surface &out)
 {
 	constexpr int LifeFlaskUpperOffset = 107;
-	DrawFlaskUpper(out, *pLifeBuff, LifeFlaskUpperOffset, MyPlayer->_pHPPer);
+	DrawFlaskUpper(out, *pLifeBuff, LifeFlaskUpperOffset, MyPlayer->life.percentage);
 }
 
 void DrawManaFlaskUpper(const Surface &out)
 {
 	constexpr int ManaFlaskUpperOffset = 475;
-	DrawFlaskUpper(out, *pManaBuff, ManaFlaskUpperOffset, MyPlayer->_pManaPer);
+	DrawFlaskUpper(out, *pManaBuff, ManaFlaskUpperOffset, MyPlayer->mana.percentage);
 }
 
 void DrawLifeFlaskLower(const Surface &out, bool drawFilledPortion)
 {
 	constexpr int LifeFlaskLowerOffset = 96;
-	DrawFlaskLower(out, *pLifeBuff, LifeFlaskLowerOffset, MyPlayer->_pHPPer, drawFilledPortion);
+	DrawFlaskLower(out, *pLifeBuff, LifeFlaskLowerOffset, MyPlayer->life.percentage, drawFilledPortion);
 }
 
 void DrawManaFlaskLower(const Surface &out, bool drawFilledPortion)
 {
 	constexpr int ManaFlaskLowerOffset = 464;
-	DrawFlaskLower(out, *pManaBuff, ManaFlaskLowerOffset, MyPlayer->_pManaPer, drawFilledPortion);
+	DrawFlaskLower(out, *pManaBuff, ManaFlaskLowerOffset, MyPlayer->mana.percentage, drawFilledPortion);
 }
 
 void DrawFlaskValues(const Surface &out, Point pos, int currValue, int maxValue)

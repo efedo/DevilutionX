@@ -1,6 +1,8 @@
 #include "levels/town.h"
 
 #include <cstdint>
+#include <initializer_list>
+#include <utility>
 
 #include "engine/load_file.hpp"
 #include "engine/random.hpp"
@@ -17,8 +19,14 @@ namespace devilution {
 
 namespace {
 
+void SetTownPieces(std::initializer_list<std::pair<Point, uint16_t>> pieces)
+{
+	for (const auto &[position, piece] : pieces)
+		tileAt(position).setPiece(piece);
+}
+
 /**
- * @brief Load level data into dPiece
+ * @brief Load level piece data.
  * @param path Path of dun file
  * @param xi upper left destination
  * @param yy upper left destination
@@ -47,10 +55,10 @@ void FillSector(const char *path, int xi, int yy)
 				v4 = Swap16LE(mega.micro4);
 			}
 
-			dPiece[xx + 0][yy + 0] = v1;
-			dPiece[xx + 1][yy + 0] = v2;
-			dPiece[xx + 0][yy + 1] = v3;
-			dPiece[xx + 1][yy + 1] = v4;
+			tileAt(xx + 0, yy + 0).setPiece(v1);
+			tileAt(xx + 1, yy + 0).setPiece(v2);
+			tileAt(xx + 0, yy + 1).setPiece(v3);
+			tileAt(xx + 1, yy + 1).setPiece(v4);
 			xx += 2;
 		}
 		yy += 2;
@@ -58,7 +66,7 @@ void FillSector(const char *path, int xi, int yy)
 }
 
 /**
- * @brief Load a tile in to dPiece
+ * @brief Load a tile's piece data.
  * @param xx upper left destination
  * @param yy upper left destination
  * @param t tile id
@@ -67,10 +75,10 @@ void FillTile(int xx, int yy, int t)
 {
 	const MegaTile mega = pMegaTiles[t - 1];
 
-	dPiece[xx + 0][yy + 0] = Swap16LE(mega.micro1);
-	dPiece[xx + 1][yy + 0] = Swap16LE(mega.micro2);
-	dPiece[xx + 0][yy + 1] = Swap16LE(mega.micro3);
-	dPiece[xx + 1][yy + 1] = Swap16LE(mega.micro4);
+	tileAt(xx + 0, yy + 0).setPiece(Swap16LE(mega.micro1));
+	tileAt(xx + 1, yy + 0).setPiece(Swap16LE(mega.micro2));
+	tileAt(xx + 0, yy + 1).setPiece(Swap16LE(mega.micro3));
+	tileAt(xx + 1, yy + 1).setPiece(Swap16LE(mega.micro4));
 }
 
 /**
@@ -78,55 +86,34 @@ void FillTile(int xx, int yy, int t)
  */
 void TownCloseHive()
 {
-	dungeon[35][27] = 18;
-	dungeon[36][27] = 63;
+	megaTileAt(35, 27).setCurrent(18);
+	megaTileAt(36, 27).setCurrent(63);
 
-	dPiece[78][60] = 0x489;
-	dPiece[79][60] = 0x4ea;
-	dPiece[78][61] = 0x4eb;
-	dPiece[79][61] = 0x4ec;
-	dPiece[78][62] = 0x4ed;
-	dPiece[79][62] = 0x4ee;
-	dPiece[78][63] = 0x4ef;
-	dPiece[79][63] = 0x4f0;
-	dPiece[78][64] = 0x4f1;
-	dPiece[79][64] = 0x4f2;
-	dPiece[78][65] = 0x4f3;
-	dPiece[80][60] = 0x4f4;
-	dPiece[81][60] = 0x4f5;
-	dPiece[80][61] = 0x4f6;
-	dPiece[81][61] = 0x4f7;
-	dPiece[82][60] = 0x4f8;
-	dPiece[83][60] = 0x4f9;
-	dPiece[82][61] = 0x4fa;
-	dPiece[83][61] = 0x4fb;
-	dPiece[80][62] = 0x4fc;
-	dPiece[81][62] = 0x4fd;
-	dPiece[80][63] = 0x4fe;
-	dPiece[81][63] = 0x4ff;
-	dPiece[80][64] = 0x500;
-	dPiece[81][64] = 0x501;
-	dPiece[80][65] = 0x502;
-	dPiece[81][65] = 0x503;
-	dPiece[82][64] = 0x508;
-	dPiece[83][64] = 0x509;
-	dPiece[82][65] = 0x50a;
-	dPiece[83][65] = 0x50b;
-	dPiece[82][62] = 0x504;
-	dPiece[83][62] = 0x505;
-	dPiece[82][63] = 0x506;
-	dPiece[83][63] = 0x507;
-	dPiece[84][61] = 279;
-	dPiece[84][62] = 280;
-	dPiece[84][63] = 279;
-	dPiece[84][64] = 10;
-	dPiece[85][60] = 11;
-	dPiece[85][61] = 12;
-	dPiece[85][62] = 13;
-	dPiece[85][63] = 14;
-	dPiece[85][64] = 15;
-	dPiece[86][60] = 16;
-	dPiece[86][61] = 17;
+	SetTownPieces({
+	    { { 78, 60 }, 0x489 }, { { 79, 60 }, 0x4ea },
+	    { { 78, 61 }, 0x4eb }, { { 79, 61 }, 0x4ec },
+	    { { 78, 62 }, 0x4ed }, { { 79, 62 }, 0x4ee },
+	    { { 78, 63 }, 0x4ef }, { { 79, 63 }, 0x4f0 },
+	    { { 78, 64 }, 0x4f1 }, { { 79, 64 }, 0x4f2 },
+	    { { 78, 65 }, 0x4f3 }, { { 80, 60 }, 0x4f4 },
+	    { { 81, 60 }, 0x4f5 }, { { 80, 61 }, 0x4f6 },
+	    { { 81, 61 }, 0x4f7 }, { { 82, 60 }, 0x4f8 },
+	    { { 83, 60 }, 0x4f9 }, { { 82, 61 }, 0x4fa },
+	    { { 83, 61 }, 0x4fb }, { { 80, 62 }, 0x4fc },
+	    { { 81, 62 }, 0x4fd }, { { 80, 63 }, 0x4fe },
+	    { { 81, 63 }, 0x4ff }, { { 80, 64 }, 0x500 },
+	    { { 81, 64 }, 0x501 }, { { 80, 65 }, 0x502 },
+	    { { 81, 65 }, 0x503 }, { { 82, 62 }, 0x504 },
+	    { { 83, 62 }, 0x505 }, { { 82, 63 }, 0x506 },
+	    { { 83, 63 }, 0x507 }, { { 82, 64 }, 0x508 },
+	    { { 83, 64 }, 0x509 }, { { 82, 65 }, 0x50a },
+	    { { 83, 65 }, 0x50b }, { { 84, 61 }, 279 },
+	    { { 84, 62 }, 280 }, { { 84, 63 }, 279 },
+	    { { 84, 64 }, 10 }, { { 85, 60 }, 11 },
+	    { { 85, 61 }, 12 }, { { 85, 62 }, 13 },
+	    { { 85, 63 }, 14 }, { { 85, 64 }, 15 },
+	    { { 86, 60 }, 16 }, { { 86, 61 }, 17 },
+	});
 }
 
 /**
@@ -134,52 +121,50 @@ void TownCloseHive()
  */
 void TownCloseGrave()
 {
-	dPiece[36][21] = 0x52a;
-	dPiece[37][21] = 0x52b;
-	dPiece[36][22] = 0x52c;
-	dPiece[37][22] = 0x52d;
-	dPiece[36][23] = 0x52e;
-	dPiece[37][23] = 0x52f;
-	dPiece[36][24] = 0x530;
-	dPiece[37][24] = 0x531;
-	dPiece[35][21] = 0x53a;
-	dPiece[34][21] = 0x53b;
+	SetTownPieces({
+	    { { 36, 21 }, 0x52a }, { { 37, 21 }, 0x52b },
+	    { { 36, 22 }, 0x52c }, { { 37, 22 }, 0x52d },
+	    { { 36, 23 }, 0x52e }, { { 37, 23 }, 0x52f },
+	    { { 36, 24 }, 0x530 }, { { 37, 24 }, 0x531 },
+	    { { 35, 21 }, 0x53a }, { { 34, 21 }, 0x53b },
+	});
 }
 
 void InitTownPieces()
 {
 	for (int y = 0; y < MAXDUNY; y++) {
 		for (int x = 0; x < MAXDUNX; x++) {
-			if (dPiece[x][y] == 359) {
-				dSpecial[x][y] = 1;
-			} else if (dPiece[x][y] == 357) {
-				dSpecial[x][y] = 2;
-			} else if (dPiece[x][y] == 128) {
-				dSpecial[x][y] = 6;
-			} else if (dPiece[x][y] == 129) {
-				dSpecial[x][y] = 7;
-			} else if (dPiece[x][y] == 127) {
-				dSpecial[x][y] = 8;
-			} else if (dPiece[x][y] == 116) {
-				dSpecial[x][y] = 9;
-			} else if (dPiece[x][y] == 156) {
-				dSpecial[x][y] = 10;
-			} else if (dPiece[x][y] == 157) {
-				dSpecial[x][y] = 11;
-			} else if (dPiece[x][y] == 155) {
-				dSpecial[x][y] = 12;
-			} else if (dPiece[x][y] == 161) {
-				dSpecial[x][y] = 13;
-			} else if (dPiece[x][y] == 159) {
-				dSpecial[x][y] = 14;
-			} else if (dPiece[x][y] == 213) {
-				dSpecial[x][y] = 15;
-			} else if (dPiece[x][y] == 211) {
-				dSpecial[x][y] = 16;
-			} else if (dPiece[x][y] == 216) {
-				dSpecial[x][y] = 17;
-			} else if (dPiece[x][y] == 215) {
-				dSpecial[x][y] = 18;
+			const uint16_t piece = tileAt(x, y).piece();
+			if (piece == 359) {
+				tileAt(x, y).setSpecial(1);
+			} else if (piece == 357) {
+				tileAt(x, y).setSpecial(2);
+			} else if (piece == 128) {
+				tileAt(x, y).setSpecial(6);
+			} else if (piece == 129) {
+				tileAt(x, y).setSpecial(7);
+			} else if (piece == 127) {
+				tileAt(x, y).setSpecial(8);
+			} else if (piece == 116) {
+				tileAt(x, y).setSpecial(9);
+			} else if (piece == 156) {
+				tileAt(x, y).setSpecial(10);
+			} else if (piece == 157) {
+				tileAt(x, y).setSpecial(11);
+			} else if (piece == 155) {
+				tileAt(x, y).setSpecial(12);
+			} else if (piece == 161) {
+				tileAt(x, y).setSpecial(13);
+			} else if (piece == 159) {
+				tileAt(x, y).setSpecial(14);
+			} else if (piece == 213) {
+				tileAt(x, y).setSpecial(15);
+			} else if (piece == 211) {
+				tileAt(x, y).setSpecial(16);
+			} else if (piece == 216) {
+				tileAt(x, y).setSpecial(17);
+			} else if (piece == 215) {
+				tileAt(x, y).setSpecial(18);
 			}
 		}
 	}
@@ -192,10 +177,10 @@ void DrlgTPass3()
 {
 	for (int yy = 0; yy < MAXDUNY; yy += 2) {
 		for (int xx = 0; xx < MAXDUNX; xx += 2) {
-			dPiece[xx][yy] = 426;
-			dPiece[xx + 1][yy] = 426;
-			dPiece[xx][yy + 1] = 426;
-			dPiece[xx + 1][yy + 1] = 426;
+			tileAt(xx, yy).setPiece(426);
+			tileAt(xx + 1, yy).setPiece(426);
+			tileAt(xx, yy + 1).setPiece(426);
+			tileAt(xx + 1, yy + 1).setPiece(426);
 		}
 	}
 
@@ -208,19 +193,19 @@ void DrlgTPass3()
 	PlaceDunTiles(dunData.get(), { 0, 0 });
 
 	if (!IsWarpOpen(DTYPE_CATACOMBS)) {
-		dungeon[20][7] = 10;
-		dungeon[20][6] = 8;
+		megaTileAt(20, 7).setCurrent(10);
+		megaTileAt(20, 6).setCurrent(8);
 		FillTile(48, 20, 320);
 	}
 	if (!IsWarpOpen(DTYPE_CAVES)) {
-		dungeon[4][30] = 8;
+		megaTileAt(4, 30).setCurrent(8);
 		FillTile(16, 68, 332);
 		FillTile(16, 70, 331);
 	}
 	if (!IsWarpOpen(DTYPE_HELL)) {
-		dungeon[15][35] = 7;
-		dungeon[16][35] = 7;
-		dungeon[17][35] = 7;
+		megaTileAt(15, 35).setCurrent(7);
+		megaTileAt(16, 35).setCurrent(7);
+		megaTileAt(17, 35).setCurrent(7);
 		for (int x = 36; x < 46; x++) {
 			FillTile(x, 78, PickRandomlyAmong({ 1, 2, 3, 4 }));
 		}
@@ -282,71 +267,47 @@ void OpenGrave()
 
 void TownOpenHive()
 {
-	dungeon[36][27] = 47;
+	megaTileAt(36, 27).setCurrent(47);
 
-	dPiece[78][60] = 0x489;
-	dPiece[79][60] = 0x48a;
-	dPiece[78][61] = 0x48b;
-	dPiece[79][61] = 0x50d;
-	dPiece[78][62] = 0x4ed;
-	dPiece[78][63] = 0x4ef;
-	dPiece[79][62] = 0x50f;
-	dPiece[79][63] = 0x510;
-	dPiece[79][64] = 0x511;
-	dPiece[78][64] = 0x119;
-	dPiece[78][65] = 0x11b;
-	dPiece[79][65] = 0x11c;
-	dPiece[80][60] = 0x512;
-	dPiece[80][61] = 0x514;
-	dPiece[81][61] = 0x515;
-	dPiece[82][60] = 0x516;
-	dPiece[83][60] = 0x517;
-	dPiece[82][61] = 0x518;
-	dPiece[83][61] = 0x519;
-	dPiece[80][62] = 0x51a;
-	dPiece[81][62] = 0x51b;
-	dPiece[80][63] = 0x51c;
-	dPiece[81][63] = 0x51d;
-	dPiece[80][64] = 0x51e;
-	dPiece[81][64] = 0x51f;
-	dPiece[80][65] = 0x520;
-	dPiece[81][65] = 0x521;
-	dPiece[82][64] = 0x526;
-	dPiece[83][64] = 0x527;
-	dPiece[82][65] = 0x528;
-	dPiece[83][65] = 0x529;
-	dPiece[82][62] = 0x522;
-	dPiece[83][62] = 0x523;
-	dPiece[82][63] = 0x524;
-	dPiece[83][63] = 0x525;
-	dPiece[84][61] = 279;
-	dPiece[84][62] = 280;
-	dPiece[84][63] = 279;
-	dPiece[84][64] = 10;
-	dPiece[85][60] = 11;
-	dPiece[85][61] = 12;
-	dPiece[85][62] = 13;
-	dPiece[85][63] = 14;
-	dPiece[85][64] = 15;
-	dPiece[86][60] = 16;
-	dPiece[86][61] = 17;
+	SetTownPieces({
+	    { { 78, 60 }, 0x489 }, { { 79, 60 }, 0x48a },
+	    { { 78, 61 }, 0x48b }, { { 79, 61 }, 0x50d },
+	    { { 78, 62 }, 0x4ed }, { { 78, 63 }, 0x4ef },
+	    { { 79, 62 }, 0x50f }, { { 79, 63 }, 0x510 },
+	    { { 79, 64 }, 0x511 }, { { 78, 64 }, 0x119 },
+	    { { 78, 65 }, 0x11b }, { { 79, 65 }, 0x11c },
+	    { { 80, 60 }, 0x512 }, { { 80, 61 }, 0x514 },
+	    { { 81, 61 }, 0x515 }, { { 82, 60 }, 0x516 },
+	    { { 83, 60 }, 0x517 }, { { 82, 61 }, 0x518 },
+	    { { 83, 61 }, 0x519 }, { { 80, 62 }, 0x51a },
+	    { { 81, 62 }, 0x51b }, { { 80, 63 }, 0x51c },
+	    { { 81, 63 }, 0x51d }, { { 80, 64 }, 0x51e },
+	    { { 81, 64 }, 0x51f }, { { 80, 65 }, 0x520 },
+	    { { 81, 65 }, 0x521 }, { { 82, 62 }, 0x522 },
+	    { { 83, 62 }, 0x523 }, { { 82, 63 }, 0x524 },
+	    { { 83, 63 }, 0x525 }, { { 82, 64 }, 0x526 },
+	    { { 83, 64 }, 0x527 }, { { 82, 65 }, 0x528 },
+	    { { 83, 65 }, 0x529 }, { { 84, 61 }, 279 },
+	    { { 84, 62 }, 280 }, { { 84, 63 }, 279 },
+	    { { 84, 64 }, 10 }, { { 85, 60 }, 11 },
+	    { { 85, 61 }, 12 }, { { 85, 62 }, 13 },
+	    { { 85, 63 }, 14 }, { { 85, 64 }, 15 },
+	    { { 86, 60 }, 16 }, { { 86, 61 }, 17 },
+	});
 }
 
 void TownOpenGrave()
 {
-	dungeon[14][8] = 47;
-	dungeon[14][7] = 47;
+	megaTileAt(14, 8).setCurrent(47);
+	megaTileAt(14, 7).setCurrent(47);
 
-	dPiece[36][21] = 0x532;
-	dPiece[37][21] = 0x533;
-	dPiece[36][22] = 0x534;
-	dPiece[37][22] = 0x535;
-	dPiece[36][23] = 0x536;
-	dPiece[37][23] = 0x537;
-	dPiece[36][24] = 0x538;
-	dPiece[37][24] = 0x539;
-	dPiece[35][21] = 0x53a;
-	dPiece[34][21] = 0x53b;
+	SetTownPieces({
+	    { { 36, 21 }, 0x532 }, { { 37, 21 }, 0x533 },
+	    { { 36, 22 }, 0x534 }, { { 37, 22 }, 0x535 },
+	    { { 36, 23 }, 0x536 }, { { 37, 23 }, 0x537 },
+	    { { 36, 24 }, 0x538 }, { { 37, 24 }, 0x539 },
+	    { { 35, 21 }, 0x53a }, { { 34, 21 }, 0x53b },
+	});
 }
 
 void CleanTownFountain()

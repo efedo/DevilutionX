@@ -45,8 +45,11 @@
 #include "minitext.h"
 #include "missiles.h"
 #include "monster.h"
+#include "monster_pool.h"
+#include "item_pool.h"
 #include "nthread.h"
 #include "objects.h"
+#include "object_pool.h"
 #include "options.h"
 #include "player.h"
 #include "qol/autopickup.h"
@@ -107,7 +110,7 @@ bool PlrDirOK(const Player &player, Direction dir)
 {
 	const Point position = player.position.tile;
 	const Point futurePosition = position + dir;
-	if (futurePosition.x < 0 || !PosOkPlayer(player, futurePosition)) {
+	if (futurePosition.x < 0 || !player.positionIsAvailable(futurePosition)) {
 		return false;
 	}
 
@@ -125,7 +128,7 @@ bool PlrDirOK(const Player &player, Direction dir)
 void HandleWalkMode(Player &player, Direction dir)
 {
 	const auto &dirModeParams = WalkSettings[static_cast<size_t>(dir)];
-	SetPlayerOld(player);
+	player.saveOldPosition();
 	if (!PlrDirOK(player, dir)) {
 		return;
 	}
@@ -148,7 +151,7 @@ void StartWalkAnimation(Player &player, Direction dir, bool pmWillBeCalled)
 		skippedFrames = 2;
 	if (pmWillBeCalled)
 		skippedFrames += 1;
-	NewPlrAnim(player, player_graphic::Walk, dir, AnimationDistributionFlags::ProcessAnimationPending, skippedFrames);
+	player.setAnimation(player_graphic::Walk, dir, AnimationDistributionFlags::ProcessAnimationPending, skippedFrames);
 }
 
 /**
@@ -157,7 +160,7 @@ void StartWalkAnimation(Player &player, Direction dir, bool pmWillBeCalled)
 void StartWalk(Player &player, Direction dir, bool pmWillBeCalled)
 {
 	if (player._pInvincible && player.hasNoLife() && &player == MyPlayer) {
-		SyncPlrKill(player, DeathReason::Unknown);
+		player.syncKill(DeathReason::Unknown);
 		return;
 	}
 
@@ -175,7 +178,7 @@ void ClearStateVariables(Player &player)
 void StartAttack(Player &player, Direction d, bool includesFirstFrame)
 {
 	if (player._pInvincible && player.hasNoLife() && &player == MyPlayer) {
-		SyncPlrKill(player, DeathReason::Unknown);
+		player.syncKill(DeathReason::Unknown);
 		return;
 	}
 
@@ -198,16 +201,16 @@ void StartAttack(Player &player, Direction d, bool includesFirstFrame)
 	auto animationFlags = AnimationDistributionFlags::ProcessAnimationPending;
 	if (player._pmode == PM_ATTACK)
 		animationFlags = static_cast<AnimationDistributionFlags>(animationFlags | AnimationDistributionFlags::RepeatedAction);
-	NewPlrAnim(player, player_graphic::Attack, d, animationFlags, skippedAnimationFrames, player._pAFNum);
+	player.setAnimation(player_graphic::Attack, d, animationFlags, skippedAnimationFrames, player._pAFNum);
 	player._pmode = PM_ATTACK;
-	FixPlayerLocation(player, d);
-	SetPlayerOld(player);
+	player.fixLocation(d);
+	player.saveOldPosition();
 }
 
 void StartRangeAttack(Player &player, Direction d, WorldTileCoord cx, WorldTileCoord cy, bool includesFirstFrame)
 {
 	if (player._pInvincible && player.hasNoLife() && &player == MyPlayer) {
-		SyncPlrKill(player, DeathReason::Unknown);
+		player.syncKill(DeathReason::Unknown);
 		return;
 	}
 
@@ -226,11 +229,11 @@ void StartRangeAttack(Player &player, Direction d, WorldTileCoord cx, WorldTileC
 	auto animationFlags = AnimationDistributionFlags::ProcessAnimationPending;
 	if (player._pmode == PM_RATTACK)
 		animationFlags = static_cast<AnimationDistributionFlags>(animationFlags | AnimationDistributionFlags::RepeatedAction);
-	NewPlrAnim(player, player_graphic::Attack, d, animationFlags, skippedAnimationFrames, player._pAFNum);
+	player.setAnimation(player_graphic::Attack, d, animationFlags, skippedAnimationFrames, player._pAFNum);
 
 	player._pmode = PM_RATTACK;
-	FixPlayerLocation(player, d);
-	SetPlayerOld(player);
+	player.fixLocation(d);
+	player.saveOldPosition();
 	player.position.temp = WorldTilePosition { cx, cy };
 }
 
@@ -249,7 +252,7 @@ player_graphic GetPlayerGraphicForSpell(SpellID spellId)
 void StartSpell(Player &player, Direction d, WorldTileCoord cx, WorldTileCoord cy)
 {
 	if (player._pInvincible && player.hasNoLife() && &player == MyPlayer) {
-		SyncPlrKill(player, DeathReason::Unknown);
+		player.syncKill(DeathReason::Unknown);
 		return;
 	}
 
@@ -275,14 +278,14 @@ void StartSpell(Player &player, Direction d, WorldTileCoord cx, WorldTileCoord c
 	auto animationFlags = AnimationDistributionFlags::ProcessAnimationPending;
 	if (player._pmode == PM_SPELL)
 		animationFlags = static_cast<AnimationDistributionFlags>(animationFlags | AnimationDistributionFlags::RepeatedAction);
-	NewPlrAnim(player, GetPlayerGraphicForSpell(player.queuedSpell.spellId), d, animationFlags, 0, player._pSFNum);
+	player.setAnimation(GetPlayerGraphicForSpell(player.queuedSpell.spellId), d, animationFlags, 0, player._pSFNum);
 
 	PlaySfxLoc(GetSpellData(player.queuedSpell.spellId).sSFX, player.position.tile);
 
 	player._pmode = PM_SPELL;
 
-	FixPlayerLocation(player, d);
-	SetPlayerOld(player);
+	player.fixLocation(d);
+	player.saveOldPosition();
 
 	player.position.temp = WorldTilePosition { cx, cy };
 	player.queuedSpell.spellLevel = player.GetSpellLevel(player.queuedSpell.spellId);
@@ -291,13 +294,13 @@ void StartSpell(Player &player, Direction d, WorldTileCoord cx, WorldTileCoord c
 
 void RespawnDeadItem(Item &&itm, Point target)
 {
-	if (ActiveItemCount >= MAXITEMS)
+	if (!ItemPoolAdapter::HasFreeItemSlot())
 		return;
 
 	const int ii = AllocateItem();
 	Item &item = Items[ii];
 
-	dItem[target.x][target.y] = ii + 1;
+	tileAt(target).setItem(ii + 1);
 
 	item = itm;
 	item.position = target;
@@ -367,7 +370,7 @@ void InitLevelChange(Player &player)
 	const Player &myPlayer = *MyPlayer;
 
 	RemoveEnemyReferences(player);
-	RemovePlrMissiles(player);
+	player.removeMissiles();
 	player.pManaShield = false;
 	player.wReflections = 0;
 	if (&player != MyPlayer) {
@@ -382,14 +385,14 @@ void InitLevelChange(Player &player)
 	}
 
 	FixPlrWalkTags(player);
-	SetPlayerOld(player);
+	player.saveOldPosition();
 	if (&player == MyPlayer) {
 		player.occupyTile(player.position.tile, false);
 	} else {
 		player._pLvlVisited[player.plrlevel] = true;
 	}
 
-	ClrPlrPath(player);
+	player.clearPath();
 	player.destAction = ACTION_NONE;
 	player._pLvlChanging = true;
 
@@ -418,7 +421,7 @@ bool DoWalk(Player &player)
 	}
 
 	// We reached the new tile -> update the player's tile position
-	dPlayer[player.position.tile.x][player.position.tile.y] = 0;
+	tileAt(player.position.tile).setPlayer(0);
 	player.position.tile = player.position.temp;
 	// dPlayer is set here for backwards compatibility; without it, the player would be invisible if loaded from a vanilla save.
 	player.occupyTile(player.position.tile, false);
@@ -429,7 +432,7 @@ bool DoWalk(Player &player)
 		ChangeVisionXY(player.getId(), player.position.tile);
 	}
 
-	StartStand(player, player.tempDirection);
+	player.startStand(player.tempDirection);
 
 	ClearStateVariables(player);
 
@@ -560,14 +563,14 @@ bool PlrHitMonst(Player &player, Monster &monster, bool adjacentDamage = false)
 
 	if (gbIsHellfire && HasAllOf(player._pIFlags, ItemSpecialEffect::FireDamage | ItemSpecialEffect::LightningDamage)) {
 		// Fixed off by 1 error from Hellfire
-		const int midam = RandomIntBetween(player._pIFMinDam, player._pIFMaxDam);
+		const int midam = RandomIntBetween(player.damageBonuses.fire.minimum, player.damageBonuses.fire.maximum);
 		AddMissile(player.position.tile, player.position.temp, player.direction, MissileID::SpectralArrow, TARGET_MONSTERS, player, midam, 0);
 	}
-	const int mind = player._pIMinDam;
-	const int maxd = player._pIMaxDam;
+	const int mind = player.damageBonuses.physical.minimum;
+	const int maxd = player.damageBonuses.physical.maximum;
 	int dam = RandomIntBetween(mind, maxd);
-	dam += dam * player._pIBonusDam / 100;
-	dam += player._pIBonusDamMod;
+	dam += dam * player.damageBonuses.percent / 100;
+	dam += player.damageBonuses.flat;
 	int dam2 = dam << 6;
 	dam += player._pDamageMod;
 
@@ -631,7 +634,7 @@ bool PlrHitMonst(Player &player, Monster &monster, bool adjacentDamage = false)
 		if (HasAnyOf(player.pDamAcFlags, ItemSpecialEffectHf::Peril)) {
 			dam2 += player._pIGetHit << 6;
 			if (dam2 >= 0) {
-				ApplyPlrDamage(DamageType::Physical, player, 0, 1, dam2);
+				player.applyDamage(DamageType::Physical, 0, 1, dam2);
 			}
 			dam *= 2;
 		}
@@ -646,13 +649,13 @@ bool PlrHitMonst(Player &player, Monster &monster, bool adjacentDamage = false)
 	int skdam = 0;
 	if (HasAnyOf(player._pIFlags, ItemSpecialEffect::RandomStealLife)) {
 		skdam = GenerateRnd(dam / 8);
-		player.hitPoints += skdam;
-		if (player.hitPoints > player.maxHitPoints) {
-			player.hitPoints = player.maxHitPoints;
+		player.life.current += skdam;
+		if (player.life.current > player.life.maximum) {
+			player.life.current = player.life.maximum;
 		}
-		player._pHPBase += skdam;
-		if (player._pHPBase > player._pMaxHPBase) {
-			player._pHPBase = player._pMaxHPBase;
+		player.life.base += skdam;
+		if (player.life.base > player.life.maximumBase) {
+			player.life.base = player.life.maximumBase;
 		}
 		RedrawComponent(PanelDrawComponent::Health);
 	}
@@ -663,13 +666,13 @@ bool PlrHitMonst(Player &player, Monster &monster, bool adjacentDamage = false)
 		if (HasAnyOf(player._pIFlags, ItemSpecialEffect::StealMana5)) {
 			skdam = 5 * dam / 100;
 		}
-		player._pMana += skdam;
-		if (player._pMana > player._pMaxMana) {
-			player._pMana = player._pMaxMana;
+		player.mana.current += skdam;
+		if (player.mana.current > player.mana.maximum) {
+			player.mana.current = player.mana.maximum;
 		}
-		player._pManaBase += skdam;
-		if (player._pManaBase > player._pMaxManaBase) {
-			player._pManaBase = player._pMaxManaBase;
+		player.mana.base += skdam;
+		if (player.mana.base > player.mana.maximumBase) {
+			player.mana.base = player.mana.maximumBase;
 		}
 		RedrawComponent(PanelDrawComponent::Mana);
 	}
@@ -680,13 +683,13 @@ bool PlrHitMonst(Player &player, Monster &monster, bool adjacentDamage = false)
 		if (HasAnyOf(player._pIFlags, ItemSpecialEffect::StealLife5)) {
 			skdam = 5 * dam / 100;
 		}
-		player.hitPoints += skdam;
-		if (player.hitPoints > player.maxHitPoints) {
-			player.hitPoints = player.maxHitPoints;
+		player.life.current += skdam;
+		if (player.life.current > player.life.maximum) {
+			player.life.current = player.life.maximum;
 		}
-		player._pHPBase += skdam;
-		if (player._pHPBase > player._pMaxHPBase) {
-			player._pHPBase = player._pMaxHPBase;
+		player.life.base += skdam;
+		if (player.life.base > player.life.maximumBase) {
+			player.life.base = player.life.maximumBase;
 		}
 		RedrawComponent(PanelDrawComponent::Health);
 	}
@@ -729,15 +732,15 @@ bool PlrHitPlr(Player &attacker, Player &target)
 
 	if (blk < blkper) {
 		const Direction dir = GetDirection(target.position.tile, attacker.position.tile);
-		StartPlrBlock(target, dir);
+		target.startBlock(dir);
 		return true;
 	}
 
-	const int mind = attacker._pIMinDam;
-	const int maxd = attacker._pIMaxDam;
+	const int mind = attacker.damageBonuses.physical.minimum;
+	const int maxd = attacker.damageBonuses.physical.maximum;
 	int dam = RandomIntBetween(mind, maxd);
-	dam += (dam * attacker._pIBonusDam) / 100;
-	dam += attacker._pIBonusDamMod + attacker._pDamageMod;
+	dam += (dam * attacker.damageBonuses.percent) / 100;
+	dam += attacker.damageBonuses.flat + attacker._pDamageMod;
 
 	const ClassAttributes &classAttributes = GetClassAttributes(attacker._pClass);
 	if (HasAnyOf(classAttributes.classFlags, PlayerClassFlag::CriticalStrike)) {
@@ -748,20 +751,20 @@ bool PlrHitPlr(Player &attacker, Player &target)
 	const int skdam = dam << 6;
 	if (HasAnyOf(attacker._pIFlags, ItemSpecialEffect::RandomStealLife)) {
 		const int tac = GenerateRnd(skdam / 8);
-		attacker.hitPoints += tac;
-		if (attacker.hitPoints > attacker.maxHitPoints) {
-			attacker.hitPoints = attacker.maxHitPoints;
+		attacker.life.current += tac;
+		if (attacker.life.current > attacker.life.maximum) {
+			attacker.life.current = attacker.life.maximum;
 		}
-		attacker._pHPBase += tac;
-		if (attacker._pHPBase > attacker._pMaxHPBase) {
-			attacker._pHPBase = attacker._pMaxHPBase;
+		attacker.life.base += tac;
+		if (attacker.life.base > attacker.life.maximumBase) {
+			attacker.life.base = attacker.life.maximumBase;
 		}
 		RedrawComponent(PanelDrawComponent::Health);
 	}
 	if (&attacker == MyPlayer) {
 		NetSendCmdDamage(true, target, skdam, DamageType::Physical);
 	}
-	StartPlrHit(target, skdam, false);
+	target.startHit(skdam, false);
 
 	return true;
 }
@@ -835,14 +838,14 @@ bool DoAttack(Player &player)
 		}
 
 		if (didhit && DamageWeapon(player, 30)) {
-			StartStand(player, player.direction);
+			player.startStand(player.direction);
 			ClearStateVariables(player);
 			return true;
 		}
 	}
 
 	if (player.animInfo.isLastFrame()) {
-		StartStand(player, player.direction);
+		player.startStand(player.direction);
 		ClearStateVariables(player);
 		return true;
 	}
@@ -884,7 +887,7 @@ bool DoRangeAttack(Player &player)
 		}
 		if (HasAllOf(player._pIFlags, ItemSpecialEffect::FireArrows | ItemSpecialEffect::LightningArrows)) {
 			// Fixed off by 1 error from Hellfire
-			dmg = RandomIntBetween(player._pIFMinDam, player._pIFMaxDam);
+			dmg = RandomIntBetween(player.damageBonuses.fire.minimum, player.damageBonuses.fire.maximum);
 			mistype = MissileID::SpectralArrow;
 		}
 
@@ -903,14 +906,14 @@ bool DoRangeAttack(Player &player)
 		}
 
 		if (DamageWeapon(player, 40)) {
-			StartStand(player, player.direction);
+			player.startStand(player.direction);
 			ClearStateVariables(player);
 			return true;
 		}
 	}
 
 	if (player.animInfo.isLastFrame()) {
-		StartStand(player, player.direction);
+		player.startStand(player.direction);
 		ClearStateVariables(player);
 		return true;
 	}
@@ -949,7 +952,7 @@ void DamageParryItem(Player &player)
 bool DoBlock(Player &player)
 {
 	if (player.animInfo.isLastFrame()) {
-		StartStand(player, player.direction);
+		player.startStand(player.direction);
 		ClearStateVariables(player);
 
 		if (FlipCoin(10)) {
@@ -1018,7 +1021,7 @@ bool DoSpell(Player &player)
 	}
 
 	if (player.animInfo.isLastFrame()) {
-		StartStand(player, player.direction);
+		player.startStand(player.direction);
 		ClearStateVariables(player);
 		return true;
 	}
@@ -1029,7 +1032,7 @@ bool DoSpell(Player &player)
 bool DoGotHit(Player &player)
 {
 	if (player.animInfo.isLastFrame()) {
-		StartStand(player, player.direction);
+		player.startStand(player.direction);
 		ClearStateVariables(player);
 		if (!FlipCoin(4)) {
 			DamageArmor(player);
@@ -1046,7 +1049,7 @@ bool DoDeath(Player &player)
 	if (player.animInfo.isLastFrame()) {
 		if (player.animInfo.tickCounterOfCurrentFrame == 0) {
 			player.animInfo.ticksPerFrame = 100;
-			dFlags[player.position.tile.x][player.position.tile.y] |= DungeonFlag::DeadPlayer;
+			tileAt(player.position.tile).addFlags(DungeonFlag::DeadPlayer);
 		} else if (&player == MyPlayer && player.animInfo.tickCounterOfCurrentFrame == 30) {
 			MyPlayerIsDead = true;
 		}
@@ -1073,12 +1076,11 @@ void TryDisarm(const Player &player, Object &object)
 	if (!object._oTrapFlag) {
 		return;
 	}
-	const int trapdisper = (2 * player._pDexterity) - (5 * currlevel);
+	const int trapdisper = (2 * player.attributes.dexterity.current) - (5 * currlevel);
 	if (GenerateRnd(100) > trapdisper) {
 		return;
 	}
-	for (int j = 0; j < ActiveObjectCount; j++) {
-		Object &trap = Objects[ActiveObjects[j]];
+	for (Object &trap : ObjectPoolAdapter::ActiveObjectsRange()) {
 		if (trap.IsTrap() && FindObjectAtPosition({ trap._oVar1, trap._oVar2 }) == &object) {
 			trap._oVar4 = 1;
 			object._oTrapFlag = false;
@@ -1111,7 +1113,7 @@ void CheckNewPath(Player &player, bool pmWillBeCalled)
 			return;
 		}
 		if (player.destAction == ACTION_ATTACKMON)
-			MakePlrPath(player, monster->position.future, false);
+			player.makePath(monster->position.future, false);
 		break;
 	case ACTION_ATTACKPLR:
 	case ACTION_RATTACKPLR:
@@ -1122,7 +1124,7 @@ void CheckNewPath(Player &player, bool pmWillBeCalled)
 			return;
 		}
 		if (player.destAction == ACTION_ATTACKPLR)
-			MakePlrPath(player, target->position.future, false);
+			player.makePath(target->position.future, false);
 		break;
 	case ACTION_OPERATE:
 	case ACTION_DISARM:
@@ -1153,7 +1155,7 @@ void CheckNewPath(Player &player, bool pmWillBeCalled)
 					}
 
 					if (x < 2 && y < 2) {
-						ClrPlrPath(player);
+						player.clearPath();
 						if (player.destAction == ACTION_ATTACKMON && monster->talkMsg != TEXT_NONE && monster->talkMsg != TEXT_VILE14) {
 							TalktoMonster(player, *monster);
 						} else {
@@ -1198,7 +1200,7 @@ void CheckNewPath(Player &player, bool pmWillBeCalled)
 			player.walkpath[MaxPathLengthPlayer - 1] = WALK_NONE;
 
 			if (player._pmode == PM_STAND) {
-				StartStand(player, player.direction);
+				player.startStand(player.direction);
 				player.destAction = ACTION_NONE;
 			}
 		}
@@ -1322,7 +1324,7 @@ void CheckNewPath(Player &player, bool pmWillBeCalled)
 			break;
 		}
 
-		FixPlayerLocation(player, player.direction);
+		player.fixLocation(player.direction);
 		player.destAction = ACTION_NONE;
 
 		return;
@@ -1441,17 +1443,17 @@ void ValidatePlayer()
 	if (gt != myPlayer._pGold)
 		myPlayer._pGold = gt;
 
-	if (myPlayer._pBaseStr > myPlayer.GetMaximumAttributeValue(CharacterAttribute::Strength)) {
-		myPlayer._pBaseStr = myPlayer.GetMaximumAttributeValue(CharacterAttribute::Strength);
+	if (myPlayer.attributes.strength.base > myPlayer.GetMaximumAttributeValue(CharacterAttribute::Strength)) {
+		myPlayer.attributes.strength.base = myPlayer.GetMaximumAttributeValue(CharacterAttribute::Strength);
 	}
-	if (myPlayer._pBaseMag > myPlayer.GetMaximumAttributeValue(CharacterAttribute::Magic)) {
-		myPlayer._pBaseMag = myPlayer.GetMaximumAttributeValue(CharacterAttribute::Magic);
+	if (myPlayer.attributes.magic.base > myPlayer.GetMaximumAttributeValue(CharacterAttribute::Magic)) {
+		myPlayer.attributes.magic.base = myPlayer.GetMaximumAttributeValue(CharacterAttribute::Magic);
 	}
-	if (myPlayer._pBaseDex > myPlayer.GetMaximumAttributeValue(CharacterAttribute::Dexterity)) {
-		myPlayer._pBaseDex = myPlayer.GetMaximumAttributeValue(CharacterAttribute::Dexterity);
+	if (myPlayer.attributes.dexterity.base > myPlayer.GetMaximumAttributeValue(CharacterAttribute::Dexterity)) {
+		myPlayer.attributes.dexterity.base = myPlayer.GetMaximumAttributeValue(CharacterAttribute::Dexterity);
 	}
-	if (myPlayer._pBaseVit > myPlayer.GetMaximumAttributeValue(CharacterAttribute::Vitality)) {
-		myPlayer._pBaseVit = myPlayer.GetMaximumAttributeValue(CharacterAttribute::Vitality);
+	if (myPlayer.attributes.vitality.base > myPlayer.GetMaximumAttributeValue(CharacterAttribute::Vitality)) {
+		myPlayer.attributes.vitality.base = myPlayer.GetMaximumAttributeValue(CharacterAttribute::Vitality);
 	}
 
 	uint64_t msk = 0;
@@ -1546,9 +1548,156 @@ bool Player::CanUseItem(const Item &item) const
 	if (!IsItemValid(*this, item))
 		return false;
 
-	return _pStrength >= item._iMinStr
-	    && _pMagic >= item._iMinMag
-	    && _pDexterity >= item._iMinDex;
+	return attributes.strength.current >= item._iMinStr
+	    && attributes.magic.current >= item._iMinMag
+	    && attributes.dexterity.current >= item._iMinDex;
+}
+
+bool Player::CanCleave()
+{
+	switch (_pClass) {
+	case HeroClass::Warrior:
+	case HeroClass::Rogue:
+	case HeroClass::Sorcerer:
+		return false;
+	case HeroClass::Monk:
+		return isEquipped(ItemType::Staff);
+	case HeroClass::Bard:
+		return InvBody[INVLOC_HAND_LEFT]._itype == ItemType::Sword && InvBody[INVLOC_HAND_RIGHT]._itype == ItemType::Sword;
+	case HeroClass::Barbarian:
+		return isEquipped(ItemType::Axe) || (!isEquipped(ItemType::Shield) && (isEquipped(ItemType::Mace, true) || isEquipped(ItemType::Sword, true)));
+	default:
+		return false;
+	}
+}
+
+bool Player::isEquipped(ItemType itemType, bool isTwoHanded)
+{
+	switch (itemType) {
+	case ItemType::Sword:
+	case ItemType::Axe:
+	case ItemType::Bow:
+	case ItemType::Mace:
+	case ItemType::Shield:
+	case ItemType::Staff:
+		return (InvBody[INVLOC_HAND_LEFT]._itype == itemType && (!isTwoHanded || InvBody[INVLOC_HAND_LEFT]._iLoc == ILOC_TWOHAND))
+		    || (InvBody[INVLOC_HAND_RIGHT]._itype == itemType && (!isTwoHanded || InvBody[INVLOC_HAND_LEFT]._iLoc == ILOC_TWOHAND));
+	case ItemType::LightArmor:
+	case ItemType::MediumArmor:
+	case ItemType::HeavyArmor:
+		return InvBody[INVLOC_CHEST]._itype == itemType;
+	case ItemType::Helm:
+		return InvBody[INVLOC_HEAD]._itype == itemType;
+	case ItemType::Ring:
+		return InvBody[INVLOC_RING_LEFT]._itype == itemType || InvBody[INVLOC_RING_RIGHT]._itype == itemType;
+	case ItemType::Amulet:
+		return InvBody[INVLOC_AMULET]._itype == itemType;
+	default:
+		return false;
+	}
+}
+
+item_equip_type Player::GetItemLocation(const Item &item) const
+{
+	if (_pClass == HeroClass::Barbarian && item._iLoc == ILOC_TWOHAND && IsAnyOf(item._itype, ItemType::Sword, ItemType::Mace))
+		return ILOC_ONEHAND;
+	return item._iLoc;
+}
+
+int Player::GetArmor() const
+{
+	return _pIBonusAC + _pIAC + attributes.dexterity.current / 5;
+}
+
+int Player::GetMeleeToHit() const
+{
+	return getCharacterLevel() + attributes.dexterity.current / 2 + _pIBonusToHit + getPlayerCombatData().baseMeleeToHit;
+}
+
+int Player::GetMeleePiercingToHit() const
+{
+	int hper = GetMeleeToHit();
+	if (!gbIsHellfire)
+		hper += damageBonuses.armorPiercing;
+	return hper;
+}
+
+int Player::GetRangedToHit() const
+{
+	return getCharacterLevel() + attributes.dexterity.current + _pIBonusToHit + getPlayerCombatData().baseRangedToHit;
+}
+
+int Player::GetRangedPiercingToHit() const
+{
+	int hper = GetRangedToHit();
+	if (!gbIsHellfire)
+		hper += damageBonuses.armorPiercing;
+	return hper;
+}
+
+int Player::GetMagicToHit() const
+{
+	return attributes.magic.current + getPlayerCombatData().baseMagicToHit;
+}
+
+int Player::GetBlockChance(bool useLevel) const
+{
+	int blkper = attributes.dexterity.current + getBaseToBlock();
+	if (useLevel)
+		blkper += getCharacterLevel() * 2;
+	return blkper;
+}
+
+int Player::GetSpellLevel(SpellID spell) const
+{
+	if (spell == SpellID::Invalid || static_cast<std::size_t>(spell) >= sizeof(_pSplLvl)) {
+		return 0;
+	}
+
+	return std::max<int>(_pISplLvlAdd + _pSplLvl[static_cast<std::size_t>(spell)], 0);
+}
+
+int Player::CalculateArmorPierce(int monsterArmor, bool isMelee) const
+{
+	int tmac = monsterArmor;
+	if (damageBonuses.armorPiercing > 0) {
+		if (gbIsHellfire) {
+			int armorPiercingShift = damageBonuses.armorPiercing - 1;
+			if (armorPiercingShift > 0)
+				tmac >>= armorPiercingShift;
+			else
+				tmac -= tmac / 4;
+		}
+		if (isMelee && _pClass == HeroClass::Barbarian) {
+			tmac -= monsterArmor / 8;
+		}
+	}
+	if (tmac < 0)
+		tmac = 0;
+
+	return tmac;
+}
+
+int Player::UpdateHitPointPercentage()
+{
+	if (life.maximum <= 0) {
+		life.percentage = 0;
+	} else {
+		life.percentage = std::clamp(life.current * 81 / life.maximum, 0, 81);
+	}
+
+	return life.percentage;
+}
+
+int Player::UpdateManaPercentage()
+{
+	if (mana.maximum <= 0) {
+		mana.percentage = 0;
+	} else {
+		mana.percentage = std::clamp(mana.current * 81 / mana.maximum, 0, 81);
+	}
+
+	return mana.percentage;
 }
 
 void Player::RemoveInvItem(int iv, bool calcScrolls)
@@ -1617,13 +1766,13 @@ int Player::GetBaseAttributeValue(CharacterAttribute attribute) const
 {
 	switch (attribute) {
 	case CharacterAttribute::Dexterity:
-		return this->_pBaseDex;
+		return this->attributes.dexterity.base;
 	case CharacterAttribute::Magic:
-		return this->_pBaseMag;
+		return this->attributes.magic.base;
 	case CharacterAttribute::Strength:
-		return this->_pBaseStr;
+		return this->attributes.strength.base;
 	case CharacterAttribute::Vitality:
-		return this->_pBaseVit;
+		return this->attributes.vitality.base;
 	default:
 		app_fatal("Unsupported attribute");
 	}
@@ -1633,13 +1782,13 @@ int Player::GetCurrentAttributeValue(CharacterAttribute attribute) const
 {
 	switch (attribute) {
 	case CharacterAttribute::Dexterity:
-		return this->_pDexterity;
+		return this->attributes.dexterity.current;
 	case CharacterAttribute::Magic:
-		return this->_pMagic;
+		return this->attributes.magic.current;
 	case CharacterAttribute::Strength:
-		return this->_pStrength;
+		return this->attributes.strength.current;
 	case CharacterAttribute::Vitality:
-		return this->_pVitality;
+		return this->attributes.vitality.current;
 	default:
 		app_fatal("Unsupported attribute");
 	}
@@ -1724,7 +1873,7 @@ void Player::Say(HeroSpeech speechId, int delay) const
 
 void Player::Stop()
 {
-	ClrPlrPath(*this);
+	this->clearPath();
 	destAction = ACTION_NONE;
 }
 
@@ -1739,30 +1888,64 @@ int Player::GetManaShieldDamageReduction()
 	return 24 - (std::min(_pSplLvl[static_cast<int8_t>(SpellID::ManaShield)], Max) * 3);
 }
 
+void Player::RestoreFullLife()
+{
+	life.current = life.maximum;
+	life.base = life.maximumBase;
+}
+
 void Player::RestorePartialLife()
 {
-	const int wholeHitpoints = maxHitPoints >> 6;
+	const int wholeHitpoints = life.maximum >> 6;
 	int l = ((wholeHitpoints / 8) + GenerateRnd(wholeHitpoints / 4)) << 6;
 	if (IsAnyOf(_pClass, HeroClass::Warrior, HeroClass::Barbarian))
 		l *= 2;
 	if (IsAnyOf(_pClass, HeroClass::Rogue, HeroClass::Monk, HeroClass::Bard))
 		l += l / 2;
-	hitPoints = std::min(hitPoints + l, maxHitPoints);
-	_pHPBase = std::min(_pHPBase + l, _pMaxHPBase);
+	life.current = std::min(life.current + l, life.maximum);
+	life.base = std::min(life.base + l, life.maximumBase);
+}
+
+void Player::RestoreFullMana()
+{
+	if (HasNoneOf(_pIFlags, ItemSpecialEffect::NoMana)) {
+		mana.current = mana.maximum;
+		mana.base = mana.maximumBase;
+	}
 }
 
 void Player::RestorePartialMana()
 {
-	const int wholeManaPoints = _pMaxMana >> 6;
+	const int wholeManaPoints = mana.maximum >> 6;
 	int l = ((wholeManaPoints / 8) + GenerateRnd(wholeManaPoints / 4)) << 6;
 	if (_pClass == HeroClass::Sorcerer)
 		l *= 2;
 	if (IsAnyOf(_pClass, HeroClass::Rogue, HeroClass::Monk, HeroClass::Bard))
 		l += l / 2;
 	if (HasNoneOf(_pIFlags, ItemSpecialEffect::NoMana)) {
-		_pMana = std::min(_pMana + l, _pMaxMana);
-		_pManaBase = std::min(_pManaBase + l, _pMaxManaBase);
+		mana.current = std::min(mana.current + l, mana.maximum);
+		mana.base = std::min(mana.base + l, mana.maximumBase);
 	}
+}
+
+bool Player::UsesRangedWeapon() const
+{
+	return static_cast<PlayerWeaponGraphic>(_pgfxnum & 0xF) == PlayerWeaponGraphic::Bow;
+}
+
+bool Player::CanChangeAction()
+{
+	if (_pmode == PM_STAND)
+		return true;
+	if (_pmode == PM_ATTACK && animInfo.currentFrame >= _pAFNum)
+		return true;
+	if (_pmode == PM_RATTACK && animInfo.currentFrame >= _pAFNum)
+		return true;
+	if (_pmode == PM_SPELL && animInfo.currentFrame >= _pSFNum)
+		return true;
+	if (isWalking() && animInfo.isLastFrame())
+		return true;
+	return false;
 }
 
 void Player::ReadySpellFromEquipment(inv_body_loc bodyLocation, bool forceSpell)
@@ -1935,7 +2118,7 @@ void Player::UpdatePreviewCelSprite(_cmd_id cmdId, Point point, uint16_t wParam1
 
 	if (minimalWalkDistance >= 0 && position.future != point) {
 		int8_t testWalkPath[MaxPathLengthPlayer];
-		const int steps = FindPath(CanStep, [this](Point tile) { return PosOkPlayer(*this, tile); }, position.future, point, testWalkPath, MaxPathLengthPlayer);
+		const int steps = FindPath(CanStep, [this](Point tile) { return this->positionIsAvailable(tile); }, position.future, point, testWalkPath, MaxPathLengthPlayer);
 		if (steps == 0) {
 			// Can't walk to desired location => stand still
 			return;
@@ -1976,7 +2159,7 @@ void Player::UpdatePreviewCelSprite(_cmd_id cmdId, Point point, uint16_t wParam1
 	if (!graphic || HeadlessMode)
 		return;
 
-	LoadPlrGFX(*this, *graphic);
+	this->loadGraphic(*graphic);
 	const ClxSpriteList sprites = AnimationData[static_cast<size_t>(*graphic)].spritesForDirection(dir);
 	if (!previewCelSprite || *previewCelSprite != sprites[0]) {
 		previewCelSprite = sprites[0];
@@ -2002,20 +2185,20 @@ uint32_t Player::getNextExperienceThreshold() const
 int32_t Player::calculateBaseLife() const
 {
 	const ClassAttributes &attr = getClassAttributes();
-	return attr.adjLife + (attr.lvlLife * getCharacterLevel()) + (attr.chrLife * _pBaseVit);
+	return attr.adjLife + (attr.lvlLife * getCharacterLevel()) + (attr.chrLife * attributes.vitality.base);
 }
 
 int32_t Player::calculateBaseMana() const
 {
 	const ClassAttributes &attr = getClassAttributes();
-	return attr.adjMana + (attr.lvlMana * getCharacterLevel()) + (attr.chrMana * _pBaseMag);
+	return attr.adjMana + (attr.lvlMana * getCharacterLevel()) + (attr.chrMana * attributes.magic.base);
 }
 
 void Player::occupyTile(Point tilePosition, bool isMoving) const
 {
 	int16_t id = this->getId();
 	id += 1;
-	dPlayer[tilePosition.x][tilePosition.y] = isMoving ? -id : id;
+	tileAt(tilePosition).setPlayer(isMoving ? -id : id);
 }
 
 bool Player::isLevelOwnedByLocalClient() const
@@ -2044,15 +2227,16 @@ Player *PlayerAtPosition(Point position, bool ignoreMovingPlayers /*= false*/)
 	if (!InDungeonBounds(position))
 		return nullptr;
 
-	auto playerIndex = dPlayer[position.x][position.y];
+	auto playerIndex = tileAt(position).player();
 	if (playerIndex == 0 || (ignoreMovingPlayers && playerIndex < 0))
 		return nullptr;
 
 	return &Players[std::abs(playerIndex) - 1];
 }
 
-ClxSprite GetPlayerPortraitSprite(Player &player)
+ClxSprite Player::getPortraitSprite()
 {
+	Player &player = *this;
 	const bool inDungeon = (player.plrlevel != 0);
 
 	const HeroClass cls = GetPlayerSpriteClass(player._pClass);
@@ -2092,14 +2276,16 @@ ClxSprite GetPlayerPortraitSprite(Player &player)
 	return spriteList[(graphic == player_graphic::Stand) ? 0 : spriteList.numSprites() - 1];
 }
 
-bool IsPlayerUnarmed(Player &player)
+bool Player::isUnarmed() const
 {
+	const Player &player = *this;
 	const PlayerWeaponGraphic animWeaponId = GetPlayerWeaponGraphic(player_graphic::Stand, static_cast<PlayerWeaponGraphic>(player._pgfxnum & 0xF));
 	return animWeaponId == PlayerWeaponGraphic::Unarmed;
 }
 
-void LoadPlrGFX(Player &player, player_graphic graphic)
+void Player::loadGraphic(player_graphic graphic)
 {
+	Player &player = *this;
 	if (HeadlessMode)
 		return;
 
@@ -2175,16 +2361,17 @@ void LoadPlrGFX(Player &player, player_graphic graphic)
 	}
 }
 
-void InitPlayerGFX(Player &player)
+void Player::initGraphics()
 {
+	Player &player = *this;
 	if (HeadlessMode)
 		return;
 
-	ResetPlayerGFX(player);
+	player.resetGraphics();
 
 	if (player.hasNoLife()) {
 		player._pgfxnum &= ~0xFU;
-		LoadPlrGFX(player, player_graphic::Death);
+		player.loadGraphic(player_graphic::Death);
 		return;
 	}
 
@@ -2192,12 +2379,13 @@ void InitPlayerGFX(Player &player)
 		auto graphic = static_cast<player_graphic>(i);
 		if (graphic == player_graphic::Death)
 			continue;
-		LoadPlrGFX(player, graphic);
+		player.loadGraphic(graphic);
 	}
 }
 
-void ResetPlayerGFX(Player &player)
+void Player::resetGraphics()
 {
+	Player &player = *this;
 	player.animInfo.sprites = std::nullopt;
 
 	if (!gbRunGame) {
@@ -2210,9 +2398,10 @@ void ResetPlayerGFX(Player &player)
 	}
 }
 
-void NewPlrAnim(Player &player, player_graphic graphic, Direction dir, AnimationDistributionFlags flags /*= AnimationDistributionFlags::None*/, int8_t numSkippedFrames /*= 0*/, int8_t distributeFramesBeforeFrame /*= 0*/)
+void Player::setAnimation(player_graphic graphic, Direction dir, AnimationDistributionFlags flags, int8_t numSkippedFrames, int8_t distributeFramesBeforeFrame)
 {
-	LoadPlrGFX(player, graphic);
+	Player &player = *this;
+	player.loadGraphic(graphic);
 
 	OptionalClxSpriteList sprites;
 	int previewShownGameTickFragments = 0;
@@ -2229,8 +2418,9 @@ void NewPlrAnim(Player &player, player_graphic graphic, Direction dir, Animation
 	player.animInfo.setNewAnimation(sprites, numberOfFrames, ticksPerFrame, flags, numSkippedFrames, distributeFramesBeforeFrame, static_cast<uint8_t>(previewShownGameTickFragments));
 }
 
-void SetPlrAnims(Player &player)
+void Player::setAnimations()
 {
+	Player &player = *this;
 	const HeroClass pc = player._pClass;
 	const PlayerAnimData &plrAtkAnimData = GetPlayerAnimDataForClass(pc);
 	auto gn = static_cast<PlayerWeaponGraphic>(player._pgfxnum & 0xFU);
@@ -2299,8 +2489,9 @@ void SetPlrAnims(Player &player)
  * @param player The player reference.
  * @param c The hero class.
  */
-void CreatePlayer(Player &player, HeroClass c)
+void Player::create(HeroClass c)
 {
+	Player &player = *this;
 	player = {};
 	SetRndSeed(SDL_GetTicks());
 
@@ -2309,27 +2500,27 @@ void CreatePlayer(Player &player, HeroClass c)
 
 	const ClassAttributes &attr = player.getClassAttributes();
 
-	player._pBaseStr = attr.baseStr;
-	player._pStrength = player._pBaseStr;
+	player.attributes.strength.base = attr.baseStr;
+	player.attributes.strength.current = player.attributes.strength.base;
 
-	player._pBaseMag = attr.baseMag;
-	player._pMagic = player._pBaseMag;
+	player.attributes.magic.base = attr.baseMag;
+	player.attributes.magic.current = player.attributes.magic.base;
 
-	player._pBaseDex = attr.baseDex;
-	player._pDexterity = player._pBaseDex;
+	player.attributes.dexterity.base = attr.baseDex;
+	player.attributes.dexterity.current = player.attributes.dexterity.base;
 
-	player._pBaseVit = attr.baseVit;
-	player._pVitality = player._pBaseVit;
+	player.attributes.vitality.base = attr.baseVit;
+	player.attributes.vitality.current = player.attributes.vitality.base;
 
-	player.hitPoints = player.calculateBaseLife();
-	player.maxHitPoints = player.hitPoints;
-	player._pHPBase = player.hitPoints;
-	player._pMaxHPBase = player.hitPoints;
+	player.life.current = player.calculateBaseLife();
+	player.life.maximum = player.life.current;
+	player.life.base = player.life.current;
+	player.life.maximumBase = player.life.current;
 
-	player._pMana = player.calculateBaseMana();
-	player._pMaxMana = player._pMana;
-	player._pManaBase = player._pMana;
-	player._pMaxManaBase = player._pMana;
+	player.mana.current = player.calculateBaseMana();
+	player.mana.maximum = player.mana.current;
+	player.mana.base = player.mana.current;
+	player.mana.maximumBase = player.mana.current;
 
 	player._pExperience = 0;
 	player._pArmorClass = 0;
@@ -2364,13 +2555,14 @@ void CreatePlayer(Player &player, HeroClass c)
 	player.pDamAcFlags = ItemSpecialEffectHf::None;
 	player.wReflections = 0;
 
-	InitDungMsgs(player);
+	player.initDungeonMessages();
 	CreatePlrItems(player);
 	SetRndSeed(0);
 }
 
-int CalcStatDiff(Player &player)
+int Player::calculateStatDifference()
 {
+	Player &player = *this;
 	int diff = 0;
 	for (auto attribute : enum_values<CharacterAttribute>()) {
 		diff += player.GetMaximumAttributeValue(attribute);
@@ -2379,23 +2571,24 @@ int CalcStatDiff(Player &player)
 	return diff;
 }
 
-void NextPlrLevel(Player &player)
+void Player::advanceLevel()
 {
+	Player &player = *this;
 	player.setCharacterLevel(player.getCharacterLevel() + 1);
 
 	CalcPlrInv(player, true);
 
-	if (CalcStatDiff(player) < 5) {
-		player._pStatPts = CalcStatDiff(player);
+	if (player.calculateStatDifference() < 5) {
+		player._pStatPts = player.calculateStatDifference();
 	} else {
 		player._pStatPts += 5;
 	}
 	const int hp = player.getClassAttributes().lvlLife;
 
-	player.maxHitPoints += hp;
-	player.hitPoints = player.maxHitPoints;
-	player._pMaxHPBase += hp;
-	player._pHPBase = player._pMaxHPBase;
+	player.life.maximum += hp;
+	player.life.current = player.life.maximum;
+	player.life.maximumBase += hp;
+	player.life.base = player.life.maximumBase;
 
 	if (&player == MyPlayer) {
 		RedrawComponent(PanelDrawComponent::Health);
@@ -2403,12 +2596,12 @@ void NextPlrLevel(Player &player)
 
 	const int mana = player.getClassAttributes().lvlMana;
 
-	player._pMaxMana += mana;
-	player._pMaxManaBase += mana;
+	player.mana.maximum += mana;
+	player.mana.maximumBase += mana;
 
 	if (HasNoneOf(player._pIFlags, ItemSpecialEffect::NoMana)) {
-		player._pMana = player._pMaxMana;
-		player._pManaBase = player._pMaxManaBase;
+		player.mana.current = player.mana.maximum;
+		player.mana.base = player.mana.maximumBase;
 	}
 
 	if (&player == MyPlayer) {
@@ -2456,10 +2649,72 @@ void Player::_addExperience(uint32_t experience, int levelDelta)
 	// Increase player level if applicable
 	while (!isMaxCharacterLevel() && _pExperience >= getNextExperienceThreshold()) {
 		// NextPlrLevel increments character level which changes the next experience threshold
-		NextPlrLevel(*this);
+		this->advanceLevel();
 	}
 
 	NetSendCmdParam1(false, CMD_PLRLEVEL, getCharacterLevel());
+}
+
+void Player::addExperience(uint32_t experience)
+{
+	_addExperience(experience, 0);
+}
+
+void Player::addExperience(uint32_t experience, int monsterLevel)
+{
+	_addExperience(experience, monsterLevel - getCharacterLevel());
+}
+
+bool Player::isOnActiveLevel() const
+{
+	if (setlevel)
+		return isOnLevel(setlvlnum);
+	return isOnLevel(currlevel);
+}
+
+bool Player::isOnLevel(uint8_t level) const
+{
+	return !plrIsOnSetLevel && plrlevel == level;
+}
+
+bool Player::isOnLevel(_setlevels level) const
+{
+	return plrIsOnSetLevel && plrlevel == static_cast<uint8_t>(level);
+}
+
+bool Player::isOnArenaLevel() const
+{
+	return plrIsOnSetLevel && IsArenaLevel(static_cast<_setlevels>(plrlevel));
+}
+
+void Player::setLevel(uint8_t level)
+{
+	plrlevel = level;
+	plrIsOnSetLevel = false;
+}
+
+void Player::setLevel(_setlevels level)
+{
+	plrlevel = static_cast<uint8_t>(level);
+	plrIsOnSetLevel = true;
+}
+
+bool Player::isHoldingItem(const ItemType type) const
+{
+	const Item &leftHandItem = InvBody[INVLOC_HAND_LEFT];
+	const Item &rightHandItem = InvBody[INVLOC_HAND_RIGHT];
+
+	return (type == leftHandItem._itype && leftHandItem._iStatFlag) || (type == rightHandItem._itype && rightHandItem._iStatFlag);
+}
+
+bool Player::hasNoLife() const
+{
+	return leveltype == DTYPE_TOWN ? false : life.current >> 6 <= 0;
+}
+
+bool Player::hasNoMana() const
+{
+	return mana.current >> 6 <= 0;
 }
 
 void AddPlrMonstExper(int lvl, unsigned exp, char pmask)
@@ -2496,19 +2751,19 @@ void InitPlayer(Player &player, bool firstTime)
 
 	if (player.isOnActiveLevel()) {
 
-		SetPlrAnims(player);
+		player.setAnimations();
 
 		ClearStateVariables(player);
 
 		if (!player.hasNoLife()) {
 			player._pmode = PM_STAND;
-			NewPlrAnim(player, player_graphic::Stand, Direction::South);
+			player.setAnimation(player_graphic::Stand, Direction::South);
 			player.animInfo.currentFrame = GenerateRnd(player._pNFrames - 1);
 			player.animInfo.tickCounterOfCurrentFrame = GenerateRnd(3);
 		} else {
 			player._pgfxnum &= ~0xFU;
 			player._pmode = PM_DEATH;
-			NewPlrAnim(player, player_graphic::Death, Direction::South);
+			player.setAnimation(player_graphic::Death, Direction::South);
 			player.animInfo.currentFrame = player.animInfo.numberOfFrames - 2;
 		}
 
@@ -2518,7 +2773,7 @@ void InitPlayer(Player &player, bool firstTime)
 			player.position.tile = ViewPosition;
 		}
 
-		SetPlayerOld(player);
+		player.saveOldPosition();
 		player.walkpath[0] = WALK_NONE;
 		player.destAction = ACTION_NONE;
 
@@ -2544,15 +2799,21 @@ void InitMultiView()
 	ViewPosition = MyPlayer->position.tile;
 }
 
+// Clears the transparency flags for the 3x3 area around the player,
+// allowing the player to see through transparent tiles again after walking away from them.
 void PlrClrTrans(Point position)
 {
 	for (int i = position.y - 1; i <= position.y + 1; i++) {
 		for (int j = position.x - 1; j <= position.x + 1; j++) {
-			TransList[dTransVal[j][i]] = false;
+			TransList[tileAt(j, i).transVal()] = false;
 		}
 	}
 }
 
+// Sets the transparency flags for the 3x3 area around the player,
+// allowing the player to see through transparent tiles. This is called when the player moves onto a new tile,
+// so that the player can see through any transparent tiles around the new position. If the player is in a level
+// without transparent tiles, the first transparency flag is set to true to allow the player to see through all tiles.
 void PlrDoTrans(Point position)
 {
 	if (IsNoneOf(leveltype, DTYPE_CATHEDRAL, DTYPE_CATACOMBS, DTYPE_CRYPT)) {
@@ -2562,20 +2823,23 @@ void PlrDoTrans(Point position)
 
 	for (int i = position.y - 1; i <= position.y + 1; i++) {
 		for (int j = position.x - 1; j <= position.x + 1; j++) {
-			if (IsTileNotSolid({ j, i }) && dTransVal[j][i] != 0) {
-				TransList[dTransVal[j][i]] = true;
+			const int8_t transVal = tileAt(j, i).transVal();
+			if (IsTileNotSolid({ j, i }) && transVal != 0) {
+				TransList[transVal] = true;
 			}
 		}
 	}
 }
 
-void SetPlayerOld(Player &player)
+void Player::saveOldPosition()
 {
+	Player &player = *this;
 	player.position.old = player.position.tile;
 }
 
-void FixPlayerLocation(Player &player, Direction bDir)
+void Player::fixLocation(Direction bDir)
 {
+	Player &player = *this;
 	player.position.future = player.position.tile;
 	player.direction = bDir;
 	if (&player == MyPlayer) {
@@ -2585,25 +2849,27 @@ void FixPlayerLocation(Player &player, Direction bDir)
 	ChangeVisionXY(player.getId(), player.position.tile);
 }
 
-void StartStand(Player &player, Direction dir)
+void Player::startStand(Direction dir)
 {
+	Player &player = *this;
 	if (player._pInvincible && player.hasNoLife() && &player == MyPlayer) {
-		SyncPlrKill(player, DeathReason::Unknown);
+		player.syncKill(DeathReason::Unknown);
 		return;
 	}
 
-	NewPlrAnim(player, player_graphic::Stand, dir);
+	player.setAnimation(player_graphic::Stand, dir);
 	player._pmode = PM_STAND;
-	FixPlayerLocation(player, dir);
+	player.fixLocation(dir);
 	FixPlrWalkTags(player);
 	player.occupyTile(player.position.tile, false);
-	SetPlayerOld(player);
+	player.saveOldPosition();
 }
 
-void StartPlrBlock(Player &player, Direction dir)
+void Player::startBlock(Direction dir)
 {
+	Player &player = *this;
 	if (player._pInvincible && player.hasNoLife() && &player == MyPlayer) {
-		SyncPlrKill(player, DeathReason::Unknown);
+		player.syncKill(DeathReason::Unknown);
 		return;
 	}
 
@@ -2614,11 +2880,11 @@ void StartPlrBlock(Player &player, Direction dir)
 		skippedAnimationFrames = (player._pBFrames - 2); // ISPL_FASTBLOCK means we cancel the animation if frame 2 was shown
 	}
 
-	NewPlrAnim(player, player_graphic::Block, dir, AnimationDistributionFlags::SkipsDelayOfLastFrame, skippedAnimationFrames);
+	player.setAnimation(player_graphic::Block, dir, AnimationDistributionFlags::SkipsDelayOfLastFrame, skippedAnimationFrames);
 
 	player._pmode = PM_BLOCK;
-	FixPlayerLocation(player, dir);
-	SetPlayerOld(player);
+	player.fixLocation(dir);
+	player.saveOldPosition();
 }
 
 /**
@@ -2629,15 +2895,16 @@ void FixPlrWalkTags(const Player &player)
 	for (int y = 0; y < MAXDUNY; y++) {
 		for (int x = 0; x < MAXDUNX; x++) {
 			if (PlayerAtPosition({ x, y }) == &player)
-				dPlayer[x][y] = 0;
+				tileAt(Point { x, y }).setPlayer(0);
 		}
 	}
 }
 
-void StartPlrHit(Player &player, int dam, bool forcehit)
+void Player::startHit(int dam, bool forcehit)
 {
+	Player &player = *this;
 	if (player._pInvincible && player.hasNoLife() && &player == MyPlayer) {
-		SyncPlrKill(player, DeathReason::Unknown);
+		player.syncKill(DeathReason::Unknown);
 		return;
 	}
 
@@ -2665,21 +2932,22 @@ void StartPlrHit(Player &player, int dam, bool forcehit)
 		skippedAnimationFrames = 0;
 	}
 
-	NewPlrAnim(player, player_graphic::Hit, pd, AnimationDistributionFlags::None, skippedAnimationFrames);
+	player.setAnimation(player_graphic::Hit, pd, AnimationDistributionFlags::None, skippedAnimationFrames);
 
 	player._pmode = PM_GOTHIT;
-	FixPlayerLocation(player, pd);
+	player.fixLocation(pd);
 	FixPlrWalkTags(player);
 	player.occupyTile(player.position.tile, false);
-	SetPlayerOld(player);
+	player.saveOldPosition();
 }
 
 #if defined(__clang__) || defined(__GNUC__)
 __attribute__((no_sanitize("shift-base")))
 #endif
 void
-StartPlayerKill(Player &player, DeathReason deathReason)
+Player::startKill(DeathReason deathReason)
 {
+	Player &player = *this;
 	if (player.hasNoLife() && player._pmode == PM_DEATH) {
 		return;
 	}
@@ -2704,16 +2972,16 @@ StartPlayerKill(Player &player, DeathReason deathReason)
 			// Death animation aren't weapon specific, so always use the unarmed animations
 			player._pgfxnum &= ~0xFU;
 		}
-		ResetPlayerGFX(player);
-		SetPlrAnims(player);
+		player.resetGraphics();
+		player.setAnimations();
 	}
 
-	NewPlrAnim(player, player_graphic::Death, player.direction);
+	player.setAnimation(player_graphic::Death, player.direction);
 
 	player._pBlockFlag = false;
 	player._pmode = PM_DEATH;
 	player._pInvincible = true;
-	SetPlayerHitPoints(player, 0);
+	player.setHitPoints(0);
 
 	if (&player != MyPlayer && dropItems) {
 		// Ensure that items are removed for remote players
@@ -2725,10 +2993,10 @@ StartPlayerKill(Player &player, DeathReason deathReason)
 	}
 
 	if (player.isOnActiveLevel()) {
-		FixPlayerLocation(player, player.direction);
+		player.fixLocation(player.direction);
 		FixPlrWalkTags(player);
-		dFlags[player.position.tile.x][player.position.tile.y] |= DungeonFlag::DeadPlayer;
-		SetPlayerOld(player);
+		tileAt(player.position.tile).addFlags(DungeonFlag::DeadPlayer);
+		player.saveOldPosition();
 
 		// Only generate drops once (for the local player)
 		// For remote players we get separated sync messages (by the remote client)
@@ -2783,7 +3051,7 @@ StartPlayerKill(Player &player, DeathReason deathReason)
 			}
 		}
 	}
-	SetPlayerHitPoints(player, 0);
+	player.setHitPoints(0);
 }
 
 void StripTopGold(Player &player)
@@ -2799,7 +3067,7 @@ void StripTopGold(Player &player)
 
 		if (GoldAutoPlace(player, excessGold))
 			continue;
-		if (!player.HoldItem.isEmpty() && ActiveItemCount + 1 >= MAXITEMS)
+		if (!player.HoldItem.isEmpty() && ItemPoolAdapter::ActiveItemCountValue() + 1 >= MAXITEMS)
 			continue;
 		DeadItem(player, std::move(excessGold), { 0, 0 });
 	}
@@ -2820,8 +3088,9 @@ void StripTopGold(Player &player)
 	NewCursor(CURSOR_HAND);
 }
 
-void ApplyPlrDamage(DamageType damageType, Player &player, int dam, int minHP /*= 0*/, int frac /*= 0*/, DeathReason deathReason /*= DeathReason::MonsterOrTrap*/)
+void Player::applyDamage(DamageType damageType, int dam, int minHP, int frac, DeathReason deathReason)
 {
+	Player &player = *this;
 	int totalDamage = (dam << 6) + frac;
 	if (&player == MyPlayer && !player.hasNoLife()) {
 		lua::OnPlayerTakeDamage(&player, totalDamage, static_cast<int>(damageType));
@@ -2833,17 +3102,17 @@ void ApplyPlrDamage(DamageType damageType, Player &player, int dam, int minHP /*
 		}
 		if (&player == MyPlayer)
 			RedrawComponent(PanelDrawComponent::Mana);
-		if (player._pMana >= totalDamage) {
-			player._pMana -= totalDamage;
-			player._pManaBase -= totalDamage;
+		if (player.mana.current >= totalDamage) {
+			player.mana.current -= totalDamage;
+			player.mana.base -= totalDamage;
 			totalDamage = 0;
 		} else {
-			totalDamage -= player._pMana;
+			totalDamage -= player.mana.current;
 			if (manaShieldLevel > 0) {
 				totalDamage += totalDamage / (player.GetManaShieldDamageReduction() - 1);
 			}
-			player._pMana = 0;
-			player._pManaBase = player._pMaxManaBase - player._pMaxMana;
+			player.mana.current = 0;
+			player.mana.base = player.mana.maximumBase - player.mana.maximum;
 			if (&player == MyPlayer)
 				NetSendCmd(true, CMD_REMSHIELD);
 		}
@@ -2853,29 +3122,31 @@ void ApplyPlrDamage(DamageType damageType, Player &player, int dam, int minHP /*
 		return;
 
 	RedrawComponent(PanelDrawComponent::Health);
-	player.hitPoints -= totalDamage;
-	player._pHPBase -= totalDamage;
-	if (player.hitPoints > player.maxHitPoints) {
-		player.hitPoints = player.maxHitPoints;
-		player._pHPBase = player._pMaxHPBase;
+	player.life.current -= totalDamage;
+	player.life.base -= totalDamage;
+	if (player.life.current > player.life.maximum) {
+		player.life.current = player.life.maximum;
+		player.life.base = player.life.maximumBase;
 	}
 	const int minHitPoints = minHP << 6;
-	if (player.hitPoints < minHitPoints) {
-		SetPlayerHitPoints(player, minHitPoints);
+	if (player.life.current < minHitPoints) {
+		player.setHitPoints(minHitPoints);
 	}
 	if (player.hasNoLife()) {
-		SyncPlrKill(player, deathReason);
+		player.syncKill(deathReason);
 	}
 }
 
-void SyncPlrKill(Player &player, DeathReason deathReason)
+void Player::syncKill(DeathReason deathReason)
 {
-	SetPlayerHitPoints(player, 0);
-	StartPlayerKill(player, deathReason);
+	Player &player = *this;
+	player.setHitPoints(0);
+	player.startKill(deathReason);
 }
 
-void RemovePlrMissiles(const Player &player)
+void Player::removeMissiles() const
 {
+	const Player &player = *this;
 	if (leveltype != DTYPE_TOWN) {
 		Monster *golem;
 		while ((golem = FindGolemForPlayer(player)) != nullptr) {
@@ -2939,10 +3210,10 @@ void RestartTownLvl(Player &player)
 	player.setLevel(0);
 	player._pInvincible = false;
 
-	SetPlayerHitPoints(player, 64);
+	player.setHitPoints(64);
 
-	player._pMana = 0;
-	player._pManaBase = player._pMana - (player._pMaxMana - player._pMaxManaBase);
+	player.mana.current = 0;
+	player.mana.base = player.mana.current - (player.mana.maximum - player.mana.maximumBase);
 
 	CalcPlrInv(player, false);
 	player._pmode = PM_NEWLVL;
@@ -3017,12 +3288,12 @@ void ProcessPlayers()
 		Player &player = Players[pnum];
 		if (player.plractive && player.isOnActiveLevel() && (&player == MyPlayer || !player._pLvlChanging)) {
 			if (!PlrDeathModeOK(player) && player.hasNoLife()) {
-				SyncPlrKill(player, DeathReason::Unknown);
+				player.syncKill(DeathReason::Unknown);
 			}
 
 			if (&player == MyPlayer) {
 				if (HasAnyOf(player._pIFlags, ItemSpecialEffect::DrainLife) && leveltype != DTYPE_TOWN) {
-					ApplyPlrDamage(DamageType::Physical, player, 0, 0, 4);
+					player.applyDamage(DamageType::Physical, 0, 0, 4);
 				}
 				if (player.pManaShield && HasAnyOf(player._pIFlags, ItemSpecialEffect::NoMana)) {
 					NetSendCmd(true, CMD_REMSHIELD);
@@ -3071,8 +3342,9 @@ void ProcessPlayers()
 	}
 }
 
-void ClrPlrPath(Player &player)
+void Player::clearPath()
 {
+	Player &player = *this;
 	memset(player.walkpath, WALK_NONE, sizeof(player.walkpath));
 }
 
@@ -3085,8 +3357,9 @@ void ClrPlrPath(Player &player)
  * @param position Dungeon tile coordinates.
  * @return False if something (other than the player themselves) is blocking the tile.
  */
-bool PosOkPlayer(const Player &player, Point position)
+bool Player::positionIsAvailable(Point position) const
 {
+	const Player &player = *this;
 	if (!InDungeonBounds(position))
 		return false;
 	if (!IsTileWalkable(position))
@@ -3095,14 +3368,14 @@ bool PosOkPlayer(const Player &player, Point position)
 	if (otherPlayer != nullptr && otherPlayer != &player && !otherPlayer->hasNoLife())
 		return false;
 
-	if (dMonster[position.x][position.y] != 0) {
+	if (tileAt(position).hasMonster()) {
 		if (leveltype == DTYPE_TOWN) {
 			return false;
 		}
-		if (dMonster[position.x][position.y] <= 0) {
+		if (tileAt(position).monster() <= 0) {
 			return false;
 		}
-		if (!Monsters[dMonster[position.x][position.y] - 1].hasNoLife()) {
+		if (!Monsters[tileAt(position).monster() - 1].hasNoLife()) {
 			return false;
 		}
 	}
@@ -3110,13 +3383,14 @@ bool PosOkPlayer(const Player &player, Point position)
 	return true;
 }
 
-void MakePlrPath(Player &player, Point targetPosition, bool endspace)
+void Player::makePath(Point targetPosition, bool endspace)
 {
+	Player &player = *this;
 	if (player.position.future == targetPosition) {
 		return;
 	}
 
-	int path = FindPath(CanStep, [&player](Point position) { return PosOkPlayer(player, position); }, player.position.future, targetPosition, player.walkpath, MaxPathLengthPlayer);
+	int path = FindPath(CanStep, [&player](Point position) { return player.positionIsAvailable(position); }, player.position.future, targetPosition, player.walkpath, MaxPathLengthPlayer);
 	if (path == 0) {
 		return;
 	}
@@ -3227,15 +3501,17 @@ void CheckPlrSpell(bool isShiftHeld, SpellID spellID, SpellType spellType)
 	}
 }
 
-void SyncPlrAnim(Player &player)
+void Player::syncAnimation()
 {
+	Player &player = *this;
 	const player_graphic graphic = player.getGraphic();
 	if (!HeadlessMode)
 		player.animInfo.sprites = player.AnimationData[static_cast<size_t>(graphic)].spritesForDirection(player.direction);
 }
 
-void SyncInitPlrPos(Player &player)
+void Player::syncInitialPosition()
 {
+	Player &player = *this;
 	if (!player.isOnActiveLevel())
 		return;
 
@@ -3244,7 +3520,7 @@ void SyncInitPlrPos(Player &player)
 	const Point position = [&]() {
 		for (int i = 0; i < 8; i++) {
 			Point position = player.position.tile + offset[i];
-			if (PosOkPlayer(player, position))
+			if (player.positionIsAvailable(position))
 				return position;
 		}
 
@@ -3254,7 +3530,7 @@ void SyncInitPlrPos(Player &player)
 				    if (trigs[i].position == testPosition)
 					    return false;
 			    }
-			    return PosOkPlayer(player, testPosition) && !PosOkPortal(currlevel, testPosition);
+			    return player.positionIsAvailable(testPosition) && !PosOkPortal(currlevel, testPosition);
 		    },
 		    player.position.tile,
 		    1, // skip the starting tile since that was checked in the previous loop
@@ -3272,156 +3548,168 @@ void SyncInitPlrPos(Player &player)
 	}
 }
 
-void SyncInitPlr(Player &player)
+void Player::syncInitialState()
 {
-	SetPlrAnims(player);
-	SyncInitPlrPos(player);
+	Player &player = *this;
+	player.setAnimations();
+	player.syncInitialPosition();
 	if (&player != MyPlayer)
 		player.lightId = NO_LIGHT;
 }
 
-void CheckStats(Player &player)
+void Player::checkStats()
 {
+	Player &player = *this;
 	for (auto attribute : enum_values<CharacterAttribute>()) {
 		const int maxStatPoint = player.GetMaximumAttributeValue(attribute);
 		switch (attribute) {
 		case CharacterAttribute::Strength:
-			player._pBaseStr = std::clamp(player._pBaseStr, 0, maxStatPoint);
+			player.attributes.strength.base = std::clamp(player.attributes.strength.base, 0, maxStatPoint);
 			break;
 		case CharacterAttribute::Magic:
-			player._pBaseMag = std::clamp(player._pBaseMag, 0, maxStatPoint);
+			player.attributes.magic.base = std::clamp(player.attributes.magic.base, 0, maxStatPoint);
 			break;
 		case CharacterAttribute::Dexterity:
-			player._pBaseDex = std::clamp(player._pBaseDex, 0, maxStatPoint);
+			player.attributes.dexterity.base = std::clamp(player.attributes.dexterity.base, 0, maxStatPoint);
 			break;
 		case CharacterAttribute::Vitality:
-			player._pBaseVit = std::clamp(player._pBaseVit, 0, maxStatPoint);
+			player.attributes.vitality.base = std::clamp(player.attributes.vitality.base, 0, maxStatPoint);
 			break;
 		}
 	}
 }
 
-void ModifyPlrStr(Player &player, int l)
+void Player::modifyStrength(int l)
 {
-	l = std::clamp(l, 0 - player._pBaseStr, player.GetMaximumAttributeValue(CharacterAttribute::Strength) - player._pBaseStr);
+	Player &player = *this;
+	l = std::clamp(l, 0 - player.attributes.strength.base, player.GetMaximumAttributeValue(CharacterAttribute::Strength) - player.attributes.strength.base);
 
-	player._pStrength += l;
-	player._pBaseStr += l;
+	player.attributes.strength.current += l;
+	player.attributes.strength.base += l;
 
 	CalcPlrInv(player, true);
 
 	if (&player == MyPlayer) {
-		NetSendCmdParam1(false, CMD_SETSTR, player._pBaseStr);
+		NetSendCmdParam1(false, CMD_SETSTR, player.attributes.strength.base);
 	}
 }
 
-void ModifyPlrMag(Player &player, int l)
+void Player::modifyMagic(int l)
 {
-	l = std::clamp(l, 0 - player._pBaseMag, player.GetMaximumAttributeValue(CharacterAttribute::Magic) - player._pBaseMag);
+	Player &player = *this;
+	l = std::clamp(l, 0 - player.attributes.magic.base, player.GetMaximumAttributeValue(CharacterAttribute::Magic) - player.attributes.magic.base);
 
-	player._pMagic += l;
-	player._pBaseMag += l;
+	player.attributes.magic.current += l;
+	player.attributes.magic.base += l;
 
 	int ms = l;
 	ms *= player.getClassAttributes().chrMana;
 
-	player._pMaxManaBase += ms;
-	player._pMaxMana += ms;
+	player.mana.maximumBase += ms;
+	player.mana.maximum += ms;
 	if (HasNoneOf(player._pIFlags, ItemSpecialEffect::NoMana)) {
-		player._pManaBase += ms;
-		player._pMana += ms;
+		player.mana.base += ms;
+		player.mana.current += ms;
 	}
 
 	CalcPlrInv(player, true);
 
 	if (&player == MyPlayer) {
-		NetSendCmdParam1(false, CMD_SETMAG, player._pBaseMag);
+		NetSendCmdParam1(false, CMD_SETMAG, player.attributes.magic.base);
 	}
 }
 
-void ModifyPlrDex(Player &player, int l)
+void Player::modifyDexterity(int l)
 {
-	l = std::clamp(l, 0 - player._pBaseDex, player.GetMaximumAttributeValue(CharacterAttribute::Dexterity) - player._pBaseDex);
+	Player &player = *this;
+	l = std::clamp(l, 0 - player.attributes.dexterity.base, player.GetMaximumAttributeValue(CharacterAttribute::Dexterity) - player.attributes.dexterity.base);
 
-	player._pDexterity += l;
-	player._pBaseDex += l;
+	player.attributes.dexterity.current += l;
+	player.attributes.dexterity.base += l;
 	CalcPlrInv(player, true);
 
 	if (&player == MyPlayer) {
-		NetSendCmdParam1(false, CMD_SETDEX, player._pBaseDex);
+		NetSendCmdParam1(false, CMD_SETDEX, player.attributes.dexterity.base);
 	}
 }
 
-void ModifyPlrVit(Player &player, int l)
+void Player::modifyVitality(int l)
 {
-	l = std::clamp(l, 0 - player._pBaseVit, player.GetMaximumAttributeValue(CharacterAttribute::Vitality) - player._pBaseVit);
+	Player &player = *this;
+	l = std::clamp(l, 0 - player.attributes.vitality.base, player.GetMaximumAttributeValue(CharacterAttribute::Vitality) - player.attributes.vitality.base);
 
-	player._pVitality += l;
-	player._pBaseVit += l;
+	player.attributes.vitality.current += l;
+	player.attributes.vitality.base += l;
 
 	int ms = l;
 	ms *= player.getClassAttributes().chrLife;
 
-	player._pHPBase += ms;
-	player._pMaxHPBase += ms;
-	player.hitPoints += ms;
-	player.maxHitPoints += ms;
+	player.life.base += ms;
+	player.life.maximumBase += ms;
+	player.life.current += ms;
+	player.life.maximum += ms;
 
 	CalcPlrInv(player, true);
 
 	if (&player == MyPlayer) {
-		NetSendCmdParam1(false, CMD_SETVIT, player._pBaseVit);
+		NetSendCmdParam1(false, CMD_SETVIT, player.attributes.vitality.base);
 	}
 }
 
-void SetPlayerHitPoints(Player &player, int val)
+void Player::setHitPoints(int val)
 {
-	player.hitPoints = val;
-	player._pHPBase = val + player._pMaxHPBase - player.maxHitPoints;
+	Player &player = *this;
+	player.life.current = val;
+	player.life.base = val + player.life.maximumBase - player.life.maximum;
 
 	if (&player == MyPlayer) {
 		RedrawComponent(PanelDrawComponent::Health);
 	}
 }
 
-void SetPlrStr(Player &player, int v)
+void Player::setStrength(int v)
 {
-	player._pBaseStr = v;
+	Player &player = *this;
+	player.attributes.strength.base = v;
 	CalcPlrInv(player, true);
 }
 
-void SetPlrMag(Player &player, int v)
+void Player::setMagic(int v)
 {
-	player._pBaseMag = v;
+	Player &player = *this;
+	player.attributes.magic.base = v;
 
 	int m = v;
 	m *= player.getClassAttributes().chrMana;
 
-	player._pMaxManaBase = m;
-	player._pMaxMana = m;
+	player.mana.maximumBase = m;
+	player.mana.maximum = m;
 	CalcPlrInv(player, true);
 }
 
-void SetPlrDex(Player &player, int v)
+void Player::setDexterity(int v)
 {
-	player._pBaseDex = v;
+	Player &player = *this;
+	player.attributes.dexterity.base = v;
 	CalcPlrInv(player, true);
 }
 
-void SetPlrVit(Player &player, int v)
+void Player::setVitality(int v)
 {
-	player._pBaseVit = v;
+	Player &player = *this;
+	player.attributes.vitality.base = v;
 
 	int hp = v;
 	hp *= player.getClassAttributes().chrLife;
 
-	player._pHPBase = hp;
-	player._pMaxHPBase = hp;
+	player.life.base = hp;
+	player.life.maximumBase = hp;
 	CalcPlrInv(player, true);
 }
 
-void InitDungMsgs(Player &player)
+void Player::initDungeonMessages()
 {
+	Player &player = *this;
 	player.pDungMsgs = 0;
 	player.pDungMsgs2 = 0;
 }
@@ -3454,7 +3742,7 @@ void PlayDungMsgs()
 		myPlayer.Say(HeroSpeech::IMustBeGettingClose, 40);
 		myPlayer.pDungMsgs |= DungMsgHell;
 	} else if (!setlevel && currlevel == 16 && !myPlayer._pLvlVisited[16] && (myPlayer.pDungMsgs & DungMsgDiablo) == 0) {
-		for (auto &monster : Monsters) {
+		for (auto &monster : MonsterPoolAdapter::AllMonsters()) {
 			if (monster.type().type != MT_DIABLO) continue;
 			if (monster.hitPoints > 0) {
 				sfxdelay = 40;

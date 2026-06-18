@@ -147,14 +147,14 @@ void ApplyShadowsPatterns()
 {
 	for (int y = 1; y < DMAXY; y++) {
 		for (int x = 1; x < DMAXY; x++) {
-			if (IsNoneOf(dungeon[x][y], 3, 4, 8, 15)) {
+			if (IsNoneOf(megaTileAt(x, y).current(), 3, 4, 8, 15)) {
 				continue;
 			}
-			if (dungeon[x - 1][y] == 6) {
-				dungeon[x - 1][y] = 47;
+			if (megaTileAt(x - 1, y).current() == 6) {
+				megaTileAt(x - 1, y).setCurrent(47);
 			}
-			if (dungeon[x - 1][y - 1] == 6) {
-				dungeon[x - 1][y - 1] = 48;
+			if (megaTileAt(x - 1, y - 1).current() == 6) {
+				megaTileAt(x - 1, y - 1).setCurrent(48);
 			}
 		}
 	}
@@ -181,7 +181,7 @@ void InitDungeonFlags()
 {
 	DungeonMask.reset();
 	Protected.reset();
-	memset(dungeon, 30, sizeof(dungeon));
+	FillCurrentMegaTiles(30);
 }
 
 void MapRoom(WorldTileRectangle room)
@@ -315,7 +315,7 @@ void MakeDmt()
 	for (int y = 0; y < DMAXY - 1; y++) {
 		for (int x = 0; x < DMAXX - 1; x++) {
 			const int val = (DungeonMask.test(x + 1, y + 1) << 3) | (DungeonMask.test(x, y + 1) << 2) | (DungeonMask.test(x + 1, y) << 1) | (DungeonMask.test(x, y) << 0);
-			dungeon[x][y] = L4ConvTbl[val];
+			megaTileAt(x, y).setCurrent(L4ConvTbl[val]);
 		}
 	}
 }
@@ -323,19 +323,19 @@ void MakeDmt()
 int HorizontalWallOk(int i, int j)
 {
 	int x;
-	for (x = 1; dungeon[i + x][j] == 6; x++) {
+	for (x = 1; megaTileAt(i + x, j).current() == 6; x++) {
 		if (Protected.test(i + x, j)) {
 			break;
 		}
-		if (dungeon[i + x][j - 1] != 6) {
+		if (megaTileAt(i + x, j - 1).current() != 6) {
 			break;
 		}
-		if (dungeon[i + x][j + 1] != 6) {
+		if (megaTileAt(i + x, j + 1).current() != 6) {
 			break;
 		}
 	}
 
-	if (IsAnyOf(dungeon[i + x][j], 10, 12, 13, 15, 16, 21, 22) && x > 3)
+	if (IsAnyOf(megaTileAt(i + x, j).current(), 10, 12, 13, 15, 16, 21, 22) && x > 3)
 		return x;
 
 	return -1;
@@ -344,19 +344,19 @@ int HorizontalWallOk(int i, int j)
 int VerticalWallOk(int i, int j)
 {
 	int y;
-	for (y = 1; dungeon[i][j + y] == 6; y++) {
+	for (y = 1; megaTileAt(i, j + y).current() == 6; y++) {
 		if (Protected.test(i, j + y)) {
 			break;
 		}
-		if (dungeon[i - 1][j + y] != 6) {
+		if (megaTileAt(i - 1, j + y).current() != 6) {
 			break;
 		}
-		if (dungeon[i + 1][j + y] != 6) {
+		if (megaTileAt(i + 1, j + y).current() != 6) {
 			break;
 		}
 	}
 
-	if (IsAnyOf(dungeon[i][j + y], 8, 9, 11, 14, 15, 16, 21, 23) && y > 3)
+	if (IsAnyOf(megaTileAt(i, j + y).current(), 8, 9, 11, 14, 15, 16, 21, 23) && y > 3)
 		return y;
 
 	return -1;
@@ -364,88 +364,88 @@ int VerticalWallOk(int i, int j)
 
 void HorizontalWall(int i, int j, int dx)
 {
-	if (dungeon[i][j] == 13) {
-		dungeon[i][j] = 17;
+	if (megaTileAt(i, j).current() == 13) {
+		megaTileAt(i, j).setCurrent(17);
 	}
-	if (dungeon[i][j] == 16) {
-		dungeon[i][j] = 11;
+	if (megaTileAt(i, j).current() == 16) {
+		megaTileAt(i, j).setCurrent(11);
 	}
-	if (dungeon[i][j] == 12) {
-		dungeon[i][j] = 14;
+	if (megaTileAt(i, j).current() == 12) {
+		megaTileAt(i, j).setCurrent(14);
 	}
 
 	for (int xx = 1; xx < dx; xx++) {
-		dungeon[i + xx][j] = 2;
+		megaTileAt(i + xx, j).setCurrent(2);
 	}
 
-	if (dungeon[i + dx][j] == 15) {
-		dungeon[i + dx][j] = 14;
+	if (megaTileAt(i + dx, j).current() == 15) {
+		megaTileAt(i + dx, j).setCurrent(14);
 	}
-	if (dungeon[i + dx][j] == 10) {
-		dungeon[i + dx][j] = 17;
+	if (megaTileAt(i + dx, j).current() == 10) {
+		megaTileAt(i + dx, j).setCurrent(17);
 	}
-	if (dungeon[i + dx][j] == 21) {
-		dungeon[i + dx][j] = 23;
+	if (megaTileAt(i + dx, j).current() == 21) {
+		megaTileAt(i + dx, j).setCurrent(23);
 	}
-	if (dungeon[i + dx][j] == 22) {
-		dungeon[i + dx][j] = 29;
+	if (megaTileAt(i + dx, j).current() == 22) {
+		megaTileAt(i + dx, j).setCurrent(29);
 	}
 
 	const int xx = GenerateRnd(dx - 3) + 1;
-	dungeon[i + xx][j] = 57;
-	dungeon[i + xx + 2][j] = 56;
-	dungeon[i + xx + 1][j] = 60;
+	megaTileAt(i + xx, j).setCurrent(57);
+	megaTileAt(i + xx + 2, j).setCurrent(56);
+	megaTileAt(i + xx + 1, j).setCurrent(60);
 
-	if (dungeon[i + xx][j - 1] == 6) {
-		dungeon[i + xx][j - 1] = 58;
+	if (megaTileAt(i + xx, j - 1).current() == 6) {
+		megaTileAt(i + xx, j - 1).setCurrent(58);
 	}
-	if (dungeon[i + xx + 1][j - 1] == 6) {
-		dungeon[i + xx + 1][j - 1] = 59;
+	if (megaTileAt(i + xx + 1, j - 1).current() == 6) {
+		megaTileAt(i + xx + 1, j - 1).setCurrent(59);
 	}
 }
 
 void VerticalWall(int i, int j, int dy)
 {
-	if (dungeon[i][j] == 14) {
-		dungeon[i][j] = 17;
+	if (megaTileAt(i, j).current() == 14) {
+		megaTileAt(i, j).setCurrent(17);
 	}
-	if (dungeon[i][j] == 8) {
-		dungeon[i][j] = 9;
+	if (megaTileAt(i, j).current() == 8) {
+		megaTileAt(i, j).setCurrent(9);
 	}
-	if (dungeon[i][j] == 15) {
-		dungeon[i][j] = 10;
+	if (megaTileAt(i, j).current() == 15) {
+		megaTileAt(i, j).setCurrent(10);
 	}
 
 	for (int yy = 1; yy < dy; yy++) {
-		dungeon[i][j + yy] = 1;
+		megaTileAt(i, j + yy).setCurrent(1);
 	}
 
-	if (dungeon[i][j + dy] == 11) {
-		dungeon[i][j + dy] = 17;
+	if (megaTileAt(i, j + dy).current() == 11) {
+		megaTileAt(i, j + dy).setCurrent(17);
 	}
-	if (dungeon[i][j + dy] == 9) {
-		dungeon[i][j + dy] = 10;
+	if (megaTileAt(i, j + dy).current() == 9) {
+		megaTileAt(i, j + dy).setCurrent(10);
 	}
-	if (dungeon[i][j + dy] == 16) {
-		dungeon[i][j + dy] = 13;
+	if (megaTileAt(i, j + dy).current() == 16) {
+		megaTileAt(i, j + dy).setCurrent(13);
 	}
-	if (dungeon[i][j + dy] == 21) {
-		dungeon[i][j + dy] = 22;
+	if (megaTileAt(i, j + dy).current() == 21) {
+		megaTileAt(i, j + dy).setCurrent(22);
 	}
-	if (dungeon[i][j + dy] == 23) {
-		dungeon[i][j + dy] = 29;
+	if (megaTileAt(i, j + dy).current() == 23) {
+		megaTileAt(i, j + dy).setCurrent(29);
 	}
 
 	const int yy = GenerateRnd(dy - 3) + 1;
-	dungeon[i][j + yy] = 53;
-	dungeon[i][j + yy + 2] = 52;
-	dungeon[i][j + yy + 1] = 6;
+	megaTileAt(i, j + yy).setCurrent(53);
+	megaTileAt(i, j + yy + 2).setCurrent(52);
+	megaTileAt(i, j + yy + 1).setCurrent(6);
 
-	if (dungeon[i - 1][j + yy] == 6) {
-		dungeon[i - 1][j + yy] = 54;
+	if (megaTileAt(i - 1, j + yy).current() == 6) {
+		megaTileAt(i - 1, j + yy).setCurrent(54);
 	}
-	if (dungeon[i - 1][j + yy - 1] == 6) {
-		dungeon[i - 1][j + yy - 1] = 55;
+	if (megaTileAt(i - 1, j + yy - 1).current() == 6) {
+		megaTileAt(i - 1, j + yy - 1).setCurrent(55);
 	}
 }
 
@@ -457,7 +457,7 @@ void AddWall()
 				continue;
 			}
 			for (auto d : { 10, 12, 13, 15, 16, 21, 22 }) {
-				if (d == dungeon[i][j]) {
+				if (d == megaTileAt(i, j).current()) {
 					DiscardRandomValues(1);
 					const int x = HorizontalWallOk(i, j);
 					if (x != -1) {
@@ -466,7 +466,7 @@ void AddWall()
 				}
 			}
 			for (auto d : { 8, 9, 11, 14, 15, 16, 21, 23 }) {
-				if (d == dungeon[i][j]) {
+				if (d == megaTileAt(i, j).current()) {
 					DiscardRandomValues(1);
 					const int y = VerticalWallOk(i, j);
 					if (y != -1) {
@@ -482,347 +482,347 @@ void FixTilesPatterns()
 {
 	for (int j = 0; j < DMAXY; j++) {
 		for (int i = 0; i < DMAXX; i++) {
-			if (dungeon[i][j] == 2 && dungeon[i + 1][j] == 6)
-				dungeon[i + 1][j] = 5;
-			if (dungeon[i][j] == 2 && dungeon[i + 1][j] == 1)
-				dungeon[i + 1][j] = 13;
-			if (dungeon[i][j] == 1 && dungeon[i][j + 1] == 2)
-				dungeon[i][j + 1] = 14;
+			if (megaTileAt(i, j).current() == 2 && megaTileAt(i + 1, j).current() == 6)
+				megaTileAt(i + 1, j).setCurrent(5);
+			if (megaTileAt(i, j).current() == 2 && megaTileAt(i + 1, j).current() == 1)
+				megaTileAt(i + 1, j).setCurrent(13);
+			if (megaTileAt(i, j).current() == 1 && megaTileAt(i, j + 1).current() == 2)
+				megaTileAt(i, j + 1).setCurrent(14);
 		}
 	}
 
 	for (int j = 0; j < DMAXY; j++) {
 		for (int i = 0; i < DMAXX; i++) {
-			if (dungeon[i][j] == 2 && dungeon[i + 1][j] == 6)
-				dungeon[i + 1][j] = 2;
-			if (dungeon[i][j] == 2 && dungeon[i + 1][j] == 9)
-				dungeon[i + 1][j] = 11;
-			if (dungeon[i][j] == 9 && dungeon[i + 1][j] == 6)
-				dungeon[i + 1][j] = 12;
-			if (dungeon[i][j] == 14 && dungeon[i + 1][j] == 1)
-				dungeon[i + 1][j] = 13;
-			if (dungeon[i][j] == 6 && dungeon[i + 1][j] == 14)
-				dungeon[i + 1][j] = 15;
-			if (dungeon[i][j] == 6 && dungeon[i][j + 1] == 13)
-				dungeon[i][j + 1] = 16;
-			if (dungeon[i][j] == 1 && dungeon[i][j + 1] == 9)
-				dungeon[i][j + 1] = 10;
-			if (dungeon[i][j] == 6 && dungeon[i][j - 1] == 1)
-				dungeon[i][j - 1] = 1;
+			if (megaTileAt(i, j).current() == 2 && megaTileAt(i + 1, j).current() == 6)
+				megaTileAt(i + 1, j).setCurrent(2);
+			if (megaTileAt(i, j).current() == 2 && megaTileAt(i + 1, j).current() == 9)
+				megaTileAt(i + 1, j).setCurrent(11);
+			if (megaTileAt(i, j).current() == 9 && megaTileAt(i + 1, j).current() == 6)
+				megaTileAt(i + 1, j).setCurrent(12);
+			if (megaTileAt(i, j).current() == 14 && megaTileAt(i + 1, j).current() == 1)
+				megaTileAt(i + 1, j).setCurrent(13);
+			if (megaTileAt(i, j).current() == 6 && megaTileAt(i + 1, j).current() == 14)
+				megaTileAt(i + 1, j).setCurrent(15);
+			if (megaTileAt(i, j).current() == 6 && megaTileAt(i, j + 1).current() == 13)
+				megaTileAt(i, j + 1).setCurrent(16);
+			if (megaTileAt(i, j).current() == 1 && megaTileAt(i, j + 1).current() == 9)
+				megaTileAt(i, j + 1).setCurrent(10);
+			if (megaTileAt(i, j).current() == 6 && megaTileAt(i, j - 1).current() == 1)
+				megaTileAt(i, j - 1).setCurrent(1);
 		}
 	}
 
 	for (int j = 0; j < DMAXY; j++) {
 		for (int i = 0; i < DMAXX; i++) {
-			if (dungeon[i][j] == 13 && dungeon[i][j + 1] == 30)
-				dungeon[i][j + 1] = 27;
-			if (dungeon[i][j] == 27 && dungeon[i + 1][j] == 30)
-				dungeon[i + 1][j] = 19;
-			if (dungeon[i][j] == 1 && dungeon[i][j + 1] == 30)
-				dungeon[i][j + 1] = 27;
-			if (dungeon[i][j] == 27 && dungeon[i + 1][j] == 1)
-				dungeon[i + 1][j] = 16;
-			if (dungeon[i][j] == 19 && dungeon[i + 1][j] == 27)
-				dungeon[i + 1][j] = 26;
-			if (dungeon[i][j] == 27 && dungeon[i + 1][j] == 30)
-				dungeon[i + 1][j] = 19;
-			if (dungeon[i][j] == 2 && dungeon[i + 1][j] == 15)
-				dungeon[i + 1][j] = 14;
-			if (dungeon[i][j] == 14 && dungeon[i + 1][j] == 15)
-				dungeon[i + 1][j] = 14;
-			if (dungeon[i][j] == 22 && dungeon[i + 1][j] == 1)
-				dungeon[i + 1][j] = 16;
-			if (dungeon[i][j] == 27 && dungeon[i + 1][j] == 1)
-				dungeon[i + 1][j] = 16;
-			if (dungeon[i][j] == 6 && dungeon[i + 1][j] == 27 && dungeon[i + 1][j + 1] != 0) /* check */
-				dungeon[i + 1][j] = 22;
-			if (dungeon[i][j] == 22 && dungeon[i + 1][j] == 30)
-				dungeon[i + 1][j] = 19;
-			if (dungeon[i][j] == 21 && dungeon[i + 1][j] == 1 && dungeon[i + 1][j - 1] == 1)
-				dungeon[i + 1][j] = 13;
-			if (dungeon[i][j] == 14 && dungeon[i + 1][j] == 30 && dungeon[i][j + 1] == 6)
-				dungeon[i + 1][j] = 28;
-			if (dungeon[i][j] == 16 && dungeon[i + 1][j] == 6 && dungeon[i][j + 1] == 30)
-				dungeon[i][j + 1] = 27;
-			if (dungeon[i][j] == 16 && dungeon[i][j + 1] == 30 && dungeon[i + 1][j + 1] == 30)
-				dungeon[i][j + 1] = 27;
-			if (dungeon[i][j] == 6 && dungeon[i + 1][j] == 30 && dungeon[i + 1][j - 1] == 6)
-				dungeon[i + 1][j] = 21;
-			if (dungeon[i][j] == 2 && dungeon[i + 1][j] == 27 && dungeon[i + 1][j + 1] == 9)
-				dungeon[i + 1][j] = 29;
-			if (dungeon[i][j] == 9 && dungeon[i + 1][j] == 15)
-				dungeon[i + 1][j] = 14;
-			if (dungeon[i][j] == 15 && dungeon[i + 1][j] == 27 && dungeon[i + 1][j + 1] == 2)
-				dungeon[i + 1][j] = 29;
-			if (dungeon[i][j] == 19 && dungeon[i + 1][j] == 18)
-				dungeon[i + 1][j] = 24;
-			if (dungeon[i][j] == 9 && dungeon[i + 1][j] == 15)
-				dungeon[i + 1][j] = 14;
-			if (dungeon[i][j] == 19 && dungeon[i + 1][j] == 19 && dungeon[i + 1][j - 1] == 30)
-				dungeon[i + 1][j] = 24;
-			if (dungeon[i][j] == 24 && dungeon[i][j - 1] == 30 && dungeon[i][j - 2] == 6)
-				dungeon[i][j - 1] = 21;
-			if (dungeon[i][j] == 2 && dungeon[i + 1][j] == 30)
-				dungeon[i + 1][j] = 28;
-			if (dungeon[i][j] == 15 && dungeon[i + 1][j] == 30)
-				dungeon[i + 1][j] = 28;
-			if (dungeon[i][j] == 28 && dungeon[i][j + 1] == 30)
-				dungeon[i][j + 1] = 18;
-			if (dungeon[i][j] == 28 && dungeon[i][j + 1] == 2)
-				dungeon[i][j + 1] = 15;
-			if (dungeon[i][j] == 19 && dungeon[i + 2][j] == 2 && dungeon[i + 1][j - 1] == 18 && dungeon[i + 1][j + 1] == 1)
-				dungeon[i + 1][j] = 17;
-			if (dungeon[i][j] == 19 && dungeon[i + 2][j] == 2 && dungeon[i + 1][j - 1] == 22 && dungeon[i + 1][j + 1] == 1)
-				dungeon[i + 1][j] = 17;
-			if (dungeon[i][j] == 19 && dungeon[i + 2][j] == 2 && dungeon[i + 1][j - 1] == 18 && dungeon[i + 1][j + 1] == 13)
-				dungeon[i + 1][j] = 17;
-			if (dungeon[i][j] == 21 && dungeon[i + 2][j] == 2 && dungeon[i + 1][j - 1] == 18 && dungeon[i + 1][j + 1] == 1)
-				dungeon[i + 1][j] = 17;
-			if (dungeon[i][j] == 21 && dungeon[i + 1][j + 1] == 1 && dungeon[i + 1][j - 1] == 22 && dungeon[i + 2][j] == 3)
-				dungeon[i + 1][j] = 17;
-			if (dungeon[i][j] == 15 && dungeon[i + 1][j] == 28 && dungeon[i + 2][j] == 30 && dungeon[i + 1][j - 1] == 6)
-				dungeon[i + 1][j] = 23;
-			if (dungeon[i][j] == 14 && dungeon[i + 1][j] == 28 && dungeon[i + 2][j] == 1)
-				dungeon[i + 1][j] = 23;
-			if (dungeon[i][j] == 15 && dungeon[i + 1][j] == 27 && dungeon[i + 1][j + 1] == 30)
-				dungeon[i + 1][j] = 29;
-			if (dungeon[i][j] == 28 && dungeon[i][j + 1] == 9)
-				dungeon[i][j + 1] = 15;
-			if (dungeon[i][j] == 21 && dungeon[i + 1][j - 1] == 21)
-				dungeon[i + 1][j] = 24;
-			if (dungeon[i][j] == 2 && dungeon[i + 1][j] == 27 && dungeon[i + 1][j + 1] == 30)
-				dungeon[i + 1][j] = 29;
-			if (dungeon[i][j] == 2 && dungeon[i + 1][j] == 18)
-				dungeon[i + 1][j] = 25;
-			if (dungeon[i][j] == 21 && dungeon[i + 1][j] == 9 && dungeon[i + 2][j] == 2)
-				dungeon[i + 1][j] = 11;
-			if (dungeon[i][j] == 19 && dungeon[i + 1][j] == 10)
-				dungeon[i + 1][j] = 17;
-			if (dungeon[i][j] == 15 && dungeon[i][j + 1] == 3)
-				dungeon[i][j + 1] = 4;
-			if (dungeon[i][j] == 22 && dungeon[i][j + 1] == 9)
-				dungeon[i][j + 1] = 15;
-			if (dungeon[i][j] == 18 && dungeon[i][j + 1] == 30)
-				dungeon[i][j + 1] = 18;
-			if (dungeon[i][j] == 24 && dungeon[i - 1][j] == 30)
-				dungeon[i - 1][j] = 19;
-			if (dungeon[i][j] == 21 && dungeon[i][j + 1] == 2)
-				dungeon[i][j + 1] = 15;
-			if (dungeon[i][j] == 21 && dungeon[i][j + 1] == 9)
-				dungeon[i][j + 1] = 10;
-			if (dungeon[i][j] == 22 && dungeon[i][j + 1] == 30)
-				dungeon[i][j + 1] = 18;
-			if (dungeon[i][j] == 21 && dungeon[i][j + 1] == 30)
-				dungeon[i][j + 1] = 18;
-			if (dungeon[i][j] == 16 && dungeon[i][j + 1] == 2)
-				dungeon[i][j + 1] = 15;
-			if (dungeon[i][j] == 13 && dungeon[i][j + 1] == 2)
-				dungeon[i][j + 1] = 15;
-			if (dungeon[i][j] == 22 && dungeon[i][j + 1] == 2)
-				dungeon[i][j + 1] = 15;
-			if (dungeon[i][j] == 21 && dungeon[i + 1][j] == 18 && dungeon[i + 2][j] == 30)
-				dungeon[i + 1][j] = 24;
-			if (dungeon[i][j] == 21 && dungeon[i + 1][j] == 9 && dungeon[i + 1][j + 1] == 1)
-				dungeon[i + 1][j] = 16;
-			if (dungeon[i][j] == 2 && dungeon[i + 1][j] == 27 && dungeon[i + 1][j + 1] == 2)
-				dungeon[i + 1][j] = 29;
-			if (dungeon[i][j] == 23 && dungeon[i][j + 1] == 2)
-				dungeon[i][j + 1] = 15;
-			if (dungeon[i][j] == 23 && dungeon[i][j + 1] == 9)
-				dungeon[i][j + 1] = 15;
-			if (dungeon[i][j] == 25 && dungeon[i][j + 1] == 2)
-				dungeon[i][j + 1] = 15;
-			if (dungeon[i][j] == 22 && dungeon[i + 1][j] == 9)
-				dungeon[i + 1][j] = 11;
-			if (dungeon[i][j] == 23 && dungeon[i + 1][j] == 9)
-				dungeon[i + 1][j] = 11;
-			if (dungeon[i][j] == 15 && dungeon[i + 1][j] == 1)
-				dungeon[i + 1][j] = 16;
-			if (dungeon[i][j] == 11 && dungeon[i + 1][j] == 15)
-				dungeon[i + 1][j] = 14;
-			if (dungeon[i][j] == 23 && dungeon[i + 1][j] == 1)
-				dungeon[i + 1][j] = 16;
-			if (dungeon[i][j] == 21 && dungeon[i + 1][j] == 27)
-				dungeon[i + 1][j] = 26;
-			if (dungeon[i][j] == 21 && dungeon[i + 1][j] == 18)
-				dungeon[i + 1][j] = 24;
-			if (dungeon[i][j] == 26 && dungeon[i + 1][j] == 1)
-				dungeon[i + 1][j] = 16;
-			if (dungeon[i][j] == 29 && dungeon[i + 1][j] == 1)
-				dungeon[i + 1][j] = 16;
-			if (dungeon[i][j] == 29 && dungeon[i][j + 1] == 2)
-				dungeon[i][j + 1] = 15;
-			if (dungeon[i][j] == 1 && dungeon[i][j - 1] == 15)
-				dungeon[i][j - 1] = 10;
-			if (dungeon[i][j] == 18 && dungeon[i][j + 1] == 2)
-				dungeon[i][j + 1] = 15;
-			if (dungeon[i][j] == 23 && dungeon[i][j + 1] == 30)
-				dungeon[i][j + 1] = 18;
-			if (dungeon[i][j] == 18 && dungeon[i][j + 1] == 9)
-				dungeon[i][j + 1] = 10;
-			if (dungeon[i][j] == 14 && dungeon[i + 1][j] == 30 && dungeon[i + 1][j + 1] == 30)
-				dungeon[i + 1][j] = 23;
-			if (dungeon[i][j] == 2 && dungeon[i + 1][j] == 28 && dungeon[i + 1][j - 1] == 6)
-				dungeon[i + 1][j] = 23;
-			if (dungeon[i][j] == 23 && dungeon[i + 1][j] == 18 && dungeon[i][j - 1] == 6)
-				dungeon[i + 1][j] = 24;
-			if (dungeon[i][j] == 14 && dungeon[i + 1][j] == 23 && dungeon[i + 2][j] == 30)
-				dungeon[i + 1][j] = 28;
-			if (dungeon[i][j] == 14 && dungeon[i + 1][j] == 28 && dungeon[i + 2][j] == 30 && dungeon[i + 1][j - 1] == 6)
-				dungeon[i + 1][j] = 23;
-			if (dungeon[i][j] == 23 && dungeon[i + 1][j] == 30)
-				dungeon[i + 1][j] = 19;
-			if (dungeon[i][j] == 29 && dungeon[i + 1][j] == 30)
-				dungeon[i + 1][j] = 19;
-			if (dungeon[i][j] == 29 && dungeon[i][j + 1] == 30)
-				dungeon[i][j + 1] = 18;
-			if (dungeon[i][j] == 19 && dungeon[i + 1][j] == 30)
-				dungeon[i + 1][j] = 19;
-			if (dungeon[i][j] == 21 && dungeon[i + 1][j] == 30)
-				dungeon[i + 1][j] = 19;
-			if (dungeon[i][j] == 26 && dungeon[i + 1][j] == 30)
-				dungeon[i + 1][j] = 19;
-			if (dungeon[i][j] == 16 && dungeon[i][j + 1] == 30)
-				dungeon[i][j + 1] = 18;
-			if (dungeon[i][j] == 13 && dungeon[i][j + 1] == 9)
-				dungeon[i][j + 1] = 10;
-			if (dungeon[i][j] == 25 && dungeon[i][j + 1] == 30)
-				dungeon[i][j + 1] = 18;
-			if (dungeon[i][j] == 18 && dungeon[i][j + 1] == 2)
-				dungeon[i][j + 1] = 15;
-			if (dungeon[i][j] == 11 && dungeon[i + 1][j] == 3)
-				dungeon[i + 1][j] = 5;
-			if (dungeon[i][j] == 19 && dungeon[i + 1][j] == 9)
-				dungeon[i + 1][j] = 11;
-			if (dungeon[i][j] == 19 && dungeon[i + 1][j] == 1)
-				dungeon[i + 1][j] = 13;
-			if (dungeon[i][j] == 19 && dungeon[i + 1][j] == 13 && dungeon[i + 1][j - 1] == 6)
-				dungeon[i + 1][j] = 16;
+			if (megaTileAt(i, j).current() == 13 && megaTileAt(i, j + 1).current() == 30)
+				megaTileAt(i, j + 1).setCurrent(27);
+			if (megaTileAt(i, j).current() == 27 && megaTileAt(i + 1, j).current() == 30)
+				megaTileAt(i + 1, j).setCurrent(19);
+			if (megaTileAt(i, j).current() == 1 && megaTileAt(i, j + 1).current() == 30)
+				megaTileAt(i, j + 1).setCurrent(27);
+			if (megaTileAt(i, j).current() == 27 && megaTileAt(i + 1, j).current() == 1)
+				megaTileAt(i + 1, j).setCurrent(16);
+			if (megaTileAt(i, j).current() == 19 && megaTileAt(i + 1, j).current() == 27)
+				megaTileAt(i + 1, j).setCurrent(26);
+			if (megaTileAt(i, j).current() == 27 && megaTileAt(i + 1, j).current() == 30)
+				megaTileAt(i + 1, j).setCurrent(19);
+			if (megaTileAt(i, j).current() == 2 && megaTileAt(i + 1, j).current() == 15)
+				megaTileAt(i + 1, j).setCurrent(14);
+			if (megaTileAt(i, j).current() == 14 && megaTileAt(i + 1, j).current() == 15)
+				megaTileAt(i + 1, j).setCurrent(14);
+			if (megaTileAt(i, j).current() == 22 && megaTileAt(i + 1, j).current() == 1)
+				megaTileAt(i + 1, j).setCurrent(16);
+			if (megaTileAt(i, j).current() == 27 && megaTileAt(i + 1, j).current() == 1)
+				megaTileAt(i + 1, j).setCurrent(16);
+			if (megaTileAt(i, j).current() == 6 && megaTileAt(i + 1, j).current() == 27 && megaTileAt(i + 1, j + 1).current() != 0) /* check */
+				megaTileAt(i + 1, j).setCurrent(22);
+			if (megaTileAt(i, j).current() == 22 && megaTileAt(i + 1, j).current() == 30)
+				megaTileAt(i + 1, j).setCurrent(19);
+			if (megaTileAt(i, j).current() == 21 && megaTileAt(i + 1, j).current() == 1 && megaTileAt(i + 1, j - 1).current() == 1)
+				megaTileAt(i + 1, j).setCurrent(13);
+			if (megaTileAt(i, j).current() == 14 && megaTileAt(i + 1, j).current() == 30 && megaTileAt(i, j + 1).current() == 6)
+				megaTileAt(i + 1, j).setCurrent(28);
+			if (megaTileAt(i, j).current() == 16 && megaTileAt(i + 1, j).current() == 6 && megaTileAt(i, j + 1).current() == 30)
+				megaTileAt(i, j + 1).setCurrent(27);
+			if (megaTileAt(i, j).current() == 16 && megaTileAt(i, j + 1).current() == 30 && megaTileAt(i + 1, j + 1).current() == 30)
+				megaTileAt(i, j + 1).setCurrent(27);
+			if (megaTileAt(i, j).current() == 6 && megaTileAt(i + 1, j).current() == 30 && megaTileAt(i + 1, j - 1).current() == 6)
+				megaTileAt(i + 1, j).setCurrent(21);
+			if (megaTileAt(i, j).current() == 2 && megaTileAt(i + 1, j).current() == 27 && megaTileAt(i + 1, j + 1).current() == 9)
+				megaTileAt(i + 1, j).setCurrent(29);
+			if (megaTileAt(i, j).current() == 9 && megaTileAt(i + 1, j).current() == 15)
+				megaTileAt(i + 1, j).setCurrent(14);
+			if (megaTileAt(i, j).current() == 15 && megaTileAt(i + 1, j).current() == 27 && megaTileAt(i + 1, j + 1).current() == 2)
+				megaTileAt(i + 1, j).setCurrent(29);
+			if (megaTileAt(i, j).current() == 19 && megaTileAt(i + 1, j).current() == 18)
+				megaTileAt(i + 1, j).setCurrent(24);
+			if (megaTileAt(i, j).current() == 9 && megaTileAt(i + 1, j).current() == 15)
+				megaTileAt(i + 1, j).setCurrent(14);
+			if (megaTileAt(i, j).current() == 19 && megaTileAt(i + 1, j).current() == 19 && megaTileAt(i + 1, j - 1).current() == 30)
+				megaTileAt(i + 1, j).setCurrent(24);
+			if (megaTileAt(i, j).current() == 24 && megaTileAt(i, j - 1).current() == 30 && megaTileAt(i, j - 2).current() == 6)
+				megaTileAt(i, j - 1).setCurrent(21);
+			if (megaTileAt(i, j).current() == 2 && megaTileAt(i + 1, j).current() == 30)
+				megaTileAt(i + 1, j).setCurrent(28);
+			if (megaTileAt(i, j).current() == 15 && megaTileAt(i + 1, j).current() == 30)
+				megaTileAt(i + 1, j).setCurrent(28);
+			if (megaTileAt(i, j).current() == 28 && megaTileAt(i, j + 1).current() == 30)
+				megaTileAt(i, j + 1).setCurrent(18);
+			if (megaTileAt(i, j).current() == 28 && megaTileAt(i, j + 1).current() == 2)
+				megaTileAt(i, j + 1).setCurrent(15);
+			if (megaTileAt(i, j).current() == 19 && megaTileAt(i + 2, j).current() == 2 && megaTileAt(i + 1, j - 1).current() == 18 && megaTileAt(i + 1, j + 1).current() == 1)
+				megaTileAt(i + 1, j).setCurrent(17);
+			if (megaTileAt(i, j).current() == 19 && megaTileAt(i + 2, j).current() == 2 && megaTileAt(i + 1, j - 1).current() == 22 && megaTileAt(i + 1, j + 1).current() == 1)
+				megaTileAt(i + 1, j).setCurrent(17);
+			if (megaTileAt(i, j).current() == 19 && megaTileAt(i + 2, j).current() == 2 && megaTileAt(i + 1, j - 1).current() == 18 && megaTileAt(i + 1, j + 1).current() == 13)
+				megaTileAt(i + 1, j).setCurrent(17);
+			if (megaTileAt(i, j).current() == 21 && megaTileAt(i + 2, j).current() == 2 && megaTileAt(i + 1, j - 1).current() == 18 && megaTileAt(i + 1, j + 1).current() == 1)
+				megaTileAt(i + 1, j).setCurrent(17);
+			if (megaTileAt(i, j).current() == 21 && megaTileAt(i + 1, j + 1).current() == 1 && megaTileAt(i + 1, j - 1).current() == 22 && megaTileAt(i + 2, j).current() == 3)
+				megaTileAt(i + 1, j).setCurrent(17);
+			if (megaTileAt(i, j).current() == 15 && megaTileAt(i + 1, j).current() == 28 && megaTileAt(i + 2, j).current() == 30 && megaTileAt(i + 1, j - 1).current() == 6)
+				megaTileAt(i + 1, j).setCurrent(23);
+			if (megaTileAt(i, j).current() == 14 && megaTileAt(i + 1, j).current() == 28 && megaTileAt(i + 2, j).current() == 1)
+				megaTileAt(i + 1, j).setCurrent(23);
+			if (megaTileAt(i, j).current() == 15 && megaTileAt(i + 1, j).current() == 27 && megaTileAt(i + 1, j + 1).current() == 30)
+				megaTileAt(i + 1, j).setCurrent(29);
+			if (megaTileAt(i, j).current() == 28 && megaTileAt(i, j + 1).current() == 9)
+				megaTileAt(i, j + 1).setCurrent(15);
+			if (megaTileAt(i, j).current() == 21 && megaTileAt(i + 1, j - 1).current() == 21)
+				megaTileAt(i + 1, j).setCurrent(24);
+			if (megaTileAt(i, j).current() == 2 && megaTileAt(i + 1, j).current() == 27 && megaTileAt(i + 1, j + 1).current() == 30)
+				megaTileAt(i + 1, j).setCurrent(29);
+			if (megaTileAt(i, j).current() == 2 && megaTileAt(i + 1, j).current() == 18)
+				megaTileAt(i + 1, j).setCurrent(25);
+			if (megaTileAt(i, j).current() == 21 && megaTileAt(i + 1, j).current() == 9 && megaTileAt(i + 2, j).current() == 2)
+				megaTileAt(i + 1, j).setCurrent(11);
+			if (megaTileAt(i, j).current() == 19 && megaTileAt(i + 1, j).current() == 10)
+				megaTileAt(i + 1, j).setCurrent(17);
+			if (megaTileAt(i, j).current() == 15 && megaTileAt(i, j + 1).current() == 3)
+				megaTileAt(i, j + 1).setCurrent(4);
+			if (megaTileAt(i, j).current() == 22 && megaTileAt(i, j + 1).current() == 9)
+				megaTileAt(i, j + 1).setCurrent(15);
+			if (megaTileAt(i, j).current() == 18 && megaTileAt(i, j + 1).current() == 30)
+				megaTileAt(i, j + 1).setCurrent(18);
+			if (megaTileAt(i, j).current() == 24 && megaTileAt(i - 1, j).current() == 30)
+				megaTileAt(i - 1, j).setCurrent(19);
+			if (megaTileAt(i, j).current() == 21 && megaTileAt(i, j + 1).current() == 2)
+				megaTileAt(i, j + 1).setCurrent(15);
+			if (megaTileAt(i, j).current() == 21 && megaTileAt(i, j + 1).current() == 9)
+				megaTileAt(i, j + 1).setCurrent(10);
+			if (megaTileAt(i, j).current() == 22 && megaTileAt(i, j + 1).current() == 30)
+				megaTileAt(i, j + 1).setCurrent(18);
+			if (megaTileAt(i, j).current() == 21 && megaTileAt(i, j + 1).current() == 30)
+				megaTileAt(i, j + 1).setCurrent(18);
+			if (megaTileAt(i, j).current() == 16 && megaTileAt(i, j + 1).current() == 2)
+				megaTileAt(i, j + 1).setCurrent(15);
+			if (megaTileAt(i, j).current() == 13 && megaTileAt(i, j + 1).current() == 2)
+				megaTileAt(i, j + 1).setCurrent(15);
+			if (megaTileAt(i, j).current() == 22 && megaTileAt(i, j + 1).current() == 2)
+				megaTileAt(i, j + 1).setCurrent(15);
+			if (megaTileAt(i, j).current() == 21 && megaTileAt(i + 1, j).current() == 18 && megaTileAt(i + 2, j).current() == 30)
+				megaTileAt(i + 1, j).setCurrent(24);
+			if (megaTileAt(i, j).current() == 21 && megaTileAt(i + 1, j).current() == 9 && megaTileAt(i + 1, j + 1).current() == 1)
+				megaTileAt(i + 1, j).setCurrent(16);
+			if (megaTileAt(i, j).current() == 2 && megaTileAt(i + 1, j).current() == 27 && megaTileAt(i + 1, j + 1).current() == 2)
+				megaTileAt(i + 1, j).setCurrent(29);
+			if (megaTileAt(i, j).current() == 23 && megaTileAt(i, j + 1).current() == 2)
+				megaTileAt(i, j + 1).setCurrent(15);
+			if (megaTileAt(i, j).current() == 23 && megaTileAt(i, j + 1).current() == 9)
+				megaTileAt(i, j + 1).setCurrent(15);
+			if (megaTileAt(i, j).current() == 25 && megaTileAt(i, j + 1).current() == 2)
+				megaTileAt(i, j + 1).setCurrent(15);
+			if (megaTileAt(i, j).current() == 22 && megaTileAt(i + 1, j).current() == 9)
+				megaTileAt(i + 1, j).setCurrent(11);
+			if (megaTileAt(i, j).current() == 23 && megaTileAt(i + 1, j).current() == 9)
+				megaTileAt(i + 1, j).setCurrent(11);
+			if (megaTileAt(i, j).current() == 15 && megaTileAt(i + 1, j).current() == 1)
+				megaTileAt(i + 1, j).setCurrent(16);
+			if (megaTileAt(i, j).current() == 11 && megaTileAt(i + 1, j).current() == 15)
+				megaTileAt(i + 1, j).setCurrent(14);
+			if (megaTileAt(i, j).current() == 23 && megaTileAt(i + 1, j).current() == 1)
+				megaTileAt(i + 1, j).setCurrent(16);
+			if (megaTileAt(i, j).current() == 21 && megaTileAt(i + 1, j).current() == 27)
+				megaTileAt(i + 1, j).setCurrent(26);
+			if (megaTileAt(i, j).current() == 21 && megaTileAt(i + 1, j).current() == 18)
+				megaTileAt(i + 1, j).setCurrent(24);
+			if (megaTileAt(i, j).current() == 26 && megaTileAt(i + 1, j).current() == 1)
+				megaTileAt(i + 1, j).setCurrent(16);
+			if (megaTileAt(i, j).current() == 29 && megaTileAt(i + 1, j).current() == 1)
+				megaTileAt(i + 1, j).setCurrent(16);
+			if (megaTileAt(i, j).current() == 29 && megaTileAt(i, j + 1).current() == 2)
+				megaTileAt(i, j + 1).setCurrent(15);
+			if (megaTileAt(i, j).current() == 1 && megaTileAt(i, j - 1).current() == 15)
+				megaTileAt(i, j - 1).setCurrent(10);
+			if (megaTileAt(i, j).current() == 18 && megaTileAt(i, j + 1).current() == 2)
+				megaTileAt(i, j + 1).setCurrent(15);
+			if (megaTileAt(i, j).current() == 23 && megaTileAt(i, j + 1).current() == 30)
+				megaTileAt(i, j + 1).setCurrent(18);
+			if (megaTileAt(i, j).current() == 18 && megaTileAt(i, j + 1).current() == 9)
+				megaTileAt(i, j + 1).setCurrent(10);
+			if (megaTileAt(i, j).current() == 14 && megaTileAt(i + 1, j).current() == 30 && megaTileAt(i + 1, j + 1).current() == 30)
+				megaTileAt(i + 1, j).setCurrent(23);
+			if (megaTileAt(i, j).current() == 2 && megaTileAt(i + 1, j).current() == 28 && megaTileAt(i + 1, j - 1).current() == 6)
+				megaTileAt(i + 1, j).setCurrent(23);
+			if (megaTileAt(i, j).current() == 23 && megaTileAt(i + 1, j).current() == 18 && megaTileAt(i, j - 1).current() == 6)
+				megaTileAt(i + 1, j).setCurrent(24);
+			if (megaTileAt(i, j).current() == 14 && megaTileAt(i + 1, j).current() == 23 && megaTileAt(i + 2, j).current() == 30)
+				megaTileAt(i + 1, j).setCurrent(28);
+			if (megaTileAt(i, j).current() == 14 && megaTileAt(i + 1, j).current() == 28 && megaTileAt(i + 2, j).current() == 30 && megaTileAt(i + 1, j - 1).current() == 6)
+				megaTileAt(i + 1, j).setCurrent(23);
+			if (megaTileAt(i, j).current() == 23 && megaTileAt(i + 1, j).current() == 30)
+				megaTileAt(i + 1, j).setCurrent(19);
+			if (megaTileAt(i, j).current() == 29 && megaTileAt(i + 1, j).current() == 30)
+				megaTileAt(i + 1, j).setCurrent(19);
+			if (megaTileAt(i, j).current() == 29 && megaTileAt(i, j + 1).current() == 30)
+				megaTileAt(i, j + 1).setCurrent(18);
+			if (megaTileAt(i, j).current() == 19 && megaTileAt(i + 1, j).current() == 30)
+				megaTileAt(i + 1, j).setCurrent(19);
+			if (megaTileAt(i, j).current() == 21 && megaTileAt(i + 1, j).current() == 30)
+				megaTileAt(i + 1, j).setCurrent(19);
+			if (megaTileAt(i, j).current() == 26 && megaTileAt(i + 1, j).current() == 30)
+				megaTileAt(i + 1, j).setCurrent(19);
+			if (megaTileAt(i, j).current() == 16 && megaTileAt(i, j + 1).current() == 30)
+				megaTileAt(i, j + 1).setCurrent(18);
+			if (megaTileAt(i, j).current() == 13 && megaTileAt(i, j + 1).current() == 9)
+				megaTileAt(i, j + 1).setCurrent(10);
+			if (megaTileAt(i, j).current() == 25 && megaTileAt(i, j + 1).current() == 30)
+				megaTileAt(i, j + 1).setCurrent(18);
+			if (megaTileAt(i, j).current() == 18 && megaTileAt(i, j + 1).current() == 2)
+				megaTileAt(i, j + 1).setCurrent(15);
+			if (megaTileAt(i, j).current() == 11 && megaTileAt(i + 1, j).current() == 3)
+				megaTileAt(i + 1, j).setCurrent(5);
+			if (megaTileAt(i, j).current() == 19 && megaTileAt(i + 1, j).current() == 9)
+				megaTileAt(i + 1, j).setCurrent(11);
+			if (megaTileAt(i, j).current() == 19 && megaTileAt(i + 1, j).current() == 1)
+				megaTileAt(i + 1, j).setCurrent(13);
+			if (megaTileAt(i, j).current() == 19 && megaTileAt(i + 1, j).current() == 13 && megaTileAt(i + 1, j - 1).current() == 6)
+				megaTileAt(i + 1, j).setCurrent(16);
 		}
 	}
 
 	for (int j = 0; j < DMAXY; j++) {
 		for (int i = 0; i < DMAXX; i++) {
-			if (dungeon[i][j] == 21 && dungeon[i][j + 1] == 24 && dungeon[i][j + 2] == 1)
-				dungeon[i][j + 1] = 17;
-			if (dungeon[i][j] == 15 && dungeon[i + 1][j + 1] == 9 && dungeon[i + 1][j - 1] == 1 && dungeon[i + 2][j] == 16)
-				dungeon[i + 1][j] = 29;
-			if (dungeon[i][j] == 2 && dungeon[i - 1][j] == 6)
-				dungeon[i - 1][j] = 8;
-			if (dungeon[i][j] == 1 && dungeon[i][j - 1] == 6)
-				dungeon[i][j - 1] = 7;
-			if (dungeon[i][j] == 6 && dungeon[i + 1][j] == 15 && dungeon[i + 1][j + 1] == 4)
-				dungeon[i + 1][j] = 10;
-			if (dungeon[i][j] == 1 && dungeon[i][j + 1] == 3)
-				dungeon[i][j + 1] = 4;
-			if (dungeon[i][j] == 1 && dungeon[i][j + 1] == 6)
-				dungeon[i][j + 1] = 4;
-			if (dungeon[i][j] == 9 && dungeon[i][j + 1] == 3)
-				dungeon[i][j + 1] = 4;
-			if (dungeon[i][j] == 10 && dungeon[i][j + 1] == 3)
-				dungeon[i][j + 1] = 4;
-			if (dungeon[i][j] == 13 && dungeon[i][j + 1] == 3)
-				dungeon[i][j + 1] = 4;
-			if (dungeon[i][j] == 1 && dungeon[i][j + 1] == 5)
-				dungeon[i][j + 1] = 12;
-			if (dungeon[i][j] == 1 && dungeon[i][j + 1] == 16)
-				dungeon[i][j + 1] = 13;
-			if (dungeon[i][j] == 6 && dungeon[i][j + 1] == 13)
-				dungeon[i][j + 1] = 16;
-			if (dungeon[i][j] == 25 && dungeon[i][j + 1] == 9)
-				dungeon[i][j + 1] = 10;
-			if (dungeon[i][j] == 13 && dungeon[i][j + 1] == 5)
-				dungeon[i][j + 1] = 12;
-			if (dungeon[i][j] == 28 && dungeon[i][j - 1] == 6 && dungeon[i + 1][j] == 1)
-				dungeon[i + 1][j] = 23;
-			if (dungeon[i][j] == 19 && dungeon[i + 1][j] == 10)
-				dungeon[i + 1][j] = 17;
-			if (dungeon[i][j] == 21 && dungeon[i + 1][j] == 9)
-				dungeon[i + 1][j] = 11;
-			if (dungeon[i][j] == 11 && dungeon[i + 1][j] == 3)
-				dungeon[i + 1][j] = 5;
-			if (dungeon[i][j] == 10 && dungeon[i + 1][j] == 4)
-				dungeon[i + 1][j] = 12;
-			if (dungeon[i][j] == 14 && dungeon[i + 1][j] == 4)
-				dungeon[i + 1][j] = 12;
-			if (dungeon[i][j] == 27 && dungeon[i + 1][j] == 9)
-				dungeon[i + 1][j] = 11;
-			if (dungeon[i][j] == 15 && dungeon[i + 1][j] == 4)
-				dungeon[i + 1][j] = 12;
-			if (dungeon[i][j] == 21 && dungeon[i + 1][j] == 1)
-				dungeon[i + 1][j] = 16;
-			if (dungeon[i][j] == 11 && dungeon[i + 1][j] == 4)
-				dungeon[i + 1][j] = 12;
-			if (dungeon[i][j] == 2 && dungeon[i + 1][j] == 3)
-				dungeon[i + 1][j] = 5;
-			if (dungeon[i][j] == 9 && dungeon[i + 1][j] == 3)
-				dungeon[i + 1][j] = 5;
-			if (dungeon[i][j] == 14 && dungeon[i + 1][j] == 3)
-				dungeon[i + 1][j] = 5;
-			if (dungeon[i][j] == 15 && dungeon[i + 1][j] == 3)
-				dungeon[i + 1][j] = 5;
-			if (dungeon[i][j] == 2 && dungeon[i + 1][j] == 5 && dungeon[i + 1][j - 1] == 16)
-				dungeon[i + 1][j] = 12;
-			if (dungeon[i][j] == 2 && dungeon[i + 1][j] == 4)
-				dungeon[i + 1][j] = 12;
-			if (dungeon[i][j] == 9 && dungeon[i + 1][j] == 4)
-				dungeon[i + 1][j] = 12;
-			if (dungeon[i][j] == 1 && dungeon[i][j - 1] == 8)
-				dungeon[i][j - 1] = 9;
-			if (dungeon[i][j] == 28 && dungeon[i + 1][j] == 23 && dungeon[i + 1][j + 1] == 3)
-				dungeon[i + 1][j] = 16;
+			if (megaTileAt(i, j).current() == 21 && megaTileAt(i, j + 1).current() == 24 && megaTileAt(i, j + 2).current() == 1)
+				megaTileAt(i, j + 1).setCurrent(17);
+			if (megaTileAt(i, j).current() == 15 && megaTileAt(i + 1, j + 1).current() == 9 && megaTileAt(i + 1, j - 1).current() == 1 && megaTileAt(i + 2, j).current() == 16)
+				megaTileAt(i + 1, j).setCurrent(29);
+			if (megaTileAt(i, j).current() == 2 && megaTileAt(i - 1, j).current() == 6)
+				megaTileAt(i - 1, j).setCurrent(8);
+			if (megaTileAt(i, j).current() == 1 && megaTileAt(i, j - 1).current() == 6)
+				megaTileAt(i, j - 1).setCurrent(7);
+			if (megaTileAt(i, j).current() == 6 && megaTileAt(i + 1, j).current() == 15 && megaTileAt(i + 1, j + 1).current() == 4)
+				megaTileAt(i + 1, j).setCurrent(10);
+			if (megaTileAt(i, j).current() == 1 && megaTileAt(i, j + 1).current() == 3)
+				megaTileAt(i, j + 1).setCurrent(4);
+			if (megaTileAt(i, j).current() == 1 && megaTileAt(i, j + 1).current() == 6)
+				megaTileAt(i, j + 1).setCurrent(4);
+			if (megaTileAt(i, j).current() == 9 && megaTileAt(i, j + 1).current() == 3)
+				megaTileAt(i, j + 1).setCurrent(4);
+			if (megaTileAt(i, j).current() == 10 && megaTileAt(i, j + 1).current() == 3)
+				megaTileAt(i, j + 1).setCurrent(4);
+			if (megaTileAt(i, j).current() == 13 && megaTileAt(i, j + 1).current() == 3)
+				megaTileAt(i, j + 1).setCurrent(4);
+			if (megaTileAt(i, j).current() == 1 && megaTileAt(i, j + 1).current() == 5)
+				megaTileAt(i, j + 1).setCurrent(12);
+			if (megaTileAt(i, j).current() == 1 && megaTileAt(i, j + 1).current() == 16)
+				megaTileAt(i, j + 1).setCurrent(13);
+			if (megaTileAt(i, j).current() == 6 && megaTileAt(i, j + 1).current() == 13)
+				megaTileAt(i, j + 1).setCurrent(16);
+			if (megaTileAt(i, j).current() == 25 && megaTileAt(i, j + 1).current() == 9)
+				megaTileAt(i, j + 1).setCurrent(10);
+			if (megaTileAt(i, j).current() == 13 && megaTileAt(i, j + 1).current() == 5)
+				megaTileAt(i, j + 1).setCurrent(12);
+			if (megaTileAt(i, j).current() == 28 && megaTileAt(i, j - 1).current() == 6 && megaTileAt(i + 1, j).current() == 1)
+				megaTileAt(i + 1, j).setCurrent(23);
+			if (megaTileAt(i, j).current() == 19 && megaTileAt(i + 1, j).current() == 10)
+				megaTileAt(i + 1, j).setCurrent(17);
+			if (megaTileAt(i, j).current() == 21 && megaTileAt(i + 1, j).current() == 9)
+				megaTileAt(i + 1, j).setCurrent(11);
+			if (megaTileAt(i, j).current() == 11 && megaTileAt(i + 1, j).current() == 3)
+				megaTileAt(i + 1, j).setCurrent(5);
+			if (megaTileAt(i, j).current() == 10 && megaTileAt(i + 1, j).current() == 4)
+				megaTileAt(i + 1, j).setCurrent(12);
+			if (megaTileAt(i, j).current() == 14 && megaTileAt(i + 1, j).current() == 4)
+				megaTileAt(i + 1, j).setCurrent(12);
+			if (megaTileAt(i, j).current() == 27 && megaTileAt(i + 1, j).current() == 9)
+				megaTileAt(i + 1, j).setCurrent(11);
+			if (megaTileAt(i, j).current() == 15 && megaTileAt(i + 1, j).current() == 4)
+				megaTileAt(i + 1, j).setCurrent(12);
+			if (megaTileAt(i, j).current() == 21 && megaTileAt(i + 1, j).current() == 1)
+				megaTileAt(i + 1, j).setCurrent(16);
+			if (megaTileAt(i, j).current() == 11 && megaTileAt(i + 1, j).current() == 4)
+				megaTileAt(i + 1, j).setCurrent(12);
+			if (megaTileAt(i, j).current() == 2 && megaTileAt(i + 1, j).current() == 3)
+				megaTileAt(i + 1, j).setCurrent(5);
+			if (megaTileAt(i, j).current() == 9 && megaTileAt(i + 1, j).current() == 3)
+				megaTileAt(i + 1, j).setCurrent(5);
+			if (megaTileAt(i, j).current() == 14 && megaTileAt(i + 1, j).current() == 3)
+				megaTileAt(i + 1, j).setCurrent(5);
+			if (megaTileAt(i, j).current() == 15 && megaTileAt(i + 1, j).current() == 3)
+				megaTileAt(i + 1, j).setCurrent(5);
+			if (megaTileAt(i, j).current() == 2 && megaTileAt(i + 1, j).current() == 5 && megaTileAt(i + 1, j - 1).current() == 16)
+				megaTileAt(i + 1, j).setCurrent(12);
+			if (megaTileAt(i, j).current() == 2 && megaTileAt(i + 1, j).current() == 4)
+				megaTileAt(i + 1, j).setCurrent(12);
+			if (megaTileAt(i, j).current() == 9 && megaTileAt(i + 1, j).current() == 4)
+				megaTileAt(i + 1, j).setCurrent(12);
+			if (megaTileAt(i, j).current() == 1 && megaTileAt(i, j - 1).current() == 8)
+				megaTileAt(i, j - 1).setCurrent(9);
+			if (megaTileAt(i, j).current() == 28 && megaTileAt(i + 1, j).current() == 23 && megaTileAt(i + 1, j + 1).current() == 3)
+				megaTileAt(i + 1, j).setCurrent(16);
 		}
 	}
 
 	for (int j = 0; j < DMAXY; j++) {
 		for (int i = 0; i < DMAXX; i++) {
-			if (dungeon[i][j] == 21 && dungeon[i + 1][j] == 10)
-				dungeon[i + 1][j] = 17;
-			if (dungeon[i][j] == 17 && dungeon[i + 1][j] == 4)
-				dungeon[i + 1][j] = 12;
-			if (dungeon[i][j] == 10 && dungeon[i + 1][j] == 4)
-				dungeon[i + 1][j] = 12;
-			if (dungeon[i][j] == 17 && dungeon[i][j + 1] == 5)
-				dungeon[i][j + 1] = 12;
-			if (dungeon[i][j] == 29 && dungeon[i][j + 1] == 9)
-				dungeon[i][j + 1] = 10;
-			if (dungeon[i][j] == 13 && dungeon[i][j + 1] == 5)
-				dungeon[i][j + 1] = 12;
-			if (dungeon[i][j] == 9 && dungeon[i][j + 1] == 16)
-				dungeon[i][j + 1] = 13;
-			if (dungeon[i][j] == 10 && dungeon[i][j + 1] == 16)
-				dungeon[i][j + 1] = 13;
-			if (dungeon[i][j] == 16 && dungeon[i][j + 1] == 3)
-				dungeon[i][j + 1] = 4;
-			if (dungeon[i][j] == 11 && dungeon[i][j + 1] == 5)
-				dungeon[i][j + 1] = 12;
-			if (dungeon[i][j] == 10 && dungeon[i + 1][j] == 3 && dungeon[i + 1][j - 1] == 16)
-				dungeon[i + 1][j] = 12;
-			if (dungeon[i][j] == 16 && dungeon[i][j + 1] == 5)
-				dungeon[i][j + 1] = 12;
-			if (dungeon[i][j] == 1 && dungeon[i][j + 1] == 6)
-				dungeon[i][j + 1] = 4;
-			if (dungeon[i][j] == 21 && dungeon[i + 1][j] == 13 && dungeon[i][j + 1] == 10)
-				dungeon[i + 1][j + 1] = 12;
-			if (dungeon[i][j] == 15 && dungeon[i + 1][j] == 10)
-				dungeon[i + 1][j] = 17;
-			if (dungeon[i][j] == 22 && dungeon[i][j + 1] == 11)
-				dungeon[i][j + 1] = 17;
-			if (dungeon[i][j] == 15 && dungeon[i + 1][j] == 28 && dungeon[i + 2][j] == 16)
-				dungeon[i + 1][j] = 23;
-			if (dungeon[i][j] == 28 && dungeon[i + 1][j] == 23 && dungeon[i + 1][j + 1] == 1 && dungeon[i + 2][j] == 6)
-				dungeon[i + 1][j] = 16;
+			if (megaTileAt(i, j).current() == 21 && megaTileAt(i + 1, j).current() == 10)
+				megaTileAt(i + 1, j).setCurrent(17);
+			if (megaTileAt(i, j).current() == 17 && megaTileAt(i + 1, j).current() == 4)
+				megaTileAt(i + 1, j).setCurrent(12);
+			if (megaTileAt(i, j).current() == 10 && megaTileAt(i + 1, j).current() == 4)
+				megaTileAt(i + 1, j).setCurrent(12);
+			if (megaTileAt(i, j).current() == 17 && megaTileAt(i, j + 1).current() == 5)
+				megaTileAt(i, j + 1).setCurrent(12);
+			if (megaTileAt(i, j).current() == 29 && megaTileAt(i, j + 1).current() == 9)
+				megaTileAt(i, j + 1).setCurrent(10);
+			if (megaTileAt(i, j).current() == 13 && megaTileAt(i, j + 1).current() == 5)
+				megaTileAt(i, j + 1).setCurrent(12);
+			if (megaTileAt(i, j).current() == 9 && megaTileAt(i, j + 1).current() == 16)
+				megaTileAt(i, j + 1).setCurrent(13);
+			if (megaTileAt(i, j).current() == 10 && megaTileAt(i, j + 1).current() == 16)
+				megaTileAt(i, j + 1).setCurrent(13);
+			if (megaTileAt(i, j).current() == 16 && megaTileAt(i, j + 1).current() == 3)
+				megaTileAt(i, j + 1).setCurrent(4);
+			if (megaTileAt(i, j).current() == 11 && megaTileAt(i, j + 1).current() == 5)
+				megaTileAt(i, j + 1).setCurrent(12);
+			if (megaTileAt(i, j).current() == 10 && megaTileAt(i + 1, j).current() == 3 && megaTileAt(i + 1, j - 1).current() == 16)
+				megaTileAt(i + 1, j).setCurrent(12);
+			if (megaTileAt(i, j).current() == 16 && megaTileAt(i, j + 1).current() == 5)
+				megaTileAt(i, j + 1).setCurrent(12);
+			if (megaTileAt(i, j).current() == 1 && megaTileAt(i, j + 1).current() == 6)
+				megaTileAt(i, j + 1).setCurrent(4);
+			if (megaTileAt(i, j).current() == 21 && megaTileAt(i + 1, j).current() == 13 && megaTileAt(i, j + 1).current() == 10)
+				megaTileAt(i + 1, j + 1).setCurrent(12);
+			if (megaTileAt(i, j).current() == 15 && megaTileAt(i + 1, j).current() == 10)
+				megaTileAt(i + 1, j).setCurrent(17);
+			if (megaTileAt(i, j).current() == 22 && megaTileAt(i, j + 1).current() == 11)
+				megaTileAt(i, j + 1).setCurrent(17);
+			if (megaTileAt(i, j).current() == 15 && megaTileAt(i + 1, j).current() == 28 && megaTileAt(i + 2, j).current() == 16)
+				megaTileAt(i + 1, j).setCurrent(23);
+			if (megaTileAt(i, j).current() == 28 && megaTileAt(i + 1, j).current() == 23 && megaTileAt(i + 1, j + 1).current() == 1 && megaTileAt(i + 2, j).current() == 6)
+				megaTileAt(i + 1, j).setCurrent(16);
 		}
 	}
 
 	for (int j = 0; j < DMAXY; j++) {
 		for (int i = 0; i < DMAXX; i++) {
-			if (dungeon[i][j] == 15 && dungeon[i + 1][j] == 28 && dungeon[i + 2][j] == 16)
-				dungeon[i + 1][j] = 23;
-			if (dungeon[i][j] == 21 && dungeon[i + 1][j - 1] == 21 && dungeon[i + 1][j + 1] == 13 && dungeon[i + 2][j] == 2)
-				dungeon[i + 1][j] = 17;
-			if (dungeon[i][j] == 19 && dungeon[i + 1][j] == 15 && dungeon[i + 1][j + 1] == 12)
-				dungeon[i + 1][j] = 17;
+			if (megaTileAt(i, j).current() == 15 && megaTileAt(i + 1, j).current() == 28 && megaTileAt(i + 2, j).current() == 16)
+				megaTileAt(i + 1, j).setCurrent(23);
+			if (megaTileAt(i, j).current() == 21 && megaTileAt(i + 1, j - 1).current() == 21 && megaTileAt(i + 1, j + 1).current() == 13 && megaTileAt(i + 2, j).current() == 2)
+				megaTileAt(i + 1, j).setCurrent(17);
+			if (megaTileAt(i, j).current() == 19 && megaTileAt(i + 1, j).current() == 15 && megaTileAt(i + 1, j + 1).current() == 12)
+				megaTileAt(i + 1, j).setCurrent(17);
 		}
 	}
 }
@@ -832,7 +832,7 @@ void Substitution()
 	for (int y = 0; y < DMAXY; y++) {
 		for (int x = 0; x < DMAXX; x++) {
 			if (FlipCoin(3)) {
-				const uint8_t c = L4BTYPES[dungeon[x][y]];
+				const uint8_t c = L4BTYPES[megaTileAt(x, y).current()];
 				if (c != 0 && !Protected.test(x, y)) {
 					int rv = GenerateRnd(16);
 					int i = -1;
@@ -846,7 +846,7 @@ void Substitution()
 						}
 					}
 
-					dungeon[x][y] = i;
+					megaTileAt(x, y).setCurrent(i);
 				}
 			}
 		}
@@ -854,9 +854,9 @@ void Substitution()
 	for (int y = 0; y < DMAXY; y++) {
 		for (int x = 0; x < DMAXX; x++) {
 			if (FlipCoin(10)) {
-				const uint8_t c = dungeon[x][y];
+				const uint8_t c = megaTileAt(x, y).current();
 				if (L4BTYPES[c] == 6 && !Protected.test(x, y)) {
-					dungeon[x][y] = PickRandomlyAmong({ 95, 96, 97 });
+					megaTileAt(x, y).setCurrent(PickRandomlyAmong({ 95, 96, 97 }));
 				}
 			}
 		}
@@ -1017,36 +1017,39 @@ void FixTransparency()
 	for (int j = 0; j < DMAXY; j++) {
 		int xx = 16;
 		for (int i = 0; i < DMAXX; i++) {
+			const int8_t transVal = tileAt(xx, yy).transVal();
 			// BUGFIX: Should check for `j > 0` first.
-			if (IsDURightWall(dungeon[i][j]) && dungeon[i][j - 1] == 18) {
-				dTransVal[xx + 1][yy] = dTransVal[xx][yy];
-				dTransVal[xx + 1][yy + 1] = dTransVal[xx][yy];
+			if (IsDURightWall(megaTileAt(i, j).current()) && megaTileAt(i, j - 1).current() == 18) {
+				tileAt(xx + 1, yy).setTransVal(transVal);
+				tileAt(xx + 1, yy + 1).setTransVal(transVal);
 			}
 			// BUGFIX: Should check for `i + 1 < DMAXY` first.
-			if (IsDLLeftWall(dungeon[i][j]) && dungeon[i + 1][j] == 19) {
-				dTransVal[xx][yy + 1] = dTransVal[xx][yy];
-				dTransVal[xx + 1][yy + 1] = dTransVal[xx][yy];
+			if (IsDLLeftWall(megaTileAt(i, j).current()) && megaTileAt(i + 1, j).current() == 19) {
+				tileAt(xx, yy + 1).setTransVal(transVal);
+				tileAt(xx + 1, yy + 1).setTransVal(transVal);
 			}
-			if (dungeon[i][j] == 18) {
-				dTransVal[xx + 1][yy] = dTransVal[xx][yy];
-				dTransVal[xx + 1][yy + 1] = dTransVal[xx][yy];
+			if (megaTileAt(i, j).current() == 18) {
+				tileAt(xx + 1, yy).setTransVal(transVal);
+				tileAt(xx + 1, yy + 1).setTransVal(transVal);
 			}
-			if (dungeon[i][j] == 19) {
-				dTransVal[xx][yy + 1] = dTransVal[xx][yy];
-				dTransVal[xx + 1][yy + 1] = dTransVal[xx][yy];
+			if (megaTileAt(i, j).current() == 19) {
+				tileAt(xx, yy + 1).setTransVal(transVal);
+				tileAt(xx + 1, yy + 1).setTransVal(transVal);
 			}
-			if (dungeon[i][j] == 24) {
-				dTransVal[xx + 1][yy] = dTransVal[xx][yy];
-				dTransVal[xx][yy + 1] = dTransVal[xx][yy];
-				dTransVal[xx + 1][yy + 1] = dTransVal[xx][yy];
+			if (megaTileAt(i, j).current() == 24) {
+				tileAt(xx + 1, yy).setTransVal(transVal);
+				tileAt(xx, yy + 1).setTransVal(transVal);
+				tileAt(xx + 1, yy + 1).setTransVal(transVal);
 			}
-			if (dungeon[i][j] == 57) {
-				dTransVal[xx - 1][yy] = dTransVal[xx][yy + 1];
-				dTransVal[xx][yy] = dTransVal[xx][yy + 1];
+			if (megaTileAt(i, j).current() == 57) {
+				const int8_t lowerTransVal = tileAt(xx, yy + 1).transVal();
+				tileAt(xx - 1, yy).setTransVal(lowerTransVal);
+				tileAt(xx, yy).setTransVal(lowerTransVal);
 			}
-			if (dungeon[i][j] == 53) {
-				dTransVal[xx][yy - 1] = dTransVal[xx + 1][yy];
-				dTransVal[xx][yy] = dTransVal[xx + 1][yy];
+			if (megaTileAt(i, j).current() == 53) {
+				const int8_t rightTransVal = tileAt(xx + 1, yy).transVal();
+				tileAt(xx, yy - 1).setTransVal(rightTransVal);
+				tileAt(xx, yy).setTransVal(rightTransVal);
 			}
 			xx += 2;
 		}
@@ -1058,9 +1061,9 @@ void FixCornerTiles()
 {
 	for (int j = 1; j < DMAXY - 1; j++) {
 		for (int i = 1; i < DMAXX - 1; i++) {
-			if (dungeon[i][j] >= 18 && dungeon[i][j] <= 30) {
-				if (dungeon[i + 1][j] < 18 || dungeon[i][j + 1] < 18) {
-					dungeon[i][j] += 98;
+			if (megaTileAt(i, j).current() >= 18 && megaTileAt(i, j).current() <= 30) {
+				if (megaTileAt(i + 1, j).current() < 18 || megaTileAt(i, j + 1).current() < 18) {
+					megaTileAt(i, j).setCurrent(megaTileAt(i, j).current() + (98));
 				}
 			}
 		}
@@ -1084,8 +1087,8 @@ void GeneralFix()
 {
 	for (int j = 0; j < DMAXY - 1; j++) {
 		for (int i = 0; i < DMAXX - 1; i++) {
-			if ((dungeon[i][j] == 24 || dungeon[i][j] == 122) && dungeon[i + 1][j] == 2 && dungeon[i][j + 1] == 5) {
-				dungeon[i][j] = 17;
+			if ((megaTileAt(i, j).current() == 24 || megaTileAt(i, j).current() == 122) && megaTileAt(i + 1, j).current() == 2 && megaTileAt(i, j + 1).current() == 5) {
+				megaTileAt(i, j).setCurrent(17);
 			}
 		}
 	}
@@ -1190,7 +1193,7 @@ void GenerateLevel(lvl_entry entry)
 	FixCornerTiles();
 	Substitution();
 
-	memcpy(pdungeon, dungeon, sizeof(pdungeon));
+	SnapshotReplacementMegaTiles();
 
 	DRLG_CheckQuests(SetPieceRoom.position);
 
@@ -1201,7 +1204,7 @@ void GenerateLevel(lvl_entry entry)
 
 		for (WorldTileCoord j = 1; j < DMAXY; j++) {
 			for (WorldTileCoord i = 1; i < DMAXX; i++) {
-				if (IsAnyOf(dungeon[i][j], 98, 107)) {
+				if (IsAnyOf(megaTileAt(i, j).current(), 98, 107)) {
 					Make_SetPC({ WorldTilePosition(i - 1, j - 1), { 5, 5 } });
 					// Set the portal position to the location of the northmost pentagram tile.
 					Quests[Q_BETRAYER].position = Point(i, j).megaToWorld();
@@ -1232,12 +1235,12 @@ void CreateL4Dungeon(uint32_t rseed, lvl_entry entry)
 
 void LoadPreL4Dungeon(const char *path)
 {
-	memset(dungeon, 30, sizeof(dungeon));
+	FillCurrentMegaTiles(30);
 
 	auto dunData = LoadFileInMem<uint16_t>(path);
 	PlaceDunTiles(dunData.get(), { 0, 0 }, 6);
 
-	memcpy(pdungeon, dungeon, sizeof(pdungeon));
+	SnapshotReplacementMegaTiles();
 }
 
 void LoadL4Dungeon(const char *path, Point spawn)

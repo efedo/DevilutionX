@@ -34,7 +34,7 @@ std::string ExportDun()
 	/** Tiles. */
 	for (int y = 0; y < DMAXY; y++) {
 		for (int x = 0; x < DMAXX; x++) {
-			WriteLE16(dunFile, dungeon[x][y]);
+			WriteLE16(dunFile, megaTileAt(x, y).current());
 		}
 	}
 
@@ -49,9 +49,10 @@ std::string ExportDun()
 	for (int y = 16; y < MAXDUNY - 16; y++) {
 		for (int x = 16; x < MAXDUNX - 16; x++) {
 			uint16_t monsterId = 0;
-			if (dMonster[x][y] > 0) {
+			const int16_t activeMonsterId = tileAt(x, y).monster();
+			if (activeMonsterId > 0) {
 				for (int i = 0; i < 157; i++) {
-					if (MonstConvTbl[i] == Monsters[std::abs(dMonster[x][y]) - 1].type().type) {
+					if (MonstConvTbl[i] == Monsters[std::abs(activeMonsterId) - 1].type().type) {
 						monsterId = i + 1;
 						break;
 					}
@@ -81,7 +82,7 @@ std::string ExportDun()
 	/** Transparency */
 	for (int y = 16; y < MAXDUNY - 16; y++) {
 		for (int x = 16; x < MAXDUNX - 16; x++) {
-			WriteLE16(dunFile, dTransVal[x][y]);
+			WriteLE16(dunFile, tileAt(x, y).transVal());
 		}
 	}
 	std::fclose(dunFile);

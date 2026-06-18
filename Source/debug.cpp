@@ -21,6 +21,7 @@
 #include "lighting.h"
 #include "missiles.h"
 #include "monster.h"
+#include "monster_pool.h"
 #include "plrmsg.h"
 #include "utils/str_case.hpp"
 #include "utils/str_cat.hpp"
@@ -66,8 +67,8 @@ void PrintDebugMonster(const Monster &monster)
 
 	bool bActive = false;
 
-	for (size_t i = 0; i < ActiveMonsterCount; i++) {
-		if (&Monsters[ActiveMonsters[i]] == &monster) {
+	for (const unsigned m : MonsterPoolAdapter::ActiveMonsterRange()) {
+		if (&Monsters[m] == &monster) {
 			bActive = true;
 			break;
 		}
@@ -92,7 +93,7 @@ void GetDebugMonster()
 {
 	int monsterIndex = pcursmonst;
 	if (monsterIndex == -1)
-		monsterIndex = std::abs(dMonster[cursPosition.x][cursPosition.y]) - 1;
+		monsterIndex = std::abs(tileAt(cursPosition).monster()) - 1;
 
 	if (monsterIndex == -1)
 		monsterIndex = DebugMonsterId;
@@ -126,8 +127,8 @@ bool IsDebugGridInMegatiles()
 {
 	switch (SelectedDebugGridTextItem) {
 	case DebugGridTextItem::AutomapView:
-	case DebugGridTextItem::Dungeon:
-	case DebugGridTextItem::Pdungeon:
+	case DebugGridTextItem::CurrentMegaTile:
+	case DebugGridTextItem::ReplacementMegaTile:
 	case DebugGridTextItem::DProtected:
 		return true;
 	default:
@@ -169,7 +170,7 @@ bool GetDebugGridText(Point dungeonCoords, std::string &debugGridText)
 		break;
 	}
 	case DebugGridTextItem::microTiles: {
-		const MICROS &micros = DPieceMicros[dPiece[dungeonCoords.x][dungeonCoords.y]];
+		const MICROS &micros = levelMicros()[tileAt(dungeonCoords).piece()];
 		for (const LevelCelBlock tile : micros.mt) {
 			if (!tile.hasValue()) break;
 			if (!debugGridText.empty()) debugGridText += '\n';
@@ -186,27 +187,27 @@ bool GetDebugGridText(Point dungeonCoords, std::string &debugGridText)
 		return !debugGridText.empty();
 	} break;
 	case DebugGridTextItem::DPiece:
-		info = dPiece[dungeonCoords.x][dungeonCoords.y];
+		info = tileAt(dungeonCoords).piece();
 		break;
 	case DebugGridTextItem::DTransVal:
-		info = dTransVal[dungeonCoords.x][dungeonCoords.y];
+		info = tileAt(dungeonCoords).transVal();
 		break;
 	case DebugGridTextItem::DLight:
-		info = dLight[dungeonCoords.x][dungeonCoords.y];
+		info = tileAt(dungeonCoords).light();
 		blankValue = LightsMax;
 		break;
 	case DebugGridTextItem::DPreLight:
-		info = dPreLight[dungeonCoords.x][dungeonCoords.y];
+		info = tileAt(dungeonCoords).preLight();
 		blankValue = LightsMax;
 		break;
 	case DebugGridTextItem::DFlags:
-		info = static_cast<int>(dFlags[dungeonCoords.x][dungeonCoords.y]);
+		info = static_cast<int>(tileAt(dungeonCoords).flags());
 		break;
 	case DebugGridTextItem::DPlayer:
-		info = dPlayer[dungeonCoords.x][dungeonCoords.y];
+		info = tileAt(dungeonCoords).player();
 		break;
 	case DebugGridTextItem::DMonster:
-		info = dMonster[dungeonCoords.x][dungeonCoords.y];
+		info = tileAt(dungeonCoords).monster();
 		break;
 	case DebugGridTextItem::missiles: {
 		for (auto &missile : Missiles) {
@@ -218,16 +219,16 @@ bool GetDebugGridText(Point dungeonCoords, std::string &debugGridText)
 		return !debugGridText.empty();
 	} break;
 	case DebugGridTextItem::DCorpse:
-		info = dCorpse[dungeonCoords.x][dungeonCoords.y];
+		info = tileAt(dungeonCoords).corpse();
 		break;
-	case DebugGridTextItem::dItem:
-		info = dItem[dungeonCoords.x][dungeonCoords.y];
+	case DebugGridTextItem::DItem:  // Updated from dItem to DItem
+		info = tileAt(dungeonCoords).item();
 		break;
 	case DebugGridTextItem::DSpecial:
-		info = dSpecial[dungeonCoords.x][dungeonCoords.y];
+		info = tileAt(dungeonCoords).special();
 		break;
 	case DebugGridTextItem::DObject:
-		info = dObject[dungeonCoords.x][dungeonCoords.y];
+		info = tileAt(dungeonCoords).object();
 		break;
 	case DebugGridTextItem::Solid:
 		info = TileHasAny(dungeonCoords, TileProperties::Solid) << 0 | TileHasAny(dungeonCoords, TileProperties::BlockLight) << 1 | TileHasAny(dungeonCoords, TileProperties::BlockMissile) << 2;
@@ -242,13 +243,13 @@ bool GetDebugGridText(Point dungeonCoords, std::string &debugGridText)
 		if (megaCoords.x >= 0 && megaCoords.x < DMAXX && megaCoords.y >= 0 && megaCoords.y < DMAXY)
 			info = AutomapView[megaCoords.x][megaCoords.y];
 		break;
-	case DebugGridTextItem::Dungeon:
+	case DebugGridTextItem::CurrentMegaTile:
 		if (megaCoords.x >= 0 && megaCoords.x < DMAXX && megaCoords.y >= 0 && megaCoords.y < DMAXY)
-			info = dungeon[megaCoords.x][megaCoords.y];
+			info = megaTileAt(megaCoords.x, megaCoords.y).current();
 		break;
-	case DebugGridTextItem::Pdungeon:
+	case DebugGridTextItem::ReplacementMegaTile:
 		if (megaCoords.x >= 0 && megaCoords.x < DMAXX && megaCoords.y >= 0 && megaCoords.y < DMAXY)
-			info = pdungeon[megaCoords.x][megaCoords.y];
+			info = megaTileAt(megaCoords.x, megaCoords.y).replacement();
 		break;
 	case DebugGridTextItem::DProtected:
 		if (megaCoords.x >= 0 && megaCoords.x < DMAXX && megaCoords.y >= 0 && megaCoords.y < DMAXY)
@@ -280,15 +281,15 @@ bool ShouldHighlightDebugAutomapTile(Point position)
 		return false;
 	};
 
-	if (SearchMonsters.size() > 0 && dMonster[position.x][position.y] != 0) {
-		const int mi = std::abs(dMonster[position.x][position.y]) - 1;
+	if (SearchMonsters.size() > 0 && tileAt(position).hasMonster()) {
+		const int mi = std::abs(tileAt(position).monster()) - 1;
 		const Monster &monster = Monsters[mi];
 		if (matchesSearched(monster.name(), SearchMonsters))
 			return true;
 	}
 
-	if (SearchItems.size() > 0 && dItem[position.x][position.y] != 0) {
-		const int itemId = std::abs(dItem[position.x][position.y]) - 1;
+	if (SearchItems.size() > 0 && tileAt(position).item() != 0) {
+		const int itemId = std::abs(tileAt(position).item()) - 1;
 		const Item &item = Items[itemId];
 		if (matchesSearched(item.getName(), SearchItems))
 			return true;

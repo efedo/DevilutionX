@@ -1019,11 +1019,11 @@ void HealPlayer()
 {
 	Player &myPlayer = *MyPlayer;
 
-	if (myPlayer.hitPoints != myPlayer.maxHitPoints) {
+	if (myPlayer.life.current != myPlayer.life.maximum) {
 		PlaySFX(SfxID::CastHealing);
 	}
-	myPlayer.hitPoints = myPlayer.maxHitPoints;
-	myPlayer._pHPBase = myPlayer._pMaxHPBase;
+	myPlayer.life.current = myPlayer.life.maximum;
+	myPlayer.life.base = myPlayer.life.maximumBase;
 	RedrawComponent(PanelDrawComponent::Health);
 }
 

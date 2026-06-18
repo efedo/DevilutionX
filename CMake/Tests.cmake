@@ -15,6 +15,8 @@ set(tests
   appfat_test
   automap_test
   cursor_test
+  debug_console_history_test
+  debug_overlay_state_test
   dead_test
   diablo_test
   drlg_common_test
@@ -28,13 +30,18 @@ set(tests
   math_test
   missiles_test
   multi_logging_test
+  objects_test
   pack_test
+  level_micros_test
+  phase4a_lighting_test
+  phase4b_entity_test
   player_test
   quests_test
   scrollrt_test
   stores_test
   tile_properties_test
   timedemo_test
+  tile_migration_sync_test
   townerdat_test
   writehero_test
   vendor_test
@@ -74,6 +81,7 @@ set(benchmarks
   light_render_benchmark
   palette_blending_benchmark
   path_benchmark
+  phase4a_lighting_benchmark
 )
 
 include(test/Fixtures.cmake)
@@ -125,7 +133,9 @@ target_link_dependencies(clx_render_benchmark
 target_link_dependencies(crawl_test PRIVATE libdevilutionx_crawl)
 target_link_dependencies(crawl_benchmark PRIVATE libdevilutionx_crawl)
 target_link_dependencies(data_file_test PRIVATE libdevilutionx_txtdata app_fatal_for_testing language_for_testing)
-target_link_dependencies(dun_render_benchmark PRIVATE libdevilutionx)
+target_link_dependencies(debug_console_history_test PRIVATE libdevilutionx_debug_console_history)
+target_link_dependencies(debug_overlay_state_test PRIVATE libdevilutionx_debug_overlay_state)
+target_link_dependencies(dun_render_benchmark PRIVATE libdevilutionx_so)
 target_link_dependencies(file_util_test PRIVATE libdevilutionx_file_util app_fatal_for_testing)
 target_link_dependencies(format_int_test PRIVATE libdevilutionx_format_int language_for_testing)
 target_link_dependencies(ini_test PRIVATE libdevilutionx_ini app_fatal_for_testing)
@@ -142,6 +152,7 @@ target_link_dependencies(parse_int_test PRIVATE libdevilutionx_parse_int)
 target_link_dependencies(path_test PRIVATE libdevilutionx_pathfinding libdevilutionx_direction app_fatal_for_testing)
 target_link_dependencies(vision_test PRIVATE libdevilutionx_vision)
 target_link_dependencies(path_benchmark PRIVATE libdevilutionx_pathfinding app_fatal_for_testing)
+target_link_dependencies(phase4a_lighting_benchmark PRIVATE DevilutionX::SDL tl libdevilutionx_so)
 target_link_dependencies(random_test PRIVATE libdevilutionx_random)
 target_link_dependencies(static_vector_test PRIVATE libdevilutionx_random app_fatal_for_testing)
 target_link_dependencies(str_cat_test PRIVATE libdevilutionx_strings)

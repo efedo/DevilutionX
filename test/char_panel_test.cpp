@@ -232,13 +232,13 @@ TEST_F(CharPanelTest, StatValues_MatchPlayerStruct)
 	// The level-25 Warrior created by UITest should have known stat values.
 	// Just verify the getter returns matching values.
 	EXPECT_EQ(MyPlayer->GetBaseAttributeValue(CharacterAttribute::Strength),
-	    MyPlayer->_pBaseStr);
+	    MyPlayer->attributes.strength.base);
 	EXPECT_EQ(MyPlayer->GetBaseAttributeValue(CharacterAttribute::Magic),
-	    MyPlayer->_pBaseMag);
+	    MyPlayer->attributes.magic.base);
 	EXPECT_EQ(MyPlayer->GetBaseAttributeValue(CharacterAttribute::Dexterity),
-	    MyPlayer->_pBaseDex);
+	    MyPlayer->attributes.dexterity.base);
 	EXPECT_EQ(MyPlayer->GetBaseAttributeValue(CharacterAttribute::Vitality),
-	    MyPlayer->_pBaseVit);
+	    MyPlayer->attributes.vitality.base);
 }
 
 // ===========================================================================
@@ -278,7 +278,7 @@ TEST_F(CharPanelTest, AllocationStopsAtMaxStat)
 {
 	// Set strength to the maximum.
 	const int maxStr = MyPlayer->GetMaximumAttributeValue(CharacterAttribute::Strength);
-	MyPlayer->_pBaseStr = maxStr;
+	MyPlayer->attributes.strength.base = maxStr;
 	MyPlayer->_pStatPts = 5;
 
 	// Position mouse and try to press — CheckChrBtns should skip the button

@@ -22,6 +22,7 @@
 #include "game_mode.hpp"
 #include "headless_mode.hpp"
 #include "monster.h"
+#include "monster_pool.h"
 #include "tables/misdat.h"
 #include "tables/monstdat.h"
 #include "utils/cl2_to_clx.hpp"
@@ -262,8 +263,8 @@ tl::expected<void, std::string> Bestiary::initAllGraphics()
 
     if (totalUniqueBytes > 0) {
         // Re-sync any already-spawned monster that had no sprite yet.
-        for (size_t i = 0; i < ActiveMonsterCount; i++) {
-            Monster &monster = Monsters[ActiveMonsters[i]];
+        for (const int mi : MonsterPoolAdapter::ActiveMonsterRange()) {
+            Monster &monster = Monsters[mi];
             if (!monster.animInfo.sprites)
                 RETURN_IF_ERROR(monster.syncAnim());
         }

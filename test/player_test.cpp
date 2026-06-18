@@ -21,7 +21,7 @@ int RunBlockTest(int frames, ItemSpecialEffect flags)
 	player._pIFlags = flags;
 	// StartPlrHit compares damage (a 6 bit fixed point value) to character level to determine if the player shrugs off the hit.
 	// We don't initialise player so this comparison can't be relied on, instead we use forcehit to ensure the player enters hit mode
-	StartPlrHit(player, 0, true);
+	player.startHit(0, true);
 
 	int i = 1;
 	for (; i < 100; i++) {
@@ -115,23 +115,23 @@ static void AssertPlayer(devilution::Player &player)
 	ASSERT_EQ(player.destAction, 0);
 	ASSERT_STREQ(player._pName, "");
 	ASSERT_EQ(player._pClass, HeroClass::Rogue);
-	ASSERT_EQ(player._pBaseStr, 20);
-	ASSERT_EQ(player._pStrength, 20);
-	ASSERT_EQ(player._pBaseMag, 15);
-	ASSERT_EQ(player._pMagic, 15);
-	ASSERT_EQ(player._pBaseDex, 30);
-	ASSERT_EQ(player._pDexterity, 30);
-	ASSERT_EQ(player._pBaseVit, 20);
-	ASSERT_EQ(player._pVitality, 20);
+	ASSERT_EQ(player.attributes.strength.base, 20);
+	ASSERT_EQ(player.attributes.strength.current, 20);
+	ASSERT_EQ(player.attributes.magic.base, 15);
+	ASSERT_EQ(player.attributes.magic.current, 15);
+	ASSERT_EQ(player.attributes.dexterity.base, 30);
+	ASSERT_EQ(player.attributes.dexterity.current, 30);
+	ASSERT_EQ(player.attributes.vitality.base, 20);
+	ASSERT_EQ(player.attributes.vitality.current, 20);
 	ASSERT_EQ(player.getCharacterLevel(), 1);
 	ASSERT_EQ(player._pStatPts, 0);
 	ASSERT_EQ(player._pExperience, 0);
 	ASSERT_EQ(player._pGold, 100);
-	ASSERT_EQ(player._pMaxHPBase, 2880);
-	ASSERT_EQ(player._pHPBase, 2880);
+	ASSERT_EQ(player.life.maximumBase, 2880);
+	ASSERT_EQ(player.life.base, 2880);
 	ASSERT_EQ(player.getBaseToBlock(), 20);
-	ASSERT_EQ(player._pMaxManaBase, 1440);
-	ASSERT_EQ(player._pManaBase, 1440);
+	ASSERT_EQ(player.mana.maximumBase, 1440);
+	ASSERT_EQ(player.mana.base, 1440);
 	ASSERT_EQ(player._pMemSpells, 0);
 	ASSERT_EQ(player._pNumInv, 1);
 	ASSERT_EQ(player.wReflections, 0);
@@ -158,10 +158,10 @@ static void AssertPlayer(devilution::Player &player)
 	ASSERT_EQ(player._pBlockFlag, 0);
 	ASSERT_EQ(player._pLightRad, 10);
 	ASSERT_EQ(player._pDamageMod, 0);
-	ASSERT_EQ(player.hitPoints, 2880);
-	ASSERT_EQ(player.maxHitPoints, 2880);
-	ASSERT_EQ(player._pMana, 1440);
-	ASSERT_EQ(player._pMaxMana, 1440);
+	ASSERT_EQ(player.life.current, 2880);
+	ASSERT_EQ(player.life.maximum, 2880);
+	ASSERT_EQ(player.mana.current, 1440);
+	ASSERT_EQ(player.mana.maximum, 1440);
 	ASSERT_EQ(player.getNextExperienceThreshold(), 2000);
 	ASSERT_EQ(player._pMagResist, 0);
 	ASSERT_EQ(player._pFireResist, 0);
@@ -169,22 +169,22 @@ static void AssertPlayer(devilution::Player &player)
 	ASSERT_EQ(CountBool(player._pLvlVisited, NUMLEVELS), 0);
 	ASSERT_EQ(CountBool(player._pSLvlVisited, NUMLEVELS), 0);
 	// This test case uses a Rogue, starting loadout is a short bow with damage 1-4
-	ASSERT_EQ(player._pIMinDam, 1);
-	ASSERT_EQ(player._pIMaxDam, 4);
+	ASSERT_EQ(player.damageBonuses.physical.minimum, 1);
+	ASSERT_EQ(player.damageBonuses.physical.maximum, 4);
 	ASSERT_EQ(player._pIAC, 0);
-	ASSERT_EQ(player._pIBonusDam, 0);
+	ASSERT_EQ(player.damageBonuses.percent, 0);
 	ASSERT_EQ(player._pIBonusToHit, 0);
 	ASSERT_EQ(player._pIBonusAC, 0);
-	ASSERT_EQ(player._pIBonusDamMod, 0);
+	ASSERT_EQ(player.damageBonuses.flat, 0);
 	ASSERT_EQ(player._pISpells, 0);
 	ASSERT_EQ(player._pIFlags, ItemSpecialEffect::None);
 	ASSERT_EQ(player._pIGetHit, 0);
 	ASSERT_EQ(player._pISplLvlAdd, 0);
-	ASSERT_EQ(player._pIEnAc, 0);
-	ASSERT_EQ(player._pIFMinDam, 0);
-	ASSERT_EQ(player._pIFMaxDam, 0);
-	ASSERT_EQ(player._pILMinDam, 0);
-	ASSERT_EQ(player._pILMaxDam, 0);
+	ASSERT_EQ(player.damageBonuses.armorPiercing, 0);
+	ASSERT_EQ(player.damageBonuses.fire.minimum, 0);
+	ASSERT_EQ(player.damageBonuses.fire.maximum, 0);
+	ASSERT_EQ(player.damageBonuses.lightning.minimum, 0);
+	ASSERT_EQ(player.damageBonuses.lightning.maximum, 0);
 }
 
 TEST(Player, CreatePlayer)
@@ -201,6 +201,28 @@ TEST(Player, CreatePlayer)
 	LoadMonsterData();
 	LoadItemData();
 	Players.resize(1);
-	CreatePlayer(Players[0], HeroClass::Rogue);
+	Players[0].create(HeroClass::Rogue);
 	AssertPlayer(Players[0]);
+}
+
+TEST(Player, IsUnarmedChecksCurrentWeaponGraphic)
+{
+	Player player;
+	player._pgfxnum = static_cast<uint8_t>(PlayerWeaponGraphic::Unarmed);
+	EXPECT_TRUE(player.isUnarmed());
+
+	player._pgfxnum = static_cast<uint8_t>(PlayerWeaponGraphic::Sword);
+	EXPECT_FALSE(player.isUnarmed());
+}
+
+TEST(Player, InitDungeonMessagesClearsMessageFlags)
+{
+	Player player;
+	player.pDungMsgs = 0xFF;
+	player.pDungMsgs2 = 0xFF;
+
+	player.initDungeonMessages();
+
+	EXPECT_EQ(player.pDungMsgs, 0);
+	EXPECT_EQ(player.pDungMsgs2, 0);
 }

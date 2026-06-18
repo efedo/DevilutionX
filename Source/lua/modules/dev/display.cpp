@@ -44,8 +44,8 @@ std::string DebugCmdShowTileData(std::optional<std::string_view> dataType)
 {
 	static const std::array<std::string_view, 23> DataTypes {
 		"microTiles",
-		"dPiece",
-		"dTransVal",
+		"piece",
+		"transVal",
 		"dLight",
 		"dPreLight",
 		"dFlags",
@@ -63,8 +63,8 @@ std::string DebugCmdShowTileData(std::optional<std::string_view> dataType)
 		"transparent",
 		"trap",
 		"AutomapView",
-		"dungeon",
-		"pdungeon",
+		"currentMegaTile",
+		"replacementMegaTile",
 		"Protected",
 	};
 	if (!dataType.has_value()) {
@@ -77,11 +77,16 @@ std::string DebugCmdShowTileData(std::optional<std::string_view> dataType)
 		SetDebugGridTextType(DebugGridTextItem::None);
 		return "Tile data cleared.";
 	}
+	std::string_view requestedType = *dataType;
+	if (requestedType == "dPiece")
+		requestedType = "piece";
+	if (requestedType == "dTransVal")
+		requestedType = "transVal";
 	bool found = false;
 	int index = 0;
 	for (const std::string_view &param : DataTypes) {
 		index++;
-		if (*dataType != param)
+		if (requestedType != param)
 			continue;
 		found = true;
 		auto newGridText = static_cast<DebugGridTextItem>(index);

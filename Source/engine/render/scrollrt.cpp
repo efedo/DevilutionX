@@ -25,6 +25,7 @@
 #include "controls/plrctrls.h"
 #include "cursor.h"
 #include "dead.h"
+#include "debug_overlay/imgui_overlay.hpp"
 #include "diablo_msg.hpp"
 #include "doom.h"
 #include "engine/backbuffer_state.hpp"
@@ -34,6 +35,7 @@
 #include "engine/render/clx_render.hpp"
 #include "engine/render/dun_render.hpp"
 #include "engine/render/light_render.hpp"
+#include "engine/render/primitive_render.hpp"
 #include "engine/render/text_render.hpp"
 #include "engine/trn.hpp"
 #include "engine/world_tile.hpp"
@@ -109,6 +111,47 @@ namespace {
 
 constexpr auto RightFrameDisplacement = Displacement { DunFrameWidth, 0 };
 
+#ifdef _DEBUG
+void DrawDebugEditorSelection(const Surface &out, Point targetBufferPosition, int scale)
+{
+	constexpr uint8_t Color = PAL16_RED + 8;
+	const int tileWidth = TILE_WIDTH * scale;
+	const int tileHeight = TILE_HEIGHT * scale;
+	const Point left = targetBufferPosition + Displacement { 0, -tileHeight / 2 };
+	const Point top = targetBufferPosition + Displacement { tileWidth / 2, -tileHeight };
+	const Point right = targetBufferPosition + Displacement { tileWidth, -tileHeight / 2 };
+	const Point bottom = targetBufferPosition + Displacement { tileWidth / 2, 0 };
+
+	const auto drawLine = [&](Point from, Point to) {
+		const int dx = std::abs(to.x - from.x);
+		const int sx = from.x < to.x ? 1 : -1;
+		const int dy = -std::abs(to.y - from.y);
+		const int sy = from.y < to.y ? 1 : -1;
+		int error = dx + dy;
+		for (;;) {
+			if (out.InBounds(from))
+				*out.at(from.x, from.y) = Color;
+			if (from == to)
+				break;
+			const int doubledError = 2 * error;
+			if (doubledError >= dy) {
+				error += dy;
+				from.x += sx;
+			}
+			if (doubledError <= dx) {
+				error += dx;
+				from.y += sy;
+			}
+		}
+	};
+
+	drawLine(left, top);
+	drawLine(top, right);
+	drawLine(right, bottom);
+	drawLine(bottom, left);
+}
+#endif
+
 [[nodiscard]] DVL_ALWAYS_INLINE bool IsFloor(Point tilePosition)
 {
 	return !TileHasAny(tilePosition, TileProperties::Solid | TileProperties::BlockMissile);
@@ -116,7 +159,7 @@ constexpr auto RightFrameDisplacement = Displacement { DunFrameWidth, 0 };
 
 [[nodiscard]] DVL_ALWAYS_INLINE bool IsWall(Point tilePosition)
 {
-	return !IsFloor(tilePosition) || dSpecial[tilePosition.x][tilePosition.y] != 0;
+	return !IsFloor(tilePosition) || tileAt(tilePosition).hasSpecial();
 }
 
 /**
@@ -132,9 +175,9 @@ bool CouldMissileCollide(Point tile, bool checkPlayerAndMonster)
 	if (!InDungeonBounds(tile))
 		return true;
 	if (checkPlayerAndMonster) {
-		if (dMonster[tile.x][tile.y] > 0)
+		if (tileAt(tile).monster() > 0)
 			return true;
-		if (dPlayer[tile.x][tile.y] > 0)
+		if (tileAt(tile).player() > 0)
 			return true;
 	}
 
@@ -500,11 +543,11 @@ void DrawPlayer(const Surface &out, const Player &player, Point tilePosition, Po
  */
 void DrawDeadPlayer(const Surface &out, Point tilePosition, Point targetBufferPosition, int lightTableIndex)
 {
-	dFlags[tilePosition.x][tilePosition.y] &= ~DungeonFlag::DeadPlayer;
+	tileAt(tilePosition).removeFlags(DungeonFlag::DeadPlayer);
 
 	for (const Player &player : Players) {
 		if (player.plractive && player.hasNoLife() && player.isOnActiveLevel() && player.position.tile == tilePosition) {
-			dFlags[tilePosition.x][tilePosition.y] |= DungeonFlag::DeadPlayer;
+			tileAt(tilePosition).addFlags(DungeonFlag::DeadPlayer);
 			const Point playerRenderPosition { targetBufferPosition };
 			DrawPlayer(out, player, tilePosition, playerRenderPosition, lightTableIndex);
 		}
@@ -543,11 +586,14 @@ static void DrawDungeon(const Surface & /*out*/, const Lightmap & /*lightmap*/, 
  * @param lightmap Per-pixel light buffer
  * @param tilePosition dPiece coordinates
  * @param targetBufferPosition Target buffer coordinates
+ *
+ * MIGRATED to Tile API (Phase 3)
  */
 void DrawCell(const Surface &out, const Lightmap lightmap, Point tilePosition, Point targetBufferPosition, int lightTableIndex)
 {
-	const uint16_t levelPieceId = dPiece[tilePosition.x][tilePosition.y];
-	const MICROS *pMap = &DPieceMicros[levelPieceId];
+	const Tile &tile = tileAt(tilePosition);
+	const uint16_t levelPieceId = tile.piece();
+	const MICROS *pMap = &levelMicros()[levelPieceId];
 
 	const uint8_t *tbl = LightTables[lightTableIndex].data();
 	const uint8_t *foliageTbl = tbl;
@@ -563,7 +609,10 @@ void DrawCell(const Surface &out, const Lightmap lightmap, Point tilePosition, P
 	}
 #endif
 
-	bool transparency = TileHasAny(tilePosition, TileProperties::Transparent) && TransList[dTransVal[tilePosition.x][tilePosition.y]];
+	const TileProperties pieceProperties = SOLData[levelPieceId];
+	const bool isFloorPiece = !HasAnyOf(pieceProperties, TileProperties::Solid | TileProperties::BlockMissile);
+	const int8_t transVal = tile.transVal();
+	bool transparency = HasAnyOf(pieceProperties, TileProperties::Transparent) && TransList[transVal];
 #ifdef _DEBUG
 	if ((SDL_GetModState() & SDL_KMOD_ALT) != 0) {
 		transparency = false;
@@ -575,9 +624,9 @@ void DrawCell(const Surface &out, const Lightmap lightmap, Point tilePosition, P
 			switch (tile) {
 			case TileType::LeftTrapezoid:
 			case TileType::TransparentSquare:
-				return TileHasAny(tilePosition, TileProperties::TransparentLeft)
-				    ? MaskType::Left
-				    : MaskType::Solid;
+				return HasAnyOf(pieceProperties, TileProperties::TransparentLeft)
+					? MaskType::Left
+					: MaskType::Solid;
 			case TileType::LeftTriangle:
 				return MaskType::Solid;
 			default:
@@ -592,9 +641,9 @@ void DrawCell(const Surface &out, const Lightmap lightmap, Point tilePosition, P
 			switch (tile) {
 			case TileType::RightTrapezoid:
 			case TileType::TransparentSquare:
-				return TileHasAny(tilePosition, TileProperties::TransparentRight)
-				    ? MaskType::Right
-				    : MaskType::Solid;
+				return HasAnyOf(pieceProperties, TileProperties::TransparentRight)
+					? MaskType::Right
+					: MaskType::Solid;
 			case TileType::RightTriangle:
 				return MaskType::Solid;
 			default:
@@ -610,7 +659,7 @@ void DrawCell(const Surface &out, const Lightmap lightmap, Point tilePosition, P
 
 	// If the first micro tile is a floor tile, it may be followed
 	// by foliage which should be rendered now.
-	const bool isFloor = IsFloor(tilePosition);
+	const bool isFloor = isFloorPiece;
 	if (const LevelCelBlock levelCelBlock { pMap->mt[0] }; levelCelBlock.hasValue()) {
 		const TileType tileType = levelCelBlock.type();
 		if (!isFloor || tileType == TileType::TransparentSquare) {
@@ -674,27 +723,29 @@ void DrawCell(const Surface &out, const Lightmap lightmap, Point tilePosition, P
  * @param lightmap Per-pixel light buffer
  * @param tilePosition dPiece coordinates
  * @param targetBufferPosition Target buffer coordinate
+ *
+ * MIGRATED to Tile API (Phase 3)
  */
 void DrawFloorTile(const Surface &out, const Lightmap &lightmap, Point tilePosition, Point targetBufferPosition)
 {
-	const int lightTableIndex = dLight[tilePosition.x][tilePosition.y];
+	const Tile &tile = tileAt(tilePosition);
+	const int lightTableIndex = tile.light();
+	const uint16_t levelPieceId = tile.piece();
 
 	const uint8_t *tbl = LightTables[lightTableIndex].data();
 #ifdef _DEBUG
 	if (DebugPath && MyPlayer->GetPositionPathIndex(tilePosition) != -1)
 		tbl = GetPauseTRN();
 #endif
-
-	const uint16_t levelPieceId = dPiece[tilePosition.x][tilePosition.y];
 	{
-		const LevelCelBlock levelCelBlock { DPieceMicros[levelPieceId].mt[0] };
+		const LevelCelBlock levelCelBlock { levelMicros()[levelPieceId].mt[0] };
 		if (levelCelBlock.hasValue()) {
 			RenderTileFrame(out, lightmap, targetBufferPosition, TileType::LeftTriangle,
 			    GetDunFrame(pDungeonCels.get(), levelCelBlock.frame()), DunFrameTriangleHeight, MaskType::Solid, tbl);
 		}
 	}
 	{
-		const LevelCelBlock levelCelBlock { DPieceMicros[levelPieceId].mt[1] };
+		const LevelCelBlock levelCelBlock { levelMicros()[levelPieceId].mt[1] };
 		if (levelCelBlock.hasValue()) {
 			RenderTileFrame(out, lightmap, targetBufferPosition + RightFrameDisplacement, TileType::RightTriangle,
 			    GetDunFrame(pDungeonCels.get(), levelCelBlock.frame()), DunFrameTriangleHeight, MaskType::Solid, tbl);
@@ -728,9 +779,19 @@ void DrawItem(const Surface &out, int8_t itemIndex, Point targetBufferPosition, 
  * @param tilePosition dPiece coordinates
  * @param targetBufferPosition Output buffer coordinates
  */
+/**
+ * @brief Draw a monster or towner
+ * @param out Target buffer
+ * @param tilePosition Position to draw at
+ * @param targetBufferPosition Position in the buffer
+ * @param lightTableIndex Light level
+ *
+ * MIGRATED to Tile API (Phase 3)
+ */
 void DrawMonsterHelper(const Surface &out, Point tilePosition, Point targetBufferPosition, int lightTableIndex)
 {
-	int mi = dMonster[tilePosition.x][tilePosition.y];
+	const Tile &tile = tileAt(tilePosition);  // Migrated from dMonster[tilePosition.x][tilePosition.y]
+	int mi = tile.monster();
 
 	mi = std::abs(mi) - 1;
 
@@ -775,16 +836,21 @@ void DrawMonsterHelper(const Surface &out, Point tilePosition, Point targetBuffe
  * @param lightmap Per-pixel light buffer
  * @param tilePosition dPiece coordinates
  * @param targetBufferPosition Target buffer coordinates
+ *
+ * MIGRATED to Tile API (Phase 3)
  */
 void DrawDungeon(const Surface &out, const Lightmap &lightmap, Point tilePosition, Point targetBufferPosition)
 {
 	assert(InDungeonBounds(tilePosition));
-	const int lightTableIndex = dLight[tilePosition.x][tilePosition.y];
+
+	// Use new Tile API for better cache locality
+	const Tile &tile = tileAt(tilePosition);
+	const int lightTableIndex = tile.light();
 
 	DrawCell(out, lightmap, tilePosition, targetBufferPosition, lightTableIndex);
 
-	const int8_t bDead = dCorpse[tilePosition.x][tilePosition.y];
-	const int8_t bMap = dTransVal[tilePosition.x][tilePosition.y];
+	const int8_t bDead = tile.corpse();
+	const int8_t bMap = tile.transVal();
 
 #ifdef _DEBUG
 	if (DebugVision && IsTileLit(tilePosition)) {
@@ -808,10 +874,10 @@ void DrawDungeon(const Surface &out, const Lightmap &lightmap, Point tilePositio
 		}
 	}
 
-	const int8_t bItem = dItem[tilePosition.x][tilePosition.y];
+	const int8_t bItem = tile.item();  // Migrated from dItem[tilePosition.x][tilePosition.y]
 	const Object *object = lightTableIndex < LightsMax
-	    ? FindObjectAtPosition(tilePosition)
-	    : nullptr;
+		? FindObjectAtPosition(tilePosition)
+		: nullptr;
 	if (object != nullptr && object->_oPreFlag) {
 		DrawObject(out, *object, tilePosition, targetBufferPosition, lightTableIndex);
 	}
@@ -831,7 +897,7 @@ void DrawDungeon(const Surface &out, const Lightmap &lightmap, Point tilePositio
 		// This respests the order that tiles are drawn. By using the negative id, we ensure that the sprite is drawn with priority
 		if (player->_pmode == PM_WALK_SOUTHWARDS || (player->_pmode == PM_WALK_SIDEWAYS && player->direction == Direction::East))
 			playerId = -playerId;
-		if (dPlayer[tilePosition.x][tilePosition.y] == playerId) {
+		if (tile.player() == playerId) {  // Migrated from dPlayer[tilePosition.x][tilePosition.y]
 			auto tempTilePosition = tilePosition;
 			auto tempTargetBufferPosition = targetBufferPosition;
 
@@ -868,7 +934,7 @@ void DrawDungeon(const Surface &out, const Lightmap &lightmap, Point tilePositio
 		// This respests the order that tiles are drawn. By using the negative id, we ensure that the sprite is drawn with priority
 		if (monster->mode == MonsterMode::MoveSouthwards || (monster->mode == MonsterMode::MoveSideways && monster->direction == Direction::East))
 			monsterId = -monsterId;
-		if (dMonster[tilePosition.x][tilePosition.y] == monsterId) {
+		if (tile.monster() == monsterId) {  // Migrated from dMonster[tilePosition.x][tilePosition.y]
 			auto tempTilePosition = tilePosition;
 			auto tempTargetBufferPosition = targetBufferPosition;
 
@@ -907,7 +973,7 @@ void DrawDungeon(const Surface &out, const Lightmap &lightmap, Point tilePositio
 
 	if (leveltype != DTYPE_TOWN) {
 		const bool perPixelLighting = *GetOptions().Graphics.perPixelLighting;
-		const int8_t bArch = dSpecial[tilePosition.x][tilePosition.y] - 1;
+		const int8_t bArch = tile.special() - 1;  // Migrated from dSpecial[tilePosition.x][tilePosition.y]
 		if (bArch >= 0) {
 			bool transparency = TransList[bMap];
 #ifdef _DEBUG
@@ -934,7 +1000,8 @@ void DrawDungeon(const Surface &out, const Lightmap &lightmap, Point tilePositio
 		// So delay the rendering until after the next row is being drawn.
 		// This could probably have been better solved by sprites in screen space.
 		if (tilePosition.x > 0 && tilePosition.y > 0 && targetBufferPosition.y > TILE_HEIGHT) {
-			const int8_t bArch = dSpecial[tilePosition.x - 1][tilePosition.y - 1] - 1;
+			const Tile &tilePrev = tileAt(tilePosition - Displacement { 1, 1 });  // Migrated from dSpecial[tilePosition.x - 1][tilePosition.y - 1]
+			const int8_t bArch = tilePrev.special() - 1;
 			if (bArch >= 0)
 				ClxDraw(out, targetBufferPosition + Displacement { 0, -TILE_HEIGHT }, (*pSpecialCels)[bArch]);
 		}
@@ -1062,13 +1129,20 @@ void DrawDirtTile(const Surface &out, const Lightmap &lightmap, Point tilePositi
 	sample.x = std::clamp(sample.x, 0, MAXDUNX - 1);
 	sample.y = std::clamp(sample.y, 0, MAXDUNY - 1);
 
-	if (!InDungeonBounds(sample) || dPiece[sample.x][sample.y] == 0) {
+	if (!InDungeonBounds(sample)) {
 		// Failsafe: if our sample somehow isn't valid, fall back to black
 		world_draw_black_tile(out, targetBufferPosition.x, targetBufferPosition.y);
 		return;
 	}
 
-	const int lightTableIndex = dLight[sample.x][sample.y];
+	const Tile &sampleTile = tileAt(sample);
+	if (sampleTile.piece() == 0) {
+		// Failsafe: if our sample somehow isn't valid, fall back to black
+		world_draw_black_tile(out, targetBufferPosition.x, targetBufferPosition.y);
+		return;
+	}
+
+	const int lightTableIndex = sampleTile.light();
 
 	// Let the normal dungeon tile renderer compose the full tile
 	DrawCell(out, lightmap, sample, targetBufferPosition, lightTableIndex);
@@ -1271,10 +1345,20 @@ void DrawGame(const Surface &fullOut, Point position, Displacement offset)
 	DunRenderStats.clear();
 #endif
 
-	Lightmap lightmap = Lightmap::build(*GetOptions().Graphics.perPixelLighting, position, Point {} + offset,
+	const bool perPixelLighting = *GetOptions().Graphics.perPixelLighting;
+	uint8_t tileLights[MAXDUNX][MAXDUNY];
+	if (perPixelLighting) {
+		for (int x = 0; x < MAXDUNX; x++) {
+			for (int y = 0; y < MAXDUNY; y++) {
+				tileLights[x][y] = tileAt(x, y).light();
+			}
+		}
+	}
+
+	Lightmap lightmap = Lightmap::build(perPixelLighting, position, Point {} + offset,
 	    gnScreenWidth, gnViewportHeight, rows, columns,
 	    out.at(0, 0), out.pitch(), LightTables, FullyLitLightTable, FullyDarkLightTable,
-	    dLight, MicroTileLen);
+	    tileLights, MicroTileLen);
 
 	DrawFloor(out, lightmap, position, Point {} + offset, rows, columns);
 	DrawTileContent(out, lightmap, position, Point {} + offset, rows, columns);
@@ -1386,6 +1470,17 @@ void DrawView(const Surface &out, Point startPosition)
 			}
 		}
 	}
+	const std::optional<Point> &selectedTile = DebugOverlaySelectedTile();
+	if (selectedTile.has_value()) {
+		const auto position = DebugCoordsMap.find(selectedTile->x + (selectedTile->y * MAXDUNX));
+		if (position != DebugCoordsMap.end()) {
+			Point pixelCoords = position->second;
+			const int scale = *GetOptions().Graphics.zoom ? 2 : 1;
+			if (scale != 1)
+				pixelCoords *= scale;
+			DrawDebugEditorSelection(out, pixelCoords, scale);
+		}
+	}
 #endif
 	DrawItemNameLabels(out);
 	DrawMonsterHealthBar(out);
@@ -1435,7 +1530,7 @@ void DrawView(const Surface &out, Point startPosition)
 	if (MyPlayerIsDead) {
 		RedBack(out);
 		DrawDeathText(out);
-	} else if (PauseMode != 0) {
+	} else if (PauseMode != 0 && !DebugOverlayEditorOwnsPause()) {
 		gmenu_draw_pause(out);
 	}
 	if (IsDiabloMsgAvailable()) {
@@ -1888,11 +1983,11 @@ void DrawAndBlit()
 	}
 	DrawXPBar(out);
 	if (*GetOptions().Gameplay.showHealthValues)
-		DrawFlaskValues(out, { mainPanel.position.x + 134, mainPanel.position.y + 28 }, MyPlayer->hitPoints >> 6, MyPlayer->maxHitPoints >> 6);
+		DrawFlaskValues(out, { mainPanel.position.x + 134, mainPanel.position.y + 28 }, MyPlayer->life.current >> 6, MyPlayer->life.maximum >> 6);
 	if (*GetOptions().Gameplay.showManaValues)
 		DrawFlaskValues(out, { mainPanel.position.x + mainPanel.size.width - 138, mainPanel.position.y + 28 },
-		    (HasAnyOf(InspectPlayer->_pIFlags, ItemSpecialEffect::NoMana) || MyPlayer->hasNoMana()) ? 0 : MyPlayer->_pMana >> 6,
-		    HasAnyOf(InspectPlayer->_pIFlags, ItemSpecialEffect::NoMana) ? 0 : MyPlayer->_pMaxMana >> 6);
+		    (HasAnyOf(InspectPlayer->_pIFlags, ItemSpecialEffect::NoMana) || MyPlayer->hasNoMana()) ? 0 : MyPlayer->mana.current >> 6,
+		    HasAnyOf(InspectPlayer->_pIFlags, ItemSpecialEffect::NoMana) ? 0 : MyPlayer->mana.maximum >> 6);
 	if (*GetOptions().Gameplay.floatingInfoBox)
 		DrawFloatingInfoBox(out);
 

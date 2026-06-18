@@ -498,9 +498,9 @@ TEST_F(StoreTransactionTest, SmithRepair_CantAfford)
 TEST_F(StoreTransactionTest, Healer_FreeHealOnTalk)
 {
 	// Damage the player.
-	MyPlayer->hitPoints = MyPlayer->maxHitPoints / 2;
-	MyPlayer->_pHPBase = MyPlayer->_pMaxHPBase / 2;
-	ASSERT_NE(MyPlayer->hitPoints, MyPlayer->maxHitPoints);
+	MyPlayer->life.current = MyPlayer->life.maximum / 2;
+	MyPlayer->life.base = MyPlayer->life.maximumBase / 2;
+	ASSERT_NE(MyPlayer->life.current, MyPlayer->life.maximum);
 
 	const int goldBefore = MyPlayer->_pGold;
 
@@ -508,9 +508,9 @@ TEST_F(StoreTransactionTest, Healer_FreeHealOnTalk)
 	OpenVendor(TalkID::Healer);
 	ASSERT_EQ(ActiveStore, TalkID::Healer);
 
-	EXPECT_EQ(MyPlayer->hitPoints, MyPlayer->maxHitPoints)
+	EXPECT_EQ(MyPlayer->life.current, MyPlayer->life.maximum)
 	    << "Player should be fully healed just by talking to Pepin";
-	EXPECT_EQ(MyPlayer->_pHPBase, MyPlayer->_pMaxHPBase)
+	EXPECT_EQ(MyPlayer->life.base, MyPlayer->life.maximumBase)
 	    << "Player HP base should also be restored";
 	EXPECT_EQ(MyPlayer->_pGold, goldBefore)
 	    << "Healing at Pepin is free — gold should be unchanged";

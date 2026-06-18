@@ -35,7 +35,7 @@
 #include "levels/town.h"
 #include "minitext.h"
 #include "options.h"
-#include "panels/ui_panels.hpp"
+#include "item_pool.h"
 #include "player.h"
 #include "plrmsg.h"
 #include "qol/stash.h"
@@ -1053,7 +1053,7 @@ void CheckQuestItem(Player &player, Item &questItem)
 void CleanupItems(int ii)
 {
 	const Item &item = Items[ii];
-	dItem[item.position.x][item.position.y] = 0;
+	tileAt(item.position).setItem(0);
 
 	if (CornerStone.isAvailable() && item.position == CornerStone.position) {
 		CornerStone.item.clear();
@@ -1065,8 +1065,8 @@ void CleanupItems(int ii)
 	}
 
 	int i = 0;
-	while (i < ActiveItemCount) {
-		if (ActiveItems[i] == ii) {
+	while (i < ItemPoolAdapter::ActiveItemCountValue()) {
+		if (ItemPoolAdapter::ActiveItemIds()[i] == ii) {
 			DeleteItem(i);
 			i = 0;
 			continue;
@@ -1671,7 +1671,7 @@ void InvGetItem(Player &player, int ii)
 	Item &item = Items[ii];
 	CloseGoldDrop();
 
-	if (dItem[item.position.x][item.position.y] == 0)
+	if (tileAt(item.position).item() == 0)
 		return;
 
 	item._iCreateInfo &= ~CF_PREGEN;
@@ -1703,7 +1703,7 @@ void InvGetItem(Player &player, int ii)
 
 std::optional<Point> FindAdjacentPositionForItem(Point origin, Direction facing)
 {
-	if (ActiveItemCount >= MAXITEMS)
+	if (!ItemPoolAdapter::HasFreeItemSlot())
 		return {};
 
 	if (CanPut(origin + facing))
@@ -1742,7 +1742,7 @@ void AutoGetItem(Player &player, Item *itemPointer, int ii)
 
 	CloseGoldDrop();
 
-	if (dItem[item.position.x][item.position.y] == 0)
+	if (tileAt(item.position).item() == 0)
 		return;
 
 	item._iCreateInfo &= ~CF_PREGEN;
@@ -1789,8 +1789,8 @@ void AutoGetItem(Player &player, Item *itemPointer, int ii)
 
 int FindGetItem(uint32_t iseed, _item_indexes idx, uint16_t createInfo)
 {
-	for (uint8_t i = 0; i < ActiveItemCount; i++) {
-		const Item &item = Items[ActiveItems[i]];
+	for (int i = 0; i < ItemPoolAdapter::ActiveItemCountValue(); i++) {
+		const Item &item = Items[ItemPoolAdapter::ActiveItemIds()[i]];
 		if (item.keyAttributesMatch(iseed, idx, createInfo)) {
 			return i;
 		}
@@ -1802,7 +1802,7 @@ int FindGetItem(uint32_t iseed, _item_indexes idx, uint16_t createInfo)
 void SyncGetItem(Point position, uint32_t iseed, _item_indexes idx, uint16_t ci)
 {
 	// Check what the local client has at the target position
-	int ii = dItem[position.x][position.y] - 1;
+	int ii = tileAt(position).item() - 1;
 
 	if (ii >= 0 && ii < MAXITEMS) {
 		// If there was an item there, check that it's the same item as the remote player has
@@ -1818,7 +1818,7 @@ void SyncGetItem(Point position, uint32_t iseed, _item_indexes idx, uint16_t ci)
 
 		if (ii != -1) {
 			// Translate to Items index for CleanupItems, FindGetItem returns an ActiveItems index
-			ii = ActiveItems[ii];
+			ii = ItemPoolAdapter::ActiveItemIds()[ii];
 		}
 	}
 
@@ -1840,15 +1840,15 @@ bool CanPut(Point position)
 		return false;
 	}
 
-	if (dItem[position.x][position.y] != 0) {
+	if (tileAt(position).item() != 0) {
 		return false;
 	}
 
 	if (leveltype == DTYPE_TOWN) {
-		if (dMonster[position.x][position.y] != 0) {
+		if (tileAt(position).hasMonster()) {
 			return false;
 		}
-		if (dMonster[position.x + 1][position.y + 1] != 0) {
+		if (tileAt(position.x + 1, position.y + 1).hasMonster()) {
 			return false;
 		}
 	}
@@ -1886,7 +1886,7 @@ uint8_t ClampMaxDam(const Item &item, uint8_t maxDam)
 
 int SyncDropItem(Point position, _item_indexes idx, uint16_t icreateinfo, int iseed, int id, int dur, int mdur, int ch, int mch, int ivalue, uint32_t ibuff, int toHit, int maxDam)
 {
-	if (ActiveItemCount >= MAXITEMS)
+	if (!ItemPoolAdapter::HasFreeItemSlot())
 		return -1;
 
 	Item item;
@@ -1908,7 +1908,7 @@ int SyncDropItem(Point position, _item_indexes idx, uint16_t icreateinfo, int is
 
 int SyncDropEar(Point position, uint16_t icreateinfo, uint32_t iseed, uint8_t cursval, std::string_view heroname)
 {
-	if (ActiveItemCount >= MAXITEMS)
+	if (!ItemPoolAdapter::HasFreeItemSlot())
 		return -1;
 
 	Item item;

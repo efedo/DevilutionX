@@ -1,9 +1,6 @@
-/**
- * @file items.cpp
- *
- * Implementation of item functionality.
- */
+// Implementation of item functionality.
 #include "items.h"
+#include "item_pool.h"
 
 #include <algorithm>
 #include <array>
@@ -63,6 +60,7 @@
 #include "msg.h"
 #include "multi.h"
 #include "objects.h"
+#include "object_pool.h"
 #include "options.h"
 #include "pack.h"
 #include "panels/info_box.hpp"
@@ -94,10 +92,164 @@
 
 namespace devilution {
 
-Item Items[MAXITEMS + 1];
-uint8_t ActiveItems[MAXITEMS];
-uint8_t ActiveItemCount;
-int8_t dItem[MAXDUNX][MAXDUNY];
+// Item method implementations moved from items.h header
+
+Item Item::pop() &
+{
+	Item temp = std::move(*this);
+	clear();
+	return temp;
+}
+
+bool Item::isEquipment() const
+{
+	if (this->isEmpty()) {
+		return false;
+	}
+
+	switch (this->_iLoc) {
+	case ILOC_AMULET:
+	case ILOC_ARMOR:
+	case ILOC_HELM:
+	case ILOC_ONEHAND:
+	case ILOC_RING:
+	case ILOC_TWOHAND:
+		return true;
+
+	default:
+		return false;
+	}
+}
+
+bool Item::isWeapon() const
+{
+	switch (this->_itype) {
+	case ItemType::Axe:
+	case ItemType::Bow:
+	case ItemType::Mace:
+	case ItemType::Staff:
+	case ItemType::Sword:
+		return true;
+
+	default:
+		return false;
+	}
+}
+
+bool Item::isArmor() const
+{
+	switch (this->_itype) {
+	case ItemType::HeavyArmor:
+	case ItemType::LightArmor:
+	case ItemType::MediumArmor:
+		return true;
+
+	default:
+		return false;
+	}
+}
+
+bool Item::isJewelry() const
+{
+	switch (this->_itype) {
+	case ItemType::Amulet:
+	case ItemType::Ring:
+		return true;
+
+	default:
+		return false;
+	}
+}
+
+bool Item::isRuneOf(SpellID spellId) const
+{
+	if (!isRune())
+		return false;
+	switch (_iMiscId) {
+	case IMISC_RUNEF:
+		return spellId == SpellID::RuneOfFire;
+	case IMISC_RUNEL:
+		return spellId == SpellID::RuneOfLight;
+	case IMISC_GR_RUNEL:
+		return spellId == SpellID::RuneOfNova;
+	case IMISC_GR_RUNEF:
+		return spellId == SpellID::RuneOfImmolation;
+	case IMISC_RUNES:
+		return spellId == SpellID::RuneOfStone;
+	default:
+		return false;
+	}
+}
+
+UiFlags Item::getTextColor() const
+{
+	switch (_iMagical) {
+	case ITEM_QUALITY_MAGIC:
+		return UiFlags::ColorBlue;
+	case ITEM_QUALITY_UNIQUE:
+		return UiFlags::ColorWhitegold;
+	default:
+		return UiFlags::ColorWhite;
+	}
+}
+
+void Item::clear()
+{
+	this->_itype = ItemType::None;
+}
+
+bool Item::isEmpty() const
+{
+	return this->_itype == ItemType::None;
+}
+
+bool Item::isGold() const
+{
+	return this->_itype == ItemType::Gold;
+}
+
+bool Item::isHelm() const
+{
+	return this->_itype == ItemType::Helm;
+}
+
+bool Item::isShield() const
+{
+	return this->_itype == ItemType::Shield;
+}
+
+bool Item::isScroll() const
+{
+	return IsAnyOf(_iMiscId, IMISC_SCROLL, IMISC_SCROLLT);
+}
+
+bool Item::isScrollOf(SpellID spellId) const
+{
+	return isScroll() && _iSpell == spellId;
+}
+
+bool Item::isRune() const
+{
+	return _iMiscId > IMISC_RUNEFIRST && _iMiscId < IMISC_RUNELAST;
+}
+
+bool Item::keyAttributesMatch(uint32_t seed, _item_indexes itemIndex, uint16_t createInfo) const
+{
+	return _iSeed == seed && IDidx == itemIndex && _iCreateInfo == createInfo;
+}
+
+UiFlags Item::getTextColorWithStatCheck() const
+{
+	if (!_iStatFlag)
+		return UiFlags::ColorRed;
+	return getTextColor();
+}
+
+Displacement Item::getRenderingOffset(const ClxSprite sprite) const
+{
+	return { -CalculateSpriteTileCenterX(sprite.width()), 0 };
+}
+
 bool ShowUniqueItemInfoBox;
 CornerStoneStruct CornerStone;
 bool UniqueItemFlags[128];
@@ -424,11 +576,11 @@ int ItemsGetCurrlevel()
 
 bool ItemPlace(Point position)
 {
-	if (dMonster[position.x][position.y] != 0)
+	if (tileAt(position).hasMonster())
 		return false;
-	if (dPlayer[position.x][position.y] != 0)
+	if (tileAt(position).hasPlayer())
 		return false;
-	if (dItem[position.x][position.y] != 0)
+	if (tileAt(position).item() != 0)
 		return false;
 	if (IsObjectAtPosition(position))
 		return false;
@@ -461,7 +613,7 @@ void AddInitItems()
 		const Point position = GetRandomAvailableItemPosition();
 		item.position = position;
 
-		dItem[position.x][position.y] = ii + 1;
+		tileAt(position).setItem(ii + 1);
 
 		item._iSeed = AdvanceRndSeed();
 		SetRndSeed(item._iSeed);
@@ -516,9 +668,9 @@ void CalcSelfItems(Player &player)
 	bool changeflag;
 	do {
 		// cap stats to 0
-		const int currstr = std::max(0, sa + player._pBaseStr);
-		const int currmag = std::max(0, ma + player._pBaseMag);
-		const int currdex = std::max(0, da + player._pBaseDex);
+		const int currstr = std::max(0, sa + player.attributes.strength.base);
+		const int currmag = std::max(0, ma + player.attributes.magic.base);
+		const int currdex = std::max(0, da + player.attributes.dexterity.base);
 
 		changeflag = false;
 		// Iterate over equipped items and remove stat bonuses if they are not valid
@@ -592,7 +744,7 @@ bool GetItemSpace(Point position, int8_t inum)
 	xx += position.x - 1;
 	yy += position.y - 1;
 	Items[inum].position = { xx, yy };
-	dItem[xx][yy] = static_cast<int8_t>(inum + 1);
+	tileAt(Point { xx, yy }).setItem(static_cast<int8_t>(inum + 1));
 
 	return true;
 }
@@ -1015,12 +1167,12 @@ int SaveItemPower(const Player &player, Item &item, ItemPower &power)
 		item._iDamAcFlags |= ItemSpecialEffectHf::ACAgainstUndead;
 		break;
 	case IPL_MANATOLIFE: {
-		const int portion = ((player._pMaxManaBase >> 6) * 50 / 100) << 6;
+		const int portion = ((player.mana.maximumBase >> 6) * 50 / 100) << 6;
 		item._iPLMana -= portion;
 		item._iPLHP += portion;
 	} break;
 	case IPL_LIFETOMANA: {
-		const int portion = ((player._pMaxHPBase >> 6) * 40 / 100) << 6;
+		const int portion = ((player.life.maximumBase >> 6) * 40 / 100) << 6;
 		item._iPLHP -= portion;
 		item._iPLMana += portion;
 	} break;
@@ -1579,8 +1731,7 @@ void SpawnRock()
 		return;
 
 	const Object *stand = nullptr;
-	for (int i = 0; i < ActiveObjectCount; i++) {
-		const Object &object = Objects[ActiveObjects[i]];
+	for (const Object &object : ObjectPoolAdapter::ActiveObjectsRange()) {
 		if (object._otype == OBJ_STAND) {
 			stand = &object;
 			break;
@@ -1594,7 +1745,7 @@ void SpawnRock()
 	Item &item = Items[ii];
 
 	item.position = stand->position;
-	dItem[item.position.x][item.position.y] = ii + 1;
+	tileAt(item.position).setItem(ii + 1);
 	const int curlv = ItemsGetCurrlevel();
 	GetItemAttrs(item, IDI_ROCK, curlv);
 	SetupItem(item);
@@ -1615,10 +1766,10 @@ void ItemDoppel()
 	static int idoppely = 16;
 
 	for (int idoppelx = 16; idoppelx < 96; idoppelx++) {
-		if (dItem[idoppelx][idoppely] != 0) {
-			Item *i = &Items[dItem[idoppelx][idoppely] - 1];
+		if (tileAt(Point { idoppelx, idoppely }).item() != 0) {
+			Item *i = &Items[tileAt(Point { idoppelx, idoppely }).item() - 1];
 			if (i->position.x != idoppelx || i->position.y != idoppely)
-				dItem[idoppelx][idoppely] = 0;
+				tileAt(Point { idoppelx, idoppely }).setItem(0);
 		}
 	}
 
@@ -1936,9 +2087,9 @@ _item_indexes RndPremiumItem(const Player &player, int minlvl, int maxlvl)
 
 void SpawnOnePremium(Item &premiumItem, int plvl, const Player &player)
 {
-	int strength = std::max(player.GetMaximumAttributeValue(CharacterAttribute::Strength), player._pStrength);
-	int dexterity = std::max(player.GetMaximumAttributeValue(CharacterAttribute::Dexterity), player._pDexterity);
-	int magic = std::max(player.GetMaximumAttributeValue(CharacterAttribute::Magic), player._pMagic);
+	int strength = std::max(player.GetMaximumAttributeValue(CharacterAttribute::Strength), player.attributes.strength.current);
+	int dexterity = std::max(player.GetMaximumAttributeValue(CharacterAttribute::Dexterity), player.attributes.dexterity.current);
+	int magic = std::max(player.GetMaximumAttributeValue(CharacterAttribute::Magic), player.attributes.magic.current);
 	strength += strength / 5;
 	dexterity += dexterity / 5;
 	magic += magic / 5;
@@ -2053,13 +2204,13 @@ bool HealerItemOk(const Player &player, const ItemData &item)
 
 	if (!gbIsMultiplayer) {
 		if (item.iMiscId == IMISC_ELIXSTR)
-			return !gbIsHellfire || player._pBaseStr < player.GetMaximumAttributeValue(CharacterAttribute::Strength);
+			return !gbIsHellfire || player.attributes.strength.base < player.GetMaximumAttributeValue(CharacterAttribute::Strength);
 		if (item.iMiscId == IMISC_ELIXMAG)
-			return !gbIsHellfire || player._pBaseMag < player.GetMaximumAttributeValue(CharacterAttribute::Magic);
+			return !gbIsHellfire || player.attributes.magic.base < player.GetMaximumAttributeValue(CharacterAttribute::Magic);
 		if (item.iMiscId == IMISC_ELIXDEX)
-			return !gbIsHellfire || player._pBaseDex < player.GetMaximumAttributeValue(CharacterAttribute::Dexterity);
+			return !gbIsHellfire || player.attributes.dexterity.base < player.GetMaximumAttributeValue(CharacterAttribute::Dexterity);
 		if (item.iMiscId == IMISC_ELIXVIT)
-			return !gbIsHellfire || player._pBaseVit < player.GetMaximumAttributeValue(CharacterAttribute::Vitality);
+			return !gbIsHellfire || player.attributes.vitality.base < player.GetMaximumAttributeValue(CharacterAttribute::Vitality);
 	}
 
 	if (item.iMiscId == IMISC_REJUV)
@@ -2433,9 +2584,9 @@ void InitItemGFX()
 void InitItems()
 {
 	ActiveItemCount = 0;
-	memset(dItem, 0, sizeof(dItem));
 
-	for (auto &item : Items) {
+	for (int i = 0; i < MAXITEMS + 1; i++) {
+		Item &item = Items[i];
 		item.clear();
 		item.position = { 0, 0 };
 		item._iAnimFlag = false;
@@ -2508,8 +2659,8 @@ void CalcPlrDamage(Player &player, int minDamage, int maxDamage)
 		}
 	}
 
-	player._pIMinDam = minDamage;
-	player._pIMaxDam = maxDamage;
+	player.damageBonuses.physical.minimum = minDamage;
+	player.damageBonuses.physical.maximum = maxDamage;
 }
 
 void CalcPlrPrimaryStats(Player &player, int strength, int &magic, int dexterity, int &vitality)
@@ -2527,10 +2678,10 @@ void CalcPlrPrimaryStats(Player &player, int strength, int &magic, int dexterity
 		vitality -= 2 * playerLevel;
 	}
 
-	player._pStrength = std::clamp(strength + player._pBaseStr, 0, 750);
-	player._pMagic = std::clamp(magic + player._pBaseMag, 0, 750);
-	player._pDexterity = std::clamp(dexterity + player._pBaseDex, 0, 750);
-	player._pVitality = std::clamp(vitality + player._pBaseVit, 0, 750);
+	player.attributes.strength.current = std::clamp(strength + player.attributes.strength.base, 0, 750);
+	player.attributes.magic.current = std::clamp(magic + player.attributes.magic.base, 0, 750);
+	player.attributes.dexterity.current = std::clamp(dexterity + player.attributes.dexterity.base, 0, 750);
+	player.attributes.vitality.current = std::clamp(vitality + player.attributes.vitality.base, 0, 750);
 }
 
 void CalcPlrLightRadius(Player &player, int lrad)
@@ -2551,8 +2702,8 @@ void CalcPlrDamageMod(Player &player)
 	const uint8_t playerLevel = player.getCharacterLevel();
 	const Item &leftHandItem = player.InvBody[INVLOC_HAND_LEFT];
 	const Item &rightHandItem = player.InvBody[INVLOC_HAND_RIGHT];
-	const int strMod = playerLevel * player._pStrength;
-	const int strDexMod = playerLevel * (player._pStrength + player._pDexterity);
+	const int strMod = playerLevel * player.attributes.strength.current;
+	const int strDexMod = playerLevel * (player.attributes.strength.current + player.attributes.dexterity.current);
 
 	switch (player._pClass) {
 	case HeroClass::Rogue:
@@ -2588,7 +2739,7 @@ void CalcPlrDamageMod(Player &player)
 			else if (rightHandItem._itype == ItemType::Shield)
 				player._pIAC -= rightHandItem._iAC / 2;
 		} else if (!player.isHoldingItem(ItemType::Staff) && !player.isHoldingItem(ItemType::Bow)) {
-			player._pDamageMod += playerLevel * player._pVitality / 100;
+			player._pDamageMod += playerLevel * player.attributes.vitality.current / 100;
 		}
 		break;
 	default:
@@ -2641,15 +2792,15 @@ void CalcPlrLifeMana(Player &player, int vitality, int magic, int life, int mana
 	magic = (magic * playerClassAttributes.itmMana) >> 6;
 	mana += (magic << 6);
 
-	player.maxHitPoints = std::clamp(life + player._pMaxHPBase, 1 << 6, 2000 << 6);
-	player.hitPoints = std::min(life + player._pHPBase, player.maxHitPoints);
+	player.life.maximum = std::clamp(life + player.life.maximumBase, 1 << 6, 2000 << 6);
+	player.life.current = std::min(life + player.life.base, player.life.maximum);
 
 	if (&player == MyPlayer && player.hasNoLife()) {
-		SetPlayerHitPoints(player, 0);
+		player.setHitPoints(0);
 	}
 
-	player._pMaxMana = std::clamp(mana + player._pMaxManaBase, 0, 2000 << 6);
-	player._pMana = std::min(mana + player._pManaBase, player._pMaxMana);
+	player.mana.maximum = std::clamp(mana + player.mana.maximumBase, 0, 2000 << 6);
+	player.mana.current = std::min(mana + player.mana.base, player.mana.maximum);
 }
 
 void CalcPlrBlockFlag(Player &player)
@@ -2741,14 +2892,14 @@ void CalcPlrGraphics(Player &player, PlayerWeaponGraphic animWeaponId, PlayerArm
 	const uint8_t gfxNum = static_cast<uint8_t>(animWeaponId) | static_cast<uint8_t>(animArmorId);
 	if (player._pgfxnum != gfxNum && loadgfx) {
 		player._pgfxnum = gfxNum;
-		ResetPlayerGFX(player);
-		SetPlrAnims(player);
+		player.resetGraphics();
+		player.setAnimations();
 		player.previewCelSprite = std::nullopt;
 		player_graphic graphic = player.getGraphic();
 		int8_t numberOfFrames;
 		int8_t ticksPerFrame;
 		player.getAnimationFramesAndTicksPerFrame(graphic, numberOfFrames, ticksPerFrame);
-		LoadPlrGFX(player, graphic);
+		player.loadGraphic(graphic);
 		OptionalClxSpriteList sprites;
 		if (!HeadlessMode) {
 			auto &animData = player.AnimationData[static_cast<size_t>(graphic)];
@@ -2762,7 +2913,7 @@ void CalcPlrGraphics(Player &player, PlayerWeaponGraphic animWeaponId, PlayerArm
 				// This could also happen when unequipping a weapon during an attack, etc.
 				// To avoid the crash, we can set the remote player into a standing animation before updating the items on their sprite.
 				graphic = player_graphic::Stand;
-				NewPlrAnim(player, graphic, player.direction);
+				player.setAnimation(graphic, player.direction);
 				player.getAnimationFramesAndTicksPerFrame(graphic, numberOfFrames, ticksPerFrame);
 				sprites = player.AnimationData[static_cast<size_t>(graphic)].spritesForDirection(player.direction);
 			}
@@ -2871,25 +3022,25 @@ void CalcPlrItemVals(Player &player, bool loadgfx)
 	CalcPlrDamage(player, minDamage, maxDamage);
 	CalcPlrPrimaryStats(player, strength, magic, dexterity, vitality);
 	player._pIAC = ac;
-	player._pIBonusDam = dam;
+	player.damageBonuses.percent = dam;
 	player._pIBonusToHit = toHit;
 	player._pIBonusAC = bonusAc;
 	player._pIFlags = flags;
 	player.pDamAcFlags = damAcFlags;
-	player._pIBonusDamMod = damMod;
+	player.damageBonuses.flat = damMod;
 	player._pIGetHit = getHit;
 	CalcPlrLightRadius(player, lightRadius);
 	CalcPlrDamageMod(player);
 	player._pISpells = spells;
 	EnsureValidReadiedSpell(player);
 	player._pISplLvlAdd = splLvlAdd;
-	player._pIEnAc = targetAc;
+	player.damageBonuses.armorPiercing = targetAc;
 	CalcPlrResistances(player, flags, fireRes, lightRes, magicRes);
 	CalcPlrLifeMana(player, vitality, magic, life, mana);
-	player._pIFMinDam = minFireDam;
-	player._pIFMaxDam = maxFireDam;
-	player._pILMinDam = minLightDam;
-	player._pILMaxDam = maxLightDam;
+	player.damageBonuses.fire.minimum = minFireDam;
+	player.damageBonuses.fire.maximum = maxFireDam;
+	player.damageBonuses.lightning.minimum = minLightDam;
+	player.damageBonuses.lightning.maximum = maxLightDam;
 
 	CalcPlrBlockFlag(player);
 
@@ -3068,15 +3219,15 @@ bool ItemSpaceOk(Point position)
 		return false;
 	}
 
-	if (dItem[position.x][position.y] != 0) {
+	if (tileAt(position).item() != 0) {
 		return false;
 	}
 
-	if (dMonster[position.x][position.y] != 0) {
+	if (tileAt(position).monster() != 0) {
 		return false;
 	}
 
-	if (dPlayer[position.x][position.y] != 0) {
+	if (tileAt(position).hasPlayer()) {
 		return false;
 	}
 
@@ -3106,7 +3257,7 @@ uint8_t PlaceItemInWorld(Item &&item, WorldTilePosition position)
 	const uint8_t ii = ActiveItems[ActiveItemCount];
 	ActiveItemCount++;
 
-	dItem[position.x][position.y] = static_cast<int8_t>(ii + 1);
+	tileAt(position).setItem(static_cast<int8_t>(ii + 1));
 	auto &newItem = Items[ii];
 	newItem = std::move(item);
 	newItem.position = position;
@@ -3201,7 +3352,7 @@ Item *SpawnUnique(_unique_items uid, Point position, std::optional<int> level /*
 	auto &item = Items[ii];
 	if (exactPosition && CanPut(position)) {
 		item.position = position;
-		dItem[position.x][position.y] = ii + 1;
+		tileAt(position).setItem(ii + 1);
 	} else {
 		GetSuperItemSpace(position, ii);
 	}
@@ -3246,7 +3397,7 @@ void GetSuperItemSpace(Point position, int8_t inum)
 				if (!ItemSpaceOk(positionToCheck))
 					continue;
 				Items[inum].position = positionToCheck;
-				dItem[positionToCheck.x][positionToCheck.y] = inum + 1;
+				tileAt(positionToCheck).setItem(inum + 1);
 				return;
 			}
 		}
@@ -3612,15 +3763,15 @@ void CornerstoneLoad(Point position)
 
 	CornerStone.item.clear();
 	CornerStone.activated = true;
-	if (dItem[position.x][position.y] != 0) {
-		const int ii = dItem[position.x][position.y] - 1;
+	if (tileAt(position).item() != 0) {
+		const int ii = tileAt(position).item() - 1;
 		for (int i = 0; i < ActiveItemCount; i++) {
 			if (ActiveItems[i] == ii) {
 				DeleteItem(i);
 				break;
 			}
 		}
-		dItem[position.x][position.y] = 0;
+		tileAt(position).setItem(0);
 	}
 
 	if (strlen(GetOptions().Hellfire.szItem) < sizeof(ItemPack) * 2)
@@ -3631,7 +3782,7 @@ void CornerstoneLoad(Point position)
 	const int ii = AllocateItem();
 	auto &item = Items[ii];
 
-	dItem[position.x][position.y] = static_cast<int8_t>(ii + 1);
+	tileAt(position).setItem(static_cast<int8_t>(ii + 1));
 
 	UnPackItem(pkSItem, *MyPlayer, item, (pkSItem.dwBuff & CF_HELLFIRE) != 0);
 	item.position = position;
@@ -3670,7 +3821,7 @@ void SpawnQuestItem(_item_indexes itemid, Point position, int randarea, Selectio
 
 	item.position = position;
 
-	dItem[position.x][position.y] = ii + 1;
+	tileAt(position).setItem(ii + 1);
 
 	const int curlv = ItemsGetCurrlevel();
 	GetItemAttrs(item, itemid, curlv);
@@ -3702,7 +3853,7 @@ void SpawnRewardItem(_item_indexes itemid, Point position, bool sendmsg)
 	auto &item = Items[ii];
 
 	item.position = position;
-	dItem[position.x][position.y] = ii + 1;
+	tileAt(position).setItem(ii + 1);
 	const int curlv = ItemsGetCurrlevel();
 	GetItemAttrs(item, itemid, curlv);
 	item.setNewAnimation(true);
@@ -4233,10 +4384,10 @@ void UseItem(Player &player, item_misc_id mid, SpellID spellID, int spellFrom)
 		}
 		break;
 	case IMISC_ELIXSTR:
-		ModifyPlrStr(player, 1);
+		player.modifyStrength(1);
 		break;
 	case IMISC_ELIXMAG:
-		ModifyPlrMag(player, 1);
+		player.modifyMagic(1);
 		if (gbIsHellfire) {
 			player.RestoreFullMana();
 			if (&player == MyPlayer) {
@@ -4245,10 +4396,10 @@ void UseItem(Player &player, item_misc_id mid, SpellID spellID, int spellFrom)
 		}
 		break;
 	case IMISC_ELIXDEX:
-		ModifyPlrDex(player, 1);
+		player.modifyDexterity(1);
 		break;
 	case IMISC_ELIXVIT:
-		ModifyPlrVit(player, 1);
+		player.modifyVitality(1);
 		if (gbIsHellfire) {
 			player.RestoreFullLife();
 			if (&player == MyPlayer) {
@@ -4295,10 +4446,10 @@ void UseItem(Player &player, item_misc_id mid, SpellID spellID, int spellFrom)
 			NetSendCmdParam2(true, CMD_CHANGE_SPELL_LEVEL, static_cast<uint16_t>(spellID), newSpellLevel);
 		}
 		if (HasNoneOf(player._pIFlags, ItemSpecialEffect::NoMana)) {
-			player._pMana += GetSpellData(spellID).sManaCost << 6;
-			player._pMana = std::min(player._pMana, player._pMaxMana);
-			player._pManaBase += GetSpellData(spellID).sManaCost << 6;
-			player._pManaBase = std::min(player._pManaBase, player._pMaxManaBase);
+			player.mana.current += GetSpellData(spellID).sManaCost << 6;
+			player.mana.current = std::min(player.mana.current, player.mana.maximum);
+			player.mana.base += GetSpellData(spellID).sManaCost << 6;
+			player.mana.base = std::min(player.mana.base, player.mana.maximumBase);
 		}
 		if (&player == MyPlayer) {
 			for (Item &item : InventoryPlayerItemsRange { player }) {
@@ -4336,10 +4487,10 @@ void UseItem(Player &player, item_misc_id mid, SpellID spellID, int spellFrom)
 		NewCursor(CURSOR_OIL);
 		break;
 	case IMISC_SPECELIX:
-		ModifyPlrStr(player, 3);
-		ModifyPlrMag(player, 3);
-		ModifyPlrDex(player, 3);
-		ModifyPlrVit(player, 3);
+		player.modifyStrength(3);
+		player.modifyMagic(3);
+		player.modifyDexterity(3);
+		player.modifyVitality(3);
 		break;
 	case IMISC_RUNEF:
 		prepareSpellID = SpellID::RuneOfFire;
@@ -4539,9 +4690,9 @@ void SpawnBoy(int lvl)
 	const Player &myPlayer = *MyPlayer;
 
 	const HeroClass pc = myPlayer._pClass;
-	int strength = std::max(myPlayer.GetMaximumAttributeValue(CharacterAttribute::Strength), myPlayer._pStrength);
-	int dexterity = std::max(myPlayer.GetMaximumAttributeValue(CharacterAttribute::Dexterity), myPlayer._pDexterity);
-	int magic = std::max(myPlayer.GetMaximumAttributeValue(CharacterAttribute::Magic), myPlayer._pMagic);
+	int strength = std::max(myPlayer.GetMaximumAttributeValue(CharacterAttribute::Strength), myPlayer.attributes.strength.current);
+	int dexterity = std::max(myPlayer.GetMaximumAttributeValue(CharacterAttribute::Dexterity), myPlayer.attributes.dexterity.current);
+	int magic = std::max(myPlayer.GetMaximumAttributeValue(CharacterAttribute::Magic), myPlayer.attributes.magic.current);
 	strength += strength / 5;
 	dexterity += dexterity / 5;
 	magic += magic / 5;

@@ -79,24 +79,24 @@ UiFlags GetMaxManaColor()
 {
 	if (HasAnyOf(InspectPlayer->_pIFlags, ItemSpecialEffect::NoMana))
 		return UiFlags::ColorRed;
-	return InspectPlayer->_pMaxMana > InspectPlayer->_pMaxManaBase ? UiFlags::ColorBlue : UiFlags::ColorWhite;
+	return InspectPlayer->mana.maximum > InspectPlayer->mana.maximumBase ? UiFlags::ColorBlue : UiFlags::ColorWhite;
 }
 
 UiFlags GetMaxHealthColor()
 {
-	return InspectPlayer->maxHitPoints > InspectPlayer->_pMaxHPBase ? UiFlags::ColorBlue : UiFlags::ColorWhite;
+	return InspectPlayer->life.maximum > InspectPlayer->life.maximumBase ? UiFlags::ColorBlue : UiFlags::ColorWhite;
 }
 
 std::pair<int, int> GetDamage()
 {
-	int damageMod = InspectPlayer->_pIBonusDamMod;
+	int damageMod = InspectPlayer->damageBonuses.flat;
 	if (InspectPlayer->InvBody[INVLOC_HAND_LEFT]._itype == ItemType::Bow && InspectPlayer->_pClass != HeroClass::Rogue) {
 		damageMod += InspectPlayer->_pDamageMod / 2;
 	} else {
 		damageMod += InspectPlayer->_pDamageMod;
 	}
-	const int mindam = InspectPlayer->_pIMinDam + (InspectPlayer->_pIBonusDam * InspectPlayer->_pIMinDam / 100) + damageMod;
-	const int maxdam = InspectPlayer->_pIMaxDam + (InspectPlayer->_pIBonusDam * InspectPlayer->_pIMaxDam / 100) + damageMod;
+	const int mindam = InspectPlayer->damageBonuses.physical.minimum + (InspectPlayer->damageBonuses.percent * InspectPlayer->damageBonuses.physical.minimum / 100) + damageMod;
+	const int maxdam = InspectPlayer->damageBonuses.physical.maximum + (InspectPlayer->damageBonuses.percent * InspectPlayer->damageBonuses.physical.maximum / 100) + damageMod;
 	return { mindam, maxdam };
 }
 
@@ -148,22 +148,22 @@ PanelEntry panelEntries[] = {
 	{ N_("Base"), { LeftColumnLabelX, /* set dynamically */ 0 }, 0, 44, {} },
 	{ N_("Now"), { 135, /* set dynamically */ 0 }, 0, 44, {} },
 	{ N_("Strength"), { LeftColumnLabelX, 135 }, 45, LeftColumnLabelWidth,
-	    []() { return StyledText { GetBaseStatColor(CharacterAttribute::Strength), StrCat(InspectPlayer->_pBaseStr) }; } },
+	    []() { return StyledText { GetBaseStatColor(CharacterAttribute::Strength), StrCat(InspectPlayer->attributes.strength.base) }; } },
 	{ "", { 135, 135 }, 45, 0,
-	    []() { return StyledText { GetCurrentStatColor(CharacterAttribute::Strength), StrCat(InspectPlayer->_pStrength) }; } },
+	    []() { return StyledText { GetCurrentStatColor(CharacterAttribute::Strength), StrCat(InspectPlayer->attributes.strength.current) }; } },
 	{ N_("Magic"), { LeftColumnLabelX, 163 }, 45, LeftColumnLabelWidth,
-	    []() { return StyledText { GetBaseStatColor(CharacterAttribute::Magic), StrCat(InspectPlayer->_pBaseMag) }; } },
+	    []() { return StyledText { GetBaseStatColor(CharacterAttribute::Magic), StrCat(InspectPlayer->attributes.magic.base) }; } },
 	{ "", { 135, 163 }, 45, 0,
-	    []() { return StyledText { GetCurrentStatColor(CharacterAttribute::Magic), StrCat(InspectPlayer->_pMagic) }; } },
-	{ N_("Dexterity"), { LeftColumnLabelX, 191 }, 45, LeftColumnLabelWidth, []() { return StyledText { GetBaseStatColor(CharacterAttribute::Dexterity), StrCat(InspectPlayer->_pBaseDex) }; } },
+	    []() { return StyledText { GetCurrentStatColor(CharacterAttribute::Magic), StrCat(InspectPlayer->attributes.magic.current) }; } },
+	{ N_("Dexterity"), { LeftColumnLabelX, 191 }, 45, LeftColumnLabelWidth, []() { return StyledText { GetBaseStatColor(CharacterAttribute::Dexterity), StrCat(InspectPlayer->attributes.dexterity.base) }; } },
 	{ "", { 135, 191 }, 45, 0,
-	    []() { return StyledText { GetCurrentStatColor(CharacterAttribute::Dexterity), StrCat(InspectPlayer->_pDexterity) }; } },
-	{ N_("Vitality"), { LeftColumnLabelX, 219 }, 45, LeftColumnLabelWidth, []() { return StyledText { GetBaseStatColor(CharacterAttribute::Vitality), StrCat(InspectPlayer->_pBaseVit) }; } },
+	    []() { return StyledText { GetCurrentStatColor(CharacterAttribute::Dexterity), StrCat(InspectPlayer->attributes.dexterity.current) }; } },
+	{ N_("Vitality"), { LeftColumnLabelX, 219 }, 45, LeftColumnLabelWidth, []() { return StyledText { GetBaseStatColor(CharacterAttribute::Vitality), StrCat(InspectPlayer->attributes.vitality.base) }; } },
 	{ "", { 135, 219 }, 45, 0,
-	    []() { return StyledText { GetCurrentStatColor(CharacterAttribute::Vitality), StrCat(InspectPlayer->_pVitality) }; } },
+	    []() { return StyledText { GetCurrentStatColor(CharacterAttribute::Vitality), StrCat(InspectPlayer->attributes.vitality.current) }; } },
 	{ N_("Points to distribute"), { LeftColumnLabelX, 248 }, 45, LeftColumnLabelWidth,
 	    []() {
-	        InspectPlayer->_pStatPts = std::min(CalcStatDiff(*InspectPlayer), InspectPlayer->_pStatPts);
+	        InspectPlayer->_pStatPts = std::min(InspectPlayer->calculateStatDifference(), InspectPlayer->_pStatPts);
 	        return StyledText { UiFlags::ColorRed, (InspectPlayer->_pStatPts > 0 ? StrCat(InspectPlayer->_pStatPts) : "") };
 	    } },
 
@@ -178,17 +178,17 @@ PanelEntry panelEntries[] = {
 	{ N_("Damage"), { RightColumnLabelX, 219 }, 57, RightColumnLabelWidth,
 	    []() {
 	        const auto [dmgMin, dmgMax] = GetDamage();
-	        return StyledText { GetValueColor(InspectPlayer->_pIBonusDam), StrCat(dmgMin, "-", dmgMax) };
+	        return StyledText { GetValueColor(InspectPlayer->damageBonuses.percent), StrCat(dmgMin, "-", dmgMax) };
 	    } },
 
 	{ N_("Life"), { LeftColumnLabelX, 284 }, 45, LeftColumnLabelWidth,
-	    []() { return StyledText { GetMaxHealthColor(), StrCat(InspectPlayer->maxHitPoints >> 6) }; } },
+	    []() { return StyledText { GetMaxHealthColor(), StrCat(InspectPlayer->life.maximum >> 6) }; } },
 	{ "", { 135, 284 }, 45, 0,
-	    []() { return StyledText { (InspectPlayer->hitPoints != InspectPlayer->maxHitPoints ? UiFlags::ColorRed : GetMaxHealthColor()), StrCat(InspectPlayer->hitPoints >> 6) }; } },
+	    []() { return StyledText { (InspectPlayer->life.current != InspectPlayer->life.maximum ? UiFlags::ColorRed : GetMaxHealthColor()), StrCat(InspectPlayer->life.current >> 6) }; } },
 	{ N_("Mana"), { LeftColumnLabelX, 312 }, 45, LeftColumnLabelWidth,
-	    []() { return StyledText { GetMaxManaColor(), StrCat(HasAnyOf(InspectPlayer->_pIFlags, ItemSpecialEffect::NoMana) ? 0 : InspectPlayer->_pMaxMana >> 6) }; } },
+	    []() { return StyledText { GetMaxManaColor(), StrCat(HasAnyOf(InspectPlayer->_pIFlags, ItemSpecialEffect::NoMana) ? 0 : InspectPlayer->mana.maximum >> 6) }; } },
 	{ "", { 135, 312 }, 45, 0,
-	    []() { return StyledText { (InspectPlayer->_pMana != InspectPlayer->_pMaxMana ? UiFlags::ColorRed : GetMaxManaColor()), StrCat((HasAnyOf(InspectPlayer->_pIFlags, ItemSpecialEffect::NoMana) || InspectPlayer->hasNoMana()) ? 0 : InspectPlayer->_pMana >> 6) }; } },
+	    []() { return StyledText { (InspectPlayer->mana.current != InspectPlayer->mana.maximum ? UiFlags::ColorRed : GetMaxManaColor()), StrCat((HasAnyOf(InspectPlayer->_pIFlags, ItemSpecialEffect::NoMana) || InspectPlayer->hasNoMana()) ? 0 : InspectPlayer->mana.current >> 6) }; } },
 
 	{ N_("Resist magic"), { RightColumnLabelX, 256 }, 57, RightColumnLabelWidth,
 	    []() { return GetResistInfo(InspectPlayer->_pMagResist); } },
@@ -257,13 +257,13 @@ void DrawShadowString(const Surface &out, const PanelEntry &entry)
 void DrawStatButtons(const Surface &out)
 {
 	if (InspectPlayer->_pStatPts > 0 && !IsInspectingPlayer()) {
-		if (InspectPlayer->_pBaseStr < InspectPlayer->GetMaximumAttributeValue(CharacterAttribute::Strength))
+		if (InspectPlayer->attributes.strength.base < InspectPlayer->GetMaximumAttributeValue(CharacterAttribute::Strength))
 			ClxDraw(out, GetPanelPosition(UiPanels::Character, { 137, 157 }), (*pChrButtons)[CharPanelButton[static_cast<size_t>(CharacterAttribute::Strength)] ? 2 : 1]);
-		if (InspectPlayer->_pBaseMag < InspectPlayer->GetMaximumAttributeValue(CharacterAttribute::Magic))
+		if (InspectPlayer->attributes.magic.base < InspectPlayer->GetMaximumAttributeValue(CharacterAttribute::Magic))
 			ClxDraw(out, GetPanelPosition(UiPanels::Character, { 137, 185 }), (*pChrButtons)[CharPanelButton[static_cast<size_t>(CharacterAttribute::Magic)] ? 4 : 3]);
-		if (InspectPlayer->_pBaseDex < InspectPlayer->GetMaximumAttributeValue(CharacterAttribute::Dexterity))
+		if (InspectPlayer->attributes.dexterity.base < InspectPlayer->GetMaximumAttributeValue(CharacterAttribute::Dexterity))
 			ClxDraw(out, GetPanelPosition(UiPanels::Character, { 137, 214 }), (*pChrButtons)[CharPanelButton[static_cast<size_t>(CharacterAttribute::Dexterity)] ? 6 : 5]);
-		if (InspectPlayer->_pBaseVit < InspectPlayer->GetMaximumAttributeValue(CharacterAttribute::Vitality))
+		if (InspectPlayer->attributes.vitality.base < InspectPlayer->GetMaximumAttributeValue(CharacterAttribute::Vitality))
 			ClxDraw(out, GetPanelPosition(UiPanels::Character, { 137, 242 }), (*pChrButtons)[CharPanelButton[static_cast<size_t>(CharacterAttribute::Vitality)] ? 8 : 7]);
 	}
 }

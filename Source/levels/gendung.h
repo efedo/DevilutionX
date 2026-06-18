@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <memory>
 #include <optional>
+#include <span>
 #include <string>
 #include <string_view>
 
@@ -47,17 +48,12 @@ tl::expected<dungeon_type, std::string> ParseDungeonType(std::string_view value)
 tl::expected<_setlevels, std::string> ParseSetLevel(std::string_view value);
 
 // ---------------------------------------------------------------------------
-// Macro shims — each name expands to the corresponding Level member so that
-// all existing call sites (assignments, address-of, array indexing, …)
-// continue to work without modification.
+// Transitional macro shims for Level state that has not yet migrated to named
+// accessors.
 // ---------------------------------------------------------------------------
 // clang-format off
 /** Reprecents what tiles are being utilized in the generated map. */
 #define DungeonMask   (currentLevel().DungeonMask_)
-/** Contains the tile IDs of the map. */
-#define dungeon       (currentLevel().dungeon_)
-/** Contains a backup of the tile IDs of the map. */
-#define pdungeon      (currentLevel().pdungeon_)
 /** Tile that may not be overwritten by the level generator */
 #define Protected     (currentLevel().Protected_)
 #define SetPieceRoom  (currentLevel().SetPieceRoom_)
@@ -101,47 +97,46 @@ tl::expected<_setlevels, std::string> ParseSetLevel(std::string_view value);
 #define TransVal      (currentLevel().TransVal_)
 /** Specifies the active transparency indices. */
 #define TransList     (currentLevel().TransList_)
-/** Contains the piece IDs of each tile on the map. */
-#define dPiece        (currentLevel().dPiece_)
 /** Map of micros that comprises a full tile for any given dungeon piece. */
+// LEGACY macro kept for transition; prefer levelMicros() for new code.
 #define DPieceMicros  (currentLevel().DPieceMicros_)
-/** Specifies the transparency at each coordinate of the map. */
-#define dTransVal     (currentLevel().dTransVal_)
-/** Current realtime lighting. Per tile. */
-#define dLight        (currentLevel().dLight_)
-/** Precalculated static lights. dLight uses this as a base before applying lights. Per tile. */
-#define dPreLight     (currentLevel().dPreLight_)
 /** Holds various information about dungeon tiles, @see DungeonFlag */
-#define dFlags        (currentLevel().dFlags_)
-/** Contains the player numbers (players array indices) of the map. */
-#define dPlayer       (currentLevel().dPlayer_)
-/**
- * Contains the NPC numbers of the map. The NPC number represents a
- * towner number (towners array index) in Tristram and a monster number
- * (monsters array index) in the dungeon.
- * Negative id indicates monsters moving.
- */
-#define dMonster      (currentLevel().dMonster_)
-/**
- * Contains the dead numbers (deads array indices) and dead direction of
- * the map, encoded as specified by the pseudo-code below.
- * dDead[x][y] & 0x1F - index of dead
- * dDead[x][y] >> 0x5 - direction
- */
-#define dCorpse       (currentLevel().dCorpse_)
-/**
- * Contains the object numbers (objects array indices) of the map.
- * Large objects have negative id for their extended area.
- */
-#define dObject       (currentLevel().dObject_)
-/**
- * Contains the arch frame numbers of the map from the special tileset
- * (e.g. "levels/l1data/l1s"). Note, the special tileset of Tristram (i.e.
- * "levels/towndata/towns") contains trees rather than arches.
- */
-#define dSpecial      (currentLevel().dSpecial_)
 #define themeCount    (currentLevel().themeCount_)
 #define themeLoc      (currentLevel().themeLoc_)
+
+// ---------------------------------------------------------------------------
+// NEW: Tile-based access (Phase 2 migration)
+// ---------------------------------------------------------------------------
+/** Access the tile grid by coordinate or in Y-major range order. */
+#define tiles         (currentLevel().tiles_)
+/** Accessor helper for getting a tile. Use tileAt(x, y) or tileAt(Point) */
+#define tileAt        (currentLevel().tileAt)
+/** Access a coarse dungeon megatile in the current level. */
+inline DungeonMegaTile &megaTileAt(int x, int y)
+{
+	return currentLevel().megaTileAt(x, y);
+}
+
+/** Access a coarse dungeon megatile in the current level. */
+inline DungeonMegaTile &megaTileAt(Point position)
+{
+	return currentLevel().megaTileAt(position);
+}
+
+// clang-format on
+
+/**
+ * @brief Returns a std::span over the level's MICROS lookup table.
+ *
+ * Prefer this over the legacy DPieceMicros macro for new code.
+ * The table is indexed by piece ID (0..MAXTILES-1) and maps each piece
+ * to its LevelCelBlock data for rendering.
+ */
+[[nodiscard]] inline std::span<MICROS, MAXTILES> levelMicros()
+{
+	return std::span<MICROS, MAXTILES>(currentLevel().DPieceMicros_);
+}
+
 // clang-format on
 
 #ifdef BUILD_TESTING
@@ -161,9 +156,9 @@ DVL_ALWAYS_INLINE constexpr bool InDungeonBounds(Point position)
  * @param position Coordinates of the dungeon tile to check
  * @return true if a missile exists at this position
  */
-constexpr bool TileContainsMissile(Point position)
+DVL_ALWAYS_INLINE bool TileContainsMissile(Point position)
 {
-	return InDungeonBounds(position) && HasAnyOf(dFlags[position.x][position.y], DungeonFlag::Missile);
+	return InDungeonBounds(position) && tileAt(position).hasAnyFlag(DungeonFlag::Missile);
 }
 
 /**
@@ -171,9 +166,9 @@ constexpr bool TileContainsMissile(Point position)
  * @param position Coordinates of the dungeon tile to check
  * @return true if a dead player exists at this position
  */
-constexpr bool TileContainsDeadPlayer(Point position)
+DVL_ALWAYS_INLINE bool TileContainsDeadPlayer(Point position)
 {
-	return InDungeonBounds(position) && HasAnyOf(dFlags[position.x][position.y], DungeonFlag::DeadPlayer);
+	return InDungeonBounds(position) && tileAt(position).hasAnyFlag(DungeonFlag::DeadPlayer);
 }
 
 /**
@@ -184,9 +179,9 @@ constexpr bool TileContainsDeadPlayer(Point position)
  * @param position Coordinates of the dungeon tile to check
  * @return true if a set piece was spawned at this position
  */
-constexpr bool TileContainsSetPiece(Point position)
+DVL_ALWAYS_INLINE bool TileContainsSetPiece(Point position)
 {
-	return InDungeonBounds(position) && HasAnyOf(dFlags[position.x][position.y], DungeonFlag::Populated);
+	return InDungeonBounds(position) && tileAt(position).hasAnyFlag(DungeonFlag::Populated);
 }
 
 /**
@@ -197,9 +192,9 @@ constexpr bool TileContainsSetPiece(Point position)
  * @param position Coordinates of the dungeon tile to check
  * @return true if the tile is within at least one players vision
  */
-constexpr bool IsTileVisible(Point position)
+DVL_ALWAYS_INLINE bool IsTileVisible(Point position)
 {
-	return InDungeonBounds(position) && HasAnyOf(dFlags[position.x][position.y], DungeonFlag::Visible);
+	return InDungeonBounds(position) && tileAt(position).hasAnyFlag(DungeonFlag::Visible);
 }
 
 /**
@@ -207,9 +202,9 @@ constexpr bool IsTileVisible(Point position)
  * @param position Coordinates of the dungeon tile to check
  * @return true if the tile is within the radius of at least one light source
  */
-constexpr bool IsTileLit(Point position)
+DVL_ALWAYS_INLINE bool IsTileLit(Point position)
 {
-	return InDungeonBounds(position) && HasAnyOf(dFlags[position.x][position.y], DungeonFlag::Lit);
+	return InDungeonBounds(position) && tileAt(position).hasAnyFlag(DungeonFlag::Lit);
 }
 
 struct Miniset {
@@ -226,7 +221,7 @@ struct Miniset {
 	{
 		for (WorldTileCoord yy = 0; yy < size.height; yy++) {
 			for (WorldTileCoord xx = 0; xx < size.width; xx++) {
-				if (search[yy][xx] != 0 && dungeon[xx + position.x][yy + position.y] != search[yy][xx])
+				if (search[yy][xx] != 0 && megaTileAt(xx + position.x, yy + position.y).current() != search[yy][xx])
 					return false;
 				if (respectProtected && Protected.test(xx + position.x, yy + position.y))
 					return false;
@@ -241,7 +236,7 @@ struct Miniset {
 			for (WorldTileCoord x = 0; x < size.width; x++) {
 				if (replace[y][x] == 0)
 					continue;
-				dungeon[x + position.x][y + position.y] = replace[y][x];
+				megaTileAt(x + position.x, y + position.y).setCurrent(replace[y][x]);
 				if (protect)
 					Protected.set(x + position.x, y + position.y);
 			}
@@ -249,14 +244,16 @@ struct Miniset {
 	}
 };
 
-[[nodiscard]] DVL_ALWAYS_INLINE bool TileHasAny(Point coords, TileProperties property)
+DVL_ALWAYS_INLINE bool TileHasAny(Point coords, TileProperties property)
 {
-	return HasAnyOf(SOLData[dPiece[coords.x][coords.y]], property);
+	return HasAnyOf(SOLData[tileAt(coords).piece()], property);
 }
 
 tl::expected<void, std::string> LoadLevelSOLData();
 void SetDungeonMicros(std::unique_ptr<std::byte[]> &dungeonCels, uint_fast8_t &microTileLen);
 void DRLG_InitTrans();
+void FillCurrentMegaTiles(uint8_t value);
+void SnapshotReplacementMegaTiles();
 void DRLG_MRectTrans(WorldTilePosition origin, WorldTilePosition extent);
 void DRLG_MRectTrans(WorldTileRectangle area);
 void DRLG_RectTrans(WorldTileRectangle area);

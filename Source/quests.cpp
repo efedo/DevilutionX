@@ -26,6 +26,8 @@
 #include "minitext.h"
 #include "missiles.h"
 #include "monster.h"
+#include "monster_pool.h"
+#include "object_pool.h"
 #include "options.h"
 #include "panels/ui_panels.hpp"
 #include "stores.h"
@@ -130,7 +132,7 @@ void DrawLTBanner(Point position)
 		for (WorldTileCoord i = 0; i < size.width; i++) {
 			auto tileId = static_cast<uint8_t>(Swap16LE(tileLayer[(j * size.width) + i]));
 			if (tileId != 0) {
-				pdungeon[position.x + i][position.y + j] = tileId;
+				megaTileAt(position.x + i, position.y + j).setReplacement(tileId);
 			}
 		}
 	}
@@ -141,8 +143,8 @@ void DrawLTBanner(Point position)
  */
 void DrawBlind(Point position)
 {
-	dungeon[position.x][position.y + 1] = 154;
-	dungeon[position.x + 10][position.y + 8] = 154;
+	megaTileAt(position.x, position.y + 1).setCurrent(154);
+	megaTileAt(position.x + 10, position.y + 8).setCurrent(154);
 }
 
 void DrawBlood(Point position)
@@ -317,7 +319,7 @@ void CheckQuests()
 		if (setlvlnum == poisonWater._qslvl
 		    && poisonWater._qactive != QUEST_INIT
 		    && leveltype == poisonWater._qlvltype
-		    && ActiveMonsterCount == 4
+			&& MonsterPoolAdapter::ActiveMonsterCountValue() == 4
 		    && poisonWater._qactive != QUEST_DONE) {
 			poisonWater._qactive = QUEST_DONE;
 			poisonWater._qlog = true; // even if the player skips talking to Pepin completely they should at least notice the water being purified once they cleanse the level
@@ -403,7 +405,7 @@ void CheckQuestKill(const Monster &monster, bool sendmsg)
 		if (UseMultiplayerQuests()) {
 			for (WorldTileCoord j = 0; j < MAXDUNY; j++) {
 				for (WorldTileCoord i = 0; i < MAXDUNX; i++) {
-					if (dPiece[i][j] == 369) {
+					if (tileAt(i, j).piece() == 369) {
 						trigs[numtrigs].position = { i, j };
 						trigs[numtrigs]._tmsg = WM_DIABNEXTLVL;
 						numtrigs++;
@@ -585,13 +587,13 @@ void ResyncQuests()
 		}
 		if (Quests[Q_LTBANNER]._qvar1 == 2) {
 			ObjChangeMapResync(
-			    SetPiece.position.x + SetPiece.size.width - 2,
-			    SetPiece.position.y + SetPiece.size.height - 2,
-			    SetPiece.position.x + SetPiece.size.width + 1,
-			    SetPiece.position.y + SetPiece.size.height + 1);
+				SetPiece.position.x + SetPiece.size.width - 2,
+				SetPiece.position.y + SetPiece.size.height - 2,
+				SetPiece.position.x + SetPiece.size.width + 1,
+				SetPiece.position.y + SetPiece.size.height + 1);
 			ObjChangeMapResync(SetPiece.position.x, SetPiece.position.y, SetPiece.position.x + (SetPiece.size.width / 2) + 2, SetPiece.position.y + (SetPiece.size.height / 2) - 2);
-			for (int i = 0; i < ActiveObjectCount; i++)
-				SyncObjectAnim(Objects[ActiveObjects[i]]);
+			for (Object &object : ObjectPoolAdapter::ActiveObjectsRange())
+				SyncObjectAnim(object);
 			auto tren = TransVal;
 			TransVal = 9;
 			DRLG_MRectTrans({ SetPiece.position, WorldTileSize((SetPiece.size.width / 2) + 4, SetPiece.size.height / 2) });
@@ -604,8 +606,8 @@ void ResyncQuests()
 		}
 		if (Quests[Q_LTBANNER]._qvar1 == 3) {
 			ObjChangeMapResync(SetPiece.position.x, SetPiece.position.y, SetPiece.position.x + SetPiece.size.width + 1, SetPiece.position.y + SetPiece.size.height + 1);
-			for (int i = 0; i < ActiveObjectCount; i++)
-				SyncObjectAnim(Objects[ActiveObjects[i]]);
+			for (Object &object : ObjectPoolAdapter::ActiveObjectsRange())
+				SyncObjectAnim(object);
 			auto tren = TransVal;
 			TransVal = 9;
 			DRLG_MRectTrans({ SetPiece.position, WorldTileSize((SetPiece.size.width / 2) + 4, SetPiece.size.height / 2) });
@@ -656,8 +658,8 @@ void ResyncQuests()
 		}
 		if (Quests[Q_BETRAYER]._qvar1 >= 7)
 			InitVPTriggers();
-		for (int i = 0; i < ActiveObjectCount; i++)
-			SyncObjectAnim(Objects[ActiveObjects[i]]);
+		for (Object &object : ObjectPoolAdapter::ActiveObjectsRange())
+			SyncObjectAnim(object);
 	}
 	if (currlevel == Quests[Q_BETRAYER]._qlevel
 	    && !setlevel

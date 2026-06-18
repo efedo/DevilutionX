@@ -91,7 +91,7 @@ void TestCreateDungeon(int level, uint32_t seed, lvl_entry entry)
 		for (int x = 0; x < DMAXX; x++) {
 			auto tileId = static_cast<uint8_t>(Swap16LE(*tileLayer));
 			tileLayer++;
-			ASSERT_EQ(dungeon[x][y], tileId) << "Tiles don't match at " << x << "x" << y;
+			ASSERT_EQ(megaTileAt(x, y).current(), tileId) << "Tiles don't match at " << x << "x" << y;
 		}
 	}
 
@@ -101,7 +101,7 @@ void TestCreateDungeon(int level, uint32_t seed, lvl_entry entry)
 		for (int x = 16; x < 16 + DMAXX * 2; x++) {
 			auto sectorId = static_cast<uint8_t>(Swap16LE(*transparentLayer));
 			transparentLayer++;
-			ASSERT_EQ(dTransVal[x][y], sectorId) << "Room/region indexes don't match at " << x << "x" << y;
+			ASSERT_EQ(tileAt(x, y).transVal(), sectorId) << "Room/region indexes don't match at " << x << "x" << y;
 		}
 	}
 }
