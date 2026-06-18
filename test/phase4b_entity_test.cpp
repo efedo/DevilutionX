@@ -83,12 +83,10 @@ TEST_F(Phase4BEntityTest, LegacyGenerationPassUpdatesTilePieces)
 TEST_F(Phase4BEntityTest, ObjectMicroTileUpdatesTilePieces)
 {
 	const Point position { 60, 60 };
-	dPiece[position.x][position.y] = 0;
 	tileAt(position).setPiece(0);
 
 	TestObjSetMicro(position, 314);
 
-	EXPECT_EQ(dPiece[position.x][position.y], 314);
 	EXPECT_EQ(tileAt(position).piece(), 314);
 }
 

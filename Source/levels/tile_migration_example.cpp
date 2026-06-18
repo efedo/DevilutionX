@@ -214,7 +214,7 @@ void ClearRegion_Old(Point start, int width, int height) {
 			Point pos = start + Displacement { x, y };
 			if (pos.x >= 0 && pos.x < MAXDUNX && pos.y >= 0 && pos.y < MAXDUNY) {
 				// Clear all tile data (11 assignments!)
-				dPiece[pos.x][pos.y] = 0;
+				tileAt(pos).setPiece(0);
 				dTransVal[pos.x][pos.y] = 0;
 				dLight[pos.x][pos.y] = 0;
 				dPreLight[pos.x][pos.y] = 0;
@@ -251,7 +251,7 @@ void ClearRegion_New(Point start, int width, int height) {
 
 // OLD: 11 lines to set up a tile
 void SetupTile_Old(Point pos, uint16_t piece, uint8_t light) {
-	dPiece[pos.x][pos.y] = piece;
+	tileAt(pos).setPiece(piece);
 	dLight[pos.x][pos.y] = light;
 	dPreLight[pos.x][pos.y] = light;
 	dFlags[pos.x][pos.y] = DungeonFlag::Visible | DungeonFlag::Explored | DungeonFlag::Lit;
@@ -280,7 +280,7 @@ void SetupTile_New(Point pos, uint16_t piece, uint8_t light) {
 
 // OLD: Multiple cache lines loaded per tile
 void RenderTile_Old(Point pos) {
-	uint16_t piece = dPiece[pos.x][pos.y];        // Cache line 1
+	uint16_t piece = tileAt(pos).piece();         // Cache line 1
 	uint8_t light = dLight[pos.x][pos.y];         // Cache line 2
 	DungeonFlag flags = dFlags[pos.x][pos.y];     // Cache line 3
 	int8_t special = dSpecial[pos.x][pos.y];      // Cache line 4

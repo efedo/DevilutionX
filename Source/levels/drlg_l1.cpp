@@ -401,17 +401,18 @@ void InitDungeonPieces()
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) {
 			int8_t pc;
-			if (IsAnyOf(dPiece[i][j], 11, 70, 320, 210, 340, 417)) {
+			const uint16_t piece = tileAt(i, j).piece();
+			if (IsAnyOf(piece, 11, 70, 320, 210, 340, 417)) {
 				pc = 1;
-			} else if (IsAnyOf(dPiece[i][j], 10, 248, 324, 343, 330, 420)) {
+			} else if (IsAnyOf(piece, 10, 248, 324, 343, 330, 420)) {
 				pc = 2;
-			} else if (dPiece[i][j] == 252) {
+			} else if (piece == 252) {
 				pc = 3;
-			} else if (dPiece[i][j] == 254) {
+			} else if (piece == 254) {
 				pc = 4;
-			} else if (dPiece[i][j] == 258) {
+			} else if (piece == 258) {
 				pc = 5;
-			} else if (dPiece[i][j] == 266) {
+			} else if (piece == 266) {
 				pc = 6;
 			} else {
 				continue;

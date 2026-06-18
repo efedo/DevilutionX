@@ -177,9 +177,7 @@ public:
 	Tile tiles_[MAXDUNX][MAXDUNY] = {};
 
 	// LEGACY: Old separate arrays (partial migration remaining)
-	// TODO: Migrate dPiece_, DPieceMicros_, dTransVal_ to tiles_ and remove
-	/** @see dPiece */
-	uint16_t dPiece_[MAXDUNX][MAXDUNY] = {};
+	// TODO: Migrate DPieceMicros_ and dTransVal_ to tiles_ and remove
 	/** @see DPieceMicros */
 	MICROS DPieceMicros_[MAXTILES] = {};
 	/** @see dTransVal */

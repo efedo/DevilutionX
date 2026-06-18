@@ -53,7 +53,7 @@ enum class DebugGridTextItem : uint16_t {
 	cursorcoords,
 	objectindex,
 
-	// take dPiece as index
+	// take the tile piece ID as index
 	Solid,
 	Transparent,
 	Trap,

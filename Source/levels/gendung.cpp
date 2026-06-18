@@ -354,13 +354,11 @@ void InitGlobals()
 	SetPiece = { { 0, 0 }, { 0, 0 } };
 }
 
-void SyncTilesFromLegacyMaps()
+void SyncTileTransparencyFromLegacyMap()
 {
 	for (int x = 0; x < MAXDUNX; ++x) {
 		for (int y = 0; y < MAXDUNY; ++y) {
 			Tile &tile = tileAt(x, y);
-			if (tile.piece() == 0 && dPiece[x][y] != 0)
-				tile.setPiece(dPiece[x][y]);
 			if (tile.transVal() == 0 && dTransVal[x][y] != 0)
 				tile.setTransVal(dTransVal[x][y]);
 		}
@@ -375,9 +373,9 @@ std::optional<WorldTileSize> GetSizeForThemeRoom()
 	return GetSizeForThemeRoom(0, { 0, 0 }, 5, 10);
 }
 
-void SyncTilesFromLegacyMapsForTesting()
+void SyncTileTransparencyFromLegacyMapForTesting()
 {
-	SyncTilesFromLegacyMaps();
+	SyncTileTransparencyFromLegacyMap();
 }
 #endif
 
@@ -439,7 +437,7 @@ void CreateDungeon(uint32_t rseed, lvl_entry entry)
 		app_fatal("Invalid level type");
 	}
 
-	SyncTilesFromLegacyMaps();
+	SyncTileTransparencyFromLegacyMap();
 	Make_SetPC(SetPiece);
 }
 
@@ -780,10 +778,6 @@ void DRLG_LPass3(int lv)
 
 		for (int j = 0; j < MAXDUNY; j += 2) {
 			for (int i = 0; i < MAXDUNX; i += 2) {
-				dPiece[i + 0][j + 0] = v1;
-				dPiece[i + 1][j + 0] = v2;
-				dPiece[i + 0][j + 1] = v3;
-				dPiece[i + 1][j + 1] = v4;
 				tileAt(i + 0, j + 0).setPiece(v1);
 				tileAt(i + 1, j + 0).setPiece(v2);
 				tileAt(i + 0, j + 1).setPiece(v3);
@@ -798,14 +792,10 @@ void DRLG_LPass3(int lv)
 		for (int i = 0; i < DMAXX; i++) { // NOLINT(modernize-loop-convert)
 			const int tileId = dungeon[i][j] - 1;
 			const MegaTile mega = pMegaTiles[tileId];
-			dPiece[xx + 0][yy + 0] = Swap16LE(mega.micro1);
-			dPiece[xx + 1][yy + 0] = Swap16LE(mega.micro2);
-			dPiece[xx + 0][yy + 1] = Swap16LE(mega.micro3);
-			dPiece[xx + 1][yy + 1] = Swap16LE(mega.micro4);
-			tileAt(xx + 0, yy + 0).setPiece(dPiece[xx + 0][yy + 0]);
-			tileAt(xx + 1, yy + 0).setPiece(dPiece[xx + 1][yy + 0]);
-			tileAt(xx + 0, yy + 1).setPiece(dPiece[xx + 0][yy + 1]);
-			tileAt(xx + 1, yy + 1).setPiece(dPiece[xx + 1][yy + 1]);
+			tileAt(xx + 0, yy + 0).setPiece(Swap16LE(mega.micro1));
+			tileAt(xx + 1, yy + 0).setPiece(Swap16LE(mega.micro2));
+			tileAt(xx + 0, yy + 1).setPiece(Swap16LE(mega.micro3));
+			tileAt(xx + 1, yy + 1).setPiece(Swap16LE(mega.micro4));
 			xx += 2;
 		}
 		yy += 2;

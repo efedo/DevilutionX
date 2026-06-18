@@ -2147,11 +2147,12 @@ void PlaceCaveLights()
 {
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) {
-			if (dPiece[i][j] >= 55 && dPiece[i][j] <= 146) {
+			const uint16_t piece = tileAt(i, j).piece();
+			if (piece >= 55 && piece <= 146) {
 				DoLighting({ i, j }, 7, {});
-			} else if (dPiece[i][j] >= 153 && dPiece[i][j] <= 160) {
+			} else if (piece >= 153 && piece <= 160) {
 				DoLighting({ i, j }, 7, {});
-			} else if (IsAnyOf(dPiece[i][j], 149, 151)) {
+			} else if (IsAnyOf(piece, 149, 151)) {
 				DoLighting({ i, j }, 7, {});
 			}
 		}
@@ -2162,7 +2163,8 @@ void PlaceHiveLights()
 {
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) {
-			if (dPiece[i][j] >= 381 && dPiece[i][j] <= 456) {
+			const uint16_t piece = tileAt(i, j).piece();
+			if (piece >= 381 && piece <= 456) {
 				DoLighting({ i, j }, 9, {});
 			}
 		}

@@ -102,8 +102,6 @@ tl::expected<_setlevels, std::string> ParseSetLevel(std::string_view value);
 #define TransVal      (currentLevel().TransVal_)
 /** Specifies the active transparency indices. */
 #define TransList     (currentLevel().TransList_)
-/** Contains the piece IDs of each tile on the map. */
-#define dPiece        (currentLevel().dPiece_)
 /** Map of micros that comprises a full tile for any given dungeon piece. */
 // LEGACY macro kept for transition; prefer levelMicros() for new code.
 #define DPieceMicros  (currentLevel().DPieceMicros_)
@@ -139,7 +137,7 @@ tl::expected<_setlevels, std::string> ParseSetLevel(std::string_view value);
 
 #ifdef BUILD_TESTING
 std::optional<WorldTileSize> GetSizeForThemeRoom();
-void SyncTilesFromLegacyMapsForTesting();
+void SyncTileTransparencyFromLegacyMapForTesting();
 #endif
 
 dungeon_type GetLevelType(int level);
@@ -245,11 +243,7 @@ struct Miniset {
 
 DVL_ALWAYS_INLINE bool TileHasAny(Point coords, TileProperties property)
 {
-	uint16_t piece = tileAt(coords).piece();
-	if (piece == 0) {
-		piece = dPiece[coords.x][coords.y];
-	}
-	return HasAnyOf(SOLData[piece], property);
+	return HasAnyOf(SOLData[tileAt(coords).piece()], property);
 }
 
 tl::expected<void, std::string> LoadLevelSOLData();

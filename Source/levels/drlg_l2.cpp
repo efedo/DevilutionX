@@ -1654,9 +1654,10 @@ void InitDungeonPieces()
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) {
 			int8_t pc;
-			if (IsAnyOf(dPiece[i][j], 540, 177, 550)) {
+			const uint16_t piece = tileAt(i, j).piece();
+			if (IsAnyOf(piece, 540, 177, 550)) {
 				pc = 5;
-			} else if (IsAnyOf(dPiece[i][j], 541, 552)) {
+			} else if (IsAnyOf(piece, 541, 552)) {
 				pc = 6;
 			} else {
 				continue;
@@ -1666,10 +1667,11 @@ void InitDungeonPieces()
 	}
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) {
-			if (dPiece[i][j] == 131) {
+			const uint16_t piece = tileAt(i, j).piece();
+			if (piece == 131) {
 				tileAt(i, j + 1).setSpecial(2);
 				tileAt(i, j + 2).setSpecial(1);
-			} else if (dPiece[i][j] == 134 || dPiece[i][j] == 138) {
+			} else if (piece == 134 || piece == 138) {
 				tileAt(i + 1, j).setSpecial(3);
 				tileAt(i + 2, j).setSpecial(4);
 			}

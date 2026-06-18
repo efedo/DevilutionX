@@ -405,7 +405,7 @@ void CheckQuestKill(const Monster &monster, bool sendmsg)
 		if (UseMultiplayerQuests()) {
 			for (WorldTileCoord j = 0; j < MAXDUNY; j++) {
 				for (WorldTileCoord i = 0; i < MAXDUNX; i++) {
-					if (dPiece[i][j] == 369) {
+					if (tileAt(i, j).piece() == 369) {
 						trigs[numtrigs].position = { i, j };
 						trigs[numtrigs]._tmsg = WM_DIABNEXTLVL;
 						numtrigs++;

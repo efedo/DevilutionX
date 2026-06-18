@@ -591,15 +591,8 @@ static void DrawDungeon(const Surface & /*out*/, const Lightmap & /*lightmap*/, 
  */
 void DrawCell(const Surface &out, const Lightmap lightmap, Point tilePosition, Point targetBufferPosition, int lightTableIndex)
 {
-	const Tile &tile = tileAt(tilePosition);  // Migrated from dPiece[...] access
-	uint16_t levelPieceId = tile.piece();
-	if (levelPieceId == 0) {
-		// HOTFIX: Some town generation paths still populate legacy dPiece without
-		// writing tile.piece(). Fall back to dPiece until town piece writes are
-		// fully migrated to Tile API.
-		// TODO: Remove this fallback once all generators set tileAt(...).setPiece(...).
-		levelPieceId = dPiece[tilePosition.x][tilePosition.y];
-	}
+	const Tile &tile = tileAt(tilePosition);
+	const uint16_t levelPieceId = tile.piece();
 	const MICROS *pMap = &levelMicros()[levelPieceId];
 
 	const uint8_t *tbl = LightTables[lightTableIndex].data();
@@ -735,12 +728,9 @@ void DrawCell(const Surface &out, const Lightmap lightmap, Point tilePosition, P
  */
 void DrawFloorTile(const Surface &out, const Lightmap &lightmap, Point tilePosition, Point targetBufferPosition)
 {
-	const Tile &tile = tileAt(tilePosition);  // Migrated from dLight[...] and dPiece[...] access
+	const Tile &tile = tileAt(tilePosition);
 	const int lightTableIndex = tile.light();
-	uint16_t levelPieceId = tile.piece();
-	if (levelPieceId == 0) {
-		levelPieceId = dPiece[tilePosition.x][tilePosition.y];
-	}
+	const uint16_t levelPieceId = tile.piece();
 
 	const uint8_t *tbl = LightTables[lightTableIndex].data();
 #ifdef _DEBUG
@@ -1145,7 +1135,7 @@ void DrawDirtTile(const Surface &out, const Lightmap &lightmap, Point tilePositi
 		return;
 	}
 
-	const Tile &sampleTile = tileAt(sample);  // Migrated from dLight[...] and dPiece[...] access
+	const Tile &sampleTile = tileAt(sample);
 	if (sampleTile.piece() == 0) {
 		// Failsafe: if our sample somehow isn't valid, fall back to black
 		world_draw_black_tile(out, targetBufferPosition.x, targetBufferPosition.y);

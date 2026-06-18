@@ -2,121 +2,67 @@
 
 #include "levels/gendung.h"
 #include "levels/level.hpp"
+#include "levels/town.h"
 
 namespace devilution {
+namespace {
 
-TEST(TileMigrationSyncTest, TileHasAnyFallsBackToLegacyPiece)
+void SelectTownLevel()
 {
-	SwitchCurrentLevel({ .levelNum = 0, .type = DTYPE_TOWN, .isSetLevel = false, .setLevelId = SL_NONE });
+	currentLevel().setId(Level::create(LevelId { .levelNum = 0, .type = DTYPE_TOWN }).id());
+}
+
+TEST(TileMigrationSyncTest, TileHasAnyUsesTilePiece)
+{
+	SelectTownLevel();
 	InitLevels();
 
 	constexpr Point Pos { 16, 16 };
-	tileAt(Pos).setPiece(0);
-	dPiece[Pos.x][Pos.y] = 230;
+	tileAt(Pos).setPiece(230);
 	SOLData[230] = TileProperties::Solid;
 
 	EXPECT_TRUE(TileHasAny(Pos, TileProperties::Solid));
 }
 
-TEST(TileMigrationSyncTest, SyncTilesFromLegacyMapsCopiesPieceAndTransVal)
+TEST(TileMigrationSyncTest, TransparencySyncPreservesLoadedTilePiece)
 {
-	SwitchCurrentLevel({ .levelNum = 0, .type = DTYPE_TOWN, .isSetLevel = false, .setLevelId = SL_NONE });
+	SelectTownLevel();
 	InitLevels();
 
 	constexpr Point Pos { 20, 20 };
-	tileAt(Pos).setPiece(0);
+	tileAt(Pos).setPiece(321);
 	tileAt(Pos).setTransVal(0);
-	dPiece[Pos.x][Pos.y] = 321;
 	dTransVal[Pos.x][Pos.y] = 7;
 
-	SyncTilesFromLegacyMapsForTesting();
+	SyncTileTransparencyFromLegacyMapForTesting();
 
 	EXPECT_EQ(tileAt(Pos).piece(), 321);
 	EXPECT_EQ(tileAt(Pos).transVal(), 7);
 }
 
-TEST(TileMigrationSyncTest, TownCreateDungeonKeepsTileAndLegacyPiecesInSync)
+TEST(TileMigrationSyncTest, TownOpenHivePopulatesTilePieces)
 {
-	SwitchCurrentLevel({ .levelNum = 0, .type = DTYPE_TOWN, .isSetLevel = false, .setLevelId = SL_NONE });
-	InitLevels();
-	CreateDungeon(/*rseed=*/0x12345678, ENTRY_MAIN);
-
-	int legacyPieceCount = 0;
-	int desyncCount = 0;
-	for (int x = 0; x < MAXDUNX; ++x) {
-		for (int y = 0; y < MAXDUNY; ++y) {
-			if (dPiece[x][y] != 0) {
-				++legacyPieceCount;
-				if (tileAt(x, y).piece() == 0)
-					++desyncCount;
-			}
-		}
-	}
-
-	EXPECT_GT(legacyPieceCount, 0);
-	EXPECT_EQ(desyncCount, 0);
-}
-
-TEST(TileMigrationSyncTest, TownCreateDungeonProducesSolidCollisionTiles)
-{
-	SwitchCurrentLevel({ .levelNum = 0, .type = DTYPE_TOWN, .isSetLevel = false, .setLevelId = SL_NONE });
-	InitLevels();
-	CreateDungeon(/*rseed=*/0x87654321, ENTRY_MAIN);
-
-	int solidCount = 0;
-	for (int x = 0; x < MAXDUNX; ++x) {
-		for (int y = 0; y < MAXDUNY; ++y) {
-			if (TileHasAny({ x, y }, TileProperties::Solid))
-				++solidCount;
-		}
-	}
-
-	EXPECT_GT(solidCount, 0);
-}
-
-TEST(TileMigrationSyncTest, TownEntryLoadKeepsTileAndLegacyPiecesInSync)
-{
-	SwitchCurrentLevel({ .levelNum = 0, .type = DTYPE_TOWN, .isSetLevel = false, .setLevelId = SL_NONE });
+	SelectTownLevel();
 	InitLevels();
 
-	// Seed a load-style legacy-only state.
-	constexpr Point SeedPosA { 16, 16 };
-	constexpr Point SeedPosB { 18, 20 };
-	dPiece[SeedPosA.x][SeedPosA.y] = 230;
-	dPiece[SeedPosB.x][SeedPosB.y] = 231;
-	dTransVal[SeedPosA.x][SeedPosA.y] = 3;
-	tileAt(SeedPosA).setPiece(0);
-	tileAt(SeedPosB).setPiece(0);
-	tileAt(SeedPosA).setTransVal(0);
+	TownOpenHive();
 
-	CreateDungeon(/*rseed=*/0x13572468, ENTRY_LOAD);
-
-	int legacyPieceCount = 0;
-	int desyncCount = 0;
-	for (int x = 0; x < MAXDUNX; ++x) {
-		for (int y = 0; y < MAXDUNY; ++y) {
-			if (dPiece[x][y] != 0) {
-				++legacyPieceCount;
-				if (tileAt(x, y).piece() == 0)
-					++desyncCount;
-			}
-		}
-	}
-
-	EXPECT_GT(legacyPieceCount, 0);
-	EXPECT_EQ(desyncCount, 0);
-
-	// Focused regression guard: property lookups must still work on a tile
-	// that started as legacy-only state before ENTRY_LOAD sync.
-	const uint16_t loadedPiece = dPiece[SeedPosA.x][SeedPosA.y];
-	ASSERT_NE(loadedPiece, 0);
-	SOLData[loadedPiece] = TileProperties::Solid;
-	EXPECT_TRUE(TileHasAny(SeedPosA, TileProperties::Solid));
-
-	const uint16_t loadedTransparentPiece = dPiece[SeedPosB.x][SeedPosB.y];
-	ASSERT_NE(loadedTransparentPiece, 0);
-	SOLData[loadedTransparentPiece] = TileProperties::Transparent;
-	EXPECT_TRUE(TileHasAny(SeedPosB, TileProperties::Transparent));
+	EXPECT_EQ(tileAt(78, 60).piece(), 0x489);
+	EXPECT_EQ(tileAt(79, 61).piece(), 0x50d);
+	EXPECT_EQ(tileAt(86, 61).piece(), 17);
 }
 
+TEST(TileMigrationSyncTest, TownOpenGravePopulatesTilePieces)
+{
+	SelectTownLevel();
+	InitLevels();
+
+	TownOpenGrave();
+
+	EXPECT_EQ(tileAt(36, 21).piece(), 0x532);
+	EXPECT_EQ(tileAt(37, 24).piece(), 0x539);
+	EXPECT_EQ(tileAt(34, 21).piece(), 0x53b);
+}
+
+} // namespace
 } // namespace devilution

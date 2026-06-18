@@ -669,9 +669,9 @@ void InitCryptPieces()
 {
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) {
-			if (dPiece[i][j] == 76) {
+			if (tileAt(i, j).piece() == 76) {
 				tileAt(i, j).setSpecial(1);
-			} else if (dPiece[i][j] == 79) {
+			} else if (tileAt(i, j).piece() == 79) {
 				tileAt(i, j).setSpecial(2);
 			}
 		}
@@ -803,11 +803,11 @@ void SetCryptSetPieceRoom()
 {
 	for (int j = dminPosition.y; j < dmaxPosition.y; j++) {
 		for (int i = dminPosition.x; i < dmaxPosition.x; i++) {
-			if (dPiece[i][j] == 289) {
+			if (tileAt(i, j).piece() == 289) {
 				UberRow = i;
 				UberCol = j;
 			}
-			if (dPiece[i][j] == 316) {
+			if (tileAt(i, j).piece() == 316) {
 				CornerStone.position = { i, j };
 			}
 		}
@@ -828,7 +828,7 @@ void PlaceCryptLights()
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) {
 			for (const int lavaTile : lavaTiles) {
-				if (dPiece[i][j] == lavaTile) {
+				if (tileAt(i, j).piece() == lavaTile) {
 					DoLighting({ i, j }, 3, {});
 					break;
 				}

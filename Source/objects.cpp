@@ -940,7 +940,6 @@ void AddChest(Object &chest)
 
 void ObjSetMicro(Point position, int pn)
 {
-	dPiece[position.x][position.y] = pn;
 	tileAt(position).setPiece(pn);
 }
 

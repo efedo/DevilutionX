@@ -212,7 +212,6 @@ ImTextureRef ToImTextureRef(SDL_Texture *texture)
 
 void ApplyPieceToTile(Point position, uint16_t piece)
 {
-	dPiece[position.x][position.y] = piece;
 	tileAt(position).setPiece(piece);
 }
 

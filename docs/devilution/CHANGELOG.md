@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Stability / Performance / System
 
 - Crashes related to player graphics rendering in death state
+- Use unified tile storage for dungeon piece IDs
 
 ## DevilutionX 1.5.2
 

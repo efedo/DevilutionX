@@ -48,7 +48,7 @@ void basicTileUsage() {
 
 void readTileData(Point position) {
 	// OLD WAY (before Tile class):
-	// uint16_t piece = dPiece[position.x][position.y];
+	// uint16_t piece = tileAt(position).piece();
 	// int8_t player = dPlayer[position.x][position.y];
 	// int16_t monster = dMonster[position.x][position.y];
 	// DungeonFlag flags = dFlags[position.x][position.y];
@@ -72,7 +72,7 @@ void readTileData(Point position) {
 
 void writeTileData(Point position, int playerId) {
 	// OLD WAY:
-	// dPiece[position.x][position.y] = 42;
+	// tileAt(position).setPiece(42);
 	// dPlayer[position.x][position.y] = playerId;
 	// dFlags[position.x][position.y] |= DungeonFlag::Visible;
 
@@ -113,7 +113,7 @@ bool canPlaceMonster(Point position) {
 
 void clearTile(Point position) {
 	// OLD WAY - must clear each array individually:
-	// dPiece[position.x][position.y] = 0;
+	// tileAt(position).setPiece(0);
 	// dPlayer[position.x][position.y] = 0;
 	// dMonster[position.x][position.y] = 0;
 	// dCorpse[position.x][position.y] = 0;
@@ -212,7 +212,7 @@ void renderTiles(int viewX, int viewY, int width, int height) {
 	//         int worldX = viewX + x;
 	//         int worldY = viewY + y;
 	//         
-	//         uint16_t piece = dPiece[worldX][worldY];
+	//         uint16_t piece = tileAt(worldX, worldY).piece();
 	//         uint8_t light = dLight[worldX][worldY];
 	//         DungeonFlag flags = dFlags[worldX][worldY];
 	//         
