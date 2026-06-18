@@ -286,10 +286,10 @@ void ApplyShadowsPatterns()
 
 	for (int y = 1; y < DMAXY; y++) {
 		for (int x = 1; x < DMAXX; x++) {
-			slice[0][0] = BaseTypes[dungeon[x][y]];
-			slice[1][0] = BaseTypes[dungeon[x - 1][y]];
-			slice[0][1] = BaseTypes[dungeon[x][y - 1]];
-			slice[1][1] = BaseTypes[dungeon[x - 1][y - 1]];
+			slice[0][0] = BaseTypes[megaTileAt(x, y).current()];
+			slice[1][0] = BaseTypes[megaTileAt(x - 1, y).current()];
+			slice[0][1] = BaseTypes[megaTileAt(x, y - 1).current()];
+			slice[1][1] = BaseTypes[megaTileAt(x - 1, y - 1).current()];
 
 			for (const auto &shadow : ShadowPatterns) {
 				if (shadow.strig != slice[0][0])
@@ -302,13 +302,13 @@ void ApplyShadowsPatterns()
 					continue;
 
 				if (shadow.nv1 != 0 && !Protected.test(x - 1, y - 1)) {
-					dungeon[x - 1][y - 1] = shadow.nv1;
+					megaTileAt(x - 1, y - 1).setCurrent(shadow.nv1);
 				}
 				if (shadow.nv2 != 0 && !Protected.test(x, y - 1)) {
-					dungeon[x][y - 1] = shadow.nv2;
+					megaTileAt(x, y - 1).setCurrent(shadow.nv2);
 				}
 				if (shadow.nv3 != 0 && !Protected.test(x - 1, y)) {
-					dungeon[x - 1][y] = shadow.nv3;
+					megaTileAt(x - 1, y).setCurrent(shadow.nv3);
 				}
 			}
 		}
@@ -319,26 +319,26 @@ void ApplyShadowsPatterns()
 			if (Protected.test(x - 1, y))
 				continue;
 
-			if (dungeon[x - 1][y] == Floor12) {
+			if (megaTileAt(x - 1, y).current() == Floor12) {
 				Tile tnv3 = Floor12;
-				if (IsAnyOf(dungeon[x][y], DFence, VFenceEnd, VFence, HWallVFence, HArchVFence, HArchVDoor)) {
+				if (IsAnyOf(megaTileAt(x, y).current(), DFence, VFenceEnd, VFence, HWallVFence, HArchVFence, HArchVDoor)) {
 					tnv3 = Floor14;
 				}
-				dungeon[x - 1][y] = tnv3;
+				megaTileAt(x - 1, y).setCurrent(tnv3);
 			}
-			if (dungeon[x - 1][y] == HArchShadow) {
+			if (megaTileAt(x - 1, y).current() == HArchShadow) {
 				Tile tnv3 = HArchShadow;
-				if (IsAnyOf(dungeon[x][y], DFence, VFenceEnd, VFence, HWallVFence, HArchVFence, HArchVDoor)) {
+				if (IsAnyOf(megaTileAt(x, y).current(), DFence, VFenceEnd, VFence, HWallVFence, HArchVFence, HArchVDoor)) {
 					tnv3 = HArchShadow2;
 				}
-				dungeon[x - 1][y] = tnv3;
+				megaTileAt(x - 1, y).setCurrent(tnv3);
 			}
-			if (dungeon[x - 1][y] == HWallShadow) {
+			if (megaTileAt(x - 1, y).current() == HWallShadow) {
 				Tile tnv3 = HWallShadow;
-				if (IsAnyOf(dungeon[x][y], DFence, VFenceEnd, VFence, HWallVFence, HArchVFence, HArchVDoor)) {
+				if (IsAnyOf(megaTileAt(x, y).current(), DFence, VFenceEnd, VFence, HWallVFence, HArchVFence, HArchVDoor)) {
 					tnv3 = HWallShadow2;
 				}
-				dungeon[x - 1][y] = tnv3;
+				megaTileAt(x - 1, y).setCurrent(tnv3);
 			}
 		}
 	}
@@ -354,7 +354,7 @@ bool CanReplaceTile(uint8_t replace, Point tile)
 	constexpr auto ComparisonWithBoundsCheck = [](Point p1, Point p2) {
 		return (p1.x >= 0 && p1.x < DMAXX && p1.y >= 0 && p1.y < DMAXY)
 		    && (p2.x >= 0 && p2.x < DMAXX && p2.y >= 0 && p2.y < DMAXY)
-		    && (dungeon[p1.x][p1.y] >= VWallEnd2 && dungeon[p2.x][p2.y] <= VWall8);
+		    && (megaTileAt(p1.x, p1.y).current() >= VWallEnd2 && megaTileAt(p2.x, p2.y).current() <= VWall8);
 	};
 	return !(ComparisonWithBoundsCheck(tile + Direction::NorthWest, tile + Direction::NorthWest)
 	    || ComparisonWithBoundsCheck(tile + Direction::SouthEast, tile + Direction::NorthWest)
@@ -366,14 +366,14 @@ void FillFloor()
 {
 	for (int j = 0; j < DMAXY; j++) {
 		for (int i = 0; i < DMAXX; i++) {
-			if (dungeon[i][j] != Floor || Protected.test(i, j))
+			if (megaTileAt(i, j).current() != Floor || Protected.test(i, j))
 				continue;
 
 			const int rv = RandomIntLessThan(3);
 			if (rv == 1)
-				dungeon[i][j] = Floor22;
+				megaTileAt(i, j).setCurrent(Floor22);
 			else if (rv == 2)
-				dungeon[i][j] = Floor23;
+				megaTileAt(i, j).setCurrent(Floor23);
 		}
 	}
 }
@@ -424,7 +424,7 @@ void InitDungeonPieces()
 
 void InitDungeonFlags()
 {
-	memset(dungeon, Dirt, sizeof(dungeon));
+	FillCurrentMegaTiles(Dirt);
 	Protected.reset();
 	Chamber.reset();
 }
@@ -561,19 +561,19 @@ void MakeDmt()
 	for (int j = 0; j < DMAXY - 1; j++) {
 		for (int i = 0; i < DMAXX - 1; i++) {
 			if (DungeonMask.test(i, j))
-				dungeon[i][j] = Floor;
+				megaTileAt(i, j).setCurrent(Floor);
 			else if (!DungeonMask.test(i + 1, j + 1) && DungeonMask.test(i, j + 1) && DungeonMask.test(i + 1, j))
-				dungeon[i][j] = Floor; // Remove diagonal corners
+				megaTileAt(i, j).setCurrent(Floor); // Remove diagonal corners
 			else if (DungeonMask.test(i + 1, j + 1) && DungeonMask.test(i, j + 1) && DungeonMask.test(i + 1, j))
-				dungeon[i][j] = VCorner;
+				megaTileAt(i, j).setCurrent(VCorner);
 			else if (DungeonMask.test(i, j + 1))
-				dungeon[i][j] = HWall;
+				megaTileAt(i, j).setCurrent(HWall);
 			else if (DungeonMask.test(i + 1, j))
-				dungeon[i][j] = VWall;
+				megaTileAt(i, j).setCurrent(VWall);
 			else if (DungeonMask.test(i + 1, j + 1))
-				dungeon[i][j] = DWall;
+				megaTileAt(i, j).setCurrent(DWall);
 			else
-				dungeon[i][j] = Dirt;
+				megaTileAt(i, j).setCurrent(Dirt);
 		}
 	}
 }
@@ -581,15 +581,15 @@ void MakeDmt()
 int HorizontalWallOk(Point position)
 {
 	int length;
-	for (length = 1; dungeon[position.x + length][position.y] == Floor; length++) {
-		if (dungeon[position.x + length][position.y - 1] != Floor || dungeon[position.x + length][position.y + 1] != Floor || Protected.test(position.x + length, position.y) || Chamber.test(position.x + length, position.y))
+	for (length = 1; megaTileAt(position.x + length, position.y).current() == Floor; length++) {
+		if (megaTileAt(position.x + length, position.y - 1).current() != Floor || megaTileAt(position.x + length, position.y + 1).current() != Floor || Protected.test(position.x + length, position.y) || Chamber.test(position.x + length, position.y))
 			break;
 	}
 
 	if (length == 1)
 		return -1;
 
-	auto tileId = static_cast<Tile>(dungeon[position.x + length][position.y]);
+	auto tileId = static_cast<Tile>(megaTileAt(position.x + length, position.y).current());
 
 	if (!IsAnyOf(tileId, Corner, DWall, DArch, VWallEnd, HWallEnd, VCorner, HCorner, DirtHwall, DirtVwall, VDirtCorner, HDirtCorner, DirtHwallEnd, DirtVwallEnd))
 		return -1;
@@ -600,15 +600,15 @@ int HorizontalWallOk(Point position)
 int VerticalWallOk(Point position)
 {
 	int length;
-	for (length = 1; dungeon[position.x][position.y + length] == Floor; length++) {
-		if (dungeon[position.x - 1][position.y + length] != Floor || dungeon[position.x + 1][position.y + length] != Floor || Protected.test(position.x, position.y + length) || Chamber.test(position.x, position.y + length))
+	for (length = 1; megaTileAt(position.x, position.y + length).current() == Floor; length++) {
+		if (megaTileAt(position.x - 1, position.y + length).current() != Floor || megaTileAt(position.x + 1, position.y + length).current() != Floor || Protected.test(position.x, position.y + length) || Chamber.test(position.x, position.y + length))
 			break;
 	}
 
 	if (length == 1)
 		return -1;
 
-	auto tileId = static_cast<Tile>(dungeon[position.x][position.y + length]);
+	auto tileId = static_cast<Tile>(megaTileAt(position.x, position.y + length).current());
 
 	if (!IsAnyOf(tileId, Corner, DWall, DArch, VWallEnd, HWallEnd, VCorner, HCorner, DirtHwall, DirtVwall, VDirtCorner, HDirtCorner, DirtHwallEnd, DirtVwallEnd))
 		return -1;
@@ -644,15 +644,15 @@ void HorizontalWall(Point position, Tile start, int maxX)
 	if (GenerateRnd(6) == 5)
 		doorTile = HArch;
 
-	dungeon[position.x][position.y] = start;
+	megaTileAt(position.x, position.y).setCurrent(start);
 
 	for (int x = 1; x < maxX; x++) {
-		dungeon[position.x + x][position.y] = wallTile;
+		megaTileAt(position.x + x, position.y).setCurrent(wallTile);
 	}
 
 	const int x = GenerateRnd(maxX - 1) + 1;
 
-	dungeon[position.x + x][position.y] = doorTile;
+	megaTileAt(position.x + x, position.y).setCurrent(doorTile);
 	if (doorTile == HDoor) {
 		Protected.set(position.x + x, position.y);
 	}
@@ -686,15 +686,15 @@ void VerticalWall(Point position, Tile start, int maxY)
 	if (GenerateRnd(6) == 5)
 		doorTile = VArch;
 
-	dungeon[position.x][position.y] = start;
+	megaTileAt(position.x, position.y).setCurrent(start);
 
 	for (int y = 1; y < maxY; y++) {
-		dungeon[position.x][position.y + y] = wallTile;
+		megaTileAt(position.x, position.y + y).setCurrent(wallTile);
 	}
 
 	const int y = GenerateRnd(maxY - 1) + 1;
 
-	dungeon[position.x][position.y + y] = doorTile;
+	megaTileAt(position.x, position.y + y).setCurrent(doorTile);
 	if (doorTile == VDoor) {
 		Protected.set(position.x, position.y + y);
 	}
@@ -707,42 +707,42 @@ void AddWall()
 			if (Protected.test(i, j) || Chamber.test(i, j))
 				continue;
 
-			if (dungeon[i][j] == Corner) {
+			if (megaTileAt(i, j).current() == Corner) {
 				DiscardRandomValues(1);
 				const int maxX = HorizontalWallOk({ i, j });
 				if (maxX != -1) {
 					HorizontalWall({ i, j }, HWall, maxX);
 				}
 			}
-			if (dungeon[i][j] == Corner) {
+			if (megaTileAt(i, j).current() == Corner) {
 				DiscardRandomValues(1);
 				const int maxY = VerticalWallOk({ i, j });
 				if (maxY != -1) {
 					VerticalWall({ i, j }, VWall, maxY);
 				}
 			}
-			if (dungeon[i][j] == VWallEnd) {
+			if (megaTileAt(i, j).current() == VWallEnd) {
 				DiscardRandomValues(1);
 				const int maxX = HorizontalWallOk({ i, j });
 				if (maxX != -1) {
 					HorizontalWall({ i, j }, DWall, maxX);
 				}
 			}
-			if (dungeon[i][j] == HWallEnd) {
+			if (megaTileAt(i, j).current() == HWallEnd) {
 				DiscardRandomValues(1);
 				const int maxY = VerticalWallOk({ i, j });
 				if (maxY != -1) {
 					VerticalWall({ i, j }, DWall, maxY);
 				}
 			}
-			if (dungeon[i][j] == HWall) {
+			if (megaTileAt(i, j).current() == HWall) {
 				DiscardRandomValues(1);
 				const int maxX = HorizontalWallOk({ i, j });
 				if (maxX != -1) {
 					HorizontalWall({ i, j }, HWall, maxX);
 				}
 			}
-			if (dungeon[i][j] == VWall) {
+			if (megaTileAt(i, j).current() == VWall) {
 				DiscardRandomValues(1);
 				const int maxY = VerticalWallOk({ i, j });
 				if (maxY != -1) {
@@ -757,69 +757,69 @@ void GenerateChamber(Point position, bool connectPrevious, bool connectNext, boo
 {
 	if (connectPrevious) {
 		if (verticalLayout) {
-			dungeon[position.x + 2][position.y] = HArch;
-			dungeon[position.x + 3][position.y] = HArch;
-			dungeon[position.x + 4][position.y] = Corner;
-			dungeon[position.x + 7][position.y] = VArchEnd;
-			dungeon[position.x + 8][position.y] = HArch;
-			dungeon[position.x + 9][position.y] = HWall;
+			megaTileAt(position.x + 2, position.y).setCurrent(HArch);
+			megaTileAt(position.x + 3, position.y).setCurrent(HArch);
+			megaTileAt(position.x + 4, position.y).setCurrent(Corner);
+			megaTileAt(position.x + 7, position.y).setCurrent(VArchEnd);
+			megaTileAt(position.x + 8, position.y).setCurrent(HArch);
+			megaTileAt(position.x + 9, position.y).setCurrent(HWall);
 		} else {
-			dungeon[position.x][position.y + 2] = VArch;
-			dungeon[position.x][position.y + 3] = VArch;
-			dungeon[position.x][position.y + 4] = Corner;
-			dungeon[position.x][position.y + 7] = HArchEnd;
-			dungeon[position.x][position.y + 8] = VArch;
-			dungeon[position.x][position.y + 9] = VWall;
+			megaTileAt(position.x, position.y + 2).setCurrent(VArch);
+			megaTileAt(position.x, position.y + 3).setCurrent(VArch);
+			megaTileAt(position.x, position.y + 4).setCurrent(Corner);
+			megaTileAt(position.x, position.y + 7).setCurrent(HArchEnd);
+			megaTileAt(position.x, position.y + 8).setCurrent(VArch);
+			megaTileAt(position.x, position.y + 9).setCurrent(VWall);
 		}
 	}
 	if (connectNext) {
 		if (verticalLayout) {
 			position.y += 11;
-			dungeon[position.x + 2][position.y] = HArchVWall;
-			dungeon[position.x + 3][position.y] = HArch;
-			dungeon[position.x + 4][position.y] = HArchEnd;
-			dungeon[position.x + 7][position.y] = DArch;
-			dungeon[position.x + 8][position.y] = HArch;
-			if (dungeon[position.x + 9][position.y] != DWall)
-				dungeon[position.x + 9][position.y] = HDirtCorner;
+			megaTileAt(position.x + 2, position.y).setCurrent(HArchVWall);
+			megaTileAt(position.x + 3, position.y).setCurrent(HArch);
+			megaTileAt(position.x + 4, position.y).setCurrent(HArchEnd);
+			megaTileAt(position.x + 7, position.y).setCurrent(DArch);
+			megaTileAt(position.x + 8, position.y).setCurrent(HArch);
+			if (megaTileAt(position.x + 9, position.y).current() != DWall)
+				megaTileAt(position.x + 9, position.y).setCurrent(HDirtCorner);
 			position.y -= 11;
 		} else {
 			position.x += 11;
-			dungeon[position.x][position.y + 2] = HWallVArch;
-			dungeon[position.x][position.y + 3] = VArch;
-			dungeon[position.x][position.y + 4] = VArchEnd;
-			dungeon[position.x][position.y + 7] = DArch;
-			dungeon[position.x][position.y + 8] = VArch;
-			if (dungeon[position.x][position.y + 9] != DWall)
-				dungeon[position.x][position.y + 9] = HDirtCorner;
+			megaTileAt(position.x, position.y + 2).setCurrent(HWallVArch);
+			megaTileAt(position.x, position.y + 3).setCurrent(VArch);
+			megaTileAt(position.x, position.y + 4).setCurrent(VArchEnd);
+			megaTileAt(position.x, position.y + 7).setCurrent(DArch);
+			megaTileAt(position.x, position.y + 8).setCurrent(VArch);
+			if (megaTileAt(position.x, position.y + 9).current() != DWall)
+				megaTileAt(position.x, position.y + 9).setCurrent(HDirtCorner);
 			position.x -= 11;
 		}
 	}
 
 	for (int y = 1; y < 11; y++) {
 		for (int x = 1; x < 11; x++) {
-			dungeon[position.x + x][position.y + y] = Floor;
+			megaTileAt(position.x + x, position.y + y).setCurrent(Floor);
 			Chamber.set(position.x + x, position.y + y);
 		}
 	}
 
-	dungeon[position.x + 4][position.y + 4] = Pillar;
-	dungeon[position.x + 7][position.y + 4] = Pillar;
-	dungeon[position.x + 4][position.y + 7] = Pillar;
-	dungeon[position.x + 7][position.y + 7] = Pillar;
+	megaTileAt(position.x + 4, position.y + 4).setCurrent(Pillar);
+	megaTileAt(position.x + 7, position.y + 4).setCurrent(Pillar);
+	megaTileAt(position.x + 4, position.y + 7).setCurrent(Pillar);
+	megaTileAt(position.x + 7, position.y + 7).setCurrent(Pillar);
 }
 
 void GenerateHall(Point start, int length, bool verticalLayout)
 {
 	if (verticalLayout) {
 		for (int i = start.y; i < start.y + length; i++) {
-			dungeon[start.x][i] = VArch;
-			dungeon[start.x + 3][i] = VArch;
+			megaTileAt(start.x, i).setCurrent(VArch);
+			megaTileAt(start.x + 3, i).setCurrent(VArch);
 		}
 	} else {
 		for (int i = start.x; i < start.x + length; i++) {
-			dungeon[i][start.y] = HArch;
-			dungeon[i][start.y + 3] = HArch;
+			megaTileAt(i, start.y).setCurrent(HArch);
+			megaTileAt(i, start.y + 3).setCurrent(HArch);
 		}
 	}
 }
@@ -832,22 +832,22 @@ void FixTilesPatterns()
 	for (int j = 0; j < DMAXY; j++) {
 		for (int i = 0; i < DMAXX; i++) {
 			if (i + 1 < DMAXX) {
-				if (dungeon[i][j] == HWall && dungeon[i + 1][j] == Dirt)
-					dungeon[i + 1][j] = DirtHwallEnd;
-				if (dungeon[i][j] == Floor && dungeon[i + 1][j] == Dirt)
-					dungeon[i + 1][j] = DirtHwall;
-				if (dungeon[i][j] == Floor && dungeon[i + 1][j] == HWall)
-					dungeon[i + 1][j] = HWallEnd;
-				if (dungeon[i][j] == VWallEnd && dungeon[i + 1][j] == Dirt)
-					dungeon[i + 1][j] = DirtVwallEnd;
+				if (megaTileAt(i, j).current() == HWall && megaTileAt(i + 1, j).current() == Dirt)
+					megaTileAt(i + 1, j).setCurrent(DirtHwallEnd);
+				if (megaTileAt(i, j).current() == Floor && megaTileAt(i + 1, j).current() == Dirt)
+					megaTileAt(i + 1, j).setCurrent(DirtHwall);
+				if (megaTileAt(i, j).current() == Floor && megaTileAt(i + 1, j).current() == HWall)
+					megaTileAt(i + 1, j).setCurrent(HWallEnd);
+				if (megaTileAt(i, j).current() == VWallEnd && megaTileAt(i + 1, j).current() == Dirt)
+					megaTileAt(i + 1, j).setCurrent(DirtVwallEnd);
 			}
 			if (j + 1 < DMAXY) {
-				if (dungeon[i][j] == VWall && dungeon[i][j + 1] == Dirt)
-					dungeon[i][j + 1] = DirtVwallEnd;
-				if (dungeon[i][j] == Floor && dungeon[i][j + 1] == VWall)
-					dungeon[i][j + 1] = VWallEnd;
-				if (dungeon[i][j] == Floor && dungeon[i][j + 1] == Dirt)
-					dungeon[i][j + 1] = DirtVwall;
+				if (megaTileAt(i, j).current() == VWall && megaTileAt(i, j + 1).current() == Dirt)
+					megaTileAt(i, j + 1).setCurrent(DirtVwallEnd);
+				if (megaTileAt(i, j).current() == Floor && megaTileAt(i, j + 1).current() == VWall)
+					megaTileAt(i, j + 1).setCurrent(VWallEnd);
+				if (megaTileAt(i, j).current() == Floor && megaTileAt(i, j + 1).current() == Dirt)
+					megaTileAt(i, j + 1).setCurrent(DirtVwall);
 			}
 		}
 	}
@@ -855,92 +855,92 @@ void FixTilesPatterns()
 	for (int j = 0; j < DMAXY; j++) {
 		for (int i = 0; i < DMAXX; i++) {
 			if (i + 1 < DMAXX) {
-				if (dungeon[i][j] == Floor && dungeon[i + 1][j] == DirtVwall)
-					dungeon[i + 1][j] = HDirtCorner;
-				if (dungeon[i][j] == Floor && dungeon[i + 1][j] == Dirt)
-					dungeon[i + 1][j] = VDirtCorner;
-				if (dungeon[i][j] == HWallEnd && dungeon[i + 1][j] == Dirt)
-					dungeon[i + 1][j] = DirtHwallEnd;
-				if (dungeon[i][j] == Floor && dungeon[i + 1][j] == DirtVwallEnd)
-					dungeon[i + 1][j] = HDirtCorner;
-				if (dungeon[i][j] == DirtVwall && dungeon[i + 1][j] == Dirt)
-					dungeon[i + 1][j] = VDirtCorner;
-				if (dungeon[i][j] == HWall && dungeon[i + 1][j] == DirtVwall)
-					dungeon[i + 1][j] = HDirtCorner;
-				if (dungeon[i][j] == DirtVwall && dungeon[i + 1][j] == VWall)
-					dungeon[i + 1][j] = VWallEnd;
-				if (dungeon[i][j] == HWallEnd && dungeon[i + 1][j] == DirtVwall)
-					dungeon[i + 1][j] = HDirtCorner;
-				if (dungeon[i][j] == HWall && dungeon[i + 1][j] == VWall)
-					dungeon[i + 1][j] = VWallEnd;
-				if (dungeon[i][j] == Corner && dungeon[i + 1][j] == Dirt)
-					dungeon[i + 1][j] = DirtVwallEnd;
-				if (dungeon[i][j] == HDirtCorner && dungeon[i + 1][j] == VWall)
-					dungeon[i + 1][j] = VWallEnd;
-				if (dungeon[i][j] == HWallEnd && dungeon[i + 1][j] == VWall)
-					dungeon[i + 1][j] = VWallEnd;
-				if (dungeon[i][j] == HWallEnd && dungeon[i + 1][j] == DirtVwallEnd)
-					dungeon[i + 1][j] = HDirtCorner;
-				if (dungeon[i][j] == DWall && dungeon[i + 1][j] == VCorner)
-					dungeon[i + 1][j] = HCorner;
-				if (dungeon[i][j] == HWallEnd && dungeon[i + 1][j] == Floor)
-					dungeon[i + 1][j] = HCorner;
-				if (dungeon[i][j] == HWall && dungeon[i + 1][j] == DirtVwallEnd)
-					dungeon[i + 1][j] = HDirtCorner;
-				if (dungeon[i][j] == HWall && dungeon[i + 1][j] == Floor)
-					dungeon[i + 1][j] = HCorner;
+				if (megaTileAt(i, j).current() == Floor && megaTileAt(i + 1, j).current() == DirtVwall)
+					megaTileAt(i + 1, j).setCurrent(HDirtCorner);
+				if (megaTileAt(i, j).current() == Floor && megaTileAt(i + 1, j).current() == Dirt)
+					megaTileAt(i + 1, j).setCurrent(VDirtCorner);
+				if (megaTileAt(i, j).current() == HWallEnd && megaTileAt(i + 1, j).current() == Dirt)
+					megaTileAt(i + 1, j).setCurrent(DirtHwallEnd);
+				if (megaTileAt(i, j).current() == Floor && megaTileAt(i + 1, j).current() == DirtVwallEnd)
+					megaTileAt(i + 1, j).setCurrent(HDirtCorner);
+				if (megaTileAt(i, j).current() == DirtVwall && megaTileAt(i + 1, j).current() == Dirt)
+					megaTileAt(i + 1, j).setCurrent(VDirtCorner);
+				if (megaTileAt(i, j).current() == HWall && megaTileAt(i + 1, j).current() == DirtVwall)
+					megaTileAt(i + 1, j).setCurrent(HDirtCorner);
+				if (megaTileAt(i, j).current() == DirtVwall && megaTileAt(i + 1, j).current() == VWall)
+					megaTileAt(i + 1, j).setCurrent(VWallEnd);
+				if (megaTileAt(i, j).current() == HWallEnd && megaTileAt(i + 1, j).current() == DirtVwall)
+					megaTileAt(i + 1, j).setCurrent(HDirtCorner);
+				if (megaTileAt(i, j).current() == HWall && megaTileAt(i + 1, j).current() == VWall)
+					megaTileAt(i + 1, j).setCurrent(VWallEnd);
+				if (megaTileAt(i, j).current() == Corner && megaTileAt(i + 1, j).current() == Dirt)
+					megaTileAt(i + 1, j).setCurrent(DirtVwallEnd);
+				if (megaTileAt(i, j).current() == HDirtCorner && megaTileAt(i + 1, j).current() == VWall)
+					megaTileAt(i + 1, j).setCurrent(VWallEnd);
+				if (megaTileAt(i, j).current() == HWallEnd && megaTileAt(i + 1, j).current() == VWall)
+					megaTileAt(i + 1, j).setCurrent(VWallEnd);
+				if (megaTileAt(i, j).current() == HWallEnd && megaTileAt(i + 1, j).current() == DirtVwallEnd)
+					megaTileAt(i + 1, j).setCurrent(HDirtCorner);
+				if (megaTileAt(i, j).current() == DWall && megaTileAt(i + 1, j).current() == VCorner)
+					megaTileAt(i + 1, j).setCurrent(HCorner);
+				if (megaTileAt(i, j).current() == HWallEnd && megaTileAt(i + 1, j).current() == Floor)
+					megaTileAt(i + 1, j).setCurrent(HCorner);
+				if (megaTileAt(i, j).current() == HWall && megaTileAt(i + 1, j).current() == DirtVwallEnd)
+					megaTileAt(i + 1, j).setCurrent(HDirtCorner);
+				if (megaTileAt(i, j).current() == HWall && megaTileAt(i + 1, j).current() == Floor)
+					megaTileAt(i + 1, j).setCurrent(HCorner);
 			}
 			if (i > 0) {
-				if (dungeon[i][j] == DirtHwallEnd && dungeon[i - 1][j] == Dirt)
-					dungeon[i - 1][j] = DirtVwall;
-				if (dungeon[i][j] == DirtVwall && dungeon[i - 1][j] == DirtHwallEnd)
-					dungeon[i - 1][j] = HDirtCorner;
-				if (dungeon[i][j] == VWallEnd && dungeon[i - 1][j] == Dirt)
-					dungeon[i - 1][j] = DirtVwallEnd;
-				if (dungeon[i][j] == VWallEnd && dungeon[i - 1][j] == DirtHwallEnd)
-					dungeon[i - 1][j] = HDirtCorner;
+				if (megaTileAt(i, j).current() == DirtHwallEnd && megaTileAt(i - 1, j).current() == Dirt)
+					megaTileAt(i - 1, j).setCurrent(DirtVwall);
+				if (megaTileAt(i, j).current() == DirtVwall && megaTileAt(i - 1, j).current() == DirtHwallEnd)
+					megaTileAt(i - 1, j).setCurrent(HDirtCorner);
+				if (megaTileAt(i, j).current() == VWallEnd && megaTileAt(i - 1, j).current() == Dirt)
+					megaTileAt(i - 1, j).setCurrent(DirtVwallEnd);
+				if (megaTileAt(i, j).current() == VWallEnd && megaTileAt(i - 1, j).current() == DirtHwallEnd)
+					megaTileAt(i - 1, j).setCurrent(HDirtCorner);
 			}
 			if (j + 1 < DMAXY) {
-				if (dungeon[i][j] == VWall && dungeon[i][j + 1] == HWall)
-					dungeon[i][j + 1] = HWallEnd;
-				if (dungeon[i][j] == VWallEnd && dungeon[i][j + 1] == DirtHwall)
-					dungeon[i][j + 1] = HDirtCorner;
-				if (dungeon[i][j] == DirtHwall && dungeon[i][j + 1] == HWall)
-					dungeon[i][j + 1] = HWallEnd;
-				if (dungeon[i][j] == VWallEnd && dungeon[i][j + 1] == HWall)
-					dungeon[i][j + 1] = HWallEnd;
-				if (dungeon[i][j] == HDirtCorner && dungeon[i][j + 1] == HWall)
-					dungeon[i][j + 1] = HWallEnd;
-				if (dungeon[i][j] == VWallEnd && dungeon[i][j + 1] == Dirt)
-					dungeon[i][j + 1] = DirtVwallEnd;
-				if (dungeon[i][j] == VWallEnd && dungeon[i][j + 1] == Floor)
-					dungeon[i][j + 1] = VCorner;
-				if (dungeon[i][j] == VWall && dungeon[i][j + 1] == Floor)
-					dungeon[i][j + 1] = VCorner;
-				if (dungeon[i][j] == Floor && dungeon[i][j + 1] == VCorner)
-					dungeon[i][j + 1] = HCorner;
+				if (megaTileAt(i, j).current() == VWall && megaTileAt(i, j + 1).current() == HWall)
+					megaTileAt(i, j + 1).setCurrent(HWallEnd);
+				if (megaTileAt(i, j).current() == VWallEnd && megaTileAt(i, j + 1).current() == DirtHwall)
+					megaTileAt(i, j + 1).setCurrent(HDirtCorner);
+				if (megaTileAt(i, j).current() == DirtHwall && megaTileAt(i, j + 1).current() == HWall)
+					megaTileAt(i, j + 1).setCurrent(HWallEnd);
+				if (megaTileAt(i, j).current() == VWallEnd && megaTileAt(i, j + 1).current() == HWall)
+					megaTileAt(i, j + 1).setCurrent(HWallEnd);
+				if (megaTileAt(i, j).current() == HDirtCorner && megaTileAt(i, j + 1).current() == HWall)
+					megaTileAt(i, j + 1).setCurrent(HWallEnd);
+				if (megaTileAt(i, j).current() == VWallEnd && megaTileAt(i, j + 1).current() == Dirt)
+					megaTileAt(i, j + 1).setCurrent(DirtVwallEnd);
+				if (megaTileAt(i, j).current() == VWallEnd && megaTileAt(i, j + 1).current() == Floor)
+					megaTileAt(i, j + 1).setCurrent(VCorner);
+				if (megaTileAt(i, j).current() == VWall && megaTileAt(i, j + 1).current() == Floor)
+					megaTileAt(i, j + 1).setCurrent(VCorner);
+				if (megaTileAt(i, j).current() == Floor && megaTileAt(i, j + 1).current() == VCorner)
+					megaTileAt(i, j + 1).setCurrent(HCorner);
 			}
 			if (j > 0) {
-				if (dungeon[i][j] == VWallEnd && dungeon[i][j - 1] == Dirt)
-					dungeon[i][j - 1] = HWallEnd;
-				if (dungeon[i][j] == VWallEnd && dungeon[i][j - 1] == Dirt)
-					dungeon[i][j - 1] = DirtVwallEnd;
-				if (dungeon[i][j] == HWallEnd && dungeon[i][j - 1] == DirtVwallEnd)
-					dungeon[i][j - 1] = HDirtCorner;
-				if (dungeon[i][j] == DirtHwall && dungeon[i][j - 1] == DirtVwallEnd)
-					dungeon[i][j - 1] = HDirtCorner;
+				if (megaTileAt(i, j).current() == VWallEnd && megaTileAt(i, j - 1).current() == Dirt)
+					megaTileAt(i, j - 1).setCurrent(HWallEnd);
+				if (megaTileAt(i, j).current() == VWallEnd && megaTileAt(i, j - 1).current() == Dirt)
+					megaTileAt(i, j - 1).setCurrent(DirtVwallEnd);
+				if (megaTileAt(i, j).current() == HWallEnd && megaTileAt(i, j - 1).current() == DirtVwallEnd)
+					megaTileAt(i, j - 1).setCurrent(HDirtCorner);
+				if (megaTileAt(i, j).current() == DirtHwall && megaTileAt(i, j - 1).current() == DirtVwallEnd)
+					megaTileAt(i, j - 1).setCurrent(HDirtCorner);
 			}
 		}
 	}
 
 	for (int j = 0; j < DMAXY; j++) {
 		for (int i = 0; i < DMAXX; i++) {
-			if (j + 1 < DMAXY && dungeon[i][j] == DWall && dungeon[i][j + 1] == HWall)
-				dungeon[i][j + 1] = HWallEnd;
-			if (i + 1 < DMAXX && dungeon[i][j] == HWall && dungeon[i + 1][j] == DirtVwall)
-				dungeon[i + 1][j] = HDirtCorner;
-			if (j + 1 < DMAXY && dungeon[i][j] == DirtHwall && dungeon[i][j + 1] == Dirt)
-				dungeon[i][j + 1] = VDirtCorner;
+			if (j + 1 < DMAXY && megaTileAt(i, j).current() == DWall && megaTileAt(i, j + 1).current() == HWall)
+				megaTileAt(i, j + 1).setCurrent(HWallEnd);
+			if (i + 1 < DMAXX && megaTileAt(i, j).current() == HWall && megaTileAt(i + 1, j).current() == DirtVwall)
+				megaTileAt(i + 1, j).setCurrent(HDirtCorner);
+			if (j + 1 < DMAXY && megaTileAt(i, j).current() == DirtHwall && megaTileAt(i, j + 1).current() == Dirt)
+				megaTileAt(i, j + 1).setCurrent(VDirtCorner);
 		}
 	}
 }
@@ -950,7 +950,7 @@ void Substitution()
 	for (int y = 0; y < DMAXY; y++) {
 		for (int x = 0; x < DMAXX; x++) {
 			if (FlipCoin(4)) {
-				const uint8_t c = TileDecorations[dungeon[x][y]];
+				const uint8_t c = TileDecorations[megaTileAt(x, y).current()];
 				if (c != 0 && !Protected.test(x, y)) {
 					int rv = GenerateRnd(16);
 					int i = -1;
@@ -966,19 +966,19 @@ void Substitution()
 
 					// BUGFIX: Add `&& y > 0` to the if statement. (fixed)
 					if (i == VWall4 && y > 0) {
-						if (TileDecorations[dungeon[x][y - 1]] != VWall2 || Protected.test(x, y - 1))
+						if (TileDecorations[megaTileAt(x, y - 1).current()] != VWall2 || Protected.test(x, y - 1))
 							i = VWall2;
 						else
-							dungeon[x][y - 1] = VWall5;
+							megaTileAt(x, y - 1).setCurrent(VWall5);
 					}
 					// BUGFIX: Add `&& x + 1 < DMAXX` to the if statement. (fixed)
 					if (i == HWall4 && x + 1 < DMAXX) {
-						if (TileDecorations[dungeon[x + 1][y]] != HWall2 || Protected.test(x + 1, y))
+						if (TileDecorations[megaTileAt(x + 1, y).current()] != HWall2 || Protected.test(x + 1, y))
 							i = HWall2;
 						else
-							dungeon[x + 1][y] = HWall5;
+							megaTileAt(x + 1, y).setCurrent(HWall5);
 					}
-					dungeon[x][y] = i;
+					megaTileAt(x, y).setCurrent(i);
 				}
 			}
 		}
@@ -1031,28 +1031,29 @@ void FixTransparency()
 	for (int j = 0; j < DMAXY; j++) {
 		int xx = 16;
 		for (int i = 0; i < DMAXX; i++) {
+			const int8_t transVal = tileAt(xx, yy).transVal();
 			// BUGFIX: Should check for `j > 0` first. (fixed)
-			if (dungeon[i][j] == DirtHwallEnd && j > 0 && dungeon[i][j - 1] == DirtHwall) {
-				dTransVal[xx + 1][yy] = dTransVal[xx][yy];
-				dTransVal[xx + 1][yy + 1] = dTransVal[xx][yy];
+			if (megaTileAt(i, j).current() == DirtHwallEnd && j > 0 && megaTileAt(i, j - 1).current() == DirtHwall) {
+				tileAt(xx + 1, yy).setTransVal(transVal);
+				tileAt(xx + 1, yy + 1).setTransVal(transVal);
 			}
 			// BUGFIX: Should check for `i + 1 < DMAXY` first. (fixed)
-			if (dungeon[i][j] == DirtVwallEnd && i + 1 < DMAXY && dungeon[i + 1][j] == DirtVwall) {
-				dTransVal[xx][yy + 1] = dTransVal[xx][yy];
-				dTransVal[xx + 1][yy + 1] = dTransVal[xx][yy];
+			if (megaTileAt(i, j).current() == DirtVwallEnd && i + 1 < DMAXY && megaTileAt(i + 1, j).current() == DirtVwall) {
+				tileAt(xx, yy + 1).setTransVal(transVal);
+				tileAt(xx + 1, yy + 1).setTransVal(transVal);
 			}
-			if (dungeon[i][j] == DirtHwall) {
-				dTransVal[xx + 1][yy] = dTransVal[xx][yy];
-				dTransVal[xx + 1][yy + 1] = dTransVal[xx][yy];
+			if (megaTileAt(i, j).current() == DirtHwall) {
+				tileAt(xx + 1, yy).setTransVal(transVal);
+				tileAt(xx + 1, yy + 1).setTransVal(transVal);
 			}
-			if (dungeon[i][j] == DirtVwall) {
-				dTransVal[xx][yy + 1] = dTransVal[xx][yy];
-				dTransVal[xx + 1][yy + 1] = dTransVal[xx][yy];
+			if (megaTileAt(i, j).current() == DirtVwall) {
+				tileAt(xx, yy + 1).setTransVal(transVal);
+				tileAt(xx + 1, yy + 1).setTransVal(transVal);
 			}
-			if (dungeon[i][j] == VDirtCorner) {
-				dTransVal[xx + 1][yy] = dTransVal[xx][yy];
-				dTransVal[xx][yy + 1] = dTransVal[xx][yy];
-				dTransVal[xx + 1][yy + 1] = dTransVal[xx][yy];
+			if (megaTileAt(i, j).current() == VDirtCorner) {
+				tileAt(xx + 1, yy).setTransVal(transVal);
+				tileAt(xx, yy + 1).setTransVal(transVal);
+				tileAt(xx + 1, yy + 1).setTransVal(transVal);
 			}
 			xx += 2;
 		}
@@ -1064,23 +1065,23 @@ void FixDirtTiles()
 {
 	for (int j = 0; j < DMAXY - 1; j++) {
 		for (int i = 0; i < DMAXX - 1; i++) {
-			if (dungeon[i][j] == HDirtCorner && dungeon[i + 1][j] != DirtVwall) {
-				dungeon[i][j] = DirtCorner2;
+			if (megaTileAt(i, j).current() == HDirtCorner && megaTileAt(i + 1, j).current() != DirtVwall) {
+				megaTileAt(i, j).setCurrent(DirtCorner2);
 			}
-			if (dungeon[i][j] == DirtVwall && dungeon[i + 1][j] != DirtVwall) {
-				dungeon[i][j] = DirtVWall2;
+			if (megaTileAt(i, j).current() == DirtVwall && megaTileAt(i + 1, j).current() != DirtVwall) {
+				megaTileAt(i, j).setCurrent(DirtVWall2);
 			}
-			if (dungeon[i][j] == DirtVwallEnd && dungeon[i + 1][j] != DirtVwall) {
-				dungeon[i][j] = DirtVWallEnd2;
+			if (megaTileAt(i, j).current() == DirtVwallEnd && megaTileAt(i + 1, j).current() != DirtVwall) {
+				megaTileAt(i, j).setCurrent(DirtVWallEnd2);
 			}
-			if (dungeon[i][j] == DirtHwall && dungeon[i][j + 1] != DirtHwall) {
-				dungeon[i][j] = DirtHWall2;
+			if (megaTileAt(i, j).current() == DirtHwall && megaTileAt(i, j + 1).current() != DirtHwall) {
+				megaTileAt(i, j).setCurrent(DirtHWall2);
 			}
-			if (dungeon[i][j] == HDirtCorner && dungeon[i][j + 1] != DirtHwall) {
-				dungeon[i][j] = DirtCorner2;
+			if (megaTileAt(i, j).current() == HDirtCorner && megaTileAt(i, j + 1).current() != DirtHwall) {
+				megaTileAt(i, j).setCurrent(DirtCorner2);
 			}
-			if (dungeon[i][j] == DirtHwallEnd && dungeon[i][j + 1] != DirtHwall) {
-				dungeon[i][j] = DirtHWallEnd2;
+			if (megaTileAt(i, j).current() == DirtHwallEnd && megaTileAt(i, j + 1).current() != DirtHwall) {
+				megaTileAt(i, j).setCurrent(DirtHWallEnd2);
 			}
 		}
 	}
@@ -1090,15 +1091,15 @@ void FixCornerTiles()
 {
 	for (int j = 1; j < DMAXY - 1; j++) {
 		for (int i = 1; i < DMAXX - 1; i++) {
-			if (!Protected.test(i, j) && dungeon[i][j] == HCorner && dungeon[i - 1][j] == Floor && dungeon[i][j - 1] == VWall) {
-				dungeon[i][j] = VCorner;
+			if (!Protected.test(i, j) && megaTileAt(i, j).current() == HCorner && megaTileAt(i - 1, j).current() == Floor && megaTileAt(i, j - 1).current() == VWall) {
+				megaTileAt(i, j).setCurrent(VCorner);
 				// BUGFIX: Set tile as Protected
 			}
-			if (dungeon[i][j] == DirtCorner2 && dungeon[i + 1][j] == Floor && dungeon[i][j + 1] == VWall) {
-				dungeon[i][j] = HArchEnd;
+			if (megaTileAt(i, j).current() == DirtCorner2 && megaTileAt(i + 1, j).current() == Floor && megaTileAt(i, j + 1).current() == VWall) {
+				megaTileAt(i, j).setCurrent(HArchEnd);
 			}
-			if (dungeon[i][j] == DirtCorner2 && dungeon[i][j + 1] == Floor && dungeon[i + 1][j] == HWall) {
-				dungeon[i][j] = VArchEnd;
+			if (megaTileAt(i, j).current() == DirtCorner2 && megaTileAt(i, j + 1).current() == Floor && megaTileAt(i + 1, j).current() == HWall) {
+				megaTileAt(i, j).setCurrent(VArchEnd);
 			}
 		}
 	}
@@ -1198,7 +1199,7 @@ void GenerateLevel(lvl_entry entry)
 
 	for (int j = 0; j < DMAXY; j++) {
 		for (int i = 0; i < DMAXX; i++) {
-			if (dungeon[i][j] == EntranceStairs) {
+			if (megaTileAt(i, j).current() == EntranceStairs) {
 				const int xx = (2 * i) + 16; /* todo: fix loop */
 				const int yy = (2 * j) + 16;
 				DRLG_CopyTrans(xx, yy + 1, xx, yy);
@@ -1229,7 +1230,7 @@ void GenerateLevel(lvl_entry entry)
 		FillFloor();
 	}
 
-	memcpy(pdungeon, dungeon, sizeof(pdungeon));
+	SnapshotReplacementMegaTiles();
 
 	DRLG_CheckQuests(SetPiece.position);
 }
@@ -1320,7 +1321,7 @@ void LoadPreL1Dungeon(const char *path)
 	if (setlvltype == DTYPE_CATHEDRAL)
 		FillFloor();
 
-	memcpy(pdungeon, dungeon, sizeof(pdungeon));
+	SnapshotReplacementMegaTiles();
 }
 
 void LoadL1Dungeon(const char *path, Point spawn)

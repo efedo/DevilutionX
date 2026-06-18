@@ -48,17 +48,12 @@ tl::expected<dungeon_type, std::string> ParseDungeonType(std::string_view value)
 tl::expected<_setlevels, std::string> ParseSetLevel(std::string_view value);
 
 // ---------------------------------------------------------------------------
-// Macro shims — each name expands to the corresponding Level member so that
-// all existing call sites (assignments, address-of, array indexing, …)
-// continue to work without modification.
+// Transitional macro shims for Level state that has not yet migrated to named
+// accessors.
 // ---------------------------------------------------------------------------
 // clang-format off
 /** Reprecents what tiles are being utilized in the generated map. */
 #define DungeonMask   (currentLevel().DungeonMask_)
-/** Contains the tile IDs of the map. */
-#define dungeon       (currentLevel().dungeon_)
-/** Contains a backup of the tile IDs of the map. */
-#define pdungeon      (currentLevel().pdungeon_)
 /** Tile that may not be overwritten by the level generator */
 #define Protected     (currentLevel().Protected_)
 #define SetPieceRoom  (currentLevel().SetPieceRoom_)
@@ -105,8 +100,6 @@ tl::expected<_setlevels, std::string> ParseSetLevel(std::string_view value);
 /** Map of micros that comprises a full tile for any given dungeon piece. */
 // LEGACY macro kept for transition; prefer levelMicros() for new code.
 #define DPieceMicros  (currentLevel().DPieceMicros_)
-/** Specifies the transparency at each coordinate of the map. */
-#define dTransVal     (currentLevel().dTransVal_)
 /** Holds various information about dungeon tiles, @see DungeonFlag */
 #define themeCount    (currentLevel().themeCount_)
 #define themeLoc      (currentLevel().themeLoc_)
@@ -118,6 +111,17 @@ tl::expected<_setlevels, std::string> ParseSetLevel(std::string_view value);
 #define tiles         (currentLevel().tiles_)
 /** Accessor helper for getting a tile. Use tileAt(x, y) or tileAt(Point) */
 #define tileAt        (currentLevel().tileAt)
+/** Access a coarse dungeon megatile in the current level. */
+inline DungeonMegaTile &megaTileAt(int x, int y)
+{
+	return currentLevel().megaTileAt(x, y);
+}
+
+/** Access a coarse dungeon megatile in the current level. */
+inline DungeonMegaTile &megaTileAt(Point position)
+{
+	return currentLevel().megaTileAt(position);
+}
 
 // clang-format on
 
@@ -137,7 +141,6 @@ tl::expected<_setlevels, std::string> ParseSetLevel(std::string_view value);
 
 #ifdef BUILD_TESTING
 std::optional<WorldTileSize> GetSizeForThemeRoom();
-void SyncTileTransparencyFromLegacyMapForTesting();
 #endif
 
 dungeon_type GetLevelType(int level);
@@ -218,7 +221,7 @@ struct Miniset {
 	{
 		for (WorldTileCoord yy = 0; yy < size.height; yy++) {
 			for (WorldTileCoord xx = 0; xx < size.width; xx++) {
-				if (search[yy][xx] != 0 && dungeon[xx + position.x][yy + position.y] != search[yy][xx])
+				if (search[yy][xx] != 0 && megaTileAt(xx + position.x, yy + position.y).current() != search[yy][xx])
 					return false;
 				if (respectProtected && Protected.test(xx + position.x, yy + position.y))
 					return false;
@@ -233,7 +236,7 @@ struct Miniset {
 			for (WorldTileCoord x = 0; x < size.width; x++) {
 				if (replace[y][x] == 0)
 					continue;
-				dungeon[x + position.x][y + position.y] = replace[y][x];
+				megaTileAt(x + position.x, y + position.y).setCurrent(replace[y][x]);
 				if (protect)
 					Protected.set(x + position.x, y + position.y);
 			}
@@ -249,6 +252,8 @@ DVL_ALWAYS_INLINE bool TileHasAny(Point coords, TileProperties property)
 tl::expected<void, std::string> LoadLevelSOLData();
 void SetDungeonMicros(std::unique_ptr<std::byte[]> &dungeonCels, uint_fast8_t &microTileLen);
 void DRLG_InitTrans();
+void FillCurrentMegaTiles(uint8_t value);
+void SnapshotReplacementMegaTiles();
 void DRLG_MRectTrans(WorldTilePosition origin, WorldTilePosition extent);
 void DRLG_MRectTrans(WorldTileRectangle area);
 void DRLG_RectTrans(WorldTileRectangle area);

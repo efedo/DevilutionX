@@ -65,9 +65,9 @@ TEST_F(Phase4BEntityTest, LegacyGenerationPassUpdatesTilePieces)
 		Swap16LE(static_cast<uint16_t>(104)),
 	};
 
-	for (auto &column : dungeon) {
-		for (uint8_t &tileId : column) {
-			tileId = 1;
+	for (auto &column : currentLevel().megaTiles()) {
+		for (DungeonMegaTile &megaTile : column) {
+			megaTile.setCurrent(1);
 		}
 	}
 	tiles[16][16].clear();

@@ -706,7 +706,7 @@ const Miniset HivePattern42 {
 
 void InitDungeonFlags()
 {
-	memset(dungeon, 0, sizeof(dungeon));
+	FillCurrentMegaTiles(0);
 	Protected.reset();
 }
 
@@ -719,7 +719,7 @@ bool FillRoom(int x1, int y1, int x2, int y2)
 	int v = 0;
 	for (int j = y1; j <= y2; j++) {
 		for (int i = x1; i <= x2; i++) {
-			v += dungeon[i][j];
+			v += megaTileAt(i, j).current();
 		}
 	}
 
@@ -729,23 +729,23 @@ bool FillRoom(int x1, int y1, int x2, int y2)
 
 	for (int j = y1 + 1; j < y2; j++) {
 		for (int i = x1 + 1; i < x2; i++) {
-			dungeon[i][j] = 1;
+			megaTileAt(i, j).setCurrent(1);
 		}
 	}
 	for (int j = y1; j <= y2; j++) {
 		if (!FlipCoin()) {
-			dungeon[x1][j] = 1;
+			megaTileAt(x1, j).setCurrent(1);
 		}
 		if (!FlipCoin()) {
-			dungeon[x2][j] = 1;
+			megaTileAt(x2, j).setCurrent(1);
 		}
 	}
 	for (int i = x1; i <= x2; i++) {
 		if (!FlipCoin()) {
-			dungeon[i][y1] = 1;
+			megaTileAt(i, y1).setCurrent(1);
 		}
 		if (!FlipCoin()) {
-			dungeon[i][y2] = 1;
+			megaTileAt(i, y2).setCurrent(1);
 		}
 	}
 
@@ -842,7 +842,7 @@ void FloorArea(int x1, int y1, int x2, int y2)
 {
 	for (int j = y1; j <= y2; j++) {
 		for (int i = x1; i <= x2; i++) {
-			dungeon[i][j] = 1;
+			megaTileAt(i, j).setCurrent(1);
 		}
 	}
 }
@@ -851,19 +851,19 @@ void FillDiagonals()
 {
 	for (int j = 0; j < DMAXY - 1; j++) {
 		for (int i = 0; i < DMAXX - 1; i++) {
-			const int v = dungeon[i + 1][j + 1] + (2 * dungeon[i][j + 1]) + (4 * dungeon[i + 1][j]) + (8 * dungeon[i][j]);
+			const int v = megaTileAt(i + 1, j + 1).current() + (2 * megaTileAt(i, j + 1).current()) + (4 * megaTileAt(i + 1, j).current()) + (8 * megaTileAt(i, j).current());
 			if (v == 6) {
 				if (FlipCoin()) {
-					dungeon[i][j] = 1;
+					megaTileAt(i, j).setCurrent(1);
 				} else {
-					dungeon[i + 1][j + 1] = 1;
+					megaTileAt(i + 1, j + 1).setCurrent(1);
 				}
 			}
 			if (v == 9) {
 				if (FlipCoin()) {
-					dungeon[i + 1][j] = 1;
+					megaTileAt(i + 1, j).setCurrent(1);
 				} else {
-					dungeon[i][j + 1] = 1;
+					megaTileAt(i, j + 1).setCurrent(1);
 				}
 			}
 		}
@@ -874,11 +874,11 @@ void FillSingles()
 {
 	for (int j = 1; j < DMAXY - 1; j++) {
 		for (int i = 1; i < DMAXX - 1; i++) {
-			if (dungeon[i][j] == 0
-			    && dungeon[i][j - 1] + dungeon[i - 1][j - 1] + dungeon[i + 1][j - 1] == 3
-			    && dungeon[i + 1][j] + dungeon[i - 1][j] == 2
-			    && dungeon[i][j + 1] + dungeon[i - 1][j + 1] + dungeon[i + 1][j + 1] == 3) {
-				dungeon[i][j] = 1;
+			if (megaTileAt(i, j).current() == 0
+			    && megaTileAt(i, j - 1).current() + megaTileAt(i - 1, j - 1).current() + megaTileAt(i + 1, j - 1).current() == 3
+			    && megaTileAt(i + 1, j).current() + megaTileAt(i - 1, j).current() == 2
+			    && megaTileAt(i, j + 1).current() + megaTileAt(i - 1, j + 1).current() + megaTileAt(i + 1, j + 1).current() == 3) {
+				megaTileAt(i, j).setCurrent(1);
 			}
 		}
 	}
@@ -892,7 +892,7 @@ void FillStraights()
 	for (int j = 0; j < DMAXY - 1; j++) {
 		int xs = 0;
 		for (int i = 0; i < 37; i++) {
-			if (dungeon[i][j] == 0 && dungeon[i][j + 1] == 1) {
+			if (megaTileAt(i, j).current() == 0 && megaTileAt(i, j + 1).current() == 1) {
 				if (xs == 0) {
 					xc = i;
 				}
@@ -901,7 +901,7 @@ void FillStraights()
 				if (xs > 3 && !FlipCoin()) {
 					for (int k = xc; k < i; k++) {
 						const int rv = GenerateRnd(2);
-						dungeon[k][j] = rv;
+						megaTileAt(k, j).setCurrent(rv);
 					}
 				}
 				xs = 0;
@@ -911,7 +911,7 @@ void FillStraights()
 	for (int j = 0; j < DMAXY - 1; j++) {
 		int xs = 0;
 		for (int i = 0; i < 37; i++) {
-			if (dungeon[i][j] == 1 && dungeon[i][j + 1] == 0) {
+			if (megaTileAt(i, j).current() == 1 && megaTileAt(i, j + 1).current() == 0) {
 				if (xs == 0) {
 					xc = i;
 				}
@@ -920,7 +920,7 @@ void FillStraights()
 				if (xs > 3 && !FlipCoin()) {
 					for (int k = xc; k < i; k++) {
 						const int rv = GenerateRnd(2);
-						dungeon[k][j + 1] = rv;
+						megaTileAt(k, j + 1).setCurrent(rv);
 					}
 				}
 				xs = 0;
@@ -930,7 +930,7 @@ void FillStraights()
 	for (int i = 0; i < DMAXX - 1; i++) {
 		int ys = 0;
 		for (int j = 0; j < 37; j++) {
-			if (dungeon[i][j] == 0 && dungeon[i + 1][j] == 1) {
+			if (megaTileAt(i, j).current() == 0 && megaTileAt(i + 1, j).current() == 1) {
 				if (ys == 0) {
 					yc = j;
 				}
@@ -939,7 +939,7 @@ void FillStraights()
 				if (ys > 3 && !FlipCoin()) {
 					for (int k = yc; k < j; k++) {
 						const int rv = GenerateRnd(2);
-						dungeon[i][k] = rv;
+						megaTileAt(i, k).setCurrent(rv);
 					}
 				}
 				ys = 0;
@@ -949,7 +949,7 @@ void FillStraights()
 	for (int i = 0; i < DMAXX - 1; i++) {
 		int ys = 0;
 		for (int j = 0; j < 37; j++) {
-			if (dungeon[i][j] == 1 && dungeon[i + 1][j] == 0) {
+			if (megaTileAt(i, j).current() == 1 && megaTileAt(i + 1, j).current() == 0) {
 				if (ys == 0) {
 					yc = j;
 				}
@@ -958,7 +958,7 @@ void FillStraights()
 				if (ys > 3 && !FlipCoin()) {
 					for (int k = yc; k < j; k++) {
 						const int rv = GenerateRnd(2);
-						dungeon[i + 1][k] = rv;
+						megaTileAt(i + 1, k).setCurrent(rv);
 					}
 				}
 				ys = 0;
@@ -970,10 +970,10 @@ void FillStraights()
 void Edges()
 {
 	for (int j = 0; j < DMAXY; j++) {
-		dungeon[DMAXX - 1][j] = 0;
+		megaTileAt(DMAXX - 1, j).setCurrent(0);
 	}
 	for (int i = 0; i < DMAXX; i++) { // NOLINT(modernize-loop-convert)
-		dungeon[i][DMAXY - 1] = 0;
+		megaTileAt(i, DMAXY - 1).setCurrent(0);
 	}
 }
 
@@ -983,7 +983,7 @@ int GetFloorArea()
 
 	for (int j = 0; j < DMAXY; j++) {
 		for (int i = 0; i < DMAXX; i++) { // NOLINT(modernize-loop-convert)
-			gfa += dungeon[i][j];
+			gfa += megaTileAt(i, j).current();
 		}
 	}
 
@@ -994,19 +994,19 @@ void MakeMegas()
 {
 	for (int j = 0; j < DMAXY - 1; j++) {
 		for (int i = 0; i < DMAXX - 1; i++) {
-			int v = dungeon[i + 1][j + 1] + (2 * dungeon[i][j + 1]) + (4 * dungeon[i + 1][j]) + (8 * dungeon[i][j]);
+			int v = megaTileAt(i + 1, j + 1).current() + (2 * megaTileAt(i, j + 1).current()) + (4 * megaTileAt(i + 1, j).current()) + (8 * megaTileAt(i, j).current());
 			if (v == 6) {
 				v = PickRandomlyAmong({ 12, 5 });
 			}
 			if (v == 9) {
 				v = PickRandomlyAmong({ 13, 14 });
 			}
-			dungeon[i][j] = L3ConvTbl[v];
+			megaTileAt(i, j).setCurrent(L3ConvTbl[v]);
 		}
-		dungeon[DMAXX - 1][j] = 8;
+		megaTileAt(DMAXX - 1, j).setCurrent(8);
 	}
 	for (int i = 0; i < DMAXX; i++) { // NOLINT(modernize-loop-convert)
-		dungeon[i][DMAXY - 1] = 8;
+		megaTileAt(i, DMAXY - 1).setCurrent(8);
 	}
 }
 
@@ -1029,13 +1029,13 @@ void River()
 			int rx = 0;
 			int ry = 0;
 			int i = 0;
-			// BUGFIX: Replace with `(ry >= DMAXY || dungeon[rx][ry] < 25 || dungeon[rx][ry] > 28) && i < 100` (fixed)
-			while ((ry >= DMAXY || dungeon[rx][ry] < 25 || dungeon[rx][ry] > 28) && i < 100) {
+			// BUGFIX: Check the y bound before reading the current megatile. (fixed)
+			while ((ry >= DMAXY || megaTileAt(rx, ry).current() < 25 || megaTileAt(rx, ry).current() > 28) && i < 100) {
 				rx = GenerateRnd(DMAXX);
 				ry = GenerateRnd(DMAXY);
 				i++;
 				// BUGFIX: Move `ry < DMAXY` check before dungeon checks (fixed)
-				while (ry < DMAXY && (dungeon[rx][ry] < 25 || dungeon[rx][ry] > 28)) {
+				while (ry < DMAXY && (megaTileAt(rx, ry).current() < 25 || megaTileAt(rx, ry).current() > 28)) {
 					rx++;
 					if (rx >= DMAXX) {
 						rx = 0;
@@ -1049,7 +1049,7 @@ void River()
 			if (i >= 100) {
 				return;
 			}
-			switch (dungeon[rx][ry]) {
+			switch (megaTileAt(rx, ry).current()) {
 			case 25:
 				dir = 3;
 				nodir = 2;
@@ -1101,7 +1101,7 @@ void River()
 				if (dir == 3 && rx > 0) {
 					rx--;
 				}
-				if (dungeon[rx][ry] == 7) {
+				if (megaTileAt(rx, ry).current() == 7) {
 					dircheck = 0;
 					if (dir < 2) {
 						river[2][riveramt] = PickRandomlyAmong({ 17, 18 });
@@ -1159,7 +1159,7 @@ void River()
 				}
 			}
 			// BUGFIX: Check `ry >= 2` (fixed)
-			if (dir == 0 && ry >= 2 && dungeon[rx][ry - 1] == 10 && dungeon[rx][ry - 2] == 8) {
+			if (dir == 0 && ry >= 2 && megaTileAt(rx, ry - 1).current() == 10 && megaTileAt(rx, ry - 2).current() == 8) {
 				river[0][riveramt] = rx;
 				river[1][riveramt] = ry - 1;
 				river[2][riveramt] = 24;
@@ -1172,7 +1172,7 @@ void River()
 				bail = true;
 			}
 			// BUGFIX: Check `ry + 2 < DMAXY` (fixed)
-			if (dir == 1 && ry + 2 < DMAXY && dungeon[rx][ry + 1] == 2 && dungeon[rx][ry + 2] == 8) {
+			if (dir == 1 && ry + 2 < DMAXY && megaTileAt(rx, ry + 1).current() == 2 && megaTileAt(rx, ry + 2).current() == 8) {
 				river[0][riveramt] = rx;
 				river[1][riveramt] = ry + 1;
 				river[2][riveramt] = 42;
@@ -1185,7 +1185,7 @@ void River()
 				bail = true;
 			}
 			// BUGFIX: Check `rx + 2 < DMAXX` (fixed)
-			if (dir == 2 && rx + 2 < DMAXX && dungeon[rx + 1][ry] == 4 && dungeon[rx + 2][ry] == 8) {
+			if (dir == 2 && rx + 2 < DMAXX && megaTileAt(rx + 1, ry).current() == 4 && megaTileAt(rx + 2, ry).current() == 8) {
 				river[0][riveramt] = rx + 1;
 				river[1][riveramt] = ry;
 				river[2][riveramt] = 43;
@@ -1198,7 +1198,7 @@ void River()
 				bail = true;
 			}
 			// BUGFIX: Check `rx >= 2` (fixed)
-			if (dir == 3 && rx >= 2 && dungeon[rx - 1][ry] == 9 && dungeon[rx - 2][ry] == 8) {
+			if (dir == 3 && rx >= 2 && megaTileAt(rx - 1, ry).current() == 9 && megaTileAt(rx - 2, ry).current() == 8) {
 				river[0][riveramt] = rx - 1;
 				river[1][riveramt] = ry;
 				river[2][riveramt] = 23;
@@ -1222,13 +1222,13 @@ void River()
 				lpcnt++;
 				bridge = GenerateRnd(riveramt);
 				if ((river[2][bridge] == 15 || river[2][bridge] == 16)
-				    && dungeon[river[0][bridge]][river[1][bridge] - 1] == 7
-				    && dungeon[river[0][bridge]][river[1][bridge] + 1] == 7) {
+				    && megaTileAt(river[0][bridge], river[1][bridge] - 1).current() == 7
+				    && megaTileAt(river[0][bridge], river[1][bridge] + 1).current() == 7) {
 					found = 1;
 				}
 				if ((river[2][bridge] == 17 || river[2][bridge] == 18)
-				    && dungeon[river[0][bridge] - 1][river[1][bridge]] == 7
-				    && dungeon[river[0][bridge] + 1][river[1][bridge]] == 7) {
+				    && megaTileAt(river[0][bridge] - 1, river[1][bridge]).current() == 7
+				    && megaTileAt(river[0][bridge] + 1, river[1][bridge]).current() == 7) {
 					found = 2;
 				}
 				for (int i = 0; i < riveramt && found != 0; i++) {
@@ -1252,7 +1252,7 @@ void River()
 				}
 				rivercnt++;
 				for (bridge = 0; bridge <= riveramt; bridge++) {
-					dungeon[river[0][bridge]][river[1][bridge]] = river[2][bridge];
+					megaTileAt(river[0][bridge], river[1][bridge]).setCurrent(river[2][bridge]);
 				}
 			} else {
 				bail = false;
@@ -1273,15 +1273,15 @@ bool SpawnEdge(int x, int y, int *totarea)
 	if (x < 0 || y < 0 || x >= DMAXX || y >= DMAXY) {
 		return true;
 	}
-	if ((dungeon[x][y] & 0x80) != 0) {
+	if ((megaTileAt(x, y).current() & 0x80) != 0) {
 		return false;
 	}
-	if (dungeon[x][y] > 15) {
+	if (megaTileAt(x, y).current() > 15) {
 		return true;
 	}
 
-	const uint8_t i = dungeon[x][y];
-	dungeon[x][y] |= 0x80;
+	const uint8_t i = megaTileAt(x, y).current();
+	megaTileAt(x, y).setCurrent(megaTileAt(x, y).current() | (0x80));
 	*totarea += 1;
 
 	if ((spawntable[i] & 8) != 0 && SpawnEdge(x, y - 1, totarea)) {
@@ -1322,15 +1322,15 @@ bool Spawn(int x, int y, int *totarea)
 	if (x < 0 || y < 0 || x >= DMAXX || y >= DMAXY) {
 		return true;
 	}
-	if ((dungeon[x][y] & 0x80) != 0) {
+	if ((megaTileAt(x, y).current() & 0x80) != 0) {
 		return false;
 	}
-	if (dungeon[x][y] > 15) {
+	if (megaTileAt(x, y).current() > 15) {
 		return true;
 	}
 
-	const uint8_t i = dungeon[x][y];
-	dungeon[x][y] |= 0x80;
+	const uint8_t i = megaTileAt(x, y).current();
+	megaTileAt(x, y).setCurrent(megaTileAt(x, y).current() | (0x80));
 	*totarea += 1;
 
 	if (i != 8) {
@@ -1374,7 +1374,7 @@ bool CanReplaceTile(uint8_t replace, Point tile)
 	constexpr auto ComparisonWithBoundsCheck = [](Point p1, Point p2) {
 		return (p1.x >= 0 && p1.x < DMAXX && p1.y >= 0 && p1.y < DMAXY)
 		    && (p2.x >= 0 && p2.x < DMAXX && p2.y >= 0 && p2.y < DMAXY)
-		    && (dungeon[p1.x][p1.y] >= 84 && dungeon[p2.x][p2.y] <= 100);
+		    && (megaTileAt(p1.x, p1.y).current() >= 84 && megaTileAt(p2.x, p2.y).current() <= 100);
 	};
 	return !(ComparisonWithBoundsCheck(tile + Direction::NorthWest, tile + Direction::NorthWest)
 	    || ComparisonWithBoundsCheck(tile + Direction::SouthEast, tile + Direction::NorthWest)
@@ -1443,10 +1443,10 @@ bool PlaceLavaPool()
 
 	for (int duny = 0; duny < DMAXY; duny++) {
 		for (int dunx = 0; dunx < DMAXY; dunx++) {
-			if (dungeon[dunx][duny] != 8) {
+			if (megaTileAt(dunx, duny).current() != 8) {
 				continue;
 			}
-			dungeon[dunx][duny] |= 0x80;
+			megaTileAt(dunx, duny).setCurrent(megaTileAt(dunx, duny).current() | (0x80));
 			int totarea = 1;
 			bool found = true;
 			if (dunx + 1 < DMAXX) {
@@ -1471,13 +1471,13 @@ bool PlaceLavaPool()
 			for (int j = std::max(duny - totarea, 0); j < std::min(duny + totarea, DMAXY); j++) {
 				for (int i = std::max(dunx - totarea, 0); i < std::min(dunx + totarea, DMAXX); i++) {
 					// BUGFIX: In the following swap the order to first do the
-					// index checks and only then access dungeon[i][j] (fixed)
-					if ((dungeon[i][j] & 0x80) != 0) {
-						dungeon[i][j] &= ~0x80;
+					// index checks and only then access the current megatile (fixed)
+					if ((megaTileAt(i, j).current() & 0x80) != 0) {
+						megaTileAt(i, j).setCurrent(megaTileAt(i, j).current() & (~0x80));
 						if (totarea > 4 && placePool && !found) {
-							const uint8_t k = Poolsub[dungeon[i][j]];
+							const uint8_t k = Poolsub[megaTileAt(i, j).current()];
 							if (k != 0 && k <= 37) {
-								dungeon[i][j] = k;
+								megaTileAt(i, j).setCurrent(k);
 							}
 							lavePoolPlaced = true;
 						}
@@ -1506,17 +1506,17 @@ void PoolFix()
 {
 	for (const Point tile : PointsInRectangle(Rectangle { { 1, 1 }, { DMAXX - 2, DMAXY - 2 } })) {
 		// Check if the tile is the default dirt ceiling tile
-		if (dungeon[tile.x][tile.y] != 8)
+		if (megaTileAt(tile.x, tile.y).current() != 8)
 			continue;
 
 		for (const Point adjacentTiles : PointsInRectangle(Rectangle { tile - Displacement(1, 1), { 3, 3 } })) {
-			const int tileId = dungeon[adjacentTiles.x][adjacentTiles.y];
+			const int tileId = megaTileAt(adjacentTiles.x, adjacentTiles.y).current();
 			// Check if the adjacent tile is a ground lava tile
 			if (tileId >= 25 && tileId <= 41) {
 				// A ground lava tile can never be directly connected to our ceiling tile.
 				// There must always be a kind of transition tile between (from ground to ceiling).
 				// That means our tile is part of a lava pool (and was missed in River()), so we should change our tile to a ground lava tile.
-				dungeon[tile.x][tile.y] = 33;
+				megaTileAt(tile.x, tile.y).setCurrent(33);
 				break;
 			}
 		}
@@ -1525,9 +1525,9 @@ void PoolFix()
 
 bool FenceVerticalUp(int i, int y)
 {
-	if ((dungeon[i + 1][y] > 152 || dungeon[i + 1][y] < 130)
-	    && (dungeon[i - 1][y] > 152 || dungeon[i - 1][y] < 130)) {
-		if (IsAnyOf(dungeon[i][y], 7, 10, 126, 129, 134, 136)) {
+	if ((megaTileAt(i + 1, y).current() > 152 || megaTileAt(i + 1, y).current() < 130)
+	    && (megaTileAt(i - 1, y).current() > 152 || megaTileAt(i - 1, y).current() < 130)) {
+		if (IsAnyOf(megaTileAt(i, y).current(), 7, 10, 126, 129, 134, 136)) {
 			return true;
 		}
 	}
@@ -1537,9 +1537,9 @@ bool FenceVerticalUp(int i, int y)
 
 bool FenceVerticalDown(int i, int y)
 {
-	if ((dungeon[i + 1][y] > 152 || dungeon[i + 1][y] < 130)
-	    && (dungeon[i - 1][y] > 152 || dungeon[i - 1][y] < 130)) {
-		if (IsAnyOf(dungeon[i][y], 2, 7, 134, 136)) {
+	if ((megaTileAt(i + 1, y).current() > 152 || megaTileAt(i + 1, y).current() < 130)
+	    && (megaTileAt(i - 1, y).current() > 152 || megaTileAt(i - 1, y).current() < 130)) {
+		if (IsAnyOf(megaTileAt(i, y).current(), 2, 7, 134, 136)) {
 			return true;
 		}
 	}
@@ -1549,9 +1549,9 @@ bool FenceVerticalDown(int i, int y)
 
 bool FenceHorizontalLeft(int x, int j)
 {
-	if ((dungeon[x][j + 1] > 152 || dungeon[x][j + 1] < 130)
-	    && (dungeon[x][j - 1] > 152 || dungeon[x][j - 1] < 130)) {
-		if (IsAnyOf(dungeon[x][j], 7, 9, 121, 124, 135, 137)) {
+	if ((megaTileAt(x, j + 1).current() > 152 || megaTileAt(x, j + 1).current() < 130)
+	    && (megaTileAt(x, j - 1).current() > 152 || megaTileAt(x, j - 1).current() < 130)) {
+		if (IsAnyOf(megaTileAt(x, j).current(), 7, 9, 121, 124, 135, 137)) {
 			return true;
 		}
 	}
@@ -1561,9 +1561,9 @@ bool FenceHorizontalLeft(int x, int j)
 
 bool FenceHorizontalRight(int x, int j)
 {
-	if ((dungeon[x][j + 1] > 152 || dungeon[x][j + 1] < 130)
-	    && (dungeon[x][j - 1] > 152 || dungeon[x][j - 1] < 130)) {
-		if (IsAnyOf(dungeon[x][j], 4, 7, 135, 137)) {
+	if ((megaTileAt(x, j + 1).current() > 152 || megaTileAt(x, j + 1).current() < 130)
+	    && (megaTileAt(x, j - 1).current() > 152 || megaTileAt(x, j - 1).current() < 130)) {
+		if (IsAnyOf(megaTileAt(x, j).current(), 4, 7, 135, 137)) {
 			return true;
 		}
 	}
@@ -1575,17 +1575,17 @@ void AddFenceDoors()
 {
 	for (int j = 0; j < DMAXY; j++) {
 		for (int i = 0; i < DMAXX; i++) {
-			if (dungeon[i][j] == 7) {
-				if (dungeon[i - 1][j] <= 152 && dungeon[i - 1][j] >= 130
-				    && dungeon[i + 1][j] <= 152 && dungeon[i + 1][j] >= 130) {
-					dungeon[i][j] = 146;
+			if (megaTileAt(i, j).current() == 7) {
+				if (megaTileAt(i - 1, j).current() <= 152 && megaTileAt(i - 1, j).current() >= 130
+				    && megaTileAt(i + 1, j).current() <= 152 && megaTileAt(i + 1, j).current() >= 130) {
+					megaTileAt(i, j).setCurrent(146);
 					continue;
 				}
 			}
-			if (dungeon[i][j] == 7) {
-				if (dungeon[i][j - 1] <= 152 && dungeon[i][j - 1] >= 130
-				    && dungeon[i][j + 1] <= 152 && dungeon[i][j + 1] >= 130) {
-					dungeon[i][j] = 147;
+			if (megaTileAt(i, j).current() == 7) {
+				if (megaTileAt(i, j - 1).current() <= 152 && megaTileAt(i, j - 1).current() >= 130
+				    && megaTileAt(i, j + 1).current() <= 152 && megaTileAt(i, j + 1).current() >= 130) {
+					megaTileAt(i, j).setCurrent(147);
 					continue;
 				}
 			}
@@ -1597,29 +1597,29 @@ void FenceDoorFix()
 {
 	for (int j = 0; j < DMAXY; j++) {
 		for (int i = 0; i < DMAXX; i++) {
-			if (dungeon[i][j] == 146) {
-				if (dungeon[i + 1][j] > 152 || dungeon[i + 1][j] < 130
-				    || dungeon[i - 1][j] > 152 || dungeon[i - 1][j] < 130) {
-					dungeon[i][j] = 7;
+			if (megaTileAt(i, j).current() == 146) {
+				if (megaTileAt(i + 1, j).current() > 152 || megaTileAt(i + 1, j).current() < 130
+				    || megaTileAt(i - 1, j).current() > 152 || megaTileAt(i - 1, j).current() < 130) {
+					megaTileAt(i, j).setCurrent(7);
 					continue;
 				}
 			}
-			if (dungeon[i][j] == 146) {
-				if (IsNoneOf(dungeon[i + 1][j], 130, 132, 133, 134, 136, 138, 140) && IsNoneOf(dungeon[i - 1][j], 130, 132, 133, 134, 136, 138, 140)) {
-					dungeon[i][j] = 7;
+			if (megaTileAt(i, j).current() == 146) {
+				if (IsNoneOf(megaTileAt(i + 1, j).current(), 130, 132, 133, 134, 136, 138, 140) && IsNoneOf(megaTileAt(i - 1, j).current(), 130, 132, 133, 134, 136, 138, 140)) {
+					megaTileAt(i, j).setCurrent(7);
 					continue;
 				}
 			}
-			if (dungeon[i][j] == 147) {
-				if (dungeon[i][j + 1] > 152 || dungeon[i][j + 1] < 130
-				    || dungeon[i][j - 1] > 152 || dungeon[i][j - 1] < 130) {
-					dungeon[i][j] = 7;
+			if (megaTileAt(i, j).current() == 147) {
+				if (megaTileAt(i, j + 1).current() > 152 || megaTileAt(i, j + 1).current() < 130
+				    || megaTileAt(i, j - 1).current() > 152 || megaTileAt(i, j - 1).current() < 130) {
+					megaTileAt(i, j).setCurrent(7);
 					continue;
 				}
 			}
-			if (dungeon[i][j] == 147) {
-				if (IsNoneOf(dungeon[i][j + 1], 131, 132, 133, 135, 137, 138, 139) && IsNoneOf(dungeon[i][j - 1], 131, 132, 133, 135, 137, 138, 139)) {
-					dungeon[i][j] = 7;
+			if (megaTileAt(i, j).current() == 147) {
+				if (IsNoneOf(megaTileAt(i, j + 1).current(), 131, 132, 133, 135, 137, 138, 139) && IsNoneOf(megaTileAt(i, j - 1).current(), 131, 132, 133, 135, 137, 138, 139)) {
+					megaTileAt(i, j).setCurrent(7);
 					continue;
 				}
 			}
@@ -1631,54 +1631,54 @@ void Fence()
 {
 	for (int j = 1; j < DMAXY - 1; j++) {     // BUGFIX: Change '0' to '1' (fixed)
 		for (int i = 1; i < DMAXX - 1; i++) { // BUGFIX: Change '0' to '1' (fixed)
-			if (dungeon[i][j] == 10 && !FlipCoin()) {
+			if (megaTileAt(i, j).current() == 10 && !FlipCoin()) {
 				int x = i;
-				while (dungeon[x][j] == 10) {
+				while (megaTileAt(x, j).current() == 10) {
 					x++;
 				}
 				x--;
 				if (x - i > 0) {
-					dungeon[i][j] = 127;
+					megaTileAt(i, j).setCurrent(127);
 					for (int xx = i + 1; xx < x; xx++) {
-						dungeon[xx][j] = PickRandomlyAmong({ 129, 126 });
+						megaTileAt(xx, j).setCurrent(PickRandomlyAmong({ 129, 126 }));
 					}
-					dungeon[x][j] = 128;
+					megaTileAt(x, j).setCurrent(128);
 				}
 			}
-			if (dungeon[i][j] == 9 && !FlipCoin()) {
+			if (megaTileAt(i, j).current() == 9 && !FlipCoin()) {
 				int y = j;
-				while (dungeon[i][y] == 9) {
+				while (megaTileAt(i, y).current() == 9) {
 					y++;
 				}
 				y--;
 				if (y - j > 0) {
-					dungeon[i][j] = 123;
+					megaTileAt(i, j).setCurrent(123);
 					for (int yy = j + 1; yy < y; yy++) {
-						dungeon[i][yy] = PickRandomlyAmong({ 124, 121 });
+						megaTileAt(i, yy).setCurrent(PickRandomlyAmong({ 124, 121 }));
 					}
-					dungeon[i][y] = 122;
+					megaTileAt(i, y).setCurrent(122);
 				}
 			}
-			if (dungeon[i][j] == 11 && dungeon[i + 1][j] == 10 && dungeon[i][j + 1] == 9 && !FlipCoin()) {
-				dungeon[i][j] = 125;
+			if (megaTileAt(i, j).current() == 11 && megaTileAt(i + 1, j).current() == 10 && megaTileAt(i, j + 1).current() == 9 && !FlipCoin()) {
+				megaTileAt(i, j).setCurrent(125);
 				int x = i + 1;
-				while (dungeon[x][j] == 10) {
+				while (megaTileAt(x, j).current() == 10) {
 					x++;
 				}
 				x--;
 				for (int xx = i + 1; xx < x; xx++) {
-					dungeon[xx][j] = PickRandomlyAmong({ 129, 126 });
+					megaTileAt(xx, j).setCurrent(PickRandomlyAmong({ 129, 126 }));
 				}
-				dungeon[x][j] = 128;
+				megaTileAt(x, j).setCurrent(128);
 				int y = j + 1;
-				while (dungeon[i][y] == 9) {
+				while (megaTileAt(i, y).current() == 9) {
 					y++;
 				}
 				y--;
 				for (int yy = j + 1; yy < y; yy++) {
-					dungeon[i][yy] = PickRandomlyAmong({ 124, 121 });
+					megaTileAt(i, yy).setCurrent(PickRandomlyAmong({ 124, 121 }));
 				}
-				dungeon[i][y] = 122;
+				megaTileAt(i, y).setCurrent(122);
 			}
 		}
 	}
@@ -1686,7 +1686,7 @@ void Fence()
 	for (WorldTileCoord j = 1; j < DMAXY; j++) {     // BUGFIX: Change '0' to '1' (fixed)
 		for (WorldTileCoord i = 1; i < DMAXX; i++) { // BUGFIX: Change '0' to '1' (fixed)
 			// note the comma operator is used here to advance the RNG state
-			if (dungeon[i][j] == 7 && (DiscardRandomValues(1), !IsNearThemeRoom({ i, j }))) {
+			if (megaTileAt(i, j).current() == 7 && (DiscardRandomValues(1), !IsNearThemeRoom({ i, j }))) {
 				if (FlipCoin()) {
 					int y1 = j;
 					// BUGFIX: Check `y1 >= 0` first (fixed)
@@ -1701,10 +1701,10 @@ void Fence()
 					}
 					y2--;
 					bool skip = true;
-					if (dungeon[i][y1] == 7) {
+					if (megaTileAt(i, y1).current() == 7) {
 						skip = false;
 					}
-					if (dungeon[i][y2] == 7) {
+					if (megaTileAt(i, y2).current() == 7) {
 						skip = false;
 					}
 					if (y2 - y1 > 1 && skip) {
@@ -1713,26 +1713,26 @@ void Fence()
 							if (y == rp) {
 								continue;
 							}
-							if (dungeon[i][y] == 7) {
-								dungeon[i][y] = PickRandomlyAmong({ 137, 135 });
+							if (megaTileAt(i, y).current() == 7) {
+								megaTileAt(i, y).setCurrent(PickRandomlyAmong({ 137, 135 }));
 							}
-							if (dungeon[i][y] == 10) {
-								dungeon[i][y] = 131;
+							if (megaTileAt(i, y).current() == 10) {
+								megaTileAt(i, y).setCurrent(131);
 							}
-							if (dungeon[i][y] == 126) {
-								dungeon[i][y] = 133;
+							if (megaTileAt(i, y).current() == 126) {
+								megaTileAt(i, y).setCurrent(133);
 							}
-							if (dungeon[i][y] == 129) {
-								dungeon[i][y] = 133;
+							if (megaTileAt(i, y).current() == 129) {
+								megaTileAt(i, y).setCurrent(133);
 							}
-							if (dungeon[i][y] == 2) {
-								dungeon[i][y] = 139;
+							if (megaTileAt(i, y).current() == 2) {
+								megaTileAt(i, y).setCurrent(139);
 							}
-							if (dungeon[i][y] == 134) {
-								dungeon[i][y] = 138;
+							if (megaTileAt(i, y).current() == 134) {
+								megaTileAt(i, y).setCurrent(138);
 							}
-							if (dungeon[i][y] == 136) {
-								dungeon[i][y] = 138;
+							if (megaTileAt(i, y).current() == 136) {
+								megaTileAt(i, y).setCurrent(138);
 							}
 						}
 					}
@@ -1750,10 +1750,10 @@ void Fence()
 					}
 					x2--;
 					bool skip = true;
-					if (dungeon[x1][j] == 7) {
+					if (megaTileAt(x1, j).current() == 7) {
 						skip = false;
 					}
-					if (dungeon[x2][j] == 7) {
+					if (megaTileAt(x2, j).current() == 7) {
 						skip = false;
 					}
 					if (x2 - x1 > 1 && skip) {
@@ -1762,26 +1762,26 @@ void Fence()
 							if (x == rp) {
 								continue;
 							}
-							if (dungeon[x][j] == 7) {
-								dungeon[x][j] = PickRandomlyAmong({ 136, 134 });
+							if (megaTileAt(x, j).current() == 7) {
+								megaTileAt(x, j).setCurrent(PickRandomlyAmong({ 136, 134 }));
 							}
-							if (dungeon[x][j] == 9) {
-								dungeon[x][j] = 130;
+							if (megaTileAt(x, j).current() == 9) {
+								megaTileAt(x, j).setCurrent(130);
 							}
-							if (dungeon[x][j] == 121) {
-								dungeon[x][j] = 132;
+							if (megaTileAt(x, j).current() == 121) {
+								megaTileAt(x, j).setCurrent(132);
 							}
-							if (dungeon[x][j] == 124) {
-								dungeon[x][j] = 132;
+							if (megaTileAt(x, j).current() == 124) {
+								megaTileAt(x, j).setCurrent(132);
 							}
-							if (dungeon[x][j] == 4) {
-								dungeon[x][j] = 140;
+							if (megaTileAt(x, j).current() == 4) {
+								megaTileAt(x, j).setCurrent(140);
 							}
-							if (dungeon[x][j] == 135) {
-								dungeon[x][j] = 138;
+							if (megaTileAt(x, j).current() == 135) {
+								megaTileAt(x, j).setCurrent(138);
 							}
-							if (dungeon[x][j] == 137) {
-								dungeon[x][j] = 138;
+							if (megaTileAt(x, j).current() == 137) {
+								megaTileAt(x, j).setCurrent(138);
 							}
 						}
 					}
@@ -1816,7 +1816,7 @@ bool PlaceAnvil()
 
 		bool found = true;
 		for (const WorldTilePosition tile : PointsInRectangle(WorldTileRectangle { { sx, sy }, areaSize })) {
-			if (Protected.test(tile.x, tile.y) || dungeon[tile.x][tile.y] != 7) {
+			if (Protected.test(tile.x, tile.y) || megaTileAt(tile.x, tile.y).current() != 7) {
 				found = false;
 				break;
 			}
@@ -1833,9 +1833,9 @@ bool PlaceAnvil()
 	}
 
 	// Hack to avoid rivers entering the island, reversed later
-	dungeon[SetPiece.position.x + 7][SetPiece.position.y + 5] = 2;
-	dungeon[SetPiece.position.x + 8][SetPiece.position.y + 5] = 2;
-	dungeon[SetPiece.position.x + 9][SetPiece.position.y + 5] = 2;
+	megaTileAt(SetPiece.position.x + 7, SetPiece.position.y + 5).setCurrent(2);
+	megaTileAt(SetPiece.position.x + 8, SetPiece.position.y + 5).setCurrent(2);
+	megaTileAt(SetPiece.position.x + 9, SetPiece.position.y + 5).setCurrent(2);
 
 	return true;
 }
@@ -1844,15 +1844,15 @@ void Warp()
 {
 	for (int j = 0; j < DMAXY; j++) {
 		for (int i = 0; i < DMAXX; i++) {
-			if (dungeon[i][j] == 125 && dungeon[i + 1][j] == 125 && dungeon[i][j + 1] == 125 && dungeon[i + 1][j + 1] == 125) {
-				dungeon[i][j] = 156;
-				dungeon[i + 1][j] = 155;
-				dungeon[i][j + 1] = 153;
-				dungeon[i + 1][j + 1] = 154;
+			if (megaTileAt(i, j).current() == 125 && megaTileAt(i + 1, j).current() == 125 && megaTileAt(i, j + 1).current() == 125 && megaTileAt(i + 1, j + 1).current() == 125) {
+				megaTileAt(i, j).setCurrent(156);
+				megaTileAt(i + 1, j).setCurrent(155);
+				megaTileAt(i, j + 1).setCurrent(153);
+				megaTileAt(i + 1, j + 1).setCurrent(154);
 				return;
 			}
-			if (dungeon[i][j] == 5 && dungeon[i + 1][j + 1] == 7) {
-				dungeon[i][j] = 7;
+			if (megaTileAt(i, j).current() == 5 && megaTileAt(i + 1, j + 1).current() == 7) {
+				megaTileAt(i, j).setCurrent(7);
 			}
 		}
 	}
@@ -1862,22 +1862,22 @@ void HallOfHeroes()
 {
 	for (int j = 0; j < DMAXY; j++) {
 		for (int i = 0; i < DMAXX; i++) {
-			if (dungeon[i][j] == 5 && dungeon[i + 1][j + 1] == 7) {
-				dungeon[i][j] = 7;
+			if (megaTileAt(i, j).current() == 5 && megaTileAt(i + 1, j + 1).current() == 7) {
+				megaTileAt(i, j).setCurrent(7);
 			}
 		}
 	}
 	for (int j = 0; j < DMAXY; j++) {
 		for (int i = 0; i < DMAXX; i++) {
-			if (dungeon[i][j] == 5 && dungeon[i + 1][j + 1] == 12 && dungeon[i + 1][j] == 7) {
-				dungeon[i][j] = 7;
-				dungeon[i][j + 1] = 7;
-				dungeon[i + 1][j + 1] = 7;
+			if (megaTileAt(i, j).current() == 5 && megaTileAt(i + 1, j + 1).current() == 12 && megaTileAt(i + 1, j).current() == 7) {
+				megaTileAt(i, j).setCurrent(7);
+				megaTileAt(i, j + 1).setCurrent(7);
+				megaTileAt(i + 1, j + 1).setCurrent(7);
 			}
-			if (dungeon[i][j] == 5 && dungeon[i + 1][j + 1] == 12 && dungeon[i][j + 1] == 7) {
-				dungeon[i][j] = 7;
-				dungeon[i + 1][j] = 7;
-				dungeon[i + 1][j + 1] = 7;
+			if (megaTileAt(i, j).current() == 5 && megaTileAt(i + 1, j + 1).current() == 12 && megaTileAt(i, j + 1).current() == 7) {
+				megaTileAt(i, j).setCurrent(7);
+				megaTileAt(i + 1, j).setCurrent(7);
+				megaTileAt(i + 1, j + 1).setCurrent(7);
 			}
 		}
 	}
@@ -1907,7 +1907,7 @@ bool Lockout()
 	int t = 0;
 	for (int j = 0; j < DMAXY; j++) {
 		for (int i = 0; i < DMAXX; i++) {
-			if (dungeon[i][j] != 0) {
+			if (megaTileAt(i, j).current() != 0) {
 				DungeonMask.set(i, j);
 				fx = i;
 				fy = j;
@@ -2096,11 +2096,11 @@ void GenerateLevel(lvl_entry entry)
 		River();
 
 		if (Quests[Q_ANVIL].IsAvailable()) {
-			dungeon[SetPiece.position.x + 7][SetPiece.position.y + 5] = 7;
-			dungeon[SetPiece.position.x + 8][SetPiece.position.y + 5] = 7;
-			dungeon[SetPiece.position.x + 9][SetPiece.position.y + 5] = 7;
-			if (dungeon[SetPiece.position.x + 10][SetPiece.position.y + 5] == 17 || dungeon[SetPiece.position.x + 10][SetPiece.position.y + 5] == 18) {
-				dungeon[SetPiece.position.x + 10][SetPiece.position.y + 5] = 45;
+			megaTileAt(SetPiece.position.x + 7, SetPiece.position.y + 5).setCurrent(7);
+			megaTileAt(SetPiece.position.x + 8, SetPiece.position.y + 5).setCurrent(7);
+			megaTileAt(SetPiece.position.x + 9, SetPiece.position.y + 5).setCurrent(7);
+			if (megaTileAt(SetPiece.position.x + 10, SetPiece.position.y + 5).current() == 17 || megaTileAt(SetPiece.position.x + 10, SetPiece.position.y + 5).current() == 18) {
+				megaTileAt(SetPiece.position.x + 10, SetPiece.position.y + 5).setCurrent(45);
 			}
 		}
 
@@ -2135,7 +2135,7 @@ void GenerateLevel(lvl_entry entry)
 		PlaceMiniSetRandom1x1(10, 110, 25);
 	}
 
-	memcpy(pdungeon, dungeon, sizeof(pdungeon));
+	SnapshotReplacementMegaTiles();
 }
 
 void Pass3()
@@ -2195,12 +2195,12 @@ void CreateL3Dungeon(uint32_t rseed, lvl_entry entry)
 
 void LoadPreL3Dungeon(const char *path)
 {
-	memset(dungeon, 8, sizeof(dungeon));
+	FillCurrentMegaTiles(8);
 
 	auto dunData = LoadFileInMem<uint16_t>(path);
 	PlaceDunTiles(dunData.get(), { 0, 0 }, 7);
 
-	memcpy(pdungeon, dungeon, sizeof(pdungeon));
+	SnapshotReplacementMegaTiles();
 }
 
 void LoadL3Dungeon(const char *path, Point spawn)

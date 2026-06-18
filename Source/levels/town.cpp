@@ -86,8 +86,8 @@ void FillTile(int xx, int yy, int t)
  */
 void TownCloseHive()
 {
-	dungeon[35][27] = 18;
-	dungeon[36][27] = 63;
+	megaTileAt(35, 27).setCurrent(18);
+	megaTileAt(36, 27).setCurrent(63);
 
 	SetTownPieces({
 	    { { 78, 60 }, 0x489 }, { { 79, 60 }, 0x4ea },
@@ -193,19 +193,19 @@ void DrlgTPass3()
 	PlaceDunTiles(dunData.get(), { 0, 0 });
 
 	if (!IsWarpOpen(DTYPE_CATACOMBS)) {
-		dungeon[20][7] = 10;
-		dungeon[20][6] = 8;
+		megaTileAt(20, 7).setCurrent(10);
+		megaTileAt(20, 6).setCurrent(8);
 		FillTile(48, 20, 320);
 	}
 	if (!IsWarpOpen(DTYPE_CAVES)) {
-		dungeon[4][30] = 8;
+		megaTileAt(4, 30).setCurrent(8);
 		FillTile(16, 68, 332);
 		FillTile(16, 70, 331);
 	}
 	if (!IsWarpOpen(DTYPE_HELL)) {
-		dungeon[15][35] = 7;
-		dungeon[16][35] = 7;
-		dungeon[17][35] = 7;
+		megaTileAt(15, 35).setCurrent(7);
+		megaTileAt(16, 35).setCurrent(7);
+		megaTileAt(17, 35).setCurrent(7);
 		for (int x = 36; x < 46; x++) {
 			FillTile(x, 78, PickRandomlyAmong({ 1, 2, 3, 4 }));
 		}
@@ -267,7 +267,7 @@ void OpenGrave()
 
 void TownOpenHive()
 {
-	dungeon[36][27] = 47;
+	megaTileAt(36, 27).setCurrent(47);
 
 	SetTownPieces({
 	    { { 78, 60 }, 0x489 }, { { 79, 60 }, 0x48a },
@@ -298,8 +298,8 @@ void TownOpenHive()
 
 void TownOpenGrave()
 {
-	dungeon[14][8] = 47;
-	dungeon[14][7] = 47;
+	megaTileAt(14, 8).setCurrent(47);
+	megaTileAt(14, 7).setCurrent(47);
 
 	SetTownPieces({
 	    { { 36, 21 }, 0x532 }, { { 37, 21 }, 0x533 },

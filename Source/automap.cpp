@@ -919,7 +919,7 @@ bool HasAutomapFlag(Point position, AutomapTile::Flags type)
 		return false;
 	}
 
-	return AutomapTypeTiles[dungeon[position.x][position.y]].hasFlag(type);
+	return AutomapTypeTiles[megaTileAt(position.x, position.y).current()].hasFlag(type);
 }
 
 /**
@@ -931,7 +931,7 @@ AutomapTile GetAutomapTileType(Point position)
 		return {};
 	}
 
-	AutomapTile tile = AutomapTypeTiles[dungeon[position.x][position.y]];
+	AutomapTile tile = AutomapTypeTiles[megaTileAt(position.x, position.y).current()];
 	if (tile.type == AutomapTile::Types::Corner) {
 		if (HasAutomapFlag({ position.x - 1, position.y }, AutomapTile::Flags::HorizontalArch)) {
 			if (HasAutomapFlag({ position.x, position.y - 1 }, AutomapTile::Flags::VerticalArch)) {

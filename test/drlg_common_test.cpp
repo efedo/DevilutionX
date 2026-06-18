@@ -74,35 +74,35 @@ TEST(DrlgTest, RectangleRangeIterator)
 
 TEST(DrlgTest, ThemeRoomSize)
 {
-	memset(dungeon, 0, sizeof(dungeon));
+	FillCurrentMegaTiles(0);
 
 	EXPECT_EQ(GetSizeForThemeRoom(), WorldTileSize(8, 8)) << "All floor theme area should be 8x8";
 
-	dungeon[9][9] = 1;
+	megaTileAt(9, 9).setCurrent(1);
 	EXPECT_EQ(GetSizeForThemeRoom(), WorldTileSize(7, 7)) << "Corners shrink the chosen dimensions";
-	dungeon[9][5] = 1;
+	megaTileAt(9, 5).setCurrent(1);
 	EXPECT_EQ(GetSizeForThemeRoom(), WorldTileSize(7, 3)) << "Minimum dimensions are determined by corners outside the min area";
-	dungeon[9][4] = 1;
+	megaTileAt(9, 4).setCurrent(1);
 	EXPECT_EQ(GetSizeForThemeRoom(), WorldTileSize(7, 8)) << "Walls below the min size let larger opposing dimensions get picked";
-	dungeon[9][5] = 0;
-	dungeon[9][4] = 0;
-	dungeon[9][9] = 0;
+	megaTileAt(9, 5).setCurrent(0);
+	megaTileAt(9, 4).setCurrent(0);
+	megaTileAt(9, 9).setCurrent(0);
 
 	// Time for some unusual cases
-	dungeon[7][2] = 1;
-	dungeon[5][9] = 1;
+	megaTileAt(7, 2).setCurrent(1);
+	megaTileAt(5, 9).setCurrent(1);
 	EXPECT_EQ(GetSizeForThemeRoom(), WorldTileSize(5, 7)) << "Search space terminates at width 8 due to the wall being in the first three rows";
 
-	dungeon[6][4] = 1;
+	megaTileAt(6, 4).setCurrent(1);
 	EXPECT_EQ(GetSizeForThemeRoom(), WorldTileSize(4, 7)) << "Smallest width now defined by row 5, height still extends due to minSize";
-	dungeon[6][4] = 0;
+	megaTileAt(6, 4).setCurrent(0);
 
-	dungeon[5][9] = 0;
-	dungeon[7][2] = 0;
+	megaTileAt(5, 9).setCurrent(0);
+	megaTileAt(7, 2).setCurrent(0);
 
-	dungeon[7][0] = 1;
-	dungeon[6][6] = 1;
-	dungeon[8][5] = 1;
+	megaTileAt(7, 0).setCurrent(1);
+	megaTileAt(6, 6).setCurrent(1);
+	megaTileAt(8, 5).setCurrent(1);
 	EXPECT_EQ(GetSizeForThemeRoom(), WorldTileSize(4, 4)) << "Search is terminated by the 0 width row 7, inset corner gives a larger height than otherwise expected";
 }
 

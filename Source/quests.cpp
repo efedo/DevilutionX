@@ -132,7 +132,7 @@ void DrawLTBanner(Point position)
 		for (WorldTileCoord i = 0; i < size.width; i++) {
 			auto tileId = static_cast<uint8_t>(Swap16LE(tileLayer[(j * size.width) + i]));
 			if (tileId != 0) {
-				pdungeon[position.x + i][position.y + j] = tileId;
+				megaTileAt(position.x + i, position.y + j).setReplacement(tileId);
 			}
 		}
 	}
@@ -143,8 +143,8 @@ void DrawLTBanner(Point position)
  */
 void DrawBlind(Point position)
 {
-	dungeon[position.x][position.y + 1] = 154;
-	dungeon[position.x + 10][position.y + 8] = 154;
+	megaTileAt(position.x, position.y + 1).setCurrent(154);
+	megaTileAt(position.x + 10, position.y + 8).setCurrent(154);
 }
 
 void DrawBlood(Point position)

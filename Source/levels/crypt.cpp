@@ -489,16 +489,16 @@ void ApplyCryptShadowsPatterns()
 {
 	for (int j = 1; j < DMAXY; j++) {
 		for (int i = 1; i < DMAXX; i++) {
-			switch (dungeon[i][j]) {
+			switch (megaTileAt(i, j).current()) {
 			case DArch:
 			case DArch2:
 			case DArch3:
-				if (dungeon[i - 1][j] == Floor)
-					dungeon[i - 1][j] = Shadow1;
-				if (dungeon[i - 1][j - 1] == Floor)
-					dungeon[i - 1][j - 1] = Shadow2;
-				if (dungeon[i][j - 1] == Floor)
-					dungeon[i][j - 1] = Shadow3;
+				if (megaTileAt(i - 1, j).current() == Floor)
+					megaTileAt(i - 1, j).setCurrent(Shadow1);
+				if (megaTileAt(i - 1, j - 1).current() == Floor)
+					megaTileAt(i - 1, j - 1).setCurrent(Shadow2);
+				if (megaTileAt(i, j - 1).current() == Floor)
+					megaTileAt(i, j - 1).setCurrent(Shadow3);
 				break;
 			case HWallEnd:
 			case HWallEnd2:
@@ -509,10 +509,10 @@ void ApplyCryptShadowsPatterns()
 			case Pillar3:
 			case Pillar5:
 			case Pillar9:
-				if (dungeon[i - 1][j] == Floor)
-					dungeon[i - 1][j] = Shadow4;
-				if (dungeon[i - 1][j - 1] == Floor)
-					dungeon[i - 1][j - 1] = Shadow5;
+				if (megaTileAt(i - 1, j).current() == Floor)
+					megaTileAt(i - 1, j).setCurrent(Shadow4);
+				if (megaTileAt(i - 1, j - 1).current() == Floor)
+					megaTileAt(i - 1, j - 1).setCurrent(Shadow5);
 				break;
 			case HArchEnd:
 			case HArchEnd2:
@@ -527,20 +527,20 @@ void ApplyCryptShadowsPatterns()
 			case VArch5:
 			case VArch6:
 			case VArch7:
-				if (dungeon[i - 1][j] == Floor)
-					dungeon[i - 1][j] = Shadow1;
-				if (dungeon[i - 1][j - 1] == Floor)
-					dungeon[i - 1][j - 1] = Shadow2;
+				if (megaTileAt(i - 1, j).current() == Floor)
+					megaTileAt(i - 1, j).setCurrent(Shadow1);
+				if (megaTileAt(i - 1, j - 1).current() == Floor)
+					megaTileAt(i - 1, j - 1).setCurrent(Shadow2);
 				break;
 			case VArchEnd:
 			case VArchEnd2:
 			case VArchEnd4:
-				if (dungeon[i - 1][j] == Floor)
-					dungeon[i - 1][j] = Shadow4;
-				if (dungeon[i - 1][j - 1] == Floor)
-					dungeon[i - 1][j - 1] = Shadow5;
-				if (dungeon[i][j - 1] == Floor)
-					dungeon[i][j - 1] = Shadow3;
+				if (megaTileAt(i - 1, j).current() == Floor)
+					megaTileAt(i - 1, j).setCurrent(Shadow4);
+				if (megaTileAt(i - 1, j - 1).current() == Floor)
+					megaTileAt(i - 1, j - 1).setCurrent(Shadow5);
+				if (megaTileAt(i, j - 1).current() == Floor)
+					megaTileAt(i, j - 1).setCurrent(Shadow3);
 				break;
 			case HArch:
 			case HArch2:
@@ -548,61 +548,61 @@ void ApplyCryptShadowsPatterns()
 			case HArchVWall2:
 			case HArchVWall3:
 			case HArchVWall4:
-				if (dungeon[i][j - 1] == Floor)
-					dungeon[i][j - 1] = Shadow3;
+				if (megaTileAt(i, j - 1).current() == Floor)
+					megaTileAt(i, j - 1).setCurrent(Shadow3);
 				break;
 			case HArch5:
 			case HArch6:
-				if (dungeon[i][j - 1] == Floor)
-					dungeon[i][j - 1] = Shadow6;
+				if (megaTileAt(i, j - 1).current() == Floor)
+					megaTileAt(i, j - 1).setCurrent(Shadow6);
 				break;
 			case VArch2:
-				if (dungeon[i - 1][j] == Floor)
-					dungeon[i - 1][j] = Shadow9;
-				if (dungeon[i - 1][j - 1] == Floor)
-					dungeon[i - 1][j - 1] = Shadow10;
+				if (megaTileAt(i - 1, j).current() == Floor)
+					megaTileAt(i - 1, j).setCurrent(Shadow9);
+				if (megaTileAt(i - 1, j - 1).current() == Floor)
+					megaTileAt(i - 1, j - 1).setCurrent(Shadow10);
 				break;
 			case VArchEnd3:
-				if (dungeon[i - 1][j] == Floor)
-					dungeon[i - 1][j] = Shadow11;
-				if (dungeon[i - 1][j - 1] == Floor)
-					dungeon[i - 1][j - 1] = Shadow12;
-				if (dungeon[i][j - 1] == Floor)
-					dungeon[i][j - 1] = Shadow3;
+				if (megaTileAt(i - 1, j).current() == Floor)
+					megaTileAt(i - 1, j).setCurrent(Shadow11);
+				if (megaTileAt(i - 1, j - 1).current() == Floor)
+					megaTileAt(i - 1, j - 1).setCurrent(Shadow12);
+				if (megaTileAt(i, j - 1).current() == Floor)
+					megaTileAt(i, j - 1).setCurrent(Shadow3);
 				break;
 			case VArch3:
-				if (dungeon[i - 1][j] == Floor)
-					dungeon[i - 1][j] = Shadow13;
-				if (dungeon[i - 1][j - 1] == Floor)
-					dungeon[i - 1][j - 1] = Shadow14;
+				if (megaTileAt(i - 1, j).current() == Floor)
+					megaTileAt(i - 1, j).setCurrent(Shadow13);
+				if (megaTileAt(i - 1, j - 1).current() == Floor)
+					megaTileAt(i - 1, j - 1).setCurrent(Shadow14);
 				break;
 			case HArch3:
 			case HArch4:
-				if (dungeon[i][j - 1] == Floor)
-					dungeon[i][j - 1] = Shadow15;
+				if (megaTileAt(i, j - 1).current() == Floor)
+					megaTileAt(i, j - 1).setCurrent(Shadow15);
 				break;
 			case Pillar6:
 			case Pillar8:
-				if (dungeon[i - 1][j] == Floor)
-					dungeon[i - 1][j] = Shadow11;
-				if (dungeon[i - 1][j - 1] == Floor)
-					dungeon[i - 1][j - 1] = Shadow12;
+				if (megaTileAt(i - 1, j).current() == Floor)
+					megaTileAt(i - 1, j).setCurrent(Shadow11);
+				if (megaTileAt(i - 1, j - 1).current() == Floor)
+					megaTileAt(i - 1, j - 1).setCurrent(Shadow12);
 				break;
 			case DArch4:
-				if (dungeon[i - 1][j] == Floor)
-					dungeon[i - 1][j] = Shadow1;
-				if (dungeon[i - 1][j - 1] == Floor)
-					dungeon[i - 1][j - 1] = Shadow2;
-				if (dungeon[i][j - 1] == Floor)
-					dungeon[i][j - 1] = Shadow15;
+				if (megaTileAt(i - 1, j).current() == Floor)
+					megaTileAt(i - 1, j).setCurrent(Shadow1);
+				if (megaTileAt(i - 1, j - 1).current() == Floor)
+					megaTileAt(i - 1, j - 1).setCurrent(Shadow2);
+				if (megaTileAt(i, j - 1).current() == Floor)
+					megaTileAt(i, j - 1).setCurrent(Shadow15);
 				break;
 			case Pillar11:
 			case Pillar12:
 			case PillarHalf:
-				if (dungeon[i - 1][j] == Floor)
-					dungeon[i - 1][j] = Shadow7;
-				if (dungeon[i - 1][j - 1] == Floor)
-					dungeon[i - 1][j - 1] = Shadow8;
+				if (megaTileAt(i - 1, j).current() == Floor)
+					megaTileAt(i - 1, j).setCurrent(Shadow7);
+				if (megaTileAt(i - 1, j - 1).current() == Floor)
+					megaTileAt(i - 1, j - 1).setCurrent(Shadow8);
 				break;
 			}
 		}
@@ -709,16 +709,16 @@ void FixCryptDirtTiles()
 {
 	for (int j = 0; j < DMAXY - 1; j++) {
 		for (int i = 0; i < DMAXX - 1; i++) {
-			if (dungeon[i][j] == DirtVwall)
-				dungeon[i][j] = DirtVWall2;
-			if (dungeon[i][j] == DirtCorner)
-				dungeon[i][j] = DirtCorner2;
-			if (dungeon[i][j] == DirtHWallEnd)
-				dungeon[i][j] = DirtHWallEnd2;
-			if (dungeon[i][j] == DirtVWallEnd)
-				dungeon[i][j] = DirtVWallEnd2;
-			if (dungeon[i][j] == DirtHwall)
-				dungeon[i][j] = DirtHWall2;
+			if (megaTileAt(i, j).current() == DirtVwall)
+				megaTileAt(i, j).setCurrent(DirtVWall2);
+			if (megaTileAt(i, j).current() == DirtCorner)
+				megaTileAt(i, j).setCurrent(DirtCorner2);
+			if (megaTileAt(i, j).current() == DirtHWallEnd)
+				megaTileAt(i, j).setCurrent(DirtHWallEnd2);
+			if (megaTileAt(i, j).current() == DirtVWallEnd)
+				megaTileAt(i, j).setCurrent(DirtVWallEnd2);
+			if (megaTileAt(i, j).current() == DirtHwall)
+				megaTileAt(i, j).setCurrent(DirtHWall2);
 		}
 	}
 }

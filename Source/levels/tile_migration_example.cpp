@@ -215,7 +215,7 @@ void ClearRegion_Old(Point start, int width, int height) {
 			if (pos.x >= 0 && pos.x < MAXDUNX && pos.y >= 0 && pos.y < MAXDUNY) {
 				// Clear all tile data (11 assignments!)
 				tileAt(pos).setPiece(0);
-				dTransVal[pos.x][pos.y] = 0;
+				tileAt(pos).setTransVal(0);
 				dLight[pos.x][pos.y] = 0;
 				dPreLight[pos.x][pos.y] = 0;
 				dFlags[pos.x][pos.y] = DungeonFlag::None;
@@ -261,7 +261,7 @@ void SetupTile_Old(Point pos, uint16_t piece, uint8_t light) {
 	dObject[pos.x][pos.y] = 0;
 	dSpecial[pos.x][pos.y] = 0;
 	dItem[pos.x][pos.y] = 0;
-	dTransVal[pos.x][pos.y] = 0;
+	tileAt(pos).setTransVal(0);
 }
 
 // NEW: 5 lines to set up a tile

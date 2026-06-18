@@ -2,12 +2,11 @@
  * @file levels/level.hpp
  *
  * The Level class owns all data for a single dungeon level: its identity,
- * tile/dungeon-generation grids, entity occupation maps, lighting tables,
+ * fine world tiles, coarse dungeon megatiles, entity occupation maps, lighting tables,
  * theme rooms and per-level monster catalogue (Bestiary).
  *
- * Data members use a trailing underscore to distinguish them from the
- * macro aliases in gendung.h.  Each macro expands to currentLevel().member_
- * so all existing call sites compile and behave correctly without any change.
+ * Data members use a trailing underscore. Legacy state still being migrated
+ * may have macro aliases in gendung.h; migrated state uses named accessors.
  */
 #pragma once
 
@@ -32,34 +31,47 @@ namespace devilution {
 // LevelIndex / LevelId
 // ---------------------------------------------------------------------------
 
-/** Key for storing a Level inside World. Regular levels 0-24 map directly to their number. */
-using LevelIndex = int8_t;
+using LevelIndex = int8_t; // Key for storing a Level inside World. Regular levels 0-24 map directly to their number.
 
-/** Sentinel: "no level / not loaded". */
-constexpr LevelIndex LevelIndexNone = -1;
+constexpr LevelIndex LevelIndexNone = -1; // Sentinel: "no level / not loaded".
 
-/** Immutable identity of a dungeon level. */
+// Immutable identity of a dungeon level.
 struct LevelId {
-	uint8_t      levelNum   = 0;
-	dungeon_type type       = DTYPE_TOWN;
-	bool         isSetLevel = false;
-	_setlevels   setLevelId = SL_NONE;
+	uint8_t      levelNum   = 0;          // Number of the regular dungeon level.
+	dungeon_type type       = DTYPE_TOWN; // Dungeon environment used by the level.
+	bool         isSetLevel = false;      // Whether this identifies a quest set level.
+	_setlevels   setLevelId = SL_NONE;    // Quest set-level identifier.
 
 	bool operator==(const LevelId &) const = default;
 };
+
+// Coarse dungeon-map cell containing active and event replacement IDs.
+// One megatile expands to a 2x2 area in the fine-grained world tile grid.
+class DungeonMegaTile {
+public:
+	[[nodiscard]] uint8_t current() const;
+	void setCurrent(uint8_t value);
+
+	[[nodiscard]] uint8_t replacement() const;
+	void setReplacement(uint8_t value);
+
+	void snapshotReplacement();
+	void applyReplacement();
+
+private:
+	uint8_t current_ = 0;     // Active megatile ID.
+	uint8_t replacement_ = 0; // Megatile ID applied by scripted map changes.
+};
+
+static_assert(sizeof(DungeonMegaTile) == 2);
 
 // ---------------------------------------------------------------------------
 // Level
 // ---------------------------------------------------------------------------
 
-/**
- * @brief All data that belongs to a single dungeon level.
- *
- * Every field previously a standalone global in gendung.cpp lives here.
- * Member names carry a trailing underscore; gendung.h provides macro aliases
- * with the original names that expand to currentLevel().member_ so no
- * existing call site needs to change.
- */
+// All data that belongs to a single dungeon level.
+// Every field previously a standalone global in gendung.cpp lives here; remaining legacy state may still
+// have transitional aliases in gendung.h.
 class Level {
 public:
 	Level(const Level &) = delete;
@@ -77,118 +89,83 @@ public:
 	[[nodiscard]] bool           isSetLevel() const { return id_.isSetLevel; }
 	[[nodiscard]] _setlevels     setLevelId() const { return id_.setLevelId; }
 
-	/** @brief Updates the level identity without recreating the level data. */
+	// brief Updates the level identity without recreating the level data.
 	void setId(const LevelId &newId) { id_ = newId; }
 
 	// -------------------------------------------------------------------------
 	// Tile access (NEW - Phase 2 migration)
 	// -------------------------------------------------------------------------
 
-	/**
-	 * @brief Access a tile at the given coordinates.
-	 * @param x X coordinate (0 to MAXDUNX-1)
-	 * @param y Y coordinate (0 to MAXDUNY-1)
-	 * @return Reference to the Tile at (x, y)
-	 */
+	//brief Access a tile at the given coordinates
 	[[nodiscard]] Tile &tileAt(int x, int y) { return tiles_[x][y]; }
 	[[nodiscard]] const Tile &tileAt(int x, int y) const { return tiles_[x][y]; }
 
-	/**
-	 * @brief Access a tile at the given Point.
-	 * @param position Point containing x,y coordinates
-	 * @return Reference to the Tile at the position
-	 */
+	//Access a tile at the given Point.
 	[[nodiscard]] Tile &tileAt(Point position) { return tiles_[position.x][position.y]; }
 	[[nodiscard]] const Tile &tileAt(Point position) const { return tiles_[position.x][position.y]; }
 
-	/**
-	 * @brief Direct access to the tile array (for bulk operations).
-	 * @return Reference to the entire tile array
-	 */
+	// Direct access to the tile array (for bulk operations).
 	[[nodiscard]] Tile (&tiles())[MAXDUNX][MAXDUNY] { return tiles_; }
 	[[nodiscard]] const Tile (&tiles() const)[MAXDUNX][MAXDUNY] { return tiles_; }
+
+	[[nodiscard]] DungeonMegaTile &megaTileAt(int x, int y) { return megaTiles_[x][y]; }
+	[[nodiscard]] const DungeonMegaTile &megaTileAt(int x, int y) const { return megaTiles_[x][y]; }
+	[[nodiscard]] DungeonMegaTile &megaTileAt(Point position) { return megaTiles_[position.x][position.y]; }
+	[[nodiscard]] const DungeonMegaTile &megaTileAt(Point position) const { return megaTiles_[position.x][position.y]; }
+
+	[[nodiscard]] DungeonMegaTile (&megaTiles())[DMAXX][DMAXY] { return megaTiles_; }
+	[[nodiscard]] const DungeonMegaTile (&megaTiles() const)[DMAXX][DMAXY] { return megaTiles_; }
 
 	// -------------------------------------------------------------------------
 	// Monster catalogue
 	// -------------------------------------------------------------------------
-	Bestiary bestiary;
+	Bestiary bestiary; // Monster types available on this level.
 
 	// -------------------------------------------------------------------------
-	// Dungeon generation grids  (previously in gendung.cpp)
+	// Coarse dungeon generation state
 	// -------------------------------------------------------------------------
-
-	/** @see DungeonMask */
-	Bitset2d<DMAXX, DMAXY> DungeonMask_;
-	/** @see dungeon */
-	uint8_t dungeon_[DMAXX][DMAXY] = {};
-	/** @see pdungeon */
-	uint8_t pdungeon_[DMAXX][DMAXY] = {};
-	/** @see Protected */
-	Bitset2d<DMAXX, DMAXY> Protected_;
-	/** @see SetPieceRoom */
-	WorldTileRectangle SetPieceRoom_ = {};
-	/** @see SetPiece */
-	WorldTileRectangle SetPiece_ = {};
-	/** @see pSpecialCels */
-	OptionalOwnedClxSpriteList pSpecialCels_;
-	/** @see pMegaTiles */
-	std::unique_ptr<MegaTile[]> pMegaTiles_;
-	/** @see pDungeonCels */
-	std::unique_ptr<std::byte[]> pDungeonCels_;
-	/** @see SOLData */
-	TileProperties SOLData_[MAXTILES] = {};
-	/** @see dminPosition */
-	WorldTilePosition dminPosition_ = {};
-	/** @see dmaxPosition */
-	WorldTilePosition dmaxPosition_ = {};
+	Bitset2d<DMAXX, DMAXY> DungeonMask_;            // Megatiles occupied during procedural generation.
+	DungeonMegaTile megaTiles_[DMAXX][DMAXY] = {};  // Active and replacement IDs for each dungeon megatile.
+	Bitset2d<DMAXX, DMAXY> Protected_;              // Megatiles that the level generator may not overwrite.
+	WorldTileRectangle SetPieceRoom_ = {};          // Room reserved for the generated set piece.
+	WorldTileRectangle SetPiece_ = {};              // Active set-piece area in world-tile coordinates.
+	OptionalOwnedClxSpriteList pSpecialCels_;       // Special dungeon sprites used by the current level.
+	std::unique_ptr<MegaTile[]> pMegaTiles_;        // Megatile definitions for the current dungeon type.
+	std::unique_ptr<std::byte[]> pDungeonCels_;     // Raw dungeon CEL data for the current dungeon type.
+	TileProperties SOLData_[MAXTILES] = {};         // Properties indexed by dungeon piece ID.
+	WorldTilePosition dminPosition_ = {};           // Minimum populated world-tile coordinates.
+	WorldTilePosition dmaxPosition_ = {};           // Maximum populated world-tile coordinates.
 
 	// -------------------------------------------------------------------------
 	// Level identity  (previously in gendung.cpp)
 	// -------------------------------------------------------------------------
-	/** @see leveltype */
-	dungeon_type leveltype_ = DTYPE_TOWN;
-	/** @see currlevel */
-	uint8_t currlevel_ = 0;
-	/** @see setlevel */
-	bool setlevel_ = false;
-	/** @see setlvlnum */
-	_setlevels setlvlnum_ = SL_NONE;
-	/** @see setlvltype */
-	dungeon_type setlvltype_ = DTYPE_TOWN;
+	dungeon_type leveltype_ = DTYPE_TOWN;    // Active dungeon type.
+	uint8_t currlevel_ = 0;                  // Active regular dungeon level number.
+	bool setlevel_ = false;                  // Whether the active level is a quest set level.
+	_setlevels setlvlnum_ = SL_NONE;         // Active quest set-level identifier.
+	dungeon_type setlvltype_ = DTYPE_TOWN;   // Dungeon type of the active quest set level.
 
 	// -------------------------------------------------------------------------
 	// View / rendering
 	// -------------------------------------------------------------------------
-	/** @see ViewPosition */
-	Point ViewPosition_ = {};
-	/** @see MicroTileLen */
-	uint_fast8_t MicroTileLen_ = 0;
-	/** @see TransVal */
-	int8_t TransVal_ = 0;
-	/** @see TransList */
-	std::array<bool, 256> TransList_ = {};
+	Point ViewPosition_ = {};                   // Player viewpoint in world-tile coordinates.
+	uint_fast8_t MicroTileLen_ = 0;             // Number of microtiles in each dungeon-piece definition.
+	int8_t TransVal_ = 0;                       // Next transparency-region identifier.
+	std::array<bool, 256> TransList_ = {};      // Transparency regions currently visible to the player.
 
 	// -------------------------------------------------------------------------
 	// Per-tile maps  (MAXDUNX × MAXDUNY)
 	// -------------------------------------------------------------------------
 
-	// NEW: Consolidated tile array (Phase 2 migration)
-	/** Consolidated per-tile data. Each Tile contains all properties for one map tile. */
-	Tile tiles_[MAXDUNX][MAXDUNY] = {};
+	Tile tiles_[MAXDUNX][MAXDUNY] = {}; // Runtime state for each world tile.
 
-	// LEGACY: Old separate arrays (partial migration remaining)
-	// TODO: Migrate DPieceMicros_ and dTransVal_ to tiles_ and remove
-	/** @see DPieceMicros */
-	MICROS DPieceMicros_[MAXTILES] = {};
-	/** @see dTransVal */
-	int8_t dTransVal_[MAXDUNX][MAXDUNY] = {};
+	// TODO: Migrate DPieceMicros_ to tiles_ and remove
+	MICROS DPieceMicros_[MAXTILES] = {}; // Microtile layout indexed by dungeon piece ID.
 	// -------------------------------------------------------------------------
 	// Theme rooms
 	// -------------------------------------------------------------------------
-	/** @see themeCount */
-	int themeCount_ = 0;
-	/** @see themeLoc */
-	THEME_LOC themeLoc_[MAXTHEMES] = {};
+	int themeCount_ = 0;                    // Number of generated theme rooms.
+	THEME_LOC themeLoc_[MAXTHEMES] = {};    // Generated theme-room locations.
 
 	// -------------------------------------------------------------------------
 	// Factory
@@ -197,7 +174,7 @@ public:
 	static Level create(LevelId id);
 
 private:
-	LevelId id_;
+	LevelId id_; // Immutable identity used to store and retrieve the level.
 };
 
 } // namespace devilution

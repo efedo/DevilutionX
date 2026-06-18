@@ -34,7 +34,7 @@ std::string ExportDun()
 	/** Tiles. */
 	for (int y = 0; y < DMAXY; y++) {
 		for (int x = 0; x < DMAXX; x++) {
-			WriteLE16(dunFile, dungeon[x][y]);
+			WriteLE16(dunFile, megaTileAt(x, y).current());
 		}
 	}
 

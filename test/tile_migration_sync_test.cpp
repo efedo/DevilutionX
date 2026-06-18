@@ -3,9 +3,29 @@
 #include "levels/gendung.h"
 #include "levels/level.hpp"
 #include "levels/town.h"
+#include "objects.h"
 
 namespace devilution {
 namespace {
+
+template <typename T>
+concept HasLegacyDTransVal = requires(T level) {
+	level.dTransVal_;
+};
+
+template <typename T>
+concept HasLegacyDungeon = requires(T level) {
+	level.dungeon_;
+};
+
+template <typename T>
+concept HasLegacyPDungeon = requires(T level) {
+	level.pdungeon_;
+};
+
+static_assert(!HasLegacyDTransVal<Level>);
+static_assert(!HasLegacyDungeon<Level>);
+static_assert(!HasLegacyPDungeon<Level>);
 
 void SelectTownLevel()
 {
@@ -24,20 +44,96 @@ TEST(TileMigrationSyncTest, TileHasAnyUsesTilePiece)
 	EXPECT_TRUE(TileHasAny(Pos, TileProperties::Solid));
 }
 
-TEST(TileMigrationSyncTest, TransparencySyncPreservesLoadedTilePiece)
+TEST(TileMigrationSyncTest, MegaTileStatesAreIndependent)
+{
+	Level level = Level::create(LevelId { .levelNum = 1, .type = DTYPE_CATHEDRAL });
+
+	EXPECT_EQ(level.megaTileAt(3, 4).current(), 0);
+	EXPECT_EQ(level.megaTileAt(3, 4).replacement(), 0);
+
+	level.megaTileAt(3, 4).setCurrent(7);
+	level.megaTileAt(3, 4).setReplacement(9);
+
+	EXPECT_EQ(level.megaTileAt(3, 4).current(), 7);
+	EXPECT_EQ(level.megaTileAt(3, 4).replacement(), 9);
+}
+
+TEST(TileMigrationSyncTest, SnapshotAndApplyMegaTileReplacement)
+{
+	SelectTownLevel();
+	InitLevels();
+
+	FillCurrentMegaTiles(3);
+	megaTileAt(5, 6).setCurrent(7);
+	SnapshotReplacementMegaTiles();
+	megaTileAt(5, 6).setReplacement(9);
+
+	EXPECT_EQ(megaTileAt(0, 0).replacement(), 3);
+	EXPECT_EQ(megaTileAt(5, 6).current(), 7);
+	EXPECT_EQ(megaTileAt(5, 6).replacement(), 9);
+
+	megaTileAt(5, 6).applyReplacement();
+
+	EXPECT_EQ(megaTileAt(5, 6).current(), 9);
+	EXPECT_EQ(megaTileAt(5, 6).replacement(), 9);
+}
+
+TEST(TileMigrationSyncTest, RuntimeMapChangeAppliesReplacementMegaTile)
+{
+	SelectTownLevel();
+	InitLevels();
+	leveltype = DTYPE_TOWN;
+	pMegaTiles = std::make_unique<MegaTile[]>(1);
+	megaTileAt(5, 6).setCurrent(2);
+	megaTileAt(5, 6).setReplacement(1);
+
+	ObjChangeMap(5, 6, 5, 6);
+
+	EXPECT_EQ(megaTileAt(5, 6).current(), 1);
+	EXPECT_EQ(megaTileAt(5, 6).replacement(), 1);
+}
+
+TEST(TileMigrationSyncTest, InitTransparencyClearsOnlyTransparency)
 {
 	SelectTownLevel();
 	InitLevels();
 
 	constexpr Point Pos { 20, 20 };
 	tileAt(Pos).setPiece(321);
-	tileAt(Pos).setTransVal(0);
-	dTransVal[Pos.x][Pos.y] = 7;
+	tileAt(Pos).setTransVal(7);
 
-	SyncTileTransparencyFromLegacyMapForTesting();
+	DRLG_InitTrans();
 
 	EXPECT_EQ(tileAt(Pos).piece(), 321);
-	EXPECT_EQ(tileAt(Pos).transVal(), 7);
+	EXPECT_EQ(tileAt(Pos).transVal(), 0);
+	EXPECT_EQ(TransVal, 1);
+}
+
+TEST(TileMigrationSyncTest, RectTransparencyAssignsAndAdvancesRegion)
+{
+	SelectTownLevel();
+	InitLevels();
+	DRLG_InitTrans();
+
+	DRLG_RectTrans({ { 20, 30 }, { 2, 1 } });
+
+	EXPECT_EQ(tileAt(20, 30).transVal(), 1);
+	EXPECT_EQ(tileAt(21, 30).transVal(), 1);
+	EXPECT_EQ(tileAt(22, 31).transVal(), 1);
+	EXPECT_EQ(tileAt(19, 30).transVal(), 0);
+	EXPECT_EQ(TransVal, 2);
+}
+
+TEST(TileMigrationSyncTest, CopyTransparencyCopiesTileRegion)
+{
+	SelectTownLevel();
+	InitLevels();
+	tileAt(10, 11).setTransVal(9);
+	tileAt(12, 13).setTransVal(0);
+
+	DRLG_CopyTrans(10, 11, 12, 13);
+
+	EXPECT_EQ(tileAt(12, 13).transVal(), 9);
 }
 
 TEST(TileMigrationSyncTest, TownOpenHivePopulatesTilePieces)

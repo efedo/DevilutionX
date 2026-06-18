@@ -19,7 +19,7 @@ namespace devilution {
  * This class consolidates all the per-tile information that was previously
  * scattered across multiple [MAXDUNX][MAXDUNY] arrays in Level:
  * - piece ID
- * - dTransVal_: transparency value
+ * - transparency value
  * - dLight_: current realtime lighting
  * - dPreLight_: precalculated static lights
  * - dFlags_: various tile flags
@@ -235,7 +235,7 @@ private:
 	/** Piece ID from the active tileset. */
 	uint16_t piece_ = 0;
 
-	/** @see dTransVal - transparency value */
+	/** Transparency-region ID. */
 	int8_t transVal_ = 0;
 
 	/** @see dLight - current realtime lighting */

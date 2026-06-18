@@ -611,7 +611,7 @@ void DrawCell(const Surface &out, const Lightmap lightmap, Point tilePosition, P
 
 	const TileProperties pieceProperties = SOLData[levelPieceId];
 	const bool isFloorPiece = !HasAnyOf(pieceProperties, TileProperties::Solid | TileProperties::BlockMissile);
-	const int8_t transVal = tile.transVal() != 0 ? tile.transVal() : dTransVal[tilePosition.x][tilePosition.y];
+	const int8_t transVal = tile.transVal();
 	bool transparency = HasAnyOf(pieceProperties, TileProperties::Transparent) && TransList[transVal];
 #ifdef _DEBUG
 	if ((SDL_GetModState() & SDL_KMOD_ALT) != 0) {

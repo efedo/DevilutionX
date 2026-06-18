@@ -820,13 +820,13 @@ void AddHookedBodies(int freq)
 		const WorldTileCoord jj = 16 + (j * 2);
 		for (WorldTileCoord i = 0; i < DMAXX; i++) {
 			const WorldTileCoord ii = 16 + (i * 2);
-			if (dungeon[i][j] != 1 && dungeon[i][j] != 2)
+			if (megaTileAt(i, j).current() != 1 && megaTileAt(i, j).current() != 2)
 				continue;
 			if (!FlipCoin(freq))
 				continue;
 			if (IsNearThemeRoom({ i, j }))
 				continue;
-			if (dungeon[i][j] == 1 && dungeon[i + 1][j] == 6) {
+			if (megaTileAt(i, j).current() == 1 && megaTileAt(i + 1, j).current() == 6) {
 				switch (GenerateRnd(3)) {
 				case 0:
 					AddObject(OBJ_TORTURE1, { ii + 1, jj });
@@ -840,7 +840,7 @@ void AddHookedBodies(int freq)
 				}
 				continue;
 			}
-			if (dungeon[i][j] == 2 && dungeon[i][j + 1] == 6) {
+			if (megaTileAt(i, j).current() == 2 && megaTileAt(i, j + 1).current() == 6) {
 				AddObject(PickRandomlyAmong({ OBJ_TORTURE3, OBJ_TORTURE4 }), { ii, jj });
 			}
 		}
@@ -4425,8 +4425,9 @@ void ObjChangeMap(int x1, int y1, int x2, int y2)
 {
 	for (int j = y1; j <= y2; j++) {
 		for (int i = x1; i <= x2; i++) {
-			ObjSetMini({ i, j }, pdungeon[i][j]);
-			dungeon[i][j] = pdungeon[i][j];
+			DungeonMegaTile &megaTile = megaTileAt(i, j);
+			megaTile.applyReplacement();
+			ObjSetMini({ i, j }, megaTile.current());
 		}
 	}
 
@@ -4455,8 +4456,9 @@ void ObjChangeMapResync(int x1, int y1, int x2, int y2)
 {
 	for (int j = y1; j <= y2; j++) {
 		for (int i = x1; i <= x2; i++) {
-			ObjSetMini({ i, j }, pdungeon[i][j]);
-			dungeon[i][j] = pdungeon[i][j];
+			DungeonMegaTile &megaTile = megaTileAt(i, j);
+			megaTile.applyReplacement();
+			ObjSetMini({ i, j }, megaTile.current());
 		}
 	}
 

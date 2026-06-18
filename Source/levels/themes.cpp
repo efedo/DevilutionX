@@ -51,12 +51,12 @@ bool TFit_Shrine(int i)
 
 	while (found == 0) {
 		const Point testPosition = position;
-		if (dTransVal[position.x][position.y] == themes[i].ttval) {
+		if (tileAt(position).transVal() == themes[i].ttval) {
 			if (TileHasAny(position + Direction::NorthEast, TileProperties::Trap)
 			    && IsTileNotSolid(testPosition + Direction::NorthWest)
 			    && IsTileNotSolid(testPosition + Direction::SouthEast)
-			    && dTransVal[position.x - 1][position.y] == themes[i].ttval
-			    && dTransVal[position.x + 1][position.y] == themes[i].ttval
+			    && tileAt(position + Displacement { -1, 0 }).transVal() == themes[i].ttval
+			    && tileAt(position + Displacement { 1, 0 }).transVal() == themes[i].ttval
 			    && !IsObjectAtPosition(testPosition + Direction::North)
 			    && !IsObjectAtPosition(testPosition + Direction::East)) {
 				found = 1;
@@ -65,8 +65,8 @@ bool TFit_Shrine(int i)
 			    && TileHasAny(position + Direction::NorthWest, TileProperties::Trap)
 			    && IsTileNotSolid(testPosition + Direction::NorthEast)
 			    && IsTileNotSolid(testPosition + Direction::SouthWest)
-			    && dTransVal[position.x][position.y - 1] == themes[i].ttval
-			    && dTransVal[position.x][position.y + 1] == themes[i].ttval
+			    && tileAt(position + Displacement { 0, -1 }).transVal() == themes[i].ttval
+			    && tileAt(position + Displacement { 0, 1 }).transVal() == themes[i].ttval
 			    && !IsObjectAtPosition(testPosition + Direction::North)
 			    && !IsObjectAtPosition(testPosition + Direction::West)) {
 				found = 2;
@@ -96,7 +96,7 @@ bool CheckThemeObj5(Point origin, int8_t regionId)
 			return false;
 		}
 		// If the theme object would extend into a different region then it doesn't fit.
-		if (dTransVal[testPosition.x][testPosition.y] != regionId) {
+		if (tileAt(testPosition).transVal() != regionId) {
 			return false;
 		}
 		return true;
@@ -115,7 +115,7 @@ bool TFit_Obj5(int t)
 
 	int candidatesFound = 0;
 	for (const Point tile : PointsInRectangle(Rectangle { { 0, 0 }, { MAXDUNX, MAXDUNY } })) {
-		if (dTransVal[tile.x][tile.y] == themes[t].ttval && IsTileNotSolid(tile) && CheckThemeObj5(tile, themes[t].ttval)) {
+		if (tileAt(tile).transVal() == themes[t].ttval && IsTileNotSolid(tile) && CheckThemeObj5(tile, themes[t].ttval)) {
 			// Use themex/y to keep track of the last candidate area found, in case we end up with fewer candidates than the target
 			themex = tile.x;
 			themey = tile.y;
@@ -164,7 +164,7 @@ bool CheckThemeObj3(Point origin, int8_t regionId, unsigned frequency = 0)
 			return false;
 		}
 		// If the theme object would extend into a different region then it doesn't fit.
-		if (dTransVal[testPosition.x][testPosition.y] != regionId) {
+		if (tileAt(testPosition).transVal() != regionId) {
 			return false;
 		}
 		if (IsObjectAtPosition(testPosition)) {
@@ -305,14 +305,14 @@ bool SpecialThemeFit(int i, theme_id t)
 bool CheckThemeRoom(int8_t tv)
 {
 	for (int i = 0; i < numtrigs; i++) {
-		if (dTransVal[trigs[i].position.x][trigs[i].position.y] == tv)
+		if (tileAt(trigs[i].position).transVal() == tv)
 			return false;
 	}
 
 	int tarea = 0;
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) {
-			if (dTransVal[i][j] != tv)
+			if (tileAt(i, j).transVal() != tv)
 				continue;
 			if (TileContainsSetPiece({ i, j }))
 				return false;
@@ -326,15 +326,15 @@ bool CheckThemeRoom(int8_t tv)
 
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) {
-			if (dTransVal[i][j] != tv || TileHasAny({ i, j }, TileProperties::Solid))
+			if (tileAt(i, j).transVal() != tv || TileHasAny({ i, j }, TileProperties::Solid))
 				continue;
-			if (dTransVal[i - 1][j] != tv && IsTileNotSolid({ i - 1, j }))
+			if (tileAt(i - 1, j).transVal() != tv && IsTileNotSolid({ i - 1, j }))
 				return false;
-			if (dTransVal[i + 1][j] != tv && IsTileNotSolid({ i + 1, j }))
+			if (tileAt(i + 1, j).transVal() != tv && IsTileNotSolid({ i + 1, j }))
 				return false;
-			if (dTransVal[i][j - 1] != tv && IsTileNotSolid({ i, j - 1 }))
+			if (tileAt(i, j - 1).transVal() != tv && IsTileNotSolid({ i, j - 1 }))
 				return false;
-			if (dTransVal[i][j + 1] != tv && IsTileNotSolid({ i, j + 1 }))
+			if (tileAt(i, j + 1).transVal() != tv && IsTileNotSolid({ i, j + 1 }))
 				return false;
 		}
 	}
@@ -362,7 +362,7 @@ void PlaceThemeMonsts(int t, int f)
 	const size_t mtype = scattertypes[GenerateRnd(numscattypes)];
 	for (int yp = 0; yp < MAXDUNY; yp++) {
 		for (int xp = 0; xp < MAXDUNX; xp++) {
-			if (dTransVal[xp][yp] == themes[t].ttval && IsTileNotSolid({ xp, yp }) && tileAt(xp, yp).item() == 0 && !IsObjectAtPosition({ xp, yp })) {
+			if (tileAt(xp, yp).transVal() == themes[t].ttval && IsTileNotSolid({ xp, yp }) && tileAt(xp, yp).item() == 0 && !IsObjectAtPosition({ xp, yp })) {
 				if (FlipCoin(f)) {
 					AddMonster({ xp, yp }, static_cast<Direction>(GenerateRnd(8)), mtype, true);
 				}
@@ -383,7 +383,7 @@ void Theme_Barrel(int t)
 
 	for (int yp = 0; yp < MAXDUNY; yp++) {
 		for (int xp = 0; xp < MAXDUNX; xp++) {
-			if (dTransVal[xp][yp] == themes[t].ttval && IsTileNotSolid({ xp, yp })) {
+			if (tileAt(xp, yp).transVal() == themes[t].ttval && IsTileNotSolid({ xp, yp })) {
 				if (FlipCoin(barrnd[leveltype - 1])) {
 					const _object_id r = FlipCoin(barrnd[leveltype - 1]) ? OBJ_BARREL : OBJ_BARRELEX;
 					AddObject(r, { xp, yp });
@@ -429,7 +429,7 @@ void Theme_MonstPit(int t)
 	int ixp = 0;
 	int iyp = 0;
 	while (r > 0) {
-		if (dTransVal[ixp][iyp] == themes[t].ttval && IsTileNotSolid({ ixp, iyp })) {
+		if (tileAt(ixp, iyp).transVal() == themes[t].ttval && IsTileNotSolid({ ixp, iyp })) {
 			--r;
 		}
 		if (r <= 0)
@@ -520,7 +520,7 @@ void Theme_Treasure(int t)
 	DiscardRandomValues(1);
 	for (int yp = 0; yp < MAXDUNY; yp++) {
 		for (int xp = 0; xp < MAXDUNX; xp++) {
-			if (dTransVal[xp][yp] == themes[t].ttval && IsTileNotSolid({ xp, yp })) {
+			if (tileAt(xp, yp).transVal() == themes[t].ttval && IsTileNotSolid({ xp, yp })) {
 				const int8_t treasureType = treasrnd[leveltype - 1];
 				const int rv = GenerateRnd(treasureType);
 				// BUGFIX: this used to be `2*GenerateRnd(treasureType) == 0` however 2*0 has no effect, should probably be `FlipCoin(2*treasureType)`
@@ -602,7 +602,7 @@ void Theme_Torture(int t)
 
 	for (int yp = 1; yp < MAXDUNY - 1; yp++) {
 		for (int xp = 1; xp < MAXDUNX - 1; xp++) {
-			if (dTransVal[xp][yp] == themes[t].ttval && IsTileNotSolid({ xp, yp })) {
+			if (tileAt(xp, yp).transVal() == themes[t].ttval && IsTileNotSolid({ xp, yp })) {
 				if (CheckThemeObj3({ xp, yp }, themes[t].ttval)) {
 					if (FlipCoin(tortrnd[leveltype - 1])) {
 						AddObject(OBJ_TNUDEM2, { xp, yp });
@@ -639,7 +639,7 @@ void Theme_Decap(int t)
 
 	for (int yp = 1; yp < MAXDUNY - 1; yp++) {
 		for (int xp = 1; xp < MAXDUNX - 1; xp++) {
-			if (dTransVal[xp][yp] == themes[t].ttval && IsTileNotSolid({ xp, yp })) {
+			if (tileAt(xp, yp).transVal() == themes[t].ttval && IsTileNotSolid({ xp, yp })) {
 				if (CheckThemeObj3({ xp, yp }, themes[t].ttval)) {
 					if (FlipCoin(decaprnd[leveltype - 1])) {
 						AddObject(OBJ_DECAP, { xp, yp });
@@ -681,7 +681,7 @@ void Theme_ArmorStand(int t)
 	}
 	for (int yp = 0; yp < MAXDUNY; yp++) {
 		for (int xp = 0; xp < MAXDUNX; xp++) {
-			if (dTransVal[xp][yp] == themes[t].ttval && IsTileNotSolid({ xp, yp })) {
+			if (tileAt(xp, yp).transVal() == themes[t].ttval && IsTileNotSolid({ xp, yp })) {
 				if (CheckThemeObj3({ xp, yp }, themes[t].ttval)) {
 					if (FlipCoin(armorrnd[leveltype - 1])) {
 						AddObject(OBJ_ARMORSTANDN, { xp, yp });
@@ -705,7 +705,7 @@ void Theme_GoatShrine(int t)
 	AddObject(OBJ_GOATSHRINE, { themex, themey });
 	for (int yy = themey - 1; yy <= themey + 1; yy++) {
 		for (int xx = themex - 1; xx <= themex + 1; xx++) {
-			if (dTransVal[xx][yy] == themes[t].ttval && IsTileNotSolid({ xx, yy }) && (xx != themex || yy != themey)) {
+			if (tileAt(xx, yy).transVal() == themes[t].ttval && IsTileNotSolid({ xx, yy }) && (xx != themex || yy != themey)) {
 				AddMonster({ xx, yy }, Direction::SouthWest, themeVar1, true);
 			}
 		}
@@ -767,7 +767,7 @@ void Theme_BrnCross(int t)
 
 	for (int yp = 0; yp < MAXDUNY; yp++) {
 		for (int xp = 0; xp < MAXDUNX; xp++) {
-			if (dTransVal[xp][yp] == regionId && IsTileNotSolid({ xp, yp })) {
+			if (tileAt(xp, yp).transVal() == regionId && IsTileNotSolid({ xp, yp })) {
 				if (CheckThemeObj3({ xp, yp }, regionId)) {
 					if (FlipCoin(bcrossrnd[leveltype - 1])) {
 						AddObject(OBJ_TBCROSS, { xp, yp });
@@ -796,7 +796,7 @@ void Theme_WeaponRack(int t)
 	}
 	for (int yp = 0; yp < MAXDUNY; yp++) {
 		for (int xp = 0; xp < MAXDUNX; xp++) {
-			if (dTransVal[xp][yp] == regionId && IsTileNotSolid({ xp, yp })) {
+			if (tileAt(xp, yp).transVal() == regionId && IsTileNotSolid({ xp, yp })) {
 				if (CheckThemeObj3({ xp, yp }, regionId)) {
 					if (FlipCoin(weaponrnd[leveltype - 1])) {
 						AddObject(OBJ_WEAPONRACKN, { xp, yp });
@@ -816,8 +816,8 @@ void UpdateL4Trans()
 {
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) { // NOLINT(modernize-loop-convert)
-			if (dTransVal[i][j] != 0) {
-				dTransVal[i][j] = 1;
+			if (tileAt(i, j).transVal() != 0) {
+				tileAt(i, j).setTransVal(1);
 			}
 		}
 	}
@@ -904,7 +904,7 @@ void HoldThemeRooms()
 		const int8_t v = themes[i].ttval;
 		for (int y = 0; y < MAXDUNY; y++) {
 			for (int x = 0; x < MAXDUNX; x++) {
-				if (dTransVal[x][y] == v) {
+				if (tileAt(x, y).transVal() == v) {
 					tileAt(x, y).addFlags(DungeonFlag::Populated);
 				}
 			}

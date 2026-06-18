@@ -7,6 +7,7 @@ To ensure that your contributions are effective and align with the project's goa
 ## General
 - Do not use superfluous language: be concise and direct.
 - Avoid the use of checkboxes etc. and extraneous formatting in your responses.
+- Always use Windows-style CRLF line endings.
 
 ## Planning
 - For each task, provide a clear and concise plan of action before writing any code.

@@ -60,8 +60,8 @@ enum class DebugGridTextItem : uint16_t {
 
 	// megatiles
 	AutomapView,
-	Dungeon,
-	Pdungeon,
+	CurrentMegaTile,
+	ReplacementMegaTile,
 	DProtected,
 };
 

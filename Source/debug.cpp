@@ -127,8 +127,8 @@ bool IsDebugGridInMegatiles()
 {
 	switch (SelectedDebugGridTextItem) {
 	case DebugGridTextItem::AutomapView:
-	case DebugGridTextItem::Dungeon:
-	case DebugGridTextItem::Pdungeon:
+	case DebugGridTextItem::CurrentMegaTile:
+	case DebugGridTextItem::ReplacementMegaTile:
 	case DebugGridTextItem::DProtected:
 		return true;
 	default:
@@ -243,13 +243,13 @@ bool GetDebugGridText(Point dungeonCoords, std::string &debugGridText)
 		if (megaCoords.x >= 0 && megaCoords.x < DMAXX && megaCoords.y >= 0 && megaCoords.y < DMAXY)
 			info = AutomapView[megaCoords.x][megaCoords.y];
 		break;
-	case DebugGridTextItem::Dungeon:
+	case DebugGridTextItem::CurrentMegaTile:
 		if (megaCoords.x >= 0 && megaCoords.x < DMAXX && megaCoords.y >= 0 && megaCoords.y < DMAXY)
-			info = dungeon[megaCoords.x][megaCoords.y];
+			info = megaTileAt(megaCoords.x, megaCoords.y).current();
 		break;
-	case DebugGridTextItem::Pdungeon:
+	case DebugGridTextItem::ReplacementMegaTile:
 		if (megaCoords.x >= 0 && megaCoords.x < DMAXX && megaCoords.y >= 0 && megaCoords.y < DMAXY)
-			info = pdungeon[megaCoords.x][megaCoords.y];
+			info = megaTileAt(megaCoords.x, megaCoords.y).replacement();
 		break;
 	case DebugGridTextItem::DProtected:
 		if (megaCoords.x >= 0 && megaCoords.x < DMAXX && megaCoords.y >= 0 && megaCoords.y < DMAXY)

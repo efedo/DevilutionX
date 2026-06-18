@@ -121,7 +121,7 @@ void clearTile(Point position) {
 	// dItem[position.x][position.y] = 0;
 	// dSpecial[position.x][position.y] = 0;
 	// dFlags[position.x][position.y] = DungeonFlag::None;
-	// dTransVal[position.x][position.y] = 0;
+	// tileAt(position).setTransVal(0);
 	// dLight[position.x][position.y] = 0;
 	// dPreLight[position.x][position.y] = 0;
 
