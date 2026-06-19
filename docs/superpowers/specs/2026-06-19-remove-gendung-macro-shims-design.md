@@ -47,29 +47,29 @@ Add named inline free accessors that forward to `currentLevel()` and preserve
 the underlying reference type:
 
 ```cpp
-decltype(auto) dungeonMask();
-decltype(auto) protectedTiles();
-decltype(auto) setPieceRoom();
-decltype(auto) setPiece();
-decltype(auto) specialCels();
-decltype(auto) megaTiles();
-decltype(auto) dungeonCels();
-decltype(auto) tileProperties();
-decltype(auto) minimumDungeonPosition();
-decltype(auto) maximumDungeonPosition();
-decltype(auto) levelType();
-decltype(auto) currentLevelNumber();
-decltype(auto) isSetLevel();
-decltype(auto) setLevelNumber();
-decltype(auto) setLevelType();
-decltype(auto) viewPosition();
-decltype(auto) microTileLength();
-decltype(auto) nextTransparencyValue();
-decltype(auto) visibleTransparencyRegions();
-decltype(auto) levelMicros();
-decltype(auto) themeCount();
-decltype(auto) themeLocations();
-decltype(auto) tiles();
+decltype(auto) dungeonMask();                // Megatiles used by the generated map.
+decltype(auto) protectedTiles();             // Megatiles protected from generator changes.
+decltype(auto) setPieceRoom();               // Set-piece room membership map.
+decltype(auto) setPiece();                   // Active quest set-piece area.
+decltype(auto) specialCels();                // Special CEL sprite data.
+decltype(auto) megaTiles();                   // Megatile definitions for the active dungeon.
+decltype(auto) dungeonCels();                 // Dungeon CEL sprite data.
+decltype(auto) tileProperties();              // Properties indexed by dungeon piece.
+decltype(auto) minimumDungeonPosition();      // Minimum rendered dungeon position.
+decltype(auto) maximumDungeonPosition();      // Maximum rendered dungeon position.
+decltype(auto) levelType();                   // Active dungeon type.
+decltype(auto) currentLevelNumber();          // Active dungeon level number.
+decltype(auto) isSetLevel();                  // Whether the active level is a quest level.
+decltype(auto) setLevelNumber();              // Active quest-level identifier.
+decltype(auto) setLevelType();                // Dungeon type of the active quest level.
+decltype(auto) viewPosition();                // Player viewpoint position.
+decltype(auto) microTileLength();             // Microtiles used by each dungeon piece.
+decltype(auto) nextTransparencyValue();       // Next transparency-region identifier.
+decltype(auto) visibleTransparencyRegions();  // Transparency regions visible to the player.
+decltype(auto) levelMicros();                 // Microtile lookup indexed by dungeon piece.
+decltype(auto) themeCount();                  // Number of generated theme rooms.
+decltype(auto) themeLocations();              // Generated theme-room areas.
+decltype(auto) tiles();                       // Runtime state for each world tile.
 ```
 
 Const overloads are unnecessary because these accessors target the mutable
@@ -81,7 +81,9 @@ functions. Existing `megaTileAt` remains an ordinary free function.
 
 Accessor names use lower camel case and avoid legacy names that could mask
 missed migrations. `levelMicros()` retains its established name and span return
-type.
+type. Every new accessor declaration has a brief trailing `//` comment
+describing the referenced state. Comments remain succinct and wrap only when
+necessary.
 
 ## Migration
 
