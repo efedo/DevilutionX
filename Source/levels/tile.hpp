@@ -273,6 +273,14 @@ private:
 static_assert(sizeof(Tile) <= 16, "Tile should be compact for cache efficiency");
 
 class TileGrid {
+	template <bool IsConst>
+	struct PositionEntry {
+		using TileReference = std::conditional_t<IsConst, const Tile &, Tile &>;
+
+		Point position;
+		TileReference tile;
+	};
+
 	template <bool IsConst, bool ColumnMajor>
 	class Iterator {
 		using Grid = std::conditional_t<IsConst, const TileGrid, TileGrid>;
@@ -334,24 +342,88 @@ class TileGrid {
 		size_t index_ = 0;
 	};
 
-	template <bool IsConst>
-	class ColumnMajorRange {
+	template <bool IsConst, bool ColumnMajor>
+	class PositionIterator {
 		using Grid = std::conditional_t<IsConst, const TileGrid, TileGrid>;
 
 	public:
-		explicit ColumnMajorRange(Grid &grid)
+		using difference_type = std::ptrdiff_t;
+		using value_type = PositionEntry<IsConst>;
+		using reference = value_type;
+		using iterator_category = std::forward_iterator_tag;
+
+		PositionIterator() = default;
+		PositionIterator(Grid *grid, size_t index)
+			: grid_(grid)
+			, index_(index)
+		{
+		}
+
+		template <bool OtherConst>
+			requires(IsConst && !OtherConst)
+		PositionIterator(const PositionIterator<OtherConst, ColumnMajor> &other)
+			: grid_(other.grid_)
+			, index_(other.index_)
+		{
+		}
+
+		reference operator*() const
+		{
+			const size_t x = ColumnMajor ? index_ / MAXDUNY : index_ % MAXDUNX;
+			const size_t y = ColumnMajor ? index_ % MAXDUNY : index_ / MAXDUNX;
+			return {
+				{ static_cast<WorldTileCoord>(x), static_cast<WorldTileCoord>(y) },
+				(*grid_)[x][y],
+			};
+		}
+
+		PositionIterator &operator++()
+		{
+			++index_;
+			return *this;
+		}
+
+		PositionIterator operator++(int)
+		{
+			PositionIterator previous = *this;
+			++*this;
+			return previous;
+		}
+
+		bool operator==(const PositionIterator &) const = default;
+
+	private:
+		template <bool, bool>
+		friend class PositionIterator;
+
+		Grid *grid_ = nullptr;
+		size_t index_ = 0;
+	};
+
+	template <bool IsConst, bool ColumnMajor, bool IncludePositions>
+	class Range {
+		using Grid = std::conditional_t<IsConst, const TileGrid, TileGrid>;
+
+	public:
+		explicit Range(Grid &grid)
 			: grid_(&grid)
 		{
 		}
 
 		[[nodiscard]] auto begin() const
 		{
-			return Iterator<IsConst, true> { grid_, 0 };
+			if constexpr (IncludePositions)
+				return PositionIterator<IsConst, ColumnMajor> { grid_, 0 };
+			else
+				return Iterator<IsConst, ColumnMajor> { grid_, 0 };
 		}
 
 		[[nodiscard]] auto end() const
 		{
-			return Iterator<IsConst, true> { grid_, MAXDUNX * MAXDUNY };
+			if constexpr (IncludePositions)
+				return PositionIterator<IsConst, ColumnMajor> { grid_, MAXDUNX * MAXDUNY };
+			else
+				return Iterator<IsConst, ColumnMajor> { grid_, MAXDUNX * MAXDUNY };
 		}
 
 	private:
@@ -394,12 +466,34 @@ public:
 
 	[[nodiscard]] auto columnMajor()
 	{
-		return ColumnMajorRange<false> { *this };
+		return Range<false, true, false> { *this };
 	}
 
 	[[nodiscard]] auto columnMajor() const
 	{
-		return ColumnMajorRange<true> { *this };
+		return Range<true, true, false> { *this };
+	}
+
+	// Iterates tiles together with their positions in Y-major order.
+	[[nodiscard]] auto withPositions()
+	{
+		return Range<false, false, true> { *this };
+	}
+
+	[[nodiscard]] auto withPositions() const
+	{
+		return Range<true, false, true> { *this };
+	}
+
+	// Iterates tiles together with their positions in X-major order.
+	[[nodiscard]] auto withPositionsColumnMajor()
+	{
+		return Range<false, true, true> { *this };
+	}
+
+	[[nodiscard]] auto withPositionsColumnMajor() const
+	{
+		return Range<true, true, true> { *this };
 	}
 
 private:

@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Stability / Performance / System
 - Use range-based traversal for coordinate-independent tile-grid operations.
+- Add coordinate-yielding tile-grid ranges in both traversal orders.
 
 ### Bug Fixes
 

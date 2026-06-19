@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <type_traits>
 #include <vector>
 
 #include "levels/gendung.h"
@@ -97,6 +98,60 @@ TEST(TileMigrationSyncTest, TileGridIterationSupportsMutationAndConstAccess)
 
 	EXPECT_EQ(visited, MAXDUNX * MAXDUNY);
 	EXPECT_EQ(grid[3][4].transVal(), 7);
+}
+
+TEST(TileMigrationSyncTest, TileGridPositionRangeDefaultsToYMajorTraversal)
+{
+	TileGrid grid;
+	size_t visited = 0;
+	for (auto [position, tile] : grid.withPositions()) {
+		const Point expected {
+			static_cast<WorldTileCoord>(visited % MAXDUNX),
+			static_cast<WorldTileCoord>(visited / MAXDUNX),
+		};
+		EXPECT_EQ(position, expected);
+		tile.setPiece(static_cast<uint16_t>(visited));
+		++visited;
+	}
+
+	EXPECT_EQ(visited, MAXDUNX * MAXDUNY);
+	for (size_t y = 0; y < MAXDUNY; ++y) {
+		for (size_t x = 0; x < MAXDUNX; ++x)
+			EXPECT_EQ(grid[x][y].piece(), y * MAXDUNX + x);
+	}
+
+	for (auto [position, tile] : grid.withPositionsColumnMajor())
+		tile.setTransVal(static_cast<int8_t>((position.x + position.y) % 16));
+	EXPECT_EQ(grid[3][4].transVal(), 7);
+}
+
+TEST(TileMigrationSyncTest, TileGridPositionRangeSupportsXMajorConstTraversal)
+{
+	TileGrid grid;
+	for (size_t x = 0; x < MAXDUNX; ++x) {
+		for (size_t y = 0; y < MAXDUNY; ++y)
+			grid[x][y].setPiece(static_cast<uint16_t>(x * MAXDUNY + y));
+	}
+
+	const TileGrid &constGrid = grid;
+	size_t visited = 0;
+	for (auto [position, tile] : constGrid.withPositionsColumnMajor()) {
+		const Point expected {
+			static_cast<WorldTileCoord>(visited / MAXDUNY),
+			static_cast<WorldTileCoord>(visited % MAXDUNY),
+		};
+		EXPECT_EQ(position, expected);
+		EXPECT_EQ(tile.piece(), visited);
+		static_assert(std::is_const_v<std::remove_reference_t<decltype(tile)>>);
+		++visited;
+	}
+
+	EXPECT_EQ(visited, MAXDUNX * MAXDUNY);
+
+	visited = 0;
+	for ([[maybe_unused]] auto entry : constGrid.withPositions())
+		++visited;
+	EXPECT_EQ(visited, MAXDUNX * MAXDUNY);
 }
 
 TEST(TileMigrationSyncTest, MegaTileStatesAreIndependent)
