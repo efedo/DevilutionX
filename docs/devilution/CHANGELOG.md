@@ -22,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add graphical dungeon-piece thumbnails and a large preview to the debug
   Editor's piece selector.
 
+#### Stability / Performance / System
+- Use range-based traversal for coordinate-independent tile-grid operations.
+
 ### Bug Fixes
 
 #### Graphics / Audio
@@ -32,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Stability / Performance / System
 
 - Crashes related to player graphics rendering in death state
+- Text entry during character creation in debug builds
 - Use unified tile storage for dungeon piece IDs
 - Use unified tile storage for transparency-region IDs
 - Use unified megatile storage for active and replacement dungeon layouts

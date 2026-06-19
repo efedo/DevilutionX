@@ -814,12 +814,9 @@ void Theme_WeaponRack(int t)
  */
 void UpdateL4Trans()
 {
-	for (int j = 0; j < MAXDUNY; j++) {
-		for (int i = 0; i < MAXDUNX; i++) { // NOLINT(modernize-loop-convert)
-			if (tileAt(i, j).transVal() != 0) {
-				tileAt(i, j).setTransVal(1);
-			}
-		}
+	for (Tile &tile : tiles) {
+		if (tile.transVal() != 0)
+			tile.setTransVal(1);
 	}
 }
 
@@ -902,12 +899,9 @@ void HoldThemeRooms()
 
 	for (int i = 0; i < numthemes; i++) {
 		const int8_t v = themes[i].ttval;
-		for (int y = 0; y < MAXDUNY; y++) {
-			for (int x = 0; x < MAXDUNX; x++) {
-				if (tileAt(x, y).transVal() == v) {
-					tileAt(x, y).addFlags(DungeonFlag::Populated);
-				}
-			}
+		for (Tile &tile : tiles) {
+			if (tile.transVal() == v)
+				tile.addFlags(DungeonFlag::Populated);
 		}
 	}
 }

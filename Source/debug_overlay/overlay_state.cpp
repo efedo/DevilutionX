@@ -5,6 +5,15 @@
 
 namespace devilution {
 
+DebugOverlayTextInputAction DebugOverlayTextInputState::Update(bool consoleVisible)
+{
+	if (consoleVisible == ownsTextInput_)
+		return DebugOverlayTextInputAction::None;
+
+	ownsTextInput_ = consoleVisible;
+	return consoleVisible ? DebugOverlayTextInputAction::Start : DebugOverlayTextInputAction::Stop;
+}
+
 DebugOverlayDisplaySize ResolveDebugOverlayDisplaySize(
     int windowWidth, int windowHeight, int logicalWidth, int logicalHeight)
 {

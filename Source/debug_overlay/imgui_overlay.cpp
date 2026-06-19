@@ -54,6 +54,7 @@ bool ScrollToBottom;
 bool RefocusInput;
 DebugOverlayState OverlayState;
 DebugPieceSelectorState PieceSelectorState;
+DebugOverlayTextInputState OverlayTextInputState;
 
 struct PiecePaletteEntry {
 	uint16_t piece;
@@ -643,9 +644,26 @@ void DrawConsoleWindow()
 		OverlayState.SetWindowVisible(DebugOverlayWindow::Console, false);
 
 	InitConsole();
-	SDLC_StartTextInput(ghMainWnd);
 	DrawConsoleContent();
 	ImGui::End();
+}
+
+void UpdateOverlayTextInput()
+{
+	const DebugOverlayTextInputAction action = OverlayTextInputState.Update(OverlayState.IsWindowVisible(DebugOverlayWindow::Console));
+	if (ghMainWnd == nullptr)
+		return;
+
+	switch (action) {
+	case DebugOverlayTextInputAction::Start:
+		SDLC_StartTextInput(ghMainWnd);
+		break;
+	case DebugOverlayTextInputAction::Stop:
+		SDLC_StopTextInput(ghMainWnd);
+		break;
+	case DebugOverlayTextInputAction::None:
+		break;
+	}
 }
 
 void DrawInspectorWindow()
@@ -729,8 +747,8 @@ bool DebugOverlayHandleEvent(const SDL_Event &event)
 		} else {
 			OverlayState.ToggleActive();
 		}
-		if (!OverlayState.IsActive() && ghMainWnd != nullptr)
-			SDLC_StopTextInput(ghMainWnd);
+		if (!OverlayState.IsActive())
+			UpdateOverlayTextInput();
 		return true;
 	}
 
@@ -747,7 +765,7 @@ bool DebugOverlayHandleEvent(const SDL_Event &event)
 		if (OverlayState.EditorOwnsPause())
 			PauseMode = OverlayState.CloseEditor();
 		OverlayState.Close();
-		SDLC_StopTextInput(ghMainWnd);
+		UpdateOverlayTextInput();
 		RedrawEverything();
 		return true;
 	}
@@ -827,11 +845,8 @@ void DebugOverlayRender()
 	ImGui::NewFrame();
 
 	DrawOverlayToolbar();
-	if (OverlayState.IsWindowVisible(DebugOverlayWindow::Console)) {
-		DrawConsoleWindow();
-	} else {
-		SDLC_StopTextInput(ghMainWnd);
-	}
+	UpdateOverlayTextInput();
+	DrawConsoleWindow();
 	DrawInspectorWindow();
 	DrawEditorWindow();
 
@@ -850,6 +865,8 @@ void DebugOverlayShutdown()
 
 	PiecePaletteEntries.clear();
 	PieceSelectorState.Cancel();
+	if (OverlayTextInputState.Update(/*consoleVisible=*/false) == DebugOverlayTextInputAction::Stop && ghMainWnd != nullptr)
+		SDLC_StopTextInput(ghMainWnd);
 #ifdef USE_SDL3
 	ImGui_ImplSDLRenderer3_Shutdown();
 	ImGui_ImplSDL3_Shutdown();

@@ -1651,19 +1651,17 @@ void InitSetPiece()
 
 void InitDungeonPieces()
 {
-	for (int j = 0; j < MAXDUNY; j++) {
-		for (int i = 0; i < MAXDUNX; i++) {
-			int8_t pc;
-			const uint16_t piece = tileAt(i, j).piece();
-			if (IsAnyOf(piece, 540, 177, 550)) {
-				pc = 5;
-			} else if (IsAnyOf(piece, 541, 552)) {
-				pc = 6;
-			} else {
-				continue;
-			}
-			tileAt(i, j).setSpecial(pc);
+	for (Tile &tile : tiles) {
+		int8_t pc;
+		const uint16_t piece = tile.piece();
+		if (IsAnyOf(piece, 540, 177, 550)) {
+			pc = 5;
+		} else if (IsAnyOf(piece, 541, 552)) {
+			pc = 6;
+		} else {
+			continue;
 		}
+		tile.setSpecial(pc);
 	}
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) {

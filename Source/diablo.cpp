@@ -3171,12 +3171,8 @@ void LoadGameLevelSyncPlayerEntry(lvl_entry lvldir)
 void LoadGameLevelLightVision()
 {
 	if (leveltype != DTYPE_TOWN) {
-		for (int x = 0; x < MAXDUNX; x++) {
-			for (int y = 0; y < MAXDUNY; y++) {
-				Tile &tile = tileAt(x, y);
-				tile.setLight(tile.preLight());
-			}
-		}
+		for (Tile &tile : tiles.columnMajor())
+			tile.setLight(tile.preLight());
 		ChangeLightXY(Players[MyPlayerId].lightId, Players[MyPlayerId].position.tile); // forces player light refresh
 		ProcessLightList();
 		ProcessVisionList();
@@ -3212,11 +3208,8 @@ void LoadGameLevelSetVisited()
 
 tl::expected<void, std::string> LoadGameLevelTown(bool firstflag, lvl_entry lvldir, const Player &myPlayer)
 {
-	for (int i = 0; i < MAXDUNX; i++) { // NOLINT(modernize-loop-convert)
-		for (int j = 0; j < MAXDUNY; j++) {
-			tileAt(i, j).addFlags(DungeonFlag::Lit);
-		}
-	}
+	for (Tile &tile : tiles.columnMajor())
+		tile.addFlags(DungeonFlag::Lit);
 
 	InitTowners();
 	InitStash();

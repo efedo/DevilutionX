@@ -62,6 +62,23 @@ TEST(DebugOverlayState, TogglingActiveOverlayClosesIt)
 	EXPECT_FALSE(state.IsWindowVisible(DebugOverlayWindow::Console));
 }
 
+TEST(DebugOverlayTextInputState, DoesNotStopTextInputOwnedByAnotherScreen)
+{
+	DebugOverlayTextInputState state;
+
+	EXPECT_EQ(state.Update(/*consoleVisible=*/false), DebugOverlayTextInputAction::None);
+}
+
+TEST(DebugOverlayTextInputState, StartsAndStopsOnlyOverlayOwnedTextInput)
+{
+	DebugOverlayTextInputState state;
+
+	EXPECT_EQ(state.Update(/*consoleVisible=*/true), DebugOverlayTextInputAction::Start);
+	EXPECT_EQ(state.Update(/*consoleVisible=*/true), DebugOverlayTextInputAction::None);
+	EXPECT_EQ(state.Update(/*consoleVisible=*/false), DebugOverlayTextInputAction::Stop);
+	EXPECT_EQ(state.Update(/*consoleVisible=*/false), DebugOverlayTextInputAction::None);
+}
+
 TEST(DebugOverlayDisplaySize, PrefersRendererLogicalSize)
 {
 	const DebugOverlayDisplaySize size = ResolveDebugOverlayDisplaySize(

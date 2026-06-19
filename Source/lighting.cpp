@@ -341,22 +341,13 @@ void ToggleLighting()
 	DisableLighting = !DisableLighting;
 
 	if (DisableLighting) {
-		// MIGRATED to Tile API (Phase 4A)
-		for (int x = 0; x < MAXDUNX; x++) {
-			for (int y = 0; y < MAXDUNY; y++) {
-				tileAt(Point { static_cast<WorldTileCoord>(x), static_cast<WorldTileCoord>(y) }).setLight(0);
-			}
-		}
+		for (Tile &tile : tiles.columnMajor())
+			tile.setLight(0);
 		return;
 	}
 
-	// MIGRATED to Tile API (Phase 4A)
-	for (int x = 0; x < MAXDUNX; x++) {
-		for (int y = 0; y < MAXDUNY; y++) {
-			Tile &tile = tileAt(Point { static_cast<WorldTileCoord>(x), static_cast<WorldTileCoord>(y) });
-			tile.setLight(tile.preLight());
-		}
-	}
+	for (Tile &tile : tiles.columnMajor())
+		tile.setLight(tile.preLight());
 
 	for (const Player &player : Players) {
 		if (player.plractive && player.isOnActiveLevel()) {
@@ -528,13 +519,8 @@ void ProcessLightList()
 
 void SavePreLighting()
 {
-	// MIGRATED to Tile API (Phase 4A)
-	for (int x = 0; x < MAXDUNX; x++) {
-		for (int y = 0; y < MAXDUNY; y++) {
-			Tile &tile = tileAt(Point { static_cast<WorldTileCoord>(x), static_cast<WorldTileCoord>(y) });
-			tile.setPreLight(tile.light());
-		}
-	}
+	for (Tile &tile : tiles.columnMajor())
+		tile.setPreLight(tile.light());
 }
 
 void ActivateVision(Point position, int r, size_t id)

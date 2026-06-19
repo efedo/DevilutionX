@@ -1,6 +1,11 @@
 ### Comments
 
 EF tasks:
+- Fix Critical reversion: cannot enter name during character creation (keyboard input blocked)
+-
+- Make each tile aware of its own coordinates so that you can use range based loops everywhere?
+- Convert tile loops to range-based loops across the code-base, wherever feasible
+-
 - Rename this project (my fork of DevilutionX) Devilved (tag: "Devolution devolved")
 - Add a new change log for Devilved (similar format to DevilutionX change log -- see devilution subfolder) and insert list of changes completed to date
 - Add Copilot/Codex instructions, including where to put AI-generated working docs

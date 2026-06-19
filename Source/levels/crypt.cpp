@@ -667,13 +667,11 @@ void CryptFloor(int rndper)
 
 void InitCryptPieces()
 {
-	for (int j = 0; j < MAXDUNY; j++) {
-		for (int i = 0; i < MAXDUNX; i++) {
-			if (tileAt(i, j).piece() == 76) {
-				tileAt(i, j).setSpecial(1);
-			} else if (tileAt(i, j).piece() == 79) {
-				tileAt(i, j).setSpecial(2);
-			}
+	for (auto &tile : tiles) {
+		if (tile.piece() == 76) {
+			tile.setSpecial(1);
+		} else if (tile.piece() == 79) {
+			tile.setSpecial(2);
 		}
 	}
 }

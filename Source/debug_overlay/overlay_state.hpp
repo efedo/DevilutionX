@@ -16,6 +16,20 @@ enum class DebugOverlayWindow : std::size_t {
 	Count,
 };
 
+enum class DebugOverlayTextInputAction {
+	None,
+	Start,
+	Stop,
+};
+
+class DebugOverlayTextInputState {
+public:
+	DebugOverlayTextInputAction Update(bool consoleVisible);
+
+private:
+	bool ownsTextInput_ = false;
+};
+
 struct DebugOverlayDisplaySize {
 	float width;
 	float height;

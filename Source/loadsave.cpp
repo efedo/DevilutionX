@@ -1853,10 +1853,8 @@ ankerl::unordered_dense::map<uint8_t, uint8_t> SaveDroppedItems(SaveHelper &file
  */
 void SaveDroppedItemLocations(SaveHelper &file, const ankerl::unordered_dense::map<uint8_t, uint8_t> &itemIndexes)
 {
-	for (int j = 0; j < MAXDUNY; j++) {
-		for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-			file.WriteLE<uint8_t>(itemIndexes.at(tileAt(Point { i, j }).item()));
-	}
+	for (const Tile &tile : tiles)
+		file.WriteLE<uint8_t>(itemIndexes.at(tile.item()));
 }
 
 constexpr uint32_t VersionAdditionalMissiles = 0;
@@ -1941,10 +1939,8 @@ void SaveLevel(SaveWriter &saveWriter, LevelConversionData *levelConversionData)
 	SaveHelper file(saveWriter, szName, 256 * 1024);
 
 	if (leveltype != DTYPE_TOWN) {
-		for (int j = 0; j < MAXDUNY; j++) {
-			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				file.WriteLE<int8_t>(tileAt(Point { i, j }).corpse());
-		}
+		for (const Tile &tile : tiles)
+			file.WriteLE<int8_t>(tile.corpse());
 	}
 
 	file.WriteBE(static_cast<int32_t>(MonsterPoolAdapter::ActiveMonsterCountValue()));
@@ -1971,29 +1967,19 @@ void SaveLevel(SaveWriter &saveWriter, LevelConversionData *levelConversionData)
 
 	auto itemIndexes = SaveDroppedItems(file);
 
-	for (int j = 0; j < MAXDUNY; j++) {
-		for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-			file.WriteLE<uint8_t>(static_cast<uint8_t>(tileAt(Point { i, j }).flags() & DungeonFlag::SavedFlags));
-	}
+	for (const Tile &tile : tiles)
+		file.WriteLE<uint8_t>(static_cast<uint8_t>(tile.flags() & DungeonFlag::SavedFlags));
 	SaveDroppedItemLocations(file, itemIndexes);
 
 	if (leveltype != DTYPE_TOWN) {
-		for (int j = 0; j < MAXDUNY; j++) {
-			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				file.WriteBE<int32_t>(tileAt(Point { i, j }).monster());
-		}
-		for (int j = 0; j < MAXDUNY; j++) {
-			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				file.WriteLE<int8_t>(tileAt(Point { i, j }).object());
-		}
-		for (int j = 0; j < MAXDUNY; j++) {
-			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				file.WriteLE<uint8_t>(tileAt(Point { i, j }).light());
-		}
-		for (int j = 0; j < MAXDUNY; j++) {
-			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				file.WriteLE<uint8_t>(tileAt(Point { i, j }).preLight());
-		}
+		for (const Tile &tile : tiles)
+			file.WriteBE<int32_t>(tile.monster());
+		for (const Tile &tile : tiles)
+			file.WriteLE<int8_t>(tile.object());
+		for (const Tile &tile : tiles)
+			file.WriteLE<uint8_t>(tile.light());
+		for (const Tile &tile : tiles)
+			file.WriteLE<uint8_t>(tile.preLight());
 		for (int j = 0; j < DMAXY; j++) {
 			for (int i = 0; i < DMAXX; i++) // NOLINT(modernize-loop-convert)
 				file.WriteLE<uint8_t>(AutomapView[i][j]);
@@ -2018,10 +2004,8 @@ tl::expected<void, std::string> LoadLevel(LevelConversionData *levelConversionDa
 		return tl::make_unexpected(std::string(_("Unable to open save file archive")));
 
 	if (leveltype != DTYPE_TOWN) {
-		for (int j = 0; j < MAXDUNY; j++) {
-			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				tileAt(Point { i, j }).setCorpse(file.NextLE<int8_t>());
-		}
+		for (Tile &tile : tiles)
+			tile.setCorpse(file.NextLE<int8_t>());
 		MoveLightsToCorpses();
 	}
 
@@ -2052,37 +2036,27 @@ tl::expected<void, std::string> LoadLevel(LevelConversionData *levelConversionDa
 
 	LoadDroppedItems(file, savedItemCount);
 
-	for (int j = 0; j < MAXDUNY; j++) {
-		for (int i = 0; i < MAXDUNX; i++) { // NOLINT(modernize-loop-convert)
-			const DungeonFlag flags = static_cast<DungeonFlag>(file.NextLE<uint8_t>()) & DungeonFlag::LoadedFlags;
-			tileAt(Point { i, j }).setFlags(flags);
-		}
+	for (Tile &tile : tiles) {
+		const DungeonFlag flags = static_cast<DungeonFlag>(file.NextLE<uint8_t>()) & DungeonFlag::LoadedFlags;
+		tile.setFlags(flags);
 	}
 
 	// skip dItem indexes, this gets populated in LoadDroppedItems
 	file.Skip<uint8_t>(MAXDUNX * MAXDUNY);
 
 	if (leveltype != DTYPE_TOWN) {
-		for (int j = 0; j < MAXDUNY; j++) {
-			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-			{
-				int32_t monsterVal = file.NextBE<int32_t>();
-				if (monsterVal > 0 && removedMonsterIds.contains(std::abs(monsterVal) - 1)) {
-					monsterVal = 0;
-				}
-				tileAt(Point { i, j }).setMonster(monsterVal);
+		for (Tile &tile : tiles) {
+			int32_t monsterVal = file.NextBE<int32_t>();
+			if (monsterVal > 0 && removedMonsterIds.contains(std::abs(monsterVal) - 1)) {
+				monsterVal = 0;
 			}
+			tile.setMonster(monsterVal);
 		}
-		for (int j = 0; j < MAXDUNY; j++) {
-			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				tileAt(Point { i, j }).setObject(file.NextLE<int8_t>());
-		}
+		for (Tile &tile : tiles)
+			tile.setObject(file.NextLE<int8_t>());
 		file.Skip<uint8_t>(MAXDUNY * MAXDUNX); // dLight
-		for (int j = 0; j < MAXDUNY; j++) {
-			for (int i = 0; i < MAXDUNX; i++) { // NOLINT(modernize-loop-convert)
-				tileAt(Point { static_cast<WorldTileCoord>(i), static_cast<WorldTileCoord>(j) }).setPreLight(file.NextLE<uint8_t>());
-			}
-		}
+		for (Tile &tile : tiles)
+			tile.setPreLight(file.NextLE<uint8_t>());
 		for (int j = 0; j < DMAXY; j++) {
 			for (int i = 0; i < DMAXX; i++) { // NOLINT(modernize-loop-convert)
 				const auto automapView = static_cast<MapExplorationType>(file.NextLE<uint8_t>());
@@ -2091,21 +2065,12 @@ tl::expected<void, std::string> LoadLevel(LevelConversionData *levelConversionDa
 		}
 
 		// No need to load dLight, we can recreate it accurately from LightList
-		// MIGRATED to Tile API (Phase 4A)
-		for (int x = 0; x < MAXDUNX; x++) {
-			for (int y = 0; y < MAXDUNY; y++) {
-				Tile &tile = tileAt(Point { static_cast<WorldTileCoord>(x), static_cast<WorldTileCoord>(y) });
-				tile.setLight(tile.preLight());
-			}
-		}
+		for (Tile &tile : tiles.columnMajor())
+			tile.setLight(tile.preLight());
 		ChangeLightXY(Players[MyPlayerId].lightId, Players[MyPlayerId].position.tile); // forces player light refresh
 	} else {
-		// MIGRATED to Tile API (Phase 4A)
-		for (int x = 0; x < MAXDUNX; x++) {
-			for (int y = 0; y < MAXDUNY; y++) {
-				tileAt(Point { static_cast<WorldTileCoord>(x), static_cast<WorldTileCoord>(y) }).setLight(0);
-			}
-		}
+		for (Tile &tile : tiles.columnMajor())
+			tile.setLight(0);
 	}
 
 	if (!gbSkipSync) {
@@ -2618,45 +2583,31 @@ tl::expected<void, std::string> LoadGame(bool firstflag)
 		uniqueItemFlag = file.NextBool8();
 
 	file.Skip<uint8_t>(MAXDUNY * MAXDUNX); // dLight
-	for (int j = 0; j < MAXDUNY; j++) {
-		for (int i = 0; i < MAXDUNX; i++) { // NOLINT(modernize-loop-convert)
-			const DungeonFlag flags = static_cast<DungeonFlag>(file.NextLE<uint8_t>()) & DungeonFlag::LoadedFlags;
-			tileAt(Point { i, j }).setFlags(flags);
-		}
+	for (Tile &tile : tiles) {
+		const DungeonFlag flags = static_cast<DungeonFlag>(file.NextLE<uint8_t>()) & DungeonFlag::LoadedFlags;
+		tile.setFlags(flags);
 	}
-	for (int j = 0; j < MAXDUNY; j++) {
-		for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-			tileAt(Point { i, j }).setPlayer(file.NextLE<int8_t>());
-	}
+	for (Tile &tile : tiles)
+		tile.setPlayer(file.NextLE<int8_t>());
 
 	// skip dItem indexes, this gets populated in LoadDroppedItems
 	file.Skip<uint8_t>(MAXDUNX * MAXDUNY);
 
 	if (leveltype != DTYPE_TOWN) {
-		for (int j = 0; j < MAXDUNY; j++) {
-			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-			{
-				int32_t monsterVal = file.NextBE<int32_t>();
-				if (monsterVal > 0 && removedMonsterIds.contains(std::abs(monsterVal) - 1)) {
-					monsterVal = 0;
-				}
-				tileAt(Point { i, j }).setMonster(monsterVal);
+		for (Tile &tile : tiles) {
+			int32_t monsterVal = file.NextBE<int32_t>();
+			if (monsterVal > 0 && removedMonsterIds.contains(std::abs(monsterVal) - 1)) {
+				monsterVal = 0;
 			}
+			tile.setMonster(monsterVal);
 		}
-		for (int j = 0; j < MAXDUNY; j++) {
-			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				tileAt(Point { i, j }).setCorpse(file.NextLE<int8_t>());
-		}
-		for (int j = 0; j < MAXDUNY; j++) {
-			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				tileAt(Point { i, j }).setObject(file.NextLE<int8_t>());
-		}
+		for (Tile &tile : tiles)
+			tile.setCorpse(file.NextLE<int8_t>());
+		for (Tile &tile : tiles)
+			tile.setObject(file.NextLE<int8_t>());
 		file.Skip<uint8_t>(MAXDUNY * MAXDUNX); // dLight
-		for (int j = 0; j < MAXDUNY; j++) {
-			for (int i = 0; i < MAXDUNX; i++) { // NOLINT(modernize-loop-convert)
-				tileAt(Point { i, j }).setPreLight(file.NextLE<uint8_t>());
-			}
-		}
+		for (Tile &tile : tiles)
+			tile.setPreLight(file.NextLE<uint8_t>());
 		for (int j = 0; j < DMAXY; j++) {
 			for (int i = 0; i < DMAXX; i++) { // NOLINT(modernize-loop-convert)
 				const auto automapView = static_cast<MapExplorationType>(file.NextLE<uint8_t>());
@@ -2666,18 +2617,12 @@ tl::expected<void, std::string> LoadGame(bool firstflag)
 		file.Skip(MAXDUNX * MAXDUNY); // dMissile
 
 		// No need to load dLight, we can recreate it accurately from LightList
-		for (int x = 0; x < MAXDUNX; x++) {
-			for (int y = 0; y < MAXDUNY; y++) {
-				tileAt(Point { x, y }).setLight(tileAt(Point { x, y }).preLight());
-			}
-		}
+		for (Tile &tile : tiles.columnMajor())
+			tile.setLight(tile.preLight());
 		ChangeLightXY(myPlayer.lightId, myPlayer.position.tile); // forces player light refresh
 	} else {
-		for (int x = 0; x < MAXDUNX; x++) {
-			for (int y = 0; y < MAXDUNY; y++) {
-				tileAt(Point { x, y }).setLight(0);
-			}
-		}
+		for (Tile &tile : tiles.columnMajor())
+			tile.setLight(0);
 	}
 
 	PremiumItemCount = file.NextBE<int32_t>();
@@ -2899,42 +2844,26 @@ void SaveGameData(SaveWriter &saveWriter)
 	for (const bool uniqueItemFlag : UniqueItemFlags)
 		file.WriteLE<uint8_t>(uniqueItemFlag ? 1 : 0);
 
-	for (int j = 0; j < MAXDUNY; j++) {
-		for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-			file.WriteLE<uint8_t>(tileAt(Point { i, j }).light());
-	}
-	for (int j = 0; j < MAXDUNY; j++) {
-		for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-			file.WriteLE<uint8_t>(static_cast<uint8_t>(tileAt(Point { i, j }).flags() & DungeonFlag::SavedFlags));
-	}
-	for (int j = 0; j < MAXDUNY; j++) {
-		for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-			file.WriteLE<int8_t>(tileAt(Point { i, j }).player());
-	}
+	for (const Tile &tile : tiles)
+		file.WriteLE<uint8_t>(tile.light());
+	for (const Tile &tile : tiles)
+		file.WriteLE<uint8_t>(static_cast<uint8_t>(tile.flags() & DungeonFlag::SavedFlags));
+	for (const Tile &tile : tiles)
+		file.WriteLE<int8_t>(tile.player());
 
 	SaveDroppedItemLocations(file, itemIndexes);
 
 	if (leveltype != DTYPE_TOWN) {
-		for (int j = 0; j < MAXDUNY; j++) {
-			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				file.WriteBE<int32_t>(tileAt(Point { i, j }).monster());
-		}
-		for (int j = 0; j < MAXDUNY; j++) {
-			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				file.WriteLE<int8_t>(tileAt(Point { i, j }).corpse());
-		}
-		for (int j = 0; j < MAXDUNY; j++) {
-			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				file.WriteLE<int8_t>(tileAt(Point { i, j }).object());
-		}
-		for (int j = 0; j < MAXDUNY; j++) {
-			for (int i = 0; i < MAXDUNX; i++)        // NOLINT(modernize-loop-convert)
-				file.WriteLE<uint8_t>(tileAt(Point { i, j }).light()); // BUGFIX: dLight got saved already
-		}
-		for (int j = 0; j < MAXDUNY; j++) {
-			for (int i = 0; i < MAXDUNX; i++) // NOLINT(modernize-loop-convert)
-				file.WriteLE<uint8_t>(tileAt(Point { i, j }).preLight());
-		}
+		for (const Tile &tile : tiles)
+			file.WriteBE<int32_t>(tile.monster());
+		for (const Tile &tile : tiles)
+			file.WriteLE<int8_t>(tile.corpse());
+		for (const Tile &tile : tiles)
+			file.WriteLE<int8_t>(tile.object());
+		for (const Tile &tile : tiles)
+			file.WriteLE<uint8_t>(tile.light()); // BUGFIX: dLight got saved already
+		for (const Tile &tile : tiles)
+			file.WriteLE<uint8_t>(tile.preLight());
 		for (int j = 0; j < DMAXY; j++) {
 			for (int i = 0; i < DMAXX; i++) // NOLINT(modernize-loop-convert)
 				file.WriteLE<uint8_t>(AutomapView[i][j]);

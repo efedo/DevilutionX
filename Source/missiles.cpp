@@ -1234,11 +1234,8 @@ void InitMissiles()
 	}
 
 	Missiles.clear();
-	for (int j = 0; j < MAXDUNY; j++) {
-		for (int i = 0; i < MAXDUNX; i++) { // NOLINT(modernize-loop-convert)
-			tileAt(i, j).removeFlags(DungeonFlag::Missile | DungeonFlag::MissileFireWall | DungeonFlag::MissileLightningWall);
-		}
-	}
+	for (Tile &tile : tiles)
+		tile.removeFlags(DungeonFlag::Missile | DungeonFlag::MissileFireWall | DungeonFlag::MissileLightningWall);
 }
 
 void AddOpenNest(Missile &missile, AddMissileParameter &parameter)

@@ -132,40 +132,38 @@ void TownCloseGrave()
 
 void InitTownPieces()
 {
-	for (int y = 0; y < MAXDUNY; y++) {
-		for (int x = 0; x < MAXDUNX; x++) {
-			const uint16_t piece = tileAt(x, y).piece();
-			if (piece == 359) {
-				tileAt(x, y).setSpecial(1);
-			} else if (piece == 357) {
-				tileAt(x, y).setSpecial(2);
-			} else if (piece == 128) {
-				tileAt(x, y).setSpecial(6);
-			} else if (piece == 129) {
-				tileAt(x, y).setSpecial(7);
-			} else if (piece == 127) {
-				tileAt(x, y).setSpecial(8);
-			} else if (piece == 116) {
-				tileAt(x, y).setSpecial(9);
-			} else if (piece == 156) {
-				tileAt(x, y).setSpecial(10);
-			} else if (piece == 157) {
-				tileAt(x, y).setSpecial(11);
-			} else if (piece == 155) {
-				tileAt(x, y).setSpecial(12);
-			} else if (piece == 161) {
-				tileAt(x, y).setSpecial(13);
-			} else if (piece == 159) {
-				tileAt(x, y).setSpecial(14);
-			} else if (piece == 213) {
-				tileAt(x, y).setSpecial(15);
-			} else if (piece == 211) {
-				tileAt(x, y).setSpecial(16);
-			} else if (piece == 216) {
-				tileAt(x, y).setSpecial(17);
-			} else if (piece == 215) {
-				tileAt(x, y).setSpecial(18);
-			}
+	for (Tile &tile : tiles) {
+		const uint16_t piece = tile.piece();
+		if (piece == 359) {
+			tile.setSpecial(1);
+		} else if (piece == 357) {
+			tile.setSpecial(2);
+		} else if (piece == 128) {
+			tile.setSpecial(6);
+		} else if (piece == 129) {
+			tile.setSpecial(7);
+		} else if (piece == 127) {
+			tile.setSpecial(8);
+		} else if (piece == 116) {
+			tile.setSpecial(9);
+		} else if (piece == 156) {
+			tile.setSpecial(10);
+		} else if (piece == 157) {
+			tile.setSpecial(11);
+		} else if (piece == 155) {
+			tile.setSpecial(12);
+		} else if (piece == 161) {
+			tile.setSpecial(13);
+		} else if (piece == 159) {
+			tile.setSpecial(14);
+		} else if (piece == 213) {
+			tile.setSpecial(15);
+		} else if (piece == 211) {
+			tile.setSpecial(16);
+		} else if (piece == 216) {
+			tile.setSpecial(17);
+		} else if (piece == 215) {
+			tile.setSpecial(18);
 		}
 	}
 }
