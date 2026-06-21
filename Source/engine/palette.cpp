@@ -190,9 +190,9 @@ void LoadPaletteAndInitBlending(const char *path)
 	assert(path != nullptr);
 	if (HeadlessMode) return;
 	LoadPalette(path);
-	if (leveltype == DTYPE_CAVES || leveltype == DTYPE_CRYPT) {
+	if (levelType() == DTYPE_CAVES || levelType() == DTYPE_CRYPT) {
 		GenerateBlendedLookupTable(logical_palette.data(), /*skipFrom=*/1, /*skipTo=*/31);
-	} else if (leveltype == DTYPE_NEST) {
+	} else if (levelType() == DTYPE_NEST) {
 		GenerateBlendedLookupTable(logical_palette.data(), /*skipFrom=*/1, /*skipTo=*/15);
 	} else {
 		GenerateBlendedLookupTable(logical_palette.data());

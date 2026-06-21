@@ -127,7 +127,7 @@ bool IsDungeonItemValid(uint16_t iCreateInfo, uint32_t dwBuff)
 	if (isHellfireItem) {
 		uint8_t hellfireMaxDungeonLevel = 24;
 
-		// Hellfire adjusts the currlevel minus 7 in dungeon levels 20-24 for generating items
+		// Hellfire adjusts the currentLevelNumber() minus 7 in dungeon levels 20-24 for generating items
 		hellfireMaxDungeonLevel -= 7;
 		return level <= (hellfireMaxDungeonLevel * 2);
 	}

@@ -1,12 +1,12 @@
 /**
  * @file level_micros_test.cpp
  *
- * Sanity-check tests for the DPieceMicros -> levelMicros() refactor.
+ * Sanity-check tests for the levelMicros() accessor.
  *
  * These tests verify:
- *   1. levelMicros() returns the same storage as the legacy DPieceMicros macro.
- *   2. Writes through levelMicros() are visible via DPieceMicros and vice versa
- *      (they are aliases of the same array — kept during transition).
+ *   1. levelMicros() returns the current level's microtile storage.
+ *   2. Writes through levelMicros() remain visible through subsequent accesses.
+ *      (they are views of the same array).
  *   3. The MICROS struct is zero-initialised on a fresh level.
  *   4. Writing a LevelCelBlock through levelMicros() round-trips correctly.
  *   5. levelMicros() returns a different array after a level switch.
@@ -34,19 +34,19 @@ protected:
 };
 
 // ---------------------------------------------------------------------------
-// 1. levelMicros() address matches the legacy DPieceMicros macro address
+// 1. levelMicros() addresses the current level's microtile storage.
 // ---------------------------------------------------------------------------
-TEST_F(LevelMicrosTest, LevelMicrosAndLegacyMacroAreTheSameStorage)
+TEST_F(LevelMicrosTest, RepeatedAccessReturnsTheSameStorage)
 {
-	MICROS *viaFunction = levelMicros().data();
-	MICROS *viaLegacy = &DPieceMicros[0];
-	EXPECT_EQ(viaFunction, viaLegacy);
+	MICROS *firstAccess = levelMicros().data();
+	MICROS *secondAccess = levelMicros().data();
+	EXPECT_EQ(firstAccess, secondAccess);
 }
 
 // ---------------------------------------------------------------------------
-// 2. Write through levelMicros(), read back through DPieceMicros (alias check)
+// 2. Write through levelMicros(), then read through a new span.
 // ---------------------------------------------------------------------------
-TEST_F(LevelMicrosTest, WriteThroughFunctionReadThroughMacro)
+TEST_F(LevelMicrosTest, WriteThenReadThroughNewSpan)
 {
 	// LevelCelBlock encodes frame in bits [0,11] and type in bits [12,14]
 	// Frame 42, type Square (0) => raw data = 42
@@ -54,17 +54,17 @@ TEST_F(LevelMicrosTest, WriteThroughFunctionReadThroughMacro)
 
 	levelMicros()[5].mt[0] = expected;
 
-	EXPECT_EQ(DPieceMicros[5].mt[0].data, expected.data);
+	EXPECT_EQ(levelMicros()[5].mt[0].data, expected.data);
 }
 
 // ---------------------------------------------------------------------------
-// 3. Write through DPieceMicros (legacy), read back through levelMicros()
+// 3. Repeated levelMicros() calls address the same storage.
 // ---------------------------------------------------------------------------
-TEST_F(LevelMicrosTest, WriteThroughMacroReadThroughFunction)
+TEST_F(LevelMicrosTest, RepeatedAccessPreservesWrites)
 {
 	const LevelCelBlock expected { 999u };
 
-	DPieceMicros[10].mt[3] = expected;
+	levelMicros()[10].mt[3] = expected;
 
 	EXPECT_EQ(levelMicros()[10].mt[3].data, expected.data);
 }

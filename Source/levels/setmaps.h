@@ -26,7 +26,7 @@ inline dungeon_type GetArenaLevelType(_setlevels arenaLevel)
 }
 
 /**
- * @brief Load a quest map, the given map is specified via the global setlvlnum
+ * @brief Load a quest map, the given map is specified via the global setLevelNumber()
  */
 void LoadSetMap();
 

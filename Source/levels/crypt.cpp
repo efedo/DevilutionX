@@ -667,7 +667,7 @@ void CryptFloor(int rndper)
 
 void InitCryptPieces()
 {
-	for (auto &tile : tiles) {
+	for (auto &tile : tiles()) {
 		if (tile.piece() == 76) {
 			tile.setSpecial(1);
 		} else if (tile.piece() == 79) {
@@ -687,7 +687,7 @@ void SetCryptRoom()
 
 	auto dunData = LoadFileInMem<uint16_t>("nlevels\\l5data\\uberroom.dun");
 
-	SetPiece = { position, GetDunSize(dunData.get()) };
+	setPiece() = { position, GetDunSize(dunData.get()) };
 
 	PlaceDunTiles(dunData.get(), position, 0);
 }
@@ -698,7 +698,7 @@ void SetCornerRoom()
 
 	auto dunData = LoadFileInMem<uint16_t>("nlevels\\l5data\\cornerstone.dun");
 
-	SetPiece = { position, GetDunSize(dunData.get()) };
+	setPiece() = { position, GetDunSize(dunData.get()) };
 
 	PlaceDunTiles(dunData.get(), position, 0);
 }
@@ -727,20 +727,20 @@ bool PlaceCryptStairs(lvl_entry entry)
 	std::optional<Point> position;
 
 	// Place stairs up
-	position = PlaceMiniSet(currlevel != 21 ? L5STAIRSUPHF : L5STAIRSTOWN, DMAXX * DMAXY, true);
+	position = PlaceMiniSet(currentLevelNumber() != 21 ? L5STAIRSUPHF : L5STAIRSTOWN, DMAXX * DMAXY, true);
 	if (!position) {
 		success = false;
 	} else if (entry == ENTRY_MAIN || entry == ENTRY_TWARPDN) {
-		ViewPosition = position->megaToWorld() + Displacement { 3, 5 };
+		viewPosition() = position->megaToWorld() + Displacement { 3, 5 };
 	}
 
 	// Place stairs down
-	if (currlevel != 24) {
+	if (currentLevelNumber() != 24) {
 		position = PlaceMiniSet(L5STAIRSDOWN, DMAXX * DMAXY, true);
 		if (!position)
 			success = false;
 		else if (entry == ENTRY_PREV)
-			ViewPosition = position->megaToWorld() + Displacement { 3, 7 };
+			viewPosition() = position->megaToWorld() + Displacement { 3, 7 };
 	}
 
 	return success;
@@ -757,7 +757,7 @@ void CryptSubstitution()
 	PlaceMiniSetRandom(HWallSection, 100);
 	PlaceMiniSetRandom(CryptFloorLave, 60);
 	ApplyCryptShadowsPatterns();
-	switch (currlevel) {
+	switch (currentLevelNumber()) {
 	case 21:
 		CryptCracked(30);
 		CryptBroken(15);
@@ -799,8 +799,8 @@ void CryptSubstitution()
 
 void SetCryptSetPieceRoom()
 {
-	for (int j = dminPosition.y; j < dmaxPosition.y; j++) {
-		for (int i = dminPosition.x; i < dmaxPosition.x; i++) {
+	for (int j = minimumDungeonPosition().y; j < maximumDungeonPosition().y; j++) {
+		for (int i = minimumDungeonPosition().x; i < maximumDungeonPosition().x; i++) {
 			if (tileAt(i, j).piece() == 289) {
 				UberRow = i;
 				UberCol = j;

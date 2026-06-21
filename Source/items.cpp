@@ -550,8 +550,8 @@ int itemLevelAddHf[] = {
 
 int ItemsGetCurrlevel()
 {
-	if (setlevel) {
-		switch (setlvlnum) {
+	if (isSetLevel()) {
+		switch (setLevelNumber()) {
 		case SL_SKELKING:
 			return Quests[Q_SKELKING]._qlevel;
 		case SL_BONECHAMB:
@@ -565,13 +565,13 @@ int ItemsGetCurrlevel()
 		}
 	}
 
-	if (leveltype == DTYPE_NEST)
-		return currlevel - 8;
+	if (levelType() == DTYPE_NEST)
+		return currentLevelNumber() - 8;
 
-	if (leveltype == DTYPE_CRYPT)
-		return currlevel - 7;
+	if (levelType() == DTYPE_CRYPT)
+		return currentLevelNumber() - 7;
 
-	return currlevel;
+	return currentLevelNumber();
 }
 
 bool ItemPlace(Point position)
@@ -633,7 +633,7 @@ void SpawnNote()
 {
 	_item_indexes id;
 
-	switch (currlevel) {
+	switch (currentLevelNumber()) {
 	case 22:
 		id = IDI_NOTE2;
 		break;
@@ -2599,26 +2599,26 @@ void InitItems()
 		ActiveItems[i] = i;
 	}
 
-	if (!setlevel) {
+	if (!isSetLevel()) {
 		DiscardRandomValues(1);
 		if (Quests[Q_ROCK].IsAvailable())
 			SpawnRock();
 		if (Quests[Q_ANVIL].IsAvailable())
-			SpawnQuestItem(IDI_ANVIL, SetPiece.position.megaToWorld() + Displacement { 11, 11 }, 0, SelectionRegion::Bottom, false);
-		if (sgGameInitInfo.bCowQuest != 0 && currlevel == 20)
+			SpawnQuestItem(IDI_ANVIL, setPiece().position.megaToWorld() + Displacement { 11, 11 }, 0, SelectionRegion::Bottom, false);
+		if (sgGameInitInfo.bCowQuest != 0 && currentLevelNumber() == 20)
 			SpawnQuestItem(IDI_BROWNSUIT, { 25, 25 }, 3, SelectionRegion::Bottom, false);
-		if (sgGameInitInfo.bCowQuest != 0 && currlevel == 19)
+		if (sgGameInitInfo.bCowQuest != 0 && currentLevelNumber() == 19)
 			SpawnQuestItem(IDI_GREYSUIT, { 25, 25 }, 3, SelectionRegion::Bottom, false);
 		// In multiplayer items spawn during level generation to avoid desyncs
 		if (gbIsMultiplayer) {
 			if (Quests[Q_MUSHROOM].IsAvailable())
 				SpawnQuestItem(IDI_FUNGALTM, { 0, 0 }, 5, SelectionRegion::Bottom, false);
-			if (currlevel == Quests[Q_VEIL]._qlevel + 1 && Quests[Q_VEIL]._qactive != QUEST_NOTAVAIL)
+			if (currentLevelNumber() == Quests[Q_VEIL]._qlevel + 1 && Quests[Q_VEIL]._qactive != QUEST_NOTAVAIL)
 				SpawnQuestItem(IDI_GLDNELIX, { 0, 0 }, 5, SelectionRegion::Bottom, false);
 		}
-		if (currlevel > 0 && currlevel < 16)
+		if (currentLevelNumber() > 0 && currentLevelNumber() < 16)
 			AddInitItems();
-		if (currlevel >= 21 && currlevel <= 23)
+		if (currentLevelNumber() >= 21 && currentLevelNumber() <= 23)
 			SpawnNote();
 	}
 
@@ -3330,7 +3330,7 @@ void GetItemAttrs(Item &item, _item_indexes itemData, int lvl)
 		rndv = 5 * (itemlevel + 32) + GenerateRnd(10 * (itemlevel + 32));
 		break;
 	}
-	if (leveltype == DTYPE_HELL)
+	if (levelType() == DTYPE_HELL)
 		rndv += rndv / 8;
 
 	item._ivalue = std::min(rndv, GOLD_MAX_LIMIT);
@@ -4848,7 +4848,7 @@ int ItemNoFlippy()
 
 void CreateSpellBook(Point position, SpellID ispell, bool sendmsg, bool delta)
 {
-	int lvl = currlevel;
+	int lvl = currentLevelNumber();
 
 	if (gbIsHellfire) {
 		lvl = GetSpellBookLevel(ispell) + 1;
@@ -5009,7 +5009,7 @@ StringOrView Item::getName() const
 
 bool CornerStoneStruct::isAvailable()
 {
-	return currlevel == 21 && !gbIsMultiplayer;
+	return currentLevelNumber() == 21 && !gbIsMultiplayer;
 }
 
 void initItemGetRecords()

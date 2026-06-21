@@ -94,7 +94,7 @@ struct LevelCelBlock {
 	}
 
 	/**
-	 * @brief Returns the 1-based index of the frame in `pDungeonCels`.
+	 * @brief Returns the 1-based index of the frame in `dungeonCels()`.
 	 */
 	[[nodiscard]] uint16_t frame() const
 	{

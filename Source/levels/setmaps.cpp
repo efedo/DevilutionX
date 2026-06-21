@@ -72,7 +72,7 @@ void SetMapTransparency(const char *path)
 
 void LoadCustomMap(const char *path, Point viewPosition)
 {
-	switch (setlvltype) {
+	switch (setLevelType()) {
 	case DTYPE_CATHEDRAL:
 	case DTYPE_CRYPT:
 		LoadL1Dungeon(path, viewPosition);
@@ -91,7 +91,7 @@ void LoadCustomMap(const char *path, Point viewPosition)
 	case DTYPE_NONE:
 		break;
 	}
-	LoadRndLvlPal(setlvltype);
+	LoadRndLvlPal(setLevelType());
 }
 
 void LoadArenaMap(const char *path, Point viewPosition, Point exitTrigger)
@@ -107,7 +107,7 @@ void LoadArenaMap(const char *path, Point viewPosition, Point exitTrigger)
 
 void LoadSetMap()
 {
-	switch (setlvlnum) {
+	switch (setLevelNumber()) {
 	case SL_SKELKING:
 		if (Quests[Q_SKELKING]._qactive == QUEST_INIT) {
 			Quests[Q_SKELKING]._qactive = QUEST_ACTIVE;
@@ -162,7 +162,7 @@ void LoadSetMap()
 		break;
 	case SL_NONE:
 #ifdef _DEBUG
-		LoadCustomMap(TestMapPath.c_str(), ViewPosition);
+		LoadCustomMap(TestMapPath.c_str(), viewPosition());
 		InitNoTriggers();
 #endif
 		break;

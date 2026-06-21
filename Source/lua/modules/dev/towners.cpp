@@ -43,7 +43,7 @@ std::string DebugCmdVisitTowner(std::string_view name)
 {
 	Player &myPlayer = *MyPlayer;
 
-	if (setlevel || !myPlayer.isOnLevel(0))
+	if (isSetLevel() || !myPlayer.isOnLevel(0))
 		return StrCat("This command is only available in Town!");
 
 	if (name.empty()) {

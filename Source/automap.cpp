@@ -184,7 +184,7 @@ void DrawMapVerticalDoor(const Surface &out, Point center, AutomapTile neTile, u
 	AmHeightOffset dHeightOffset;
 	AmLineLength length;
 
-	switch (leveltype) {
+	switch (levelType()) {
 	case DTYPE_CATHEDRAL:
 	case DTYPE_CRYPT:
 		lWidthOffset = AmWidthOffset::QuarterTileLeft;
@@ -214,9 +214,9 @@ void DrawMapVerticalDoor(const Surface &out, Point center, AutomapTile neTile, u
 		length = AmLineLength::FullTile;
 		break;
 	default:
-		app_fatal("Invalid leveltype");
+		app_fatal("Invalid levelType()");
 	}
-	if (!neTile.hasFlag(AutomapTile::Flags::VerticalPassage) || leveltype != DTYPE_CATHEDRAL)
+	if (!neTile.hasFlag(AutomapTile::Flags::VerticalPassage) || levelType() != DTYPE_CATHEDRAL)
 		DrawMapLineNE(out, center + AmOffset(lWidthOffset, lHeightOffset), AmLine(length), colorDim);
 	DrawDiamond(out, center + AmOffset(dWidthOffset, dHeightOffset), colorBright);
 }
@@ -232,7 +232,7 @@ void DrawMapHorizontalDoor(const Surface &out, Point center, AutomapTile nwTile,
 	AmHeightOffset dHeightOffset;
 	AmLineLength length;
 
-	switch (leveltype) {
+	switch (levelType()) {
 	case DTYPE_CATHEDRAL:
 	case DTYPE_CRYPT:
 		lWidthOffset = AmWidthOffset::None;
@@ -263,9 +263,9 @@ void DrawMapHorizontalDoor(const Surface &out, Point center, AutomapTile nwTile,
 		break;
 		break;
 	default:
-		app_fatal("Invalid leveltype");
+		app_fatal("Invalid levelType()");
 	}
-	if (!nwTile.hasFlag(AutomapTile::Flags::HorizontalPassage) || leveltype != DTYPE_CATHEDRAL)
+	if (!nwTile.hasFlag(AutomapTile::Flags::HorizontalPassage) || levelType() != DTYPE_CATHEDRAL)
 		DrawMapLineSE(out, center + AmOffset(lWidthOffset, lHeightOffset), AmLine(length), colorDim);
 	DrawDiamond(out, center + AmOffset(dWidthOffset, dHeightOffset), colorBright);
 }
@@ -577,7 +577,7 @@ void DrawStairs(const Surface &out, Point center, uint8_t color)
 	AmWidthOffset w = AmWidthOffset::QuarterTileLeft;
 	AmHeightOffset h = AmHeightOffset::QuarterTileUp;
 
-	if (IsAnyOf(leveltype, DTYPE_CATACOMBS, DTYPE_HELL)) {
+	if (IsAnyOf(levelType(), DTYPE_CATACOMBS, DTYPE_HELL)) {
 		w = AmWidthOffset::QuarterTileLeft;
 		h = AmHeightOffset::ThreeQuartersTileUp;
 	}
@@ -595,7 +595,7 @@ void DrawStairs(const Surface &out, Point center, uint8_t color)
  */
 void FixHorizontalDoor(const Surface &out, Point center, AutomapTile nwTile, uint8_t colorBright)
 {
-	if (leveltype != DTYPE_CATACOMBS && nwTile.hasFlag(AutomapTile::Flags::HorizontalDoor)) {
+	if (levelType() != DTYPE_CATACOMBS && nwTile.hasFlag(AutomapTile::Flags::HorizontalDoor)) {
 		DrawMapLineNE(out, center + AmOffset(AmWidthOffset::HalfTileLeft, AmHeightOffset::HalfTileUp), AmLine(AmLineLength::FullTile), colorBright);
 	}
 }
@@ -605,7 +605,7 @@ void FixHorizontalDoor(const Surface &out, Point center, AutomapTile nwTile, uin
  */
 void FixVerticalDoor(const Surface &out, Point center, AutomapTile neTile, uint8_t colorBright)
 {
-	if (leveltype != DTYPE_CATACOMBS && neTile.hasFlag(AutomapTile::Flags::VerticalDoor)) {
+	if (levelType() != DTYPE_CATACOMBS && neTile.hasFlag(AutomapTile::Flags::VerticalDoor)) {
 		DrawMapLineSE(out, center + AmOffset(AmWidthOffset::None, AmHeightOffset::FullTileUp), AmLine(AmLineLength::FullTile), colorBright);
 	}
 }
@@ -685,7 +685,7 @@ void DrawHorizontal(const Surface &out, Point center, AutomapTile tile, AutomapT
 		FixVerticalDoor(out, center, neTile, colorBright);
 	}
 	// Shorten line to avoid overdraw
-	if (IsAnyOf(leveltype, DTYPE_CAVES, DTYPE_NEST)
+	if (IsAnyOf(levelType(), DTYPE_CAVES, DTYPE_NEST)
 	    && IsAnyOf(tile.type, AutomapTile::Types::CaveVerticalCross, AutomapTile::Types::CaveVerticalWoodCross)
 	    && !(IsAnyOf(seTile.type, AutomapTile::Types::Horizontal, AutomapTile::Types::CaveVerticalCross, AutomapTile::Types::CaveVerticalWoodCross, AutomapTile::Types::Corner))) {
 		l = AmLineLength::FullTile;
@@ -723,7 +723,7 @@ void DrawVertical(const Surface &out, Point center, AutomapTile tile, AutomapTil
 		FixVerticalDoor(out, center, neTile, colorBright);
 	}
 	// Shorten line to avoid overdraw and adjust offset to match
-	if (IsAnyOf(leveltype, DTYPE_CAVES, DTYPE_NEST)
+	if (IsAnyOf(levelType(), DTYPE_CAVES, DTYPE_NEST)
 	    && IsAnyOf(tile.type, AutomapTile::Types::CaveHorizontalCross, AutomapTile::Types::CaveHorizontalWoodCross)
 	    && !(IsAnyOf(swTile.type, AutomapTile::Types::Vertical, AutomapTile::Types::CaveHorizontalCross, AutomapTile::Types::CaveHorizontalWoodCross, AutomapTile::Types::Corner))) {
 		w = AmWidthOffset::HalfTileLeft;
@@ -758,7 +758,7 @@ void DrawCaveWallConnections(const Surface &out, Point center, AutomapTile swTil
 }
 void DrawCaveHorizontalDirt(const Surface &out, Point center, AutomapTile tile, AutomapTile swTile, uint8_t colorDim)
 {
-	if (swTile.hasFlag(AutomapTile::Flags::Dirt) || (leveltype != DTYPE_TOWN && IsNoneOf(tile.type, AutomapTile::Types::CaveHorizontalWood, AutomapTile::Types::CaveHorizontalWoodCross, AutomapTile::Types::CaveWoodCross, AutomapTile::Types::CaveLeftWoodCross))) {
+	if (swTile.hasFlag(AutomapTile::Flags::Dirt) || (levelType() != DTYPE_TOWN && IsNoneOf(tile.type, AutomapTile::Types::CaveHorizontalWood, AutomapTile::Types::CaveHorizontalWoodCross, AutomapTile::Types::CaveWoodCross, AutomapTile::Types::CaveLeftWoodCross))) {
 		SetMapPixel(out, center + AmOffset(AmWidthOffset::ThreeQuartersTileLeft, AmHeightOffset::QuarterTileDown), colorDim);
 		SetMapPixel(out, center + AmOffset(AmWidthOffset::HalfTileLeft, AmHeightOffset::HalfTileDown), colorDim);
 		SetMapPixel(out, center + AmOffset(AmWidthOffset::QuarterTileLeft, AmHeightOffset::ThreeQuartersTileDown), colorDim);
@@ -794,7 +794,7 @@ void DrawCaveHorizontal(const Surface &out, Point center, AutomapTile tile, Auto
 
 void DrawCaveVerticalDirt(const Surface &out, Point center, AutomapTile tile, AutomapTile seTile, uint8_t colorDim)
 {
-	if (seTile.hasFlag(AutomapTile::Flags::Dirt) || (leveltype != DTYPE_TOWN && IsNoneOf(tile.type, AutomapTile::Types::CaveVerticalWood, AutomapTile::Types::CaveVerticalWoodCross, AutomapTile::Types::CaveWoodCross, AutomapTile::Types::CaveRightWoodCross))) {
+	if (seTile.hasFlag(AutomapTile::Flags::Dirt) || (levelType() != DTYPE_TOWN && IsNoneOf(tile.type, AutomapTile::Types::CaveVerticalWood, AutomapTile::Types::CaveVerticalWoodCross, AutomapTile::Types::CaveWoodCross, AutomapTile::Types::CaveRightWoodCross))) {
 		SetMapPixel(out, center + AmOffset(AmWidthOffset::None, AmHeightOffset::FullTileDown), colorDim);
 		SetMapPixel(out, center + AmOffset(AmWidthOffset::QuarterTileRight, AmHeightOffset::ThreeQuartersTileDown), colorDim);
 		SetMapPixel(out, center + AmOffset(AmWidthOffset::HalfTileRight, AmHeightOffset::HalfTileDown), colorDim);
@@ -1026,7 +1026,7 @@ void DrawAutomapTile(const Surface &out, Point center, Point map)
 	}
 
 	// These tilesets have doors where the connection lines would be drawn
-	if (IsAnyOf(leveltype, DTYPE_CATACOMBS, DTYPE_CAVES) && (tile.hasFlag(AutomapTile::Flags::HorizontalDoor) || tile.hasFlag(AutomapTile::Flags::VerticalDoor)))
+	if (IsAnyOf(levelType(), DTYPE_CATACOMBS, DTYPE_CAVES) && (tile.hasFlag(AutomapTile::Flags::HorizontalDoor) || tile.hasFlag(AutomapTile::Flags::VerticalDoor)))
 		noConnect = true;
 
 	const AutomapTile swTile = GetAutomapTypeView(map + Direction::SouthWest);
@@ -1036,7 +1036,7 @@ void DrawAutomapTile(const Surface &out, Point center, Point map)
 	const AutomapTile wTile = GetAutomapTypeView(map + Direction::West);
 	const AutomapTile eTile = GetAutomapTypeView(map + Direction::East);
 
-	if ((leveltype == DTYPE_TOWN && tile.hasFlag(AutomapTile::Flags::Dirt))
+	if ((levelType() == DTYPE_TOWN && tile.hasFlag(AutomapTile::Flags::Dirt))
 	    || (tile.hasFlag(AutomapTile::Flags::Dirt)
 	        && (tile.type != AutomapTile::Types::None
 	            || swTile.type != AutomapTile::Types::None
@@ -1055,16 +1055,16 @@ void DrawAutomapTile(const Surface &out, Point center, Point map)
 	}
 
 	if (!noConnect) {
-		if (IsAnyOf(leveltype, DTYPE_TOWN, DTYPE_CAVES, DTYPE_NEST)) {
+		if (IsAnyOf(levelType(), DTYPE_TOWN, DTYPE_CAVES, DTYPE_NEST)) {
 			DrawCaveWallConnections(out, center, swTile, seTile, colorDim);
 		}
 		DrawWallConnections(out, center, tile, nwTile, neTile, colorBright, colorDim);
 	}
 
 	uint8_t lavaColor = MapColorsLava;
-	if (leveltype == DTYPE_NEST) {
+	if (levelType() == DTYPE_NEST) {
 		lavaColor = MapColorsAcid;
-	} else if (setlevel && setlvlnum == Quests[Q_PWATER]._qslvl) {
+	} else if (isSetLevel() && setLevelNumber() == Quests[Q_PWATER]._qslvl) {
 		if (Quests[Q_PWATER]._qactive != QUEST_DONE) {
 			lavaColor = MapColorsAcid;
 		} else {
@@ -1298,8 +1298,8 @@ void SearchAutomapItem(const Surface &out, const Displacement &myPlayerOffset, i
 			if (!highlightTile({ i, j }))
 				continue;
 
-			const int px = i - (2 * AutomapOffset.deltaX) - ViewPosition.x;
-			const int py = j - (2 * AutomapOffset.deltaY) - ViewPosition.y;
+			const int px = i - (2 * AutomapOffset.deltaX) - viewPosition().x;
+			const int py = j - (2 * AutomapOffset.deltaY) - viewPosition().y;
 
 			Point screen = {
 				(myPlayerOffset.deltaX * scale / 100 / 2) + ((px - py) * AmLine(AmLineLength::DoubleTile)),
@@ -1345,8 +1345,8 @@ void DrawAutomapPlr(const Surface &out, const Displacement &myPlayerOffset, cons
 
 	const Point tile = player.position.tile;
 
-	const int px = tile.x - (2 * AutomapOffset.deltaX) - ViewPosition.x;
-	const int py = tile.y - (2 * AutomapOffset.deltaY) - ViewPosition.y;
+	const int px = tile.x - (2 * AutomapOffset.deltaX) - viewPosition().x;
+	const int py = tile.y - (2 * AutomapOffset.deltaY) - viewPosition().y;
 
 	Displacement playerOffset = {};
 	if (player.isWalking())
@@ -1461,22 +1461,22 @@ void DrawAutomapText(const Surface &out)
 		drawStringAndAdvanceLine(description);
 	}
 
-	if (setlevel) {
-		drawStringAndAdvanceLine(_(QuestLevelNames[setlvlnum]));
+	if (isSetLevel()) {
+		drawStringAndAdvanceLine(_(QuestLevelNames[setLevelNumber()]));
 	} else {
 		std::string description;
-		switch (leveltype) {
+		switch (levelType()) {
 		case DTYPE_NEST:
-			description = fmt::format(fmt::runtime(_("Level: Nest {:d}")), currlevel - 16);
+			description = fmt::format(fmt::runtime(_("Level: Nest {:d}")), currentLevelNumber() - 16);
 			break;
 		case DTYPE_CRYPT:
-			description = fmt::format(fmt::runtime(_("Level: Crypt {:d}")), currlevel - 20);
+			description = fmt::format(fmt::runtime(_("Level: Crypt {:d}")), currentLevelNumber() - 20);
 			break;
 		case DTYPE_TOWN:
 			description = std::string(_("Town"));
 			break;
 		default:
-			description = fmt::format(fmt::runtime(_("Level: {:d}")), currlevel);
+			description = fmt::format(fmt::runtime(_("Level: {:d}")), currentLevelNumber());
 			break;
 		}
 		drawStringAndAdvanceLine(description);
@@ -1524,7 +1524,7 @@ void DrawAutomapText(const Surface &out)
 
 std::unique_ptr<AutomapTile[]> LoadAutomapData(size_t &tileCount)
 {
-	switch (leveltype) {
+	switch (levelType()) {
 	case DTYPE_TOWN:
 		return LoadFileInMem<AutomapTile>("levels\\towndata\\automap.amp", &tileCount);
 	case DTYPE_CATHEDRAL:
@@ -1582,7 +1582,7 @@ void InitAutomap()
 	size_t tileCount = 0;
 	const std::unique_ptr<AutomapTile[]> tileTypes = LoadAutomapData(tileCount);
 
-	switch (leveltype) {
+	switch (levelType()) {
 	case DTYPE_CATACOMBS:
 		tileTypes[41] = { AutomapTile::Types::FenceHorizontal };
 		break;
@@ -1592,7 +1592,7 @@ void InitAutomap()
 		tileTypes[4] = { AutomapTile::Types::CaveBottomCorner };
 		tileTypes[12] = { AutomapTile::Types::CaveRightCorner };
 		tileTypes[13] = { AutomapTile::Types::CaveLeftCorner };
-		if (IsAnyOf(leveltype, DTYPE_CAVES)) {
+		if (IsAnyOf(levelType(), DTYPE_CAVES)) {
 			tileTypes[129] = { AutomapTile::Types::CaveHorizontalWoodCross };
 			tileTypes[131] = { AutomapTile::Types::CaveHorizontalWoodCross };
 			tileTypes[133] = { AutomapTile::Types::CaveHorizontalWood };
@@ -1644,7 +1644,7 @@ void InitAutomap()
 			tileTypes[42] = { AutomapTile::Types::CaveVerticalWallLava };
 			tileTypes[43] = { AutomapTile::Types::HorizontalBridgeLava };
 			tileTypes[44] = { AutomapTile::Types::VerticalBridgeLava };
-		} else if (IsAnyOf(leveltype, DTYPE_NEST)) {
+		} else if (IsAnyOf(levelType(), DTYPE_NEST)) {
 			tileTypes[102] = { AutomapTile::Types::HorizontalLavaThin };
 			tileTypes[103] = { AutomapTile::Types::HorizontalLavaThin };
 			tileTypes[108] = { AutomapTile::Types::HorizontalLavaThin };
@@ -1695,7 +1695,7 @@ void InitAutomap()
 
 	memset(AutomapView, 0, sizeof(AutomapView));
 
-	for (Tile &tile : tiles)
+	for (Tile &tile : tiles())
 		tile.removeFlags(DungeonFlag::Explored);
 }
 
@@ -1751,8 +1751,8 @@ void AutomapZoomOut()
 
 void DrawAutomap(const Surface &out)
 {
-	Automap = { (ViewPosition.x - 8) / 2, (ViewPosition.y - 8) / 2 };
-	if (leveltype != DTYPE_TOWN) {
+	Automap = { (viewPosition().x - 8) / 2, (viewPosition().y - 8) / 2 };
+	if (levelType() != DTYPE_TOWN) {
 		Automap += { -4, -4 };
 	}
 	while (Automap.x + AutomapOffset.deltaX < 0)
@@ -1818,11 +1818,11 @@ void DrawAutomap(const Surface &out)
 		screen.x -= AmOffset(AmWidthOffset::DoubleTileRight, AmHeightOffset::None).deltaX * (cells / 2) + AmOffset(AmWidthOffset::FullTileLeft, AmHeightOffset::None).deltaX;
 		screen.y -= AmOffset(AmWidthOffset::None, AmHeightOffset::DoubleTileDown).deltaY * (cells / 2) + AmOffset(AmWidthOffset::None, AmHeightOffset::FullTileDown).deltaY;
 	}
-	if ((ViewPosition.x & 1) != 0) {
+	if ((viewPosition().x & 1) != 0) {
 		screen.x -= AmOffset(AmWidthOffset::HalfTileRight, AmHeightOffset::None).deltaX;
 		screen.y -= AmOffset(AmWidthOffset::None, AmHeightOffset::HalfTileDown).deltaY;
 	}
-	if ((ViewPosition.y & 1) != 0) {
+	if ((viewPosition().y & 1) != 0) {
 		screen.x += AmOffset(AmWidthOffset::HalfTileRight, AmHeightOffset::None).deltaX;
 		screen.y -= AmOffset(AmWidthOffset::None, AmHeightOffset::HalfTileDown).deltaY;
 	}

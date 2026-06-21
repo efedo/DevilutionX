@@ -19,11 +19,11 @@ TEST(Drlg_l2, CreateL2Dungeon_diablo_5_1677631846)
 	Quests[Q_BLOOD]._qactive = QUEST_NOTAVAIL;
 
 	TestCreateDungeon(5, 1677631846, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(27, 28));
+	EXPECT_EQ(viewPosition(), Point(27, 28));
 	TestCreateDungeon(5, 1677631846, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(26, 62));
+	EXPECT_EQ(viewPosition(), Point(26, 62));
 	TestCreateDungeon(5, 1677631846, ENTRY_TWARPDN);
-	EXPECT_EQ(ViewPosition, Point(33, 56));
+	EXPECT_EQ(viewPosition(), Point(33, 56));
 }
 
 TEST(Drlg_l2, CreateL2Dungeon_diablo_5_68685319)
@@ -34,11 +34,11 @@ TEST(Drlg_l2, CreateL2Dungeon_diablo_5_68685319)
 	Quests[Q_BLOOD]._qactive = QUEST_INIT;
 
 	TestCreateDungeon(5, 68685319, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(37, 36));
+	EXPECT_EQ(viewPosition(), Point(37, 36));
 	TestCreateDungeon(5, 68685319, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(44, 28));
+	EXPECT_EQ(viewPosition(), Point(44, 28));
 	TestCreateDungeon(5, 68685319, ENTRY_TWARPDN);
-	EXPECT_EQ(ViewPosition, Point(45, 76));
+	EXPECT_EQ(viewPosition(), Point(45, 76));
 }
 
 TEST(Drlg_l2, CreateL2Dungeon_diablo_6_2034738122)
@@ -49,9 +49,9 @@ TEST(Drlg_l2, CreateL2Dungeon_diablo_6_2034738122)
 	Quests[Q_SCHAMB]._qactive = QUEST_NOTAVAIL;
 
 	TestCreateDungeon(6, 2034738122, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(33, 26));
+	EXPECT_EQ(viewPosition(), Point(33, 26));
 	TestCreateDungeon(6, 2034738122, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(34, 52));
+	EXPECT_EQ(viewPosition(), Point(34, 52));
 }
 
 TEST(Drlg_l2, CreateL2Dungeon_diablo_6_1824554527)
@@ -62,9 +62,9 @@ TEST(Drlg_l2, CreateL2Dungeon_diablo_6_1824554527)
 	Quests[Q_SCHAMB]._qactive = QUEST_INIT;
 
 	TestCreateDungeon(6, 1824554527, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(35, 36));
+	EXPECT_EQ(viewPosition(), Point(35, 36));
 	TestCreateDungeon(6, 1824554527, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(28, 76));
+	EXPECT_EQ(viewPosition(), Point(28, 76));
 }
 
 TEST(Drlg_l2, CreateL2Dungeon_diablo_6_2033265779)
@@ -75,9 +75,9 @@ TEST(Drlg_l2, CreateL2Dungeon_diablo_6_2033265779)
 	Quests[Q_SCHAMB]._qactive = QUEST_INIT;
 
 	TestCreateDungeon(6, 2033265779, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(27, 28));
+	EXPECT_EQ(viewPosition(), Point(27, 28));
 	TestCreateDungeon(6, 2033265779, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(64, 64));
+	EXPECT_EQ(viewPosition(), Point(64, 64));
 }
 
 TEST(Drlg_l2, CreateL2Dungeon_diablo_7_680552750)
@@ -88,9 +88,9 @@ TEST(Drlg_l2, CreateL2Dungeon_diablo_7_680552750)
 	Quests[Q_BLIND]._qactive = QUEST_NOTAVAIL;
 
 	TestCreateDungeon(7, 680552750, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(27, 26));
+	EXPECT_EQ(viewPosition(), Point(27, 26));
 	TestCreateDungeon(7, 680552750, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(78, 52));
+	EXPECT_EQ(viewPosition(), Point(78, 52));
 }
 
 TEST(Drlg_l2, CreateL2Dungeon_diablo_7_1607627156)
@@ -101,9 +101,9 @@ TEST(Drlg_l2, CreateL2Dungeon_diablo_7_1607627156)
 	Quests[Q_BLIND]._qactive = QUEST_INIT;
 
 	TestCreateDungeon(7, 1607627156, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(53, 26));
+	EXPECT_EQ(viewPosition(), Point(53, 26));
 	TestCreateDungeon(7, 1607627156, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(50, 88));
+	EXPECT_EQ(viewPosition(), Point(50, 88));
 }
 
 TEST(Drlg_l2, CreateL2Dungeon_diablo_8_1999936419)
@@ -113,9 +113,9 @@ TEST(Drlg_l2, CreateL2Dungeon_diablo_8_1999936419)
 	TestInitGame();
 
 	TestCreateDungeon(8, 1999936419, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(39, 74));
+	EXPECT_EQ(viewPosition(), Point(39, 74));
 	TestCreateDungeon(8, 1999936419, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(48, 46));
+	EXPECT_EQ(viewPosition(), Point(48, 46));
 }
 
 } // namespace

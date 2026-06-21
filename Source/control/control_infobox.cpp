@@ -408,7 +408,7 @@ void DrawInfoBox(const Surface &out)
 		else if (ObjectUnderCursor != nullptr)
 			GetObjectStr(*ObjectUnderCursor);
 		if (pcursmonst != -1) {
-			if (leveltype != DTYPE_TOWN) {
+			if (levelType() != DTYPE_TOWN) {
 				const Monster &monster = Monsters[pcursmonst];
 				InfoColor = UiFlags::ColorWhite;
 				InfoString = monster.name();

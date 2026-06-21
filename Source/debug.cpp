@@ -112,10 +112,10 @@ void NextDebugMonster()
 
 void SetDebugLevelSeedInfos(uint32_t mid1Seed, uint32_t mid2Seed, uint32_t mid3Seed, uint32_t endSeed)
 {
-	glMid1Seed[currlevel] = mid1Seed;
-	glMid2Seed[currlevel] = mid2Seed;
-	glMid3Seed[currlevel] = mid3Seed;
-	glEndSeed[currlevel] = endSeed;
+	glMid1Seed[currentLevelNumber()] = mid1Seed;
+	glMid2Seed[currentLevelNumber()] = mid2Seed;
+	glMid3Seed[currentLevelNumber()] = mid3Seed;
+	glEndSeed[currentLevelNumber()] = endSeed;
 }
 
 bool IsDebugGridTextNeeded()
@@ -253,7 +253,7 @@ bool GetDebugGridText(Point dungeonCoords, std::string &debugGridText)
 		break;
 	case DebugGridTextItem::DProtected:
 		if (megaCoords.x >= 0 && megaCoords.x < DMAXX && megaCoords.y >= 0 && megaCoords.y < DMAXY)
-			info = Protected.test(megaCoords.x, megaCoords.y);
+			info = protectedTiles().test(megaCoords.x, megaCoords.y);
 		break;
 	case DebugGridTextItem::None:
 		return false;

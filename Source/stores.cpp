@@ -2482,7 +2482,7 @@ void StoreESC()
 {
 	if (qtextflag) {
 		qtextflag = false;
-		if (leveltype == DTYPE_TOWN)
+		if (levelType() == DTYPE_TOWN)
 			stream_stop();
 		return;
 	}
@@ -2674,7 +2674,7 @@ void StoreEnter()
 {
 	if (qtextflag) {
 		qtextflag = false;
-		if (leveltype == DTYPE_TOWN)
+		if (levelType() == DTYPE_TOWN)
 			stream_stop();
 
 		return;
@@ -2792,7 +2792,7 @@ void CheckStoreBtn()
 
 	if (qtextflag) {
 		qtextflag = false;
-		if (leveltype == DTYPE_TOWN)
+		if (levelType() == DTYPE_TOWN)
 			stream_stop();
 	} else if (CurrentTextLine != -1) {
 		const int relativeY = MousePosition.y - (uiPosition.y + PaddingTop);

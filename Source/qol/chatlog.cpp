@@ -101,7 +101,7 @@ void ToggleChatLog()
 		CloseCharPanel();
 		SpellbookFlag = false;
 		SpellSelectFlag = false;
-		if (qtextflag && leveltype == DTYPE_TOWN) {
+		if (qtextflag && levelType() == DTYPE_TOWN) {
 			qtextflag = false;
 			stream_stop();
 		}

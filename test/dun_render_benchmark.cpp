@@ -38,7 +38,7 @@ void InitOnce()
 			exit(1);
 		}
 
-		leveltype = DTYPE_CATHEDRAL;
+		levelType() = DTYPE_CATHEDRAL;
 		BmDunCelData = LoadFileInMem("levels\\l1data\\l1.cel");
 		SetDungeonMicros(BmDunCelData, BmMicroTileLen);
 		MakeLightTable();
@@ -52,7 +52,7 @@ void InitOnce()
 
 		for (size_t i = 0; i < 700; ++i) {
 			for (size_t j = 0; j < 10; ++j) {
-				if (const LevelCelBlock levelCelBlock = DPieceMicros[i].mt[j]; levelCelBlock.hasValue()) {
+				if (const LevelCelBlock levelCelBlock = levelMicros()[i].mt[j]; levelCelBlock.hasValue()) {
 					if ((j == 0 || j == 1) && levelCelBlock.type() == TileType::TransparentSquare) {
 						// This could actually be re-encoded foliage, which is a triangle followed by TransparentSquare.
 						// Simply skip it.
@@ -72,7 +72,7 @@ void RunForTileMaskLight(benchmark::State &state, TileType tileType, MaskType ma
 	const Surface out = Surface(SdlSurface.get());
 	std::array<std::array<uint8_t, LightTableSize>, NumLightingLevels> lightTables;
 	const Lightmap lightmap(/*outBuffer=*/nullptr, /*lightmapBuffer=*/ {}, /*pitch=*/1, lightTables, FullyLitLightTable, FullyDarkLightTable);
-	const std::span<const LevelCelBlock> tileBlocks = Tiles[tileType];  // Renamed from tiles to tileBlocks to avoid macro conflict
+	const std::span<const LevelCelBlock> tileBlocks = Tiles[tileType];
 	for (auto _ : state) {
 		for (const LevelCelBlock &levelCelBlock : tileBlocks) {
 			RenderTile(out, lightmap, Point { 320, 240 }, BmDunCelData.get(), levelCelBlock, maskType, lightTable);

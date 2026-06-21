@@ -707,7 +707,7 @@ const Miniset HivePattern42 {
 void InitDungeonFlags()
 {
 	FillCurrentMegaTiles(0);
-	Protected.reset();
+	protectedTiles().reset();
 }
 
 bool FillRoom(int x1, int y1, int x2, int y2)
@@ -1492,7 +1492,7 @@ bool PlaceLavaPool()
 
 bool PlacePool()
 {
-	if (leveltype == DTYPE_NEST) {
+	if (levelType() == DTYPE_NEST) {
 		return PlaceSlimePool();
 	}
 
@@ -1816,7 +1816,7 @@ bool PlaceAnvil()
 
 		bool found = true;
 		for (const WorldTilePosition tile : PointsInRectangle(WorldTileRectangle { { sx, sy }, areaSize })) {
-			if (Protected.test(tile.x, tile.y) || megaTileAt(tile.x, tile.y).current() != 7) {
+			if (protectedTiles().test(tile.x, tile.y) || megaTileAt(tile.x, tile.y).current() != 7) {
 				found = false;
 				break;
 			}
@@ -1826,16 +1826,16 @@ bool PlaceAnvil()
 	}
 
 	PlaceDunTiles(setPieceData.get(), { sx + 1, sy + 1 }, 7);
-	SetPiece = { { sx, sy }, areaSize };
+	setPiece() = { { sx, sy }, areaSize };
 
-	for (const WorldTilePosition tile : PointsInRectangle(SetPiece)) {
-		Protected.set(tile.x, tile.y);
+	for (const WorldTilePosition tile : PointsInRectangle(setPiece())) {
+		protectedTiles().set(tile.x, tile.y);
 	}
 
 	// Hack to avoid rivers entering the island, reversed later
-	megaTileAt(SetPiece.position.x + 7, SetPiece.position.y + 5).setCurrent(2);
-	megaTileAt(SetPiece.position.x + 8, SetPiece.position.y + 5).setCurrent(2);
-	megaTileAt(SetPiece.position.x + 9, SetPiece.position.y + 5).setCurrent(2);
+	megaTileAt(setPiece().position.x + 7, setPiece().position.y + 5).setCurrent(2);
+	megaTileAt(setPiece().position.x + 8, setPiece().position.y + 5).setCurrent(2);
+	megaTileAt(setPiece().position.x + 9, setPiece().position.y + 5).setCurrent(2);
 
 	return true;
 }
@@ -1885,11 +1885,11 @@ void HallOfHeroes()
 
 void LockRectangle(int x, int y)
 {
-	if (!DungeonMask.test(x, y)) {
+	if (!dungeonMask().test(x, y)) {
 		return;
 	}
 
-	DungeonMask.reset(x, y);
+	dungeonMask().reset(x, y);
 	lockoutcnt++;
 	LockRectangle(x, y - 1);
 	LockRectangle(x, y + 1);
@@ -1899,7 +1899,7 @@ void LockRectangle(int x, int y)
 
 bool Lockout()
 {
-	DungeonMask.reset();
+	dungeonMask().reset();
 
 	int fx;
 	int fy;
@@ -1908,7 +1908,7 @@ bool Lockout()
 	for (int j = 0; j < DMAXY; j++) {
 		for (int i = 0; i < DMAXX; i++) {
 			if (megaTileAt(i, j).current() != 0) {
-				DungeonMask.set(i, j);
+				dungeonMask().set(i, j);
 				fx = i;
 				fy = j;
 				t++;
@@ -1931,22 +1931,22 @@ bool PlaceCaveStairs(lvl_entry entry)
 	if (!position)
 		return false;
 	if (entry == ENTRY_MAIN)
-		ViewPosition = position->megaToWorld() + Displacement { 1, 3 };
+		viewPosition() = position->megaToWorld() + Displacement { 1, 3 };
 
 	// Place stairs down
 	position = PlaceMiniSet(L3DOWN);
 	if (!position)
 		return false;
 	if (entry == ENTRY_PREV)
-		ViewPosition = position->megaToWorld() + Displacement { 3, 1 };
+		viewPosition() = position->megaToWorld() + Displacement { 3, 1 };
 
 	// Place town warp stairs
-	if (currlevel == 9) {
+	if (currentLevelNumber() == 9) {
 		position = PlaceMiniSet(L3HOLDWARP);
 		if (!position)
 			return false;
 		if (entry == ENTRY_TWARPDN)
-			ViewPosition = position->megaToWorld() + Displacement { 1, 3 };
+			viewPosition() = position->megaToWorld() + Displacement { 1, 3 };
 	}
 
 	return true;
@@ -1957,19 +1957,19 @@ bool PlaceNestStairs(lvl_entry entry)
 	std::optional<Point> position;
 
 	// Place stairs up
-	position = PlaceMiniSet(currlevel != 17 ? L6UP : L6HOLDWARP);
+	position = PlaceMiniSet(currentLevelNumber() != 17 ? L6UP : L6HOLDWARP);
 	if (!position)
 		return false;
 	if (entry == ENTRY_MAIN || entry == ENTRY_TWARPDN)
-		ViewPosition = position->megaToWorld() + Displacement { 1, 3 };
+		viewPosition() = position->megaToWorld() + Displacement { 1, 3 };
 
 	// Place stairs down
-	if (currlevel != 20) {
+	if (currentLevelNumber() != 20) {
 		position = PlaceMiniSet(L6DOWN);
 		if (!position)
 			return false;
 		if (entry == ENTRY_PREV)
-			ViewPosition = position->megaToWorld() + Displacement { 3, 1 };
+			viewPosition() = position->megaToWorld() + Displacement { 3, 1 };
 	}
 
 	return true;
@@ -1977,7 +1977,7 @@ bool PlaceNestStairs(lvl_entry entry)
 
 bool PlaceStairs(lvl_entry entry)
 {
-	if (leveltype == DTYPE_NEST) {
+	if (levelType() == DTYPE_NEST) {
 		return PlaceNestStairs(entry);
 	}
 
@@ -1986,11 +1986,11 @@ bool PlaceStairs(lvl_entry entry)
 
 void GenerateLevel(lvl_entry entry)
 {
-	if (LevelSeeds[currlevel])
-		SetRndSeed(*LevelSeeds[currlevel]);
+	if (LevelSeeds[currentLevelNumber()])
+		SetRndSeed(*LevelSeeds[currentLevelNumber()]);
 
 	while (true) {
-		LevelSeeds[currlevel] = GetLCGEngineState();
+		LevelSeeds[currentLevelNumber()] = GetLCGEngineState();
 		InitDungeonFlags();
 		int x1 = GenerateRnd(20) + 10;
 		int y1 = GenerateRnd(20) + 10;
@@ -2024,7 +2024,7 @@ void GenerateLevel(lvl_entry entry)
 			break;
 	}
 
-	if (leveltype == DTYPE_NEST) {
+	if (levelType() == DTYPE_NEST) {
 		PlaceMiniSetRandom(L6ISLE1, 70);
 		PlaceMiniSetRandom(L6ISLE2, 70);
 		PlaceMiniSetRandom(L6ISLE3, 30);
@@ -2096,11 +2096,11 @@ void GenerateLevel(lvl_entry entry)
 		River();
 
 		if (Quests[Q_ANVIL].IsAvailable()) {
-			megaTileAt(SetPiece.position.x + 7, SetPiece.position.y + 5).setCurrent(7);
-			megaTileAt(SetPiece.position.x + 8, SetPiece.position.y + 5).setCurrent(7);
-			megaTileAt(SetPiece.position.x + 9, SetPiece.position.y + 5).setCurrent(7);
-			if (megaTileAt(SetPiece.position.x + 10, SetPiece.position.y + 5).current() == 17 || megaTileAt(SetPiece.position.x + 10, SetPiece.position.y + 5).current() == 18) {
-				megaTileAt(SetPiece.position.x + 10, SetPiece.position.y + 5).setCurrent(45);
+			megaTileAt(setPiece().position.x + 7, setPiece().position.y + 5).setCurrent(7);
+			megaTileAt(setPiece().position.x + 8, setPiece().position.y + 5).setCurrent(7);
+			megaTileAt(setPiece().position.x + 9, setPiece().position.y + 5).setCurrent(7);
+			if (megaTileAt(setPiece().position.x + 10, setPiece().position.y + 5).current() == 17 || megaTileAt(setPiece().position.x + 10, setPiece().position.y + 5).current() == 18) {
+				megaTileAt(setPiece().position.x + 10, setPiece().position.y + 5).setCurrent(45);
 			}
 		}
 
@@ -2173,7 +2173,7 @@ void PlaceHiveLights()
 
 void PlaceLights()
 {
-	if (leveltype == DTYPE_NEST) {
+	if (levelType() == DTYPE_NEST) {
 		PlaceHiveLights();
 		return;
 	}
@@ -2210,7 +2210,7 @@ void LoadL3Dungeon(const char *path, Point spawn)
 	Pass3();
 	PlaceLights();
 
-	if (leveltype == DTYPE_CAVES)
+	if (levelType() == DTYPE_CAVES)
 		AddL3Objs(0, 0, MAXDUNX, MAXDUNY);
 }
 

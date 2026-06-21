@@ -271,7 +271,7 @@ int ProjectileMonsterDamage(Missile &missile)
 
 int ProjectileTrapDamage()
 {
-	return currlevel + GenerateRnd(2 * currlevel);
+	return currentLevelNumber() + GenerateRnd(2 * currentLevelNumber());
 }
 
 bool MonsterMHit(const Player &player, Monster &monster, int mindam, int maxdam, int dist, MissileID t, WorldTilePosition startPos, DamageType damageType, bool shift)
@@ -602,7 +602,7 @@ bool MoveMissile(Missile &missile, tl::function_ref<bool(Point)> checkTile, bool
 			if (tile == missile.position.tile)
 				break;
 
-			// skip collision logic if the missile is on a corner between tiles
+			// skip collision logic if the missile is on a corner between tiles()
 			if (pixelsTraveled.deltaY % 16 == 0
 			    && pixelsTraveled.deltaX % 32 == 0
 			    && std::abs(pixelsTraveled.deltaY / 16) % 2 != std::abs(pixelsTraveled.deltaX / 32) % 2) {
@@ -1102,11 +1102,11 @@ bool PlayerMHit(Player &player, Monster *monster, int dist, int mind, int maxd, 
 	}
 
 	int minhit = 10;
-	if (currlevel == 14)
+	if (currentLevelNumber() == 14)
 		minhit = 20;
-	if (currlevel == 15)
+	if (currentLevelNumber() == 15)
 		minhit = 25;
-	if (currlevel == 16)
+	if (currentLevelNumber() == 16)
 		minhit = 30;
 	hper = std::max(hper, minhit);
 
@@ -1234,7 +1234,7 @@ void InitMissiles()
 	}
 
 	Missiles.clear();
-	for (Tile &tile : tiles)
+	for (Tile &tile : tiles())
 		tile.removeFlags(DungeonFlag::Missile | DungeonFlag::MissileFireWall | DungeonFlag::MissileLightningWall);
 }
 
@@ -1338,7 +1338,7 @@ void AddBerserk(Missile &missile, AddMissileParameter &parameter)
 		monster.maxDamage = (GenerateRnd(10) + 120) * monster.maxDamage / 100 + slvl;
 		monster.minDamageSpecial = (GenerateRnd(10) + 120) * monster.minDamageSpecial / 100 + slvl;
 		monster.maxDamageSpecial = (GenerateRnd(10) + 120) * monster.maxDamageSpecial / 100 + slvl;
-		const int lightRadius = leveltype == DTYPE_NEST ? 9 : 3;
+		const int lightRadius = levelType() == DTYPE_NEST ? 9 : 3;
 		monster.lightId = AddLight(monster.position.tile, lightRadius);
 		parameter.spellFizzled = false;
 	}
@@ -1519,9 +1519,9 @@ void AddWarp(Missile &missile, AddMissileParameter &parameter)
 			continue;
 		Point candidate = trg->position;
 		auto getTriggerOffset = [](TriggerStruct *trg) {
-			switch (leveltype) {
+			switch (levelType()) {
 			case DTYPE_CATHEDRAL:
-				if (setlevel && setlvlnum == SL_VILEBETRAYER)
+				if (isSetLevel() && setLevelNumber() == SL_VILEBETRAYER)
 					return Displacement { 1, 1 }; // Portal
 				if (IsAnyOf(trg->_tmsg, WM_DIABTWARPUP, WM_DIABPREVLVL, WM_DIABRTNLVL))
 					return Displacement { 1, 2 };
@@ -1545,11 +1545,11 @@ void AddWarp(Missile &missile, AddMissileParameter &parameter)
 					return Displacement { 1, 1 };
 				return Displacement { 0, 1 }; // WM_DIABNEXTLVL
 			case DTYPE_TOWN:
-				app_fatal("invalid leveltype: DTYPE_TOWN");
+				app_fatal("invalid levelType(): DTYPE_TOWN");
 			case DTYPE_NONE:
-				app_fatal("leveltype not set");
+				app_fatal("levelType() not set");
 			}
-			app_fatal(StrCat("invalid leveltype", static_cast<int>(leveltype)));
+			app_fatal(StrCat("invalid levelType()", static_cast<int>(levelType())));
 		};
 		const Displacement triggerOffset = getTriggerOffset(trg);
 		candidate += triggerOffset;
@@ -1957,7 +1957,7 @@ void AddNovaBall(Missile &missile, AddMissileParameter &parameter)
 void AddFireWall(Missile &missile, AddMissileParameter &parameter)
 {
 	missile._midam = GenerateRndSum(10, 2) + 2;
-	missile._midam += missile._misource >= 0 ? Players[missile._misource].getCharacterLevel() : currlevel; // BUGFIX: missing parenthesis around ternary (fixed)
+	missile._midam += missile._misource >= 0 ? Players[missile._misource].getCharacterLevel() : currentLevelNumber(); // BUGFIX: missing parenthesis around ternary (fixed)
 	missile._midam <<= 3;
 	UpdateMissileVelocity(missile, parameter.dst, 16);
 	const int i = missile._mispllvl;
@@ -1965,7 +1965,7 @@ void AddFireWall(Missile &missile, AddMissileParameter &parameter)
 	if (i > 0)
 		missile.duration *= i + 1;
 	if (missile._micaster == TARGET_PLAYERS || missile._misource < 0)
-		missile.duration += currlevel;
+		missile.duration += currentLevelNumber();
 	missile.duration *= 16;
 	missile.var1 = missile.duration - missile._miAnimLen;
 }
@@ -2062,7 +2062,7 @@ void AddWeaponExplosion(Missile &missile, AddMissileParameter &parameter)
 
 void AddTownPortal(Missile &missile, AddMissileParameter &parameter)
 {
-	if (leveltype == DTYPE_TOWN) {
+	if (levelType() == DTYPE_TOWN) {
 		missile.position.tile = parameter.dst;
 		missile.position.start = parameter.dst;
 	} else {
@@ -2103,11 +2103,11 @@ void AddTownPortal(Missile &missile, AddMissileParameter &parameter)
 			other.duration = 0;
 	}
 	PutMissile(missile);
-	if (missile.sourcePlayer() == MyPlayer && !missile._miDelFlag && leveltype != DTYPE_TOWN) {
-		if (!setlevel) {
-			NetSendCmdLocParam3(true, CMD_ACTIVATEPORTAL, missile.position.tile, currlevel, leveltype, 0);
+	if (missile.sourcePlayer() == MyPlayer && !missile._miDelFlag && levelType() != DTYPE_TOWN) {
+		if (!isSetLevel()) {
+			NetSendCmdLocParam3(true, CMD_ACTIVATEPORTAL, missile.position.tile, currentLevelNumber(), levelType(), 0);
 		} else {
-			NetSendCmdLocParam3(true, CMD_ACTIVATEPORTAL, missile.position.tile, setlvlnum, leveltype, 1);
+			NetSendCmdLocParam3(true, CMD_ACTIVATEPORTAL, missile.position.tile, setLevelNumber(), levelType(), 1);
 		}
 	}
 }
@@ -2125,7 +2125,7 @@ void AddFlashBottom(Missile &missile, AddMissileParameter & /*parameter*/)
 		missile._midam = missile.sourceMonster()->level(sgGameInitInfo.nDifficulty) * 2;
 		break;
 	case MissileSource::Trap:
-		missile._midam = currlevel / 2;
+		missile._midam = currentLevelNumber() / 2;
 		break;
 	}
 
@@ -2141,7 +2141,7 @@ void AddFlashTop(Missile &missile, AddMissileParameter & /*parameter*/)
 			missile._midam = ScaleSpellEffect(dmg, missile._mispllvl);
 			missile._midam += missile._midam / 2;
 		} else {
-			missile._midam = currlevel / 2;
+			missile._midam = currentLevelNumber() / 2;
 		}
 	}
 	missile._miPreFlag = true;
@@ -2569,7 +2569,7 @@ void AddNova(Missile &missile, AddMissileParameter &parameter)
 		const int dmg = GenerateRndSum(6, 5) + player.getCharacterLevel() + 5;
 		missile._midam = ScaleSpellEffect(dmg / 2, missile._mispllvl);
 	} else {
-		missile._midam = (currlevel / 2) + GenerateRndSum(3, 3);
+		missile._midam = (currentLevelNumber() / 2) + GenerateRndSum(3, 3);
 	}
 
 	missile.duration = 1;
@@ -2871,8 +2871,8 @@ void ProcessElementalArrow(Missile &missile)
 				maxd = monster.maxDamage;
 			}
 		} else {
-			mind = GenerateRnd(10) + 1 + currlevel;
-			maxd = GenerateRnd(10) + 1 + currlevel * 2;
+			mind = GenerateRnd(10) + 1 + currentLevelNumber();
+			maxd = GenerateRnd(10) + 1 + currentLevelNumber() * 2;
 		}
 		MoveMissileAndCheckMissileCol(missile, DamageType::Physical, mind, maxd, true, false);
 		if (missile.duration == 0) {
@@ -2892,8 +2892,8 @@ void ProcessElementalArrow(Missile &missile)
 					eMind = player.damageBonuses.lightning.minimum;
 					eMaxd = player.damageBonuses.lightning.maximum;
 				} else {
-					eMind = GenerateRnd(10) + 1 + currlevel;
-					eMaxd = GenerateRnd(10) + 1 + currlevel * 2;
+					eMind = GenerateRnd(10) + 1 + currentLevelNumber();
+					eMaxd = GenerateRnd(10) + 1 + currentLevelNumber() * 2;
 				}
 				eAnim = MissileGraphicID::ChargedBolt;
 				damageType = DamageType::Lightning;
@@ -2905,8 +2905,8 @@ void ProcessElementalArrow(Missile &missile)
 					eMind = player.damageBonuses.fire.minimum;
 					eMaxd = player.damageBonuses.fire.maximum;
 				} else {
-					eMind = GenerateRnd(10) + 1 + currlevel;
-					eMaxd = GenerateRnd(10) + 1 + currlevel * 2;
+					eMind = GenerateRnd(10) + 1 + currentLevelNumber();
+					eMaxd = GenerateRnd(10) + 1 + currentLevelNumber() * 2;
 				}
 				eAnim = MissileGraphicID::MagmaBallExplosion;
 				damageType = DamageType::Fire;
@@ -2953,8 +2953,8 @@ void ProcessArrow(Missile &missile)
 		maxd = monster.maxDamage;
 	} break;
 	case MissileSource::Trap:
-		mind = currlevel;
-		maxd = 2 * currlevel;
+		mind = currentLevelNumber();
+		maxd = 2 * currentLevelNumber();
 		break;
 	}
 	MoveMissileAndCheckMissileCol(missile, GetMissileData(missile._mitype).damageType(), mind, maxd, true, false);
@@ -3129,19 +3129,19 @@ void ProcessFireball(Missile &missile)
 			const auto transValAt = [](Point position) {
 				return tileAt(position).transVal();
 			};
-			if (!TransList[transValAt(missilePosition)]
-			    || (missile.position.velocity.deltaX < 0 && ((TransList[transValAt({ missilePosition.x, missilePosition.y + 1 })] && TileHasAny(missilePosition + Direction::SouthWest, TileProperties::Solid)) || (TransList[transValAt({ missilePosition.x, missilePosition.y - 1 })] && TileHasAny(missilePosition + Direction::NorthEast, TileProperties::Solid))))) {
+			if (!visibleTransparencyRegions()[transValAt(missilePosition)]
+			    || (missile.position.velocity.deltaX < 0 && ((visibleTransparencyRegions()[transValAt({ missilePosition.x, missilePosition.y + 1 })] && TileHasAny(missilePosition + Direction::SouthWest, TileProperties::Solid)) || (visibleTransparencyRegions()[transValAt({ missilePosition.x, missilePosition.y - 1 })] && TileHasAny(missilePosition + Direction::NorthEast, TileProperties::Solid))))) {
 				missile.position.tile += Direction::South;
 				missile.position.offset.deltaY -= 32;
 			}
 			if (missile.position.velocity.deltaY > 0
-			    && ((TransList[transValAt({ missilePosition.x + 1, missilePosition.y })] && TileHasAny(missilePosition + Direction::SouthEast, TileProperties::Solid))
-			        || (TransList[transValAt({ missilePosition.x - 1, missilePosition.y })] && TileHasAny(missilePosition + Direction::NorthWest, TileProperties::Solid)))) {
+			    && ((visibleTransparencyRegions()[transValAt({ missilePosition.x + 1, missilePosition.y })] && TileHasAny(missilePosition + Direction::SouthEast, TileProperties::Solid))
+			        || (visibleTransparencyRegions()[transValAt({ missilePosition.x - 1, missilePosition.y })] && TileHasAny(missilePosition + Direction::NorthWest, TileProperties::Solid)))) {
 				missile.position.offset.deltaY -= 32;
 			}
 			if (missile.position.velocity.deltaX > 0
-			    && ((TransList[transValAt({ missilePosition.x, missilePosition.y + 1 })] && TileHasAny(missilePosition + Direction::SouthWest, TileProperties::Solid))
-			        || (TransList[transValAt({ missilePosition.x, missilePosition.y - 1 })] && TileHasAny(missilePosition + Direction::NorthEast, TileProperties::Solid)))) {
+			    && ((visibleTransparencyRegions()[transValAt({ missilePosition.x, missilePosition.y + 1 })] && TileHasAny(missilePosition + Direction::SouthWest, TileProperties::Solid))
+			        || (visibleTransparencyRegions()[transValAt({ missilePosition.x, missilePosition.y - 1 })] && TileHasAny(missilePosition + Direction::NorthEast, TileProperties::Solid)))) {
 				missile.position.offset.deltaX -= 32;
 			}
 			missile.setDefaultFrameGroup();
@@ -3235,7 +3235,7 @@ void ProcessRingOfFire(Missile &missile)
 {
 	missile._miDelFlag = true;
 	int8_t src = missile._misource;
-	const uint8_t lvl = missile._micaster == TARGET_MONSTERS ? Players[src].getCharacterLevel() : currlevel;
+	const uint8_t lvl = missile._micaster == TARGET_MONSTERS ? Players[src].getCharacterLevel() : currentLevelNumber();
 	int dmg = 16 * (GenerateRndSum(10, 2) + lvl + 2) / 2;
 
 	if (missile.limitReached)
@@ -3356,7 +3356,7 @@ void ProcessLightningControl(Missile &missile)
 	int dam;
 	if (missile.IsTrap()) {
 		// BUGFIX: damage of missile should be encoded in missile struct; monster can be dead before missile arrives.
-		dam = GenerateRnd(currlevel) + 2 * currlevel;
+		dam = GenerateRnd(currentLevelNumber()) + 2 * currentLevelNumber();
 	} else if (missile._micaster == TARGET_MONSTERS) {
 		// BUGFIX: damage of missile should be encoded in missile struct; player can be dead/have left the game before missile arrives.
 		dam = (GenerateRnd(2) + GenerateRnd(Players[missile._misource].getCharacterLevel()) + 2) << 6;
@@ -3391,7 +3391,7 @@ void ProcessTownPortal(Missile &missile)
 		missile.duration--;
 	if (missile.duration == missile.var1)
 		missile.setFrameGroup<PortalFrame>(PortalFrame::Idle);
-	if (leveltype != DTYPE_TOWN && missile.getFrameGroup<PortalFrame>() != PortalFrame::Idle && missile.duration != 0) {
+	if (levelType() != DTYPE_TOWN && missile.getFrameGroup<PortalFrame>() != PortalFrame::Idle && missile.duration != 0) {
 		if (missile.var2 == 0)
 			missile._mlid = AddLight(missile.position.tile, 1);
 		ChangeLight(missile._mlid, missile.position.tile, expLight[missile.var2]);
@@ -3695,12 +3695,12 @@ void ProcessTeleport(Missile &missile)
 	PlrDoTrans(player.position.tile);
 	missile.var1 = 1;
 	player.occupyTile(player.position.tile, false);
-	if (leveltype != DTYPE_TOWN) {
+	if (levelType() != DTYPE_TOWN) {
 		ChangeLightXY(player.lightId, player.position.tile);
 		ChangeVisionXY(player.getId(), player.position.tile);
 	}
 	if (&player == MyPlayer) {
-		ViewPosition = player.position.tile;
+		viewPosition() = player.position.tile;
 	}
 }
 
@@ -4190,7 +4190,7 @@ void ProcessRedPortal(Missile &missile)
 	if (missile.duration == missile.var1)
 		missile.setFrameGroup<RedPortalFrame>(RedPortalFrame::Idle);
 
-	if (leveltype != DTYPE_TOWN && missile.getFrameGroup<RedPortalFrame>() != RedPortalFrame::Idle && missile.duration != 0) {
+	if (levelType() != DTYPE_TOWN && missile.getFrameGroup<RedPortalFrame>() != RedPortalFrame::Idle && missile.duration != 0) {
 		if (missile.var2 == 0)
 			missile._mlid = AddLight(missile.position.tile, 1);
 		ChangeLight(missile._mlid, missile.position.tile, expLight[missile.var2]);

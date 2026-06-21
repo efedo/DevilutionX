@@ -13,9 +13,9 @@ TEST(Drlg_l1, CreateL5Dungeon_diablo_1_2588)
 	TestInitGame();
 
 	TestCreateDungeon(1, 2588, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(77, 46));
+	EXPECT_EQ(viewPosition(), Point(77, 46));
 	TestCreateDungeon(1, 2588, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(49, 49));
+	EXPECT_EQ(viewPosition(), Point(49, 49));
 }
 
 TEST(Drlg_l1, CreateL5Dungeon_diablo_1_743271966)
@@ -25,9 +25,9 @@ TEST(Drlg_l1, CreateL5Dungeon_diablo_1_743271966)
 	TestInitGame();
 
 	TestCreateDungeon(1, 743271966, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(51, 82));
+	EXPECT_EQ(viewPosition(), Point(51, 82));
 	TestCreateDungeon(1, 743271966, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(81, 47));
+	EXPECT_EQ(viewPosition(), Point(81, 47));
 }
 
 TEST(Drlg_l1, CreateL5Dungeon_diablo_2_1383137027)
@@ -39,11 +39,11 @@ TEST(Drlg_l1, CreateL5Dungeon_diablo_2_1383137027)
 	Quests[Q_BUTCHER]._qactive = QUEST_NOTAVAIL;
 
 	TestCreateDungeon(2, 1383137027, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(57, 74));
+	EXPECT_EQ(viewPosition(), Point(57, 74));
 	TestCreateDungeon(2, 1383137027, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(57, 79));
+	EXPECT_EQ(viewPosition(), Point(57, 79));
 	TestCreateDungeon(2, 1383137027, ENTRY_RTNLVL);
-	EXPECT_EQ(ViewPosition, Point(49, 88));
+	EXPECT_EQ(viewPosition(), Point(49, 88));
 }
 
 TEST(Drlg_l1, CreateL5Dungeon_diablo_3_844660068)
@@ -53,9 +53,9 @@ TEST(Drlg_l1, CreateL5Dungeon_diablo_3_844660068)
 	TestInitGame();
 
 	TestCreateDungeon(3, 844660068, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(67, 52));
+	EXPECT_EQ(viewPosition(), Point(67, 52));
 	TestCreateDungeon(3, 844660068, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(85, 45));
+	EXPECT_EQ(viewPosition(), Point(85, 45));
 }
 
 TEST(Drlg_l1, CreateL5Dungeon_diablo_4_609325643)
@@ -66,9 +66,9 @@ TEST(Drlg_l1, CreateL5Dungeon_diablo_4_609325643)
 	Quests[Q_LTBANNER]._qactive = QUEST_NOTAVAIL;
 
 	TestCreateDungeon(4, 609325643, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(85, 78));
+	EXPECT_EQ(viewPosition(), Point(85, 78));
 	TestCreateDungeon(4, 609325643, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(55, 47));
+	EXPECT_EQ(viewPosition(), Point(55, 47));
 }
 
 TEST(Drlg_l1, CreateL5Dungeon_diablo_4_902156014)
@@ -79,9 +79,9 @@ TEST(Drlg_l1, CreateL5Dungeon_diablo_4_902156014)
 	Quests[Q_LTBANNER]._qactive = QUEST_INIT;
 
 	TestCreateDungeon(4, 902156014, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(75, 56));
+	EXPECT_EQ(viewPosition(), Point(75, 56));
 	TestCreateDungeon(4, 902156014, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(51, 59));
+	EXPECT_EQ(viewPosition(), Point(51, 59));
 }
 
 TEST(Drlg_l1, CreateL5Dungeon_hellfire_1_401921334)
@@ -91,9 +91,9 @@ TEST(Drlg_l1, CreateL5Dungeon_hellfire_1_401921334)
 	TestInitGame(true, false);
 
 	TestCreateDungeon(1, 401921334, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(79, 80));
+	EXPECT_EQ(viewPosition(), Point(79, 80));
 	TestCreateDungeon(1, 401921334, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(49, 63));
+	EXPECT_EQ(viewPosition(), Point(49, 63));
 }
 
 TEST(Drlg_l1, CreateL5Dungeon_hellfire_1_536340718)
@@ -103,9 +103,9 @@ TEST(Drlg_l1, CreateL5Dungeon_hellfire_1_536340718)
 	TestInitGame(true, false);
 
 	TestCreateDungeon(1, 536340718, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(55, 72));
+	EXPECT_EQ(viewPosition(), Point(55, 72));
 	TestCreateDungeon(1, 536340718, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(49, 63));
+	EXPECT_EQ(viewPosition(), Point(49, 63));
 }
 
 TEST(Drlg_l1, CreateL5Dungeon_hellfire_2_128964898)
@@ -117,9 +117,9 @@ TEST(Drlg_l1, CreateL5Dungeon_hellfire_2_128964898)
 	Quests[Q_BUTCHER]._qactive = QUEST_NOTAVAIL;
 
 	TestCreateDungeon(2, 128964898, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(55, 68));
+	EXPECT_EQ(viewPosition(), Point(55, 68));
 	TestCreateDungeon(2, 128964898, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(49, 63));
+	EXPECT_EQ(viewPosition(), Point(49, 63));
 }
 
 TEST(Drlg_l1, CreateL5Dungeon_hellfire_2_1180526547)
@@ -131,9 +131,9 @@ TEST(Drlg_l1, CreateL5Dungeon_hellfire_2_1180526547)
 	Quests[Q_BUTCHER]._qactive = QUEST_INIT;
 
 	TestCreateDungeon(2, 1180526547, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(83, 68));
+	EXPECT_EQ(viewPosition(), Point(83, 68));
 	TestCreateDungeon(2, 1180526547, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(81, 45));
+	EXPECT_EQ(viewPosition(), Point(81, 45));
 }
 
 TEST(Drlg_l1, CreateL5Dungeon_hellfire_3_1369955278)
@@ -144,9 +144,9 @@ TEST(Drlg_l1, CreateL5Dungeon_hellfire_3_1369955278)
 	Quests[Q_SKELKING]._qactive = QUEST_INIT;
 
 	TestCreateDungeon(3, 1369955278, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(63, 86));
+	EXPECT_EQ(viewPosition(), Point(63, 86));
 	TestCreateDungeon(3, 1369955278, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(75, 69));
+	EXPECT_EQ(viewPosition(), Point(75, 69));
 }
 
 TEST(Drlg_l1, CreateL5Dungeon_hellfire_3_1799396623)
@@ -157,9 +157,9 @@ TEST(Drlg_l1, CreateL5Dungeon_hellfire_3_1799396623)
 	Quests[Q_SKELKING]._qactive = QUEST_NOTAVAIL;
 
 	TestCreateDungeon(3, 1799396623, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(59, 68));
+	EXPECT_EQ(viewPosition(), Point(59, 68));
 	TestCreateDungeon(3, 1799396623, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(47, 55));
+	EXPECT_EQ(viewPosition(), Point(47, 55));
 }
 
 TEST(Drlg_l1, CreateL5Dungeon_hellfire_3_1512491184)
@@ -170,9 +170,9 @@ TEST(Drlg_l1, CreateL5Dungeon_hellfire_3_1512491184)
 	Quests[Q_SKELKING]._qactive = QUEST_INIT;
 
 	TestCreateDungeon(3, 1512491184, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(47, 72));
+	EXPECT_EQ(viewPosition(), Point(47, 72));
 	TestCreateDungeon(3, 1512491184, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(79, 45));
+	EXPECT_EQ(viewPosition(), Point(79, 45));
 }
 
 TEST(Drlg_l1, CreateL5Dungeon_hellfire_4_1190318991)
@@ -183,9 +183,9 @@ TEST(Drlg_l1, CreateL5Dungeon_hellfire_4_1190318991)
 	Quests[Q_LTBANNER]._qactive = QUEST_NOTAVAIL;
 
 	TestCreateDungeon(4, 1190318991, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(67, 80));
+	EXPECT_EQ(viewPosition(), Point(67, 80));
 	TestCreateDungeon(4, 1190318991, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(77, 45));
+	EXPECT_EQ(viewPosition(), Point(77, 45));
 }
 
 TEST(Drlg_l1, CreateL5Dungeon_hellfire_4_1924296259)
@@ -196,9 +196,9 @@ TEST(Drlg_l1, CreateL5Dungeon_hellfire_4_1924296259)
 	Quests[Q_LTBANNER]._qactive = QUEST_INIT;
 
 	TestCreateDungeon(4, 1924296259, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(83, 54));
+	EXPECT_EQ(viewPosition(), Point(83, 54));
 	TestCreateDungeon(4, 1924296259, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(51, 87));
+	EXPECT_EQ(viewPosition(), Point(51, 87));
 }
 
 TEST(Drlg_l1, CreateL5Dungeon_crypt_1_2122696790)
@@ -208,9 +208,9 @@ TEST(Drlg_l1, CreateL5Dungeon_crypt_1_2122696790)
 	TestInitGame(true, true, true);
 
 	TestCreateDungeon(21, 2122696790, ENTRY_TWARPDN);
-	EXPECT_EQ(ViewPosition, Point(61, 81));
+	EXPECT_EQ(viewPosition(), Point(61, 81));
 	TestCreateDungeon(21, 2122696790, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(53, 67));
+	EXPECT_EQ(viewPosition(), Point(53, 67));
 }
 
 TEST(Drlg_l1, CreateL5Dungeon_crypt_2_1191662129)
@@ -222,9 +222,9 @@ TEST(Drlg_l1, CreateL5Dungeon_crypt_2_1191662129)
 	Quests[Q_BUTCHER]._qactive = QUEST_NOTAVAIL;
 
 	TestCreateDungeon(22, 1191662129, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(71, 47));
+	EXPECT_EQ(viewPosition(), Point(71, 47));
 	TestCreateDungeon(22, 1191662129, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(85, 71));
+	EXPECT_EQ(viewPosition(), Point(85, 71));
 }
 
 TEST(Drlg_l1, CreateL5Dungeon_crypt_3_97055268)
@@ -234,9 +234,9 @@ TEST(Drlg_l1, CreateL5Dungeon_crypt_3_97055268)
 	TestInitGame(true, true, true);
 
 	TestCreateDungeon(23, 97055268, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(71, 57));
+	EXPECT_EQ(viewPosition(), Point(71, 57));
 	TestCreateDungeon(23, 97055268, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(81, 59));
+	EXPECT_EQ(viewPosition(), Point(81, 59));
 }
 
 TEST(Drlg_l1, CreateL5Dungeon_crypt_4_1324803725)
@@ -246,7 +246,7 @@ TEST(Drlg_l1, CreateL5Dungeon_crypt_4_1324803725)
 	TestInitGame(true, true, true);
 
 	TestCreateDungeon(24, 1324803725, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(79, 47));
+	EXPECT_EQ(viewPosition(), Point(79, 47));
 }
 
 } // namespace

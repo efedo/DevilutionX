@@ -284,7 +284,7 @@ void VirtualGamepadRenderer::Render(RenderFunction renderFunction)
 	healthButtonRenderer.RenderPotion(renderFunction, potionArt);
 	manaButtonRenderer.RenderPotion(renderFunction, potionArt);
 
-	if (leveltype != DTYPE_TOWN)
+	if (levelType() != DTYPE_TOWN)
 		standButtonRenderer.Render(renderFunction, buttonArt);
 	directionPadRenderer.Render(renderFunction);
 	menuPanelRenderer.Render(renderFunction);
@@ -434,7 +434,7 @@ VirtualGamepadButtonType PrimaryActionButtonRenderer::GetButtonType()
 		return GetApplyButtonType(virtualPadButton->isHeld);
 	if (invflag)
 		return GetInventoryButtonType();
-	if (leveltype == DTYPE_TOWN)
+	if (levelType() == DTYPE_TOWN)
 		return GetTownButtonType();
 	return GetDungeonButtonType();
 }

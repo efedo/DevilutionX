@@ -187,7 +187,7 @@ protected:
 		InitializeObjectPool();
 		ObjectPoolAdapter::ResetLegacyObjectPools();
 		// Clear all tile object references so FindObjectAtPosition returns nullptr everywhere.
-		for (Tile &tile : tiles.columnMajor())
+		for (Tile &tile : tiles().columnMajor())
 			tile.setObject(0);
 	}
 };
@@ -244,7 +244,7 @@ protected:
 		currentLevel().setId(Level::create(LevelId { .levelNum = 1, .type = DTYPE_CATHEDRAL }).id());
 		InitializeObjectPool();
 		ObjectPoolAdapter::ResetLegacyObjectPools();
-		for (Tile &tile : tiles.columnMajor())
+		for (Tile &tile : tiles().columnMajor())
 			tile.setObject(0);
 	}
 

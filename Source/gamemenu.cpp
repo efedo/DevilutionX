@@ -201,7 +201,7 @@ void GamemenuMusicVolume(bool bActivate)
 		} else {
 			gbMusicOn = true;
 			sound_get_or_set_music_volume(VOLUME_MAX);
-			music_start(GetLevelMusic(leveltype));
+			music_start(GetLevelMusic(levelType()));
 		}
 	} else {
 		const int volume = GamemenuSliderMusicSound(&sgOptionsMenu[0]);
@@ -213,7 +213,7 @@ void GamemenuMusicVolume(bool bActivate)
 			}
 		} else if (!gbMusicOn) {
 			gbMusicOn = true;
-			music_start(GetLevelMusic(leveltype));
+			music_start(GetLevelMusic(levelType()));
 		}
 	}
 

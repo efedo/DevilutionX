@@ -25,7 +25,7 @@ namespace {
 
 std::string ExportDun()
 {
-	const std::string levelName = StrCat(currlevel, "-", DungeonSeeds[currlevel], ".dun");
+	const std::string levelName = StrCat(currentLevelNumber(), "-", DungeonSeeds[currentLevelNumber()], ".dun");
 	FILE *dunFile = OpenFile(levelName.c_str(), "ab");
 
 	WriteLE16(dunFile, DMAXX);
@@ -115,7 +115,7 @@ std::string DebugCmdLevelSeed(std::optional<uint8_t> level)
 	if (level.has_value() && *level >= NumLevels) {
 		return StrCat("level out of range, max: ", NumLevels - 1);
 	}
-	return StrCat(DungeonSeeds[level.value_or(currlevel)]);
+	return StrCat(DungeonSeeds[level.value_or(currentLevelNumber())]);
 }
 
 } // namespace

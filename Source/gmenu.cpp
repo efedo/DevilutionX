@@ -184,7 +184,7 @@ TMenuItem *sgpCurrentMenu;
 
 void gmenu_draw_pause(const Surface &out)
 {
-	if (leveltype != DTYPE_TOWN)
+	if (levelType() != DTYPE_TOWN)
 		RedBack(out);
 	if (sgpCurrentMenu == nullptr) {
 		DrawString(out, _("Pause"), { { 0, 0 }, { gnScreenWidth, GetMainPanel().position.y } },

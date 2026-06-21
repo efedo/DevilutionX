@@ -47,70 +47,126 @@ inline bool IsArenaLevel(_setlevels setLevel)
 tl::expected<dungeon_type, std::string> ParseDungeonType(std::string_view value);
 tl::expected<_setlevels, std::string> ParseSetLevel(std::string_view value);
 
-// ---------------------------------------------------------------------------
-// Transitional macro shims for Level state that has not yet migrated to named
-// accessors.
-// ---------------------------------------------------------------------------
-// clang-format off
-/** Reprecents what tiles are being utilized in the generated map. */
-#define DungeonMask   (currentLevel().DungeonMask_)
-/** Tile that may not be overwritten by the level generator */
-#define Protected     (currentLevel().Protected_)
-#define SetPieceRoom  (currentLevel().SetPieceRoom_)
-/** Specifies the active set quest piece in coordinate. */
-#define SetPiece      (currentLevel().SetPiece_)
-#define pSpecialCels  (currentLevel().pSpecialCels_)
-/** Specifies the tile definitions of the active dungeon type. */
-#define pMegaTiles    (currentLevel().pMegaTiles_)
-#define pDungeonCels  (currentLevel().pDungeonCels_)
-/** List tile properties */
-#define SOLData       (currentLevel().SOLData_)
-/** Specifies the minimum X,Y-coordinates of the map. */
-#define dminPosition  (currentLevel().dminPosition_)
-/** Specifies the maximum X,Y-coordinates of the map. */
-#define dmaxPosition  (currentLevel().dmaxPosition_)
+inline decltype(auto) dungeonMask() // Megatiles used by the generated map.
+{
+	return (currentLevel().DungeonMask_);
+}
 
+inline decltype(auto) protectedTiles() // Megatiles protected from generator changes.
+{
+	return (currentLevel().Protected_);
+}
 
-/** Specifies the active dungeon type of the current game. */
-#define leveltype     (currentLevel().leveltype_)
-/** Specifies the active dungeon level of the current game. */
-#define currlevel     (currentLevel().currlevel_)
-#define setlevel      (currentLevel().setlevel_)
-/** Specifies the active quest level of the current game. */
-#define setlvlnum     (currentLevel().setlvlnum_)
-/** Specifies the dungeon type of the active quest level of the current game. */
-#define setlvltype    (currentLevel().setlvltype_)
+inline decltype(auto) setPieceRoom() // Set-piece room membership map.
+{
+	return (currentLevel().SetPieceRoom_);
+}
 
-///** Specifies the active dungeon type of the current game. */
-//extern DVL_API_FOR_TEST dungeon_type leveltype;
-///** Specifies the active dungeon level of the current game. */
-//extern DVL_API_FOR_TEST uint8_t currlevel;
-//extern bool setlevel;
-///** Specifies the active quest level of the current game. */
-//extern _setlevels setlvlnum;
-///** Specifies the dungeon type of the active quest level of the current game. */
-//extern dungeon_type setlvltype;
+inline decltype(auto) setPiece() // Active quest set-piece area.
+{
+	return (currentLevel().SetPiece_);
+}
 
-/** Specifies the player viewpoint X,Y-coordinates of the map. */
-#define ViewPosition  (currentLevel().ViewPosition_)
-#define MicroTileLen  (currentLevel().MicroTileLen_)
-#define TransVal      (currentLevel().TransVal_)
-/** Specifies the active transparency indices. */
-#define TransList     (currentLevel().TransList_)
-/** Map of micros that comprises a full tile for any given dungeon piece. */
-// LEGACY macro kept for transition; prefer levelMicros() for new code.
-#define DPieceMicros  (currentLevel().DPieceMicros_)
-/** Holds various information about dungeon tiles, @see DungeonFlag */
-#define themeCount    (currentLevel().themeCount_)
-#define themeLoc      (currentLevel().themeLoc_)
+inline decltype(auto) specialCels() // Special CEL sprite data.
+{
+	return (currentLevel().pSpecialCels_);
+}
 
-// ---------------------------------------------------------------------------
-// NEW: Tile-based access (Phase 2 migration)
-// ---------------------------------------------------------------------------
-/** Access the tile grid by coordinate or in Y-major range order. */
-#define tiles         (currentLevel().tiles_)
-/** Accessor helper for getting a tile. Use tileAt(x, y) or tileAt(Point) */
-#define tileAt        (currentLevel().tileAt)
+inline decltype(auto) megaTiles() // Megatile definitions for the active dungeon.
+{
+	return (currentLevel().pMegaTiles_);
+}
+
+inline decltype(auto) dungeonCels() // Dungeon CEL sprite data.
+{
+	return (currentLevel().pDungeonCels_);
+}
+
+inline decltype(auto) tileProperties() // Properties indexed by dungeon piece.
+{
+	return (currentLevel().SOLData_);
+}
+
+inline decltype(auto) minimumDungeonPosition() // Minimum rendered dungeon position.
+{
+	return (currentLevel().dminPosition_);
+}
+
+inline decltype(auto) maximumDungeonPosition() // Maximum rendered dungeon position.
+{
+	return (currentLevel().dmaxPosition_);
+}
+
+inline decltype(auto) levelType() // Active dungeon type.
+{
+	return (currentLevel().leveltype_);
+}
+
+inline decltype(auto) currentLevelNumber() // Active dungeon level number.
+{
+	return (currentLevel().currlevel_);
+}
+
+inline decltype(auto) isSetLevel() // Whether the active level is a quest level.
+{
+	return (currentLevel().setlevel_);
+}
+
+inline decltype(auto) setLevelNumber() // Active quest-level identifier.
+{
+	return (currentLevel().setlvlnum_);
+}
+
+inline decltype(auto) setLevelType() // Dungeon type of the active quest level.
+{
+	return (currentLevel().setlvltype_);
+}
+
+inline decltype(auto) viewPosition() // Player viewpoint position.
+{
+	return (currentLevel().ViewPosition_);
+}
+
+inline decltype(auto) microTileLength() // Microtiles used by each dungeon piece.
+{
+	return (currentLevel().MicroTileLen_);
+}
+
+inline decltype(auto) nextTransparencyValue() // Next transparency-region identifier.
+{
+	return (currentLevel().TransVal_);
+}
+
+inline decltype(auto) visibleTransparencyRegions() // Transparency regions visible to the player.
+{
+	return (currentLevel().TransList_);
+}
+
+inline decltype(auto) themeCount() // Number of generated theme rooms.
+{
+	return (currentLevel().themeCount_);
+}
+
+inline decltype(auto) themeLocations() // Generated theme-room areas.
+{
+	return (currentLevel().themeLoc_);
+}
+
+inline decltype(auto) tiles() // Runtime state for each world tile.
+{
+	return (currentLevel().tiles_);
+}
+
+inline decltype(auto) tileAt(Point position) // Runtime state for one world tile.
+{
+	return (currentLevel().tileAt(position));
+}
+
+inline decltype(auto) tileAt(int x, int y) // Runtime state for one world tile.
+{
+	return (currentLevel().tileAt(x, y));
+}
+
 /** Access a coarse dungeon megatile in the current level. */
 inline DungeonMegaTile &megaTileAt(int x, int y)
 {
@@ -123,21 +179,16 @@ inline DungeonMegaTile &megaTileAt(Point position)
 	return currentLevel().megaTileAt(position);
 }
 
-// clang-format on
-
 /**
  * @brief Returns a std::span over the level's MICROS lookup table.
  *
- * Prefer this over the legacy DPieceMicros macro for new code.
  * The table is indexed by piece ID (0..MAXTILES-1) and maps each piece
  * to its LevelCelBlock data for rendering.
  */
-[[nodiscard]] inline std::span<MICROS, MAXTILES> levelMicros()
+[[nodiscard]] inline std::span<MICROS, MAXTILES> levelMicros() // Microtile lookup indexed by dungeon piece.
 {
 	return std::span<MICROS, MAXTILES>(currentLevel().DPieceMicros_);
 }
-
-// clang-format on
 
 #ifdef BUILD_TESTING
 std::optional<WorldTileSize> GetSizeForThemeRoom();
@@ -151,57 +202,34 @@ DVL_ALWAYS_INLINE constexpr bool InDungeonBounds(Point position)
 	return position.x >= 0 && position.x < MAXDUNX && position.y >= 0 && position.y < MAXDUNY;
 }
 
-/**
- * @brief Checks if a given tile contains at least one missile
- * @param position Coordinates of the dungeon tile to check
- * @return true if a missile exists at this position
- */
+// Checks if a given tile contains at least one missile
 DVL_ALWAYS_INLINE bool TileContainsMissile(Point position)
 {
 	return InDungeonBounds(position) && tileAt(position).hasAnyFlag(DungeonFlag::Missile);
 }
 
-/**
- * @brief Checks if a given tile contains a player corpse
- * @param position Coordinates of the dungeon tile to check
- * @return true if a dead player exists at this position
- */
+// Checks if a given tile contains a player corpse
 DVL_ALWAYS_INLINE bool TileContainsDeadPlayer(Point position)
 {
 	return InDungeonBounds(position) && tileAt(position).hasAnyFlag(DungeonFlag::DeadPlayer);
 }
 
-/**
- * @brief Check if a given tile contains a decorative object (or similar non-pathable set piece)
- *
- * This appears to include stairs so that monsters do not spawn or path onto them, but players can path to them to navigate between layers
- *
- * @param position Coordinates of the dungeon tile to check
- * @return true if a set piece was spawned at this position
- */
+// Check if a given tile contains a decorative object (or similar non-pathable set piece)
 DVL_ALWAYS_INLINE bool TileContainsSetPiece(Point position)
 {
 	return InDungeonBounds(position) && tileAt(position).hasAnyFlag(DungeonFlag::Populated);
 }
 
-/**
- * @brief Checks if any player can currently see this tile
- *
- * Currently only used by monster AI routines so basic monsters out of sight can be ignored until they're likely to interact with the player
- *
- * @param position Coordinates of the dungeon tile to check
- * @return true if the tile is within at least one players vision
- */
+// Checks if any player can currently see this tile
+// Currently only used by monster AI routines so basic monsters out of sight can be ignored
+// until they're likely to interact with the player
+
 DVL_ALWAYS_INLINE bool IsTileVisible(Point position)
 {
 	return InDungeonBounds(position) && tileAt(position).hasAnyFlag(DungeonFlag::Visible);
 }
 
-/**
- * @brief Checks if a light source is illuminating this tile
- * @param position Coordinates of the dungeon tile to check
- * @return true if the tile is within the radius of at least one light source
- */
+// Checks if a light source is illuminating this tile
 DVL_ALWAYS_INLINE bool IsTileLit(Point position)
 {
 	return InDungeonBounds(position) && tileAt(position).hasAnyFlag(DungeonFlag::Lit);
@@ -223,7 +251,7 @@ struct Miniset {
 			for (WorldTileCoord xx = 0; xx < size.width; xx++) {
 				if (search[yy][xx] != 0 && megaTileAt(xx + position.x, yy + position.y).current() != search[yy][xx])
 					return false;
-				if (respectProtected && Protected.test(xx + position.x, yy + position.y))
+				if (respectProtected && protectedTiles().test(xx + position.x, yy + position.y))
 					return false;
 			}
 		}
@@ -238,7 +266,7 @@ struct Miniset {
 					continue;
 				megaTileAt(x + position.x, y + position.y).setCurrent(replace[y][x]);
 				if (protect)
-					Protected.set(x + position.x, y + position.y);
+					protectedTiles().set(x + position.x, y + position.y);
 			}
 		}
 	}
@@ -246,7 +274,7 @@ struct Miniset {
 
 DVL_ALWAYS_INLINE bool TileHasAny(Point coords, TileProperties property)
 {
-	return HasAnyOf(SOLData[tileAt(coords).piece()], property);
+	return HasAnyOf(tileProperties()[tileAt(coords).piece()], property);
 }
 
 tl::expected<void, std::string> LoadLevelSOLData();
@@ -270,17 +298,12 @@ std::optional<Point> PlaceMiniSet(const Miniset &miniset, int tries = 199, bool 
 void PlaceDunTiles(const uint16_t *dunData, Point position, int floorId = 0);
 void DRLG_PlaceThemeRooms(int minSize, int maxSize, int floor, int freq, bool rndSize);
 void DRLG_HoldThemeRooms();
-/**
- * @brief Returns the size in tiles of the specified ".dun" Data
- */
+
+// Returns the size in tiles of the specified ".dun" Data
 WorldTileSize GetDunSize(const uint16_t *dunData);
 void DRLG_LPass3(int lv);
 
-/**
- * @brief Checks if a theme room is located near the target point
- * @param position Target location in dungeon coordinates
- * @return True if a theme room is near (within 2 tiles of) this point, false if it is free.
- */
+// Checks if a theme room is located near (within 2 tiles of) the target point
 bool IsNearThemeRoom(WorldTilePosition position);
 void InitLevels();
 void FloodTransparencyValues(uint8_t floorID);

@@ -48,7 +48,7 @@ void FillSector(const char *path, int xi, int yy)
 
 			const int tileId = Swap16LE(tileLayer[(j * size.width) + i]) - 1;
 			if (tileId >= 0) {
-				const MegaTile mega = pMegaTiles[tileId];
+				const MegaTile mega = megaTiles()[tileId];
 				v1 = Swap16LE(mega.micro1);
 				v2 = Swap16LE(mega.micro2);
 				v3 = Swap16LE(mega.micro3);
@@ -73,7 +73,7 @@ void FillSector(const char *path, int xi, int yy)
  */
 void FillTile(int xx, int yy, int t)
 {
-	const MegaTile mega = pMegaTiles[t - 1];
+	const MegaTile mega = megaTiles()[t - 1];
 
 	tileAt(xx + 0, yy + 0).setPiece(Swap16LE(mega.micro1));
 	tileAt(xx + 1, yy + 0).setPiece(Swap16LE(mega.micro2));
@@ -132,7 +132,7 @@ void TownCloseGrave()
 
 void InitTownPieces()
 {
-	for (Tile &tile : tiles) {
+	for (Tile &tile : tiles()) {
 		const uint16_t piece = tile.piece();
 		if (piece == 359) {
 			tile.setSpecial(1);
@@ -310,35 +310,35 @@ void TownOpenGrave()
 
 void CleanTownFountain()
 {
-	if (!pMegaTiles)
+	if (!megaTiles())
 		return;
 	FillTile(60, 70, 71);
 }
 
 void CreateTown(lvl_entry entry)
 {
-	dminPosition = { 10, 10 };
-	dmaxPosition = { 84, 84 };
+	minimumDungeonPosition() = { 10, 10 };
+	maximumDungeonPosition() = { 84, 84 };
 
 	if (entry == ENTRY_MAIN) { // New game
-		ViewPosition = { 75, 68 };
+		viewPosition() = { 75, 68 };
 	} else if (entry == ENTRY_PREV) { // Cathedral
-		ViewPosition = { 25, 31 };
+		viewPosition() = { 25, 31 };
 	} else if (entry == ENTRY_TWARPUP) {
 		if (TWarpFrom == 5) {
-			ViewPosition = { 49, 22 };
+			viewPosition() = { 49, 22 };
 		}
 		if (TWarpFrom == 9) {
-			ViewPosition = { 18, 69 };
+			viewPosition() = { 18, 69 };
 		}
 		if (TWarpFrom == 13) {
-			ViewPosition = { 41, 81 };
+			viewPosition() = { 41, 81 };
 		}
 		if (TWarpFrom == 21) {
-			ViewPosition = { 36, 25 };
+			viewPosition() = { 36, 25 };
 		}
 		if (TWarpFrom == 17) {
-			ViewPosition = { 79, 62 };
+			viewPosition() = { 79, 62 };
 		}
 	}
 

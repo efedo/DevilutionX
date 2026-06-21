@@ -82,7 +82,7 @@ std::string TextCmdArena(const std::string_view parameter)
 		return ret;
 	}
 
-	setlvltype = GetArenaLevelType(arenaLevel);
+	setLevelType() = GetArenaLevelType(arenaLevel);
 	StartNewLvl(*MyPlayer, WM_DIABSETLVL, arenaLevel);
 	return ret;
 }
@@ -175,7 +175,7 @@ bool IsQuestEnabled(const Quest &quest)
 
 std::string TextCmdLevelSeed(const std::string_view /*parameter*/)
 {
-	const std::string_view levelType = setlevel ? "set level" : "dungeon level";
+	const std::string_view levelType = isSetLevel() ? "set level" : "dungeon level";
 
 	char gameId[] = {
 		static_cast<char>((sgGameInitInfo.programid >> 24) & 0xFF),
@@ -196,13 +196,13 @@ std::string TextCmdLevelSeed(const std::string_view /*parameter*/)
 	}
 
 	return StrCat(
-	    "Seedinfo for ", levelType, " ", currlevel, "\n",
-	    "seed: ", DungeonSeeds[currlevel], "\n",
+	    "Seedinfo for ", levelType, " ", currentLevelNumber(), "\n",
+	    "seed: ", DungeonSeeds[currentLevelNumber()], "\n",
 #ifdef _DEBUG
-	    "Mid1: ", glMid1Seed[currlevel], "\n",
-	    "Mid2: ", glMid2Seed[currlevel], "\n",
-	    "Mid3: ", glMid3Seed[currlevel], "\n",
-	    "End: ", glEndSeed[currlevel], "\n",
+	    "Mid1: ", glMid1Seed[currentLevelNumber()], "\n",
+	    "Mid2: ", glMid2Seed[currentLevelNumber()], "\n",
+	    "Mid3: ", glMid3Seed[currentLevelNumber()], "\n",
+	    "End: ", glEndSeed[currentLevelNumber()], "\n",
 #endif
 	    "\n",
 	    gameId, " ", mode, "\n",

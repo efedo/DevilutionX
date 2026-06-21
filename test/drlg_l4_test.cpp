@@ -16,11 +16,11 @@ TEST(Drlg_l4, CreateL4Dungeon_diablo_13_428074402)
 	Quests[Q_WARLORD]._qactive = QUEST_NOTAVAIL;
 
 	TestCreateDungeon(13, 428074402, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(26, 64));
+	EXPECT_EQ(viewPosition(), Point(26, 64));
 	TestCreateDungeon(13, 428074402, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(49, 77));
+	EXPECT_EQ(viewPosition(), Point(49, 77));
 	TestCreateDungeon(13, 428074402, ENTRY_TWARPDN);
-	EXPECT_EQ(ViewPosition, Point(26, 44));
+	EXPECT_EQ(viewPosition(), Point(26, 44));
 }
 
 TEST(Drlg_l4, CreateL4Dungeon_diablo_13_594689775)
@@ -31,11 +31,11 @@ TEST(Drlg_l4, CreateL4Dungeon_diablo_13_594689775)
 	Quests[Q_WARLORD]._qactive = QUEST_INIT;
 
 	TestCreateDungeon(13, 594689775, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(72, 38));
+	EXPECT_EQ(viewPosition(), Point(72, 38));
 	TestCreateDungeon(13, 594689775, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(33, 41));
+	EXPECT_EQ(viewPosition(), Point(33, 41));
 	TestCreateDungeon(13, 594689775, ENTRY_TWARPDN);
-	EXPECT_EQ(ViewPosition, Point(36, 88));
+	EXPECT_EQ(viewPosition(), Point(36, 88));
 }
 
 TEST(Drlg_l4, CreateL4Dungeon_diablo_14_717625719)
@@ -45,9 +45,9 @@ TEST(Drlg_l4, CreateL4Dungeon_diablo_14_717625719)
 	TestInitGame();
 
 	TestCreateDungeon(14, 717625719, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(90, 64));
+	EXPECT_EQ(viewPosition(), Point(90, 64));
 	TestCreateDungeon(14, 717625719, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(51, 29));
+	EXPECT_EQ(viewPosition(), Point(51, 29));
 }
 
 // Level which rooms extend to the edge of the quadrant
@@ -58,9 +58,9 @@ TEST(Drlg_l4, CreateL4Dungeon_diablo_14_815743776)
 	TestInitGame();
 
 	TestCreateDungeon(14, 815743776, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(66, 60));
+	EXPECT_EQ(viewPosition(), Point(66, 60));
 	TestCreateDungeon(14, 815743776, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(27, 75));
+	EXPECT_EQ(viewPosition(), Point(27, 75));
 }
 
 TEST(Drlg_l4, CreateL4Dungeon_diablo_15_1583642716)
@@ -71,13 +71,13 @@ TEST(Drlg_l4, CreateL4Dungeon_diablo_15_1583642716)
 	Quests[Q_DIABLO]._qactive = QUEST_INIT;
 
 	TestCreateDungeon(15, 1583642716, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(44, 26));
+	EXPECT_EQ(viewPosition(), Point(44, 26));
 	TestCreateDungeon(15, 1583642716, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(88, 67));
+	EXPECT_EQ(viewPosition(), Point(88, 67));
 
 	Quests[Q_BETRAYER]._qactive = QUEST_ACTIVE;
 	TestCreateDungeon(15, 1583642716, ENTRY_MAIN); // Betrayer quest does not change level gen
-	EXPECT_EQ(ViewPosition, Point(44, 26));
+	EXPECT_EQ(viewPosition(), Point(44, 26));
 	EXPECT_EQ(Quests[Q_BETRAYER].position, Point(84, 64)) << "Ensure the portal to lazarus has a spawn position if the player has activated the quest";
 
 	LoadExpectedLevelData("diablo/15-1583642716-changed.dun");
@@ -86,10 +86,10 @@ TEST(Drlg_l4, CreateL4Dungeon_diablo_15_1583642716)
 	Quests[Q_DIABLO]._qactive = QUEST_ACTIVE;
 
 	TestCreateDungeon(15, 1583642716, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(44, 26));
+	EXPECT_EQ(viewPosition(), Point(44, 26));
 	EXPECT_EQ(Quests[Q_BETRAYER].position, Point(84, 64)) << "Not really required? current bugfix sets this position anyway";
 	TestCreateDungeon(15, 1583642716, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(88, 67));
+	EXPECT_EQ(viewPosition(), Point(88, 67));
 	EXPECT_EQ(Quests[Q_BETRAYER].position, Point(84, 64)) << "Not really required? current bugfix sets this position anyway";
 }
 
@@ -100,9 +100,9 @@ TEST(Drlg_l4, CreateL4Dungeon_diablo_15_1256511996)
 	TestInitGame(false);
 
 	TestCreateDungeon(15, 1256511996, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(80, 70));
+	EXPECT_EQ(viewPosition(), Point(80, 70));
 	TestCreateDungeon(15, 1256511996, ENTRY_PREV);
-	EXPECT_EQ(ViewPosition, Point(34, 65));
+	EXPECT_EQ(viewPosition(), Point(34, 65));
 }
 
 TEST(Drlg_l4, CreateL4Dungeon_diablo_16_741281013)
@@ -110,7 +110,7 @@ TEST(Drlg_l4, CreateL4Dungeon_diablo_16_741281013)
 	LoadExpectedLevelData("diablo/16-741281013.dun");
 
 	TestCreateDungeon(16, 741281013, ENTRY_MAIN);
-	EXPECT_EQ(ViewPosition, Point(58, 42));
+	EXPECT_EQ(viewPosition(), Point(58, 42));
 }
 
 } // namespace

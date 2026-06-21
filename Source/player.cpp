@@ -147,7 +147,7 @@ void HandleWalkMode(Player &player, Direction dir)
 void StartWalkAnimation(Player &player, Direction dir, bool pmWillBeCalled)
 {
 	int8_t skippedFrames = -2;
-	if (leveltype == DTYPE_TOWN && sgGameInitInfo.bRunInTown != 0)
+	if (levelType() == DTYPE_TOWN && sgGameInitInfo.bRunInTown != 0)
 		skippedFrames = 2;
 	if (pmWillBeCalled)
 		skippedFrames += 1;
@@ -407,7 +407,7 @@ void InitLevelChange(Player &player)
 bool DoWalk(Player &player)
 {
 	// Play walking sound effect on certain animation frames
-	if (*GetOptions().Audio.walkingSound && (leveltype != DTYPE_TOWN || sgGameInitInfo.bRunInTown == 0)) {
+	if (*GetOptions().Audio.walkingSound && (levelType() != DTYPE_TOWN || sgGameInitInfo.bRunInTown == 0)) {
 		if (player.animInfo.currentFrame == 0
 		    || player.animInfo.currentFrame == 4) {
 			PlaySfxLoc(SfxID::Walk, player.position.tile);
@@ -427,7 +427,7 @@ bool DoWalk(Player &player)
 	player.occupyTile(player.position.tile, false);
 
 	// Update the coordinates for lighting and vision entries for the player
-	if (leveltype != DTYPE_TOWN) {
+	if (levelType() != DTYPE_TOWN) {
 		ChangeLightXY(player.lightId, player.position.tile);
 		ChangeVisionXY(player.getId(), player.position.tile);
 	}
@@ -437,7 +437,7 @@ bool DoWalk(Player &player)
 	ClearStateVariables(player);
 
 	// Reset the "sub-tile" position of the player's light entry to 0
-	if (leveltype != DTYPE_TOWN) {
+	if (levelType() != DTYPE_TOWN) {
 		ChangeLightOffset(player.lightId, { 0, 0 });
 	}
 
@@ -1076,7 +1076,7 @@ void TryDisarm(const Player &player, Object &object)
 	if (!object._oTrapFlag) {
 		return;
 	}
-	const int trapdisper = (2 * player.attributes.dexterity.current) - (5 * currlevel);
+	const int trapdisper = (2 * player.attributes.dexterity.current) - (5 * currentLevelNumber());
 	if (GenerateRnd(100) > trapdisper) {
 		return;
 	}
@@ -1480,7 +1480,7 @@ HeroClass GetPlayerSpriteClass(HeroClass cls)
 
 PlayerWeaponGraphic GetPlayerWeaponGraphic(player_graphic graphic, PlayerWeaponGraphic weaponGraphic)
 {
-	if (leveltype == DTYPE_TOWN && IsAnyOf(graphic, player_graphic::Lightning, player_graphic::Fire, player_graphic::Magic)) {
+	if (levelType() == DTYPE_TOWN && IsAnyOf(graphic, player_graphic::Lightning, player_graphic::Fire, player_graphic::Magic)) {
 		// If the hero doesn't hold the weapon in town then we should use the unarmed animation for casting
 		switch (weaponGraphic) {
 		case PlayerWeaponGraphic::Mace:
@@ -2303,21 +2303,21 @@ void Player::loadGraphic(player_graphic graphic)
 	switch (graphic) {
 	case player_graphic::Stand:
 		szCel = "as";
-		if (leveltype == DTYPE_TOWN)
+		if (levelType() == DTYPE_TOWN)
 			szCel = "st";
 		break;
 	case player_graphic::Walk:
 		szCel = "aw";
-		if (leveltype == DTYPE_TOWN)
+		if (levelType() == DTYPE_TOWN)
 			szCel = "wl";
 		break;
 	case player_graphic::Attack:
-		if (leveltype == DTYPE_TOWN)
+		if (levelType() == DTYPE_TOWN)
 			return;
 		szCel = "at";
 		break;
 	case player_graphic::Hit:
-		if (leveltype == DTYPE_TOWN)
+		if (levelType() == DTYPE_TOWN)
 			return;
 		szCel = "ht";
 		break;
@@ -2336,7 +2336,7 @@ void Player::loadGraphic(player_graphic graphic)
 		szCel = "dt";
 		break;
 	case player_graphic::Block:
-		if (leveltype == DTYPE_TOWN)
+		if (levelType() == DTYPE_TOWN)
 			return;
 		if (!player._pBlockFlag)
 			return;
@@ -2425,7 +2425,7 @@ void Player::setAnimations()
 	const PlayerAnimData &plrAtkAnimData = GetPlayerAnimDataForClass(pc);
 	auto gn = static_cast<PlayerWeaponGraphic>(player._pgfxnum & 0xFU);
 
-	if (leveltype == DTYPE_TOWN) {
+	if (levelType() == DTYPE_TOWN) {
 		player._pNFrames = plrAtkAnimData.townIdleFrames;
 		player._pWFrames = plrAtkAnimData.townWalkingFrames;
 	} else {
@@ -2478,7 +2478,7 @@ void Player::setAnimations()
 	player._pSFNum = plrAtkAnimData.castingActionFrame;
 	const int armorGraphicIndex = player._pgfxnum & ~0xFU;
 	if (IsAnyOf(pc, HeroClass::Warrior, HeroClass::Barbarian)) {
-		if (gn == PlayerWeaponGraphic::Bow && leveltype != DTYPE_TOWN)
+		if (gn == PlayerWeaponGraphic::Bow && levelType() != DTYPE_TOWN)
 			player._pNFrames = 8;
 		if (armorGraphicIndex > 0)
 			player._pDFrames = 15;
@@ -2667,9 +2667,9 @@ void Player::addExperience(uint32_t experience, int monsterLevel)
 
 bool Player::isOnActiveLevel() const
 {
-	if (setlevel)
-		return isOnLevel(setlvlnum);
-	return isOnLevel(currlevel);
+	if (isSetLevel())
+		return isOnLevel(setLevelNumber());
+	return isOnLevel(currentLevelNumber());
 }
 
 bool Player::isOnLevel(uint8_t level) const
@@ -2709,7 +2709,7 @@ bool Player::isHoldingItem(const ItemType type) const
 
 bool Player::hasNoLife() const
 {
-	return leveltype == DTYPE_TOWN ? false : life.current >> 6 <= 0;
+	return levelType() == DTYPE_TOWN ? false : life.current >> 6 <= 0;
 }
 
 bool Player::hasNoMana() const
@@ -2769,8 +2769,8 @@ void InitPlayer(Player &player, bool firstTime)
 
 		player.direction = Direction::South;
 
-		if (&player == MyPlayer && (!firstTime || leveltype != DTYPE_TOWN)) {
-			player.position.tile = ViewPosition;
+		if (&player == MyPlayer && (!firstTime || levelType() != DTYPE_TOWN)) {
+			player.position.tile = viewPosition();
 		}
 
 		player.saveOldPosition();
@@ -2796,7 +2796,7 @@ void InitPlayer(Player &player, bool firstTime)
 void InitMultiView()
 {
 	assert(MyPlayer != nullptr);
-	ViewPosition = MyPlayer->position.tile;
+	viewPosition() = MyPlayer->position.tile;
 }
 
 // Clears the transparency flags for the 3x3 area around the player,
@@ -2805,7 +2805,7 @@ void PlrClrTrans(Point position)
 {
 	for (int i = position.y - 1; i <= position.y + 1; i++) {
 		for (int j = position.x - 1; j <= position.x + 1; j++) {
-			TransList[tileAt(j, i).transVal()] = false;
+			visibleTransparencyRegions()[tileAt(j, i).transVal()] = false;
 		}
 	}
 }
@@ -2816,8 +2816,8 @@ void PlrClrTrans(Point position)
 // without transparent tiles, the first transparency flag is set to true to allow the player to see through all tiles.
 void PlrDoTrans(Point position)
 {
-	if (IsNoneOf(leveltype, DTYPE_CATHEDRAL, DTYPE_CATACOMBS, DTYPE_CRYPT)) {
-		TransList[1] = true;
+	if (IsNoneOf(levelType(), DTYPE_CATHEDRAL, DTYPE_CATACOMBS, DTYPE_CRYPT)) {
+		visibleTransparencyRegions()[1] = true;
 		return;
 	}
 
@@ -2825,7 +2825,7 @@ void PlrDoTrans(Point position)
 		for (int j = position.x - 1; j <= position.x + 1; j++) {
 			const int8_t transVal = tileAt(j, i).transVal();
 			if (IsTileNotSolid({ j, i }) && transVal != 0) {
-				TransList[transVal] = true;
+				visibleTransparencyRegions()[transVal] = true;
 			}
 		}
 	}
@@ -2843,7 +2843,7 @@ void Player::fixLocation(Direction bDir)
 	player.position.future = player.position.tile;
 	player.direction = bDir;
 	if (&player == MyPlayer) {
-		ViewPosition = player.position.tile;
+		viewPosition() = player.position.tile;
 	}
 	ChangeLightXY(player.lightId, player.position.tile);
 	ChangeVisionXY(player.getId(), player.position.tile);
@@ -3147,7 +3147,7 @@ void Player::syncKill(DeathReason deathReason)
 void Player::removeMissiles() const
 {
 	const Player &player = *this;
-	if (leveltype != DTYPE_TOWN) {
+	if (levelType() != DTYPE_TOWN) {
 		Monster *golem;
 		while ((golem = FindGolemForPlayer(player)) != nullptr) {
 			KillGolem(*golem);
@@ -3178,11 +3178,11 @@ StartNewLvl(Player &player, interface_mode fom, int lvl)
 		break;
 	case WM_DIABSETLVL:
 		if (&player == MyPlayer)
-			setlvlnum = (_setlevels)lvl;
-		player.setLevel(setlvlnum);
+			setLevelNumber() = (_setlevels)lvl;
+		player.setLevel(setLevelNumber());
 		break;
 	case WM_DIABTWARPUP:
-		MyPlayer->pTownWarps |= 1 << (leveltype - 2);
+		MyPlayer->pTownWarps |= 1 << (levelType() - 2);
 		player.setLevel(lvl);
 		break;
 	case WM_DIABRETOWN:
@@ -3292,7 +3292,7 @@ void ProcessPlayers()
 			}
 
 			if (&player == MyPlayer) {
-				if (HasAnyOf(player._pIFlags, ItemSpecialEffect::DrainLife) && leveltype != DTYPE_TOWN) {
+				if (HasAnyOf(player._pIFlags, ItemSpecialEffect::DrainLife) && levelType() != DTYPE_TOWN) {
 					player.applyDamage(DamageType::Physical, 0, 0, 4);
 				}
 				if (player.pManaShield && HasAnyOf(player._pIFlags, ItemSpecialEffect::NoMana)) {
@@ -3369,7 +3369,7 @@ bool Player::positionIsAvailable(Point position) const
 		return false;
 
 	if (tileAt(position).hasMonster()) {
-		if (leveltype == DTYPE_TOWN) {
+		if (levelType() == DTYPE_TOWN) {
 			return false;
 		}
 		if (tileAt(position).monster() <= 0) {
@@ -3434,7 +3434,7 @@ void CheckPlrSpell(bool isShiftHeld, SpellID spellID, SpellType spellType)
 		}
 	}
 
-	if (leveltype == DTYPE_TOWN && !GetSpellData(spellID).isAllowedInTown()) {
+	if (levelType() == DTYPE_TOWN && !GetSpellData(spellID).isAllowedInTown()) {
 		myPlayer.Say(HeroSpeech::ICantCastThatHere);
 		return;
 	}
@@ -3530,7 +3530,7 @@ void Player::syncInitialPosition()
 				    if (trigs[i].position == testPosition)
 					    return false;
 			    }
-			    return player.positionIsAvailable(testPosition) && !PosOkPortal(currlevel, testPosition);
+			    return player.positionIsAvailable(testPosition) && !PosOkPortal(currentLevelNumber(), testPosition);
 		    },
 		    player.position.tile,
 		    1, // skip the starting tile since that was checked in the previous loop
@@ -3544,7 +3544,7 @@ void Player::syncInitialPosition()
 	player.position.future = position;
 
 	if (&player == MyPlayer) {
-		ViewPosition = position;
+		viewPosition() = position;
 	}
 }
 
@@ -3729,19 +3729,19 @@ void PlayDungMsgs()
 	assert(MyPlayer != nullptr);
 	Player &myPlayer = *MyPlayer;
 
-	if (!setlevel && currlevel == 1 && !myPlayer._pLvlVisited[1] && (myPlayer.pDungMsgs & DungMsgCathedral) == 0) {
+	if (!isSetLevel() && currentLevelNumber() == 1 && !myPlayer._pLvlVisited[1] && (myPlayer.pDungMsgs & DungMsgCathedral) == 0) {
 		myPlayer.Say(HeroSpeech::TheSanctityOfThisPlaceHasBeenFouled, 40);
 		myPlayer.pDungMsgs = myPlayer.pDungMsgs | DungMsgCathedral;
-	} else if (!setlevel && currlevel == 5 && !myPlayer._pLvlVisited[5] && (myPlayer.pDungMsgs & DungMsgCatacombs) == 0) {
+	} else if (!isSetLevel() && currentLevelNumber() == 5 && !myPlayer._pLvlVisited[5] && (myPlayer.pDungMsgs & DungMsgCatacombs) == 0) {
 		myPlayer.Say(HeroSpeech::TheSmellOfDeathSurroundsMe, 40);
 		myPlayer.pDungMsgs |= DungMsgCatacombs;
-	} else if (!setlevel && currlevel == 9 && !myPlayer._pLvlVisited[9] && (myPlayer.pDungMsgs & DungMsgCaves) == 0) {
+	} else if (!isSetLevel() && currentLevelNumber() == 9 && !myPlayer._pLvlVisited[9] && (myPlayer.pDungMsgs & DungMsgCaves) == 0) {
 		myPlayer.Say(HeroSpeech::ItsHotDownHere, 40);
 		myPlayer.pDungMsgs |= DungMsgCaves;
-	} else if (!setlevel && currlevel == 13 && !myPlayer._pLvlVisited[13] && (myPlayer.pDungMsgs & DungMsgHell) == 0) {
+	} else if (!isSetLevel() && currentLevelNumber() == 13 && !myPlayer._pLvlVisited[13] && (myPlayer.pDungMsgs & DungMsgHell) == 0) {
 		myPlayer.Say(HeroSpeech::IMustBeGettingClose, 40);
 		myPlayer.pDungMsgs |= DungMsgHell;
-	} else if (!setlevel && currlevel == 16 && !myPlayer._pLvlVisited[16] && (myPlayer.pDungMsgs & DungMsgDiablo) == 0) {
+	} else if (!isSetLevel() && currentLevelNumber() == 16 && !myPlayer._pLvlVisited[16] && (myPlayer.pDungMsgs & DungMsgDiablo) == 0) {
 		for (auto &monster : MonsterPoolAdapter::AllMonsters()) {
 			if (monster.type().type != MT_DIABLO) continue;
 			if (monster.hitPoints > 0) {
@@ -3751,7 +3751,7 @@ void PlayDungMsgs()
 			}
 			break;
 		}
-	} else if (!setlevel && currlevel == 17 && !myPlayer._pLvlVisited[17] && (myPlayer.pDungMsgs2 & 1) == 0) {
+	} else if (!isSetLevel() && currentLevelNumber() == 17 && !myPlayer._pLvlVisited[17] && (myPlayer.pDungMsgs2 & 1) == 0) {
 		sfxdelay = 10;
 		sfxdnum = SfxID::Defiler1;
 		Quests[Q_DEFILER]._qactive = QUEST_ACTIVE;
@@ -3759,14 +3759,14 @@ void PlayDungMsgs()
 		Quests[Q_DEFILER]._qmsg = TEXT_DEFILER1;
 		NetSendCmdQuest(true, Quests[Q_DEFILER]);
 		myPlayer.pDungMsgs2 |= 1;
-	} else if (!setlevel && currlevel == 19 && !myPlayer._pLvlVisited[19] && (myPlayer.pDungMsgs2 & 4) == 0) {
+	} else if (!isSetLevel() && currentLevelNumber() == 19 && !myPlayer._pLvlVisited[19] && (myPlayer.pDungMsgs2 & 4) == 0) {
 		sfxdelay = 10;
 		sfxdnum = SfxID::Defiler3;
 		myPlayer.pDungMsgs2 |= 4;
-	} else if (!setlevel && currlevel == 21 && !myPlayer._pLvlVisited[21] && (myPlayer.pDungMsgs & 32) == 0) {
+	} else if (!isSetLevel() && currentLevelNumber() == 21 && !myPlayer._pLvlVisited[21] && (myPlayer.pDungMsgs & 32) == 0) {
 		myPlayer.Say(HeroSpeech::ThisIsAPlaceOfGreatPower, 30);
 		myPlayer.pDungMsgs |= 32;
-	} else if (setlevel && setlvlnum == SL_SKELKING && !gbIsSpawn && !myPlayer._pSLvlVisited[SL_SKELKING] && Quests[Q_SKELKING]._qactive == QUEST_ACTIVE) {
+	} else if (isSetLevel() && setLevelNumber() == SL_SKELKING && !gbIsSpawn && !myPlayer._pSLvlVisited[SL_SKELKING] && Quests[Q_SKELKING]._qactive == QUEST_ACTIVE) {
 		sfxdelay = 10;
 		sfxdnum = SfxID::LeoricGreeting;
 	} else {

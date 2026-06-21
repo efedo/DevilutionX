@@ -77,10 +77,10 @@ void TestInitGame(bool fullQuests = true, bool originalCathedral = true, bool he
 void TestCreateDungeon(int level, uint32_t seed, lvl_entry entry)
 {
 	LevelSeeds[level] = std::nullopt;
-	currlevel = level;
-	leveltype = GetLevelType(level);
+	currentLevelNumber() = level;
+	levelType() = GetLevelType(level);
 
-	pMegaTiles = std::make_unique<MegaTile[]>(GetTileCount(leveltype));
+	megaTiles() = std::make_unique<MegaTile[]>(GetTileCount(levelType()));
 
 	CreateDungeon(seed, entry);
 	CreateThemeRooms();

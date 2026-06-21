@@ -396,7 +396,7 @@ size_t GetMonsterTypeIndex(_monster_id type)
 
 Point GetUniqueMonstPosition(UniqueMonsterType uniqindex)
 {
-	if (setlevel) {
+	if (isSetLevel()) {
 		switch (uniqindex) {
 		case UniqueMonsterType::Lazarus:
 			return { 32, 46 };
@@ -413,24 +413,24 @@ Point GetUniqueMonstPosition(UniqueMonsterType uniqindex)
 
 	switch (uniqindex) {
 	case UniqueMonsterType::SnotSpill:
-		return SetPiece.position.megaToWorld() + Displacement { 8, 12 };
+		return setPiece().position.megaToWorld() + Displacement { 8, 12 };
 	case UniqueMonsterType::WarlordOfBlood:
-		return SetPiece.position.megaToWorld() + Displacement { 6, 7 };
+		return setPiece().position.megaToWorld() + Displacement { 6, 7 };
 	case UniqueMonsterType::Zhar:
-		for (int i = 0; i < themeCount; i++) {
+		for (int i = 0; i < themeCount(); i++) {
 			if (i == zharlib) {
-				return themeLoc[i].room.position.megaToWorld() + Displacement { 4, 4 };
+				return themeLocations()[i].room.position.megaToWorld() + Displacement { 4, 4 };
 			}
 		}
 		break;
 	case UniqueMonsterType::Lazarus:
-		return SetPiece.position.megaToWorld() + Displacement { 3, 6 };
+		return setPiece().position.megaToWorld() + Displacement { 3, 6 };
 	case UniqueMonsterType::RedVex:
-		return SetPiece.position.megaToWorld() + Displacement { 5, 3 };
+		return setPiece().position.megaToWorld() + Displacement { 5, 3 };
 	case UniqueMonsterType::BlackJade:
-		return SetPiece.position.megaToWorld() + Displacement { 5, 9 };
+		return setPiece().position.megaToWorld() + Displacement { 5, 9 };
 	case UniqueMonsterType::Butcher:
-		return SetPiece.position.megaToWorld() + Displacement { 4, 4 };
+		return setPiece().position.megaToWorld() + Displacement { 4, 4 };
 	case UniqueMonsterType::NaKrul:
 		if (UberRow == 0 || UberCol == 0) {
 			UberDiabloMonsterIndex = -1;
@@ -510,7 +510,7 @@ void ClrAllMonsters()
 tl::expected<void, std::string> PlaceUniqueMonsters()
 {
 	for (size_t u = 0; u < UniqueMonstersData.size(); ++u) {
-		if (UniqueMonstersData[u].mlevel != currlevel)
+		if (UniqueMonstersData[u].mlevel != currentLevelNumber())
 			continue;
 
 		const size_t minionType = GetMonsterTypeIndex(UniqueMonstersData[u].mtype);
@@ -536,12 +536,12 @@ tl::expected<void, std::string> PlaceUniqueMonsters()
 
 tl::expected<void, std::string> PlaceQuestMonsters()
 {
-	if (!setlevel) {
+	if (!isSetLevel()) {
 		if (Quests[Q_BUTCHER].IsAvailable()) {
 			RETURN_IF_ERROR(PlaceUniqueMonst(UniqueMonsterType::Butcher, 0, 0));
 		}
 
-		if (currlevel == Quests[Q_SKELKING]._qlevel && UseMultiplayerQuests()) {
+		if (currentLevelNumber() == Quests[Q_SKELKING]._qlevel && UseMultiplayerQuests()) {
 			for (size_t i = 0; i < LevelBestiary.size(); i++) {
 				if (IsSkel(LevelBestiary[i].type)) {
 					RETURN_IF_ERROR(PlaceUniqueMonst(UniqueMonsterType::SkeletonKing, i, 30));
@@ -552,23 +552,23 @@ tl::expected<void, std::string> PlaceQuestMonsters()
 
 		if (Quests[Q_LTBANNER].IsAvailable()) {
 			auto dunData = LoadFileInMem<uint16_t>("levels\\l1data\\banner1.dun");
-			RETURN_IF_ERROR(SetMapMonsters(dunData.get(), SetPiece.position.megaToWorld()));
+			RETURN_IF_ERROR(SetMapMonsters(dunData.get(), setPiece().position.megaToWorld()));
 		}
 		if (Quests[Q_BLOOD].IsAvailable()) {
 			auto dunData = LoadFileInMem<uint16_t>("levels\\l2data\\blood2.dun");
-			RETURN_IF_ERROR(SetMapMonsters(dunData.get(), SetPiece.position.megaToWorld()));
+			RETURN_IF_ERROR(SetMapMonsters(dunData.get(), setPiece().position.megaToWorld()));
 		}
 		if (Quests[Q_BLIND].IsAvailable()) {
 			auto dunData = LoadFileInMem<uint16_t>("levels\\l2data\\blind2.dun");
-			RETURN_IF_ERROR(SetMapMonsters(dunData.get(), SetPiece.position.megaToWorld()));
+			RETURN_IF_ERROR(SetMapMonsters(dunData.get(), setPiece().position.megaToWorld()));
 		}
 		if (Quests[Q_ANVIL].IsAvailable()) {
 			auto dunData = LoadFileInMem<uint16_t>("levels\\l3data\\anvil.dun");
-			RETURN_IF_ERROR(SetMapMonsters(dunData.get(), SetPiece.position.megaToWorld() + Displacement { 2, 2 }));
+			RETURN_IF_ERROR(SetMapMonsters(dunData.get(), setPiece().position.megaToWorld() + Displacement { 2, 2 }));
 		}
 		if (Quests[Q_WARLORD].IsAvailable()) {
 			auto dunData = LoadFileInMem<uint16_t>("levels\\l4data\\warlord.dun");
-			RETURN_IF_ERROR(SetMapMonsters(dunData.get(), SetPiece.position.megaToWorld()));
+			RETURN_IF_ERROR(SetMapMonsters(dunData.get(), setPiece().position.megaToWorld()));
 			RETURN_IF_ERROR(AddMonsterType(UniqueMonsterType::WarlordOfBlood, PLACE_SCATTER));
 		}
 		if (Quests[Q_VEIL].IsAvailable()) {
@@ -578,17 +578,17 @@ tl::expected<void, std::string> PlaceQuestMonsters()
 			Quests[Q_ZHAR]._qactive = QUEST_NOTAVAIL;
 		}
 
-		if (currlevel == Quests[Q_BETRAYER]._qlevel && UseMultiplayerQuests()) {
+		if (currentLevelNumber() == Quests[Q_BETRAYER]._qlevel && UseMultiplayerQuests()) {
 			RETURN_IF_ERROR(AddMonsterType(UniqueMonsterType::Lazarus, PLACE_UNIQUE));
 			RETURN_IF_ERROR(AddMonsterType(UniqueMonsterType::RedVex, PLACE_UNIQUE));
 			RETURN_IF_ERROR(PlaceUniqueMonst(UniqueMonsterType::Lazarus, 0, 0));
 			RETURN_IF_ERROR(PlaceUniqueMonst(UniqueMonsterType::RedVex, 0, 0));
 			RETURN_IF_ERROR(PlaceUniqueMonst(UniqueMonsterType::BlackJade, 0, 0));
 			auto dunData = LoadFileInMem<uint16_t>("levels\\l4data\\vile1.dun");
-			RETURN_IF_ERROR(SetMapMonsters(dunData.get(), SetPiece.position.megaToWorld()));
+			RETURN_IF_ERROR(SetMapMonsters(dunData.get(), setPiece().position.megaToWorld()));
 		}
 
-		if (currlevel == 24) {
+		if (currentLevelNumber() == 24) {
 			UberDiabloMonsterIndex = -1;
 			const size_t typeIndex = GetMonsterTypeIndex(MT_NAKRUL);
 			if (typeIndex < LevelBestiary.size()) {
@@ -603,9 +603,9 @@ tl::expected<void, std::string> PlaceQuestMonsters()
 			if (UberDiabloMonsterIndex == -1)
 				RETURN_IF_ERROR(PlaceUniqueMonst(UniqueMonsterType::NaKrul, 0, 0));
 		}
-	} else if (setlvlnum == SL_SKELKING) {
+	} else if (setLevelNumber() == SL_SKELKING) {
 		RETURN_IF_ERROR(PlaceUniqueMonst(UniqueMonsterType::SkeletonKing, 0, 0));
-	} else if (setlvlnum == SL_VILEBETRAYER) {
+	} else if (setLevelNumber() == SL_VILEBETRAYER) {
 		RETURN_IF_ERROR(AddMonsterType(UniqueMonsterType::Lazarus, PLACE_UNIQUE));
 		RETURN_IF_ERROR(AddMonsterType(UniqueMonsterType::RedVex, PLACE_UNIQUE));
 		RETURN_IF_ERROR(AddMonsterType(UniqueMonsterType::BlackJade, PLACE_UNIQUE));
@@ -903,10 +903,10 @@ void DiabloDeath(Monster &diablo, bool sendmsg)
 	}
 	AddLight(diablo.position.tile, 8);
 	DoVision(diablo.position.tile, 8, MAP_EXP_NONE, true);
-	int dist = diablo.position.tile.WalkingDistance(ViewPosition);
+	int dist = diablo.position.tile.WalkingDistance(viewPosition());
 	dist = std::min(dist, 20);
-	diablo.var3 = ViewPosition.x << 16;
-	diablo.position.temp.x = ViewPosition.y << 16;
+	diablo.var3 = viewPosition().x << 16;
+	diablo.position.temp.x = viewPosition().y << 16;
 	diablo.position.temp.y = (int)((diablo.var3 - (diablo.position.tile.x << 16)) / (float)dist);
 	if (!gbIsMultiplayer) {
 		Player &myPlayer = *MyPlayer;
@@ -1165,7 +1165,7 @@ int CheckReflect(Monster &monster, Player &player, int dam)
 
 int GetMinHit()
 {
-	switch (currlevel) {
+	switch (currentLevelNumber()) {
 	case 16:
 		return 30;
 	case 15:
@@ -1439,11 +1439,11 @@ void MonsterTalk(Monster &monster)
 	InitQTextMsg(monster.talkMsg);
 	if (monster.uniqueType == UniqueMonsterType::SnotSpill) {
 		if (monster.talkMsg == TEXT_BANNER10 && (monster.flags & MFLAG_QUEST_COMPLETE) == 0) {
-			ObjChangeMap(SetPiece.position.x, SetPiece.position.y, SetPiece.position.x + (SetPiece.size.width / 2) + 2, SetPiece.position.y + (SetPiece.size.height / 2) - 2);
-			auto tren = TransVal;
-			TransVal = 9;
-			DRLG_MRectTrans({ SetPiece.position, WorldTileSize((SetPiece.size.width / 2) + 4, SetPiece.size.height / 2) });
-			TransVal = tren;
+			ObjChangeMap(setPiece().position.x, setPiece().position.y, setPiece().position.x + (setPiece().size.width / 2) + 2, setPiece().position.y + (setPiece().size.height / 2) - 2);
+			auto tren = nextTransparencyValue();
+			nextTransparencyValue() = 9;
+			DRLG_MRectTrans({ setPiece().position, WorldTileSize((setPiece().size.width / 2) + 4, setPiece().size.height / 2) });
+			nextTransparencyValue() = tren;
 			Quests[Q_LTBANNER]._qvar1 = 2;
 			if (Quests[Q_LTBANNER]._qactive == QUEST_INIT)
 				Quests[Q_LTBANNER]._qactive = QUEST_ACTIVE;
@@ -1505,16 +1505,16 @@ void MonsterDeath(Monster &monster)
 {
 	monster.var1++;
 	if (monster.type().type == MT_DIABLO) {
-		if (monster.position.tile.x < ViewPosition.x) {
-			ViewPosition.x--;
-		} else if (monster.position.tile.x > ViewPosition.x) {
-			ViewPosition.x++;
+		if (monster.position.tile.x < viewPosition().x) {
+			viewPosition().x--;
+		} else if (monster.position.tile.x > viewPosition().x) {
+			viewPosition().x++;
 		}
 
-		if (monster.position.tile.y < ViewPosition.y) {
-			ViewPosition.y--;
-		} else if (monster.position.tile.y > ViewPosition.y) {
-			ViewPosition.y++;
+		if (monster.position.tile.y < viewPosition().y) {
+			viewPosition().y--;
+		} else if (monster.position.tile.y > viewPosition().y) {
+			viewPosition().y++;
 		}
 
 		if (monster.var1 == 140)
@@ -2655,7 +2655,7 @@ void SnotSpilAi(Monster &monster)
 	if (IsTileVisible(monster.position.tile)) {
 		if (monster.talkMsg == TEXT_BANNER12) {
 			if (!effect_is_playing(SfxID::Snotspill3) && monster.goal == MonsterGoal::Talking) {
-				ObjChangeMap(SetPiece.position.x, SetPiece.position.y, SetPiece.position.x + SetPiece.size.width + 1, SetPiece.position.y + SetPiece.size.height + 1);
+				ObjChangeMap(setPiece().position.x, setPiece().position.y, setPiece().position.x + setPiece().size.width + 1, setPiece().position.y + setPiece().size.height + 1);
 				Quests[Q_LTBANNER]._qvar1 = 3;
 				NetSendCmdQuest(true, Quests[Q_LTBANNER]);
 				RedoPlayerVision();
@@ -3166,7 +3166,7 @@ bool IsMonsterAvailable(const MonsterData &monsterData)
 	if (gbIsSpawn && monsterData.availability == MonsterAvailability::Retail)
 		return false;
 
-	return currlevel >= monsterData.minDunLvl && currlevel <= monsterData.maxDunLvl;
+	return currentLevelNumber() >= monsterData.minDunLvl && currentLevelNumber() <= monsterData.maxDunLvl;
 }
 
 bool UpdateModeStance(Monster &monster)
@@ -3417,27 +3417,27 @@ void InitLevelMonsters()
 tl::expected<void, std::string> GetLevelMTypes()
 {
 	RETURN_IF_ERROR(AddMonsterType(MT_GOLEM, PLACE_SPECIAL));
-	if (currlevel == 16) {
+	if (currentLevelNumber() == 16) {
 		RETURN_IF_ERROR(AddMonsterType(MT_ADVOCATE, PLACE_SCATTER));
 		RETURN_IF_ERROR(AddMonsterType(MT_RBLACK, PLACE_SCATTER));
 		RETURN_IF_ERROR(AddMonsterType(MT_DIABLO, PLACE_SPECIAL));
 		return {};
 	}
 
-	if (currlevel == 18)
+	if (currentLevelNumber() == 18)
 		RETURN_IF_ERROR(AddMonsterType(MT_HORKSPWN, PLACE_SCATTER));
-	if (currlevel == 19) {
+	if (currentLevelNumber() == 19) {
 		RETURN_IF_ERROR(AddMonsterType(MT_HORKSPWN, PLACE_SCATTER));
 		RETURN_IF_ERROR(AddMonsterType(MT_HORKDMN, PLACE_UNIQUE));
 	}
-	if (currlevel == 20)
+	if (currentLevelNumber() == 20)
 		RETURN_IF_ERROR(AddMonsterType(MT_DEFILER, PLACE_UNIQUE));
-	if (currlevel == 24) {
+	if (currentLevelNumber() == 24) {
 		RETURN_IF_ERROR(AddMonsterType(MT_ARCHLICH, PLACE_SCATTER));
 		RETURN_IF_ERROR(AddMonsterType(MT_NAKRUL, PLACE_SPECIAL));
 	}
 
-	if (!setlevel) {
+	if (!isSetLevel()) {
 		if (Quests[Q_BUTCHER].IsAvailable())
 			RETURN_IF_ERROR(AddMonsterType(MT_CLEAVER, PLACE_SPECIAL));
 		if (Quests[Q_GARBUD].IsAvailable())
@@ -3451,7 +3451,7 @@ tl::expected<void, std::string> GetLevelMTypes()
 		if (Quests[Q_WARLORD].IsAvailable())
 			RETURN_IF_ERROR(AddMonsterType(UniqueMonsterType::WarlordOfBlood, PLACE_UNIQUE));
 
-		if (UseMultiplayerQuests() && currlevel == Quests[Q_SKELKING]._qlevel) {
+		if (UseMultiplayerQuests() && currentLevelNumber() == Quests[Q_SKELKING]._qlevel) {
 
 			RETURN_IF_ERROR(AddMonsterType(MT_SKING, PLACE_UNIQUE));
 
@@ -3493,7 +3493,7 @@ tl::expected<void, std::string> GetLevelMTypes()
 			}
 		}
 	} else {
-		if (setlvlnum == SL_SKELKING) {
+		if (setLevelNumber() == SL_SKELKING) {
 			RETURN_IF_ERROR(AddMonsterType(MT_SKING, PLACE_UNIQUE));
 		}
 	}
@@ -3517,7 +3517,7 @@ tl::expected<void, std::string> InitAllMonsterGFX()
 
 void WeakenNaKrul()
 {
-	if (currlevel != 24 || static_cast<size_t>(UberDiabloMonsterIndex) >= ActiveMonsterCount)
+	if (currentLevelNumber() != 24 || static_cast<size_t>(UberDiabloMonsterIndex) >= ActiveMonsterCount)
 		return;
 
 	Monster &monster = Monsters[UberDiabloMonsterIndex];
@@ -3531,7 +3531,7 @@ void WeakenNaKrul()
 
 void InitGolems()
 {
-	if (!setlevel) {
+	if (!isSetLevel()) {
 		for (int i = 0; i < ReservedMonsterSlotsForGolems; i++)
 			AddMonster(GolemHoldingCell, Direction::South, 0, false);
 	}
@@ -3539,11 +3539,11 @@ void InitGolems()
 
 tl::expected<void, std::string> InitMonsters()
 {
-	if (!gbIsSpawn && !setlevel && currlevel == 16)
+	if (!gbIsSpawn && !isSetLevel() && currentLevelNumber() == 16)
 		LoadDiabMonsts();
 
 	int nt = numtrigs;
-	if (currlevel == 15)
+	if (currentLevelNumber() == 15)
 		nt = 1;
 	for (int i = 0; i < nt; i++) {
 		for (int s = -2; s < 2; s++) {
@@ -3553,7 +3553,7 @@ tl::expected<void, std::string> InitMonsters()
 	}
 	if (!gbIsSpawn)
 		RETURN_IF_ERROR(PlaceQuestMonsters());
-	if (!setlevel) {
+	if (!isSetLevel()) {
 		if (!gbIsSpawn)
 			RETURN_IF_ERROR(PlaceUniqueMonsters());
 		size_t na = 0;
@@ -3580,9 +3580,9 @@ tl::expected<void, std::string> InitMonsters()
 		if (numscattypes > 0) {
 			while (ActiveMonsterCount < totalmonsters) {
 				const size_t typeIndex = scattertypes[GenerateRnd(numscattypes)];
-				if (currlevel == 1 || FlipCoin())
+				if (currentLevelNumber() == 1 || FlipCoin())
 					na = 1;
-				else if (currlevel == 2 || leveltype == DTYPE_CRYPT)
+				else if (currentLevelNumber() == 2 || levelType() == DTYPE_CRYPT)
 					na = GenerateRnd(2) + 2;
 				else
 					na = GenerateRnd(3) + 3;
@@ -3603,7 +3603,7 @@ tl::expected<void, std::string> InitMonsters()
 tl::expected<void, std::string> SetMapMonsters(const uint16_t *dunData, Point startPosition)
 {
 	RETURN_IF_ERROR(AddMonsterType(MT_GOLEM, PLACE_SPECIAL));
-	if (setlevel)
+	if (isSetLevel())
 		for (int i = 0; i < ReservedMonsterSlotsForGolems; i++)
 			AddMonster(GolemHoldingCell, Direction::South, 0, false);
 

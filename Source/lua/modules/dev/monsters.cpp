@@ -24,7 +24,7 @@ namespace {
 
 std::string DebugCmdSpawnUniqueMonster(std::string name, std::optional<unsigned> countOpt)
 {
-	if (leveltype == DTYPE_TOWN) return "Can't spawn monsters in town";
+	if (levelType() == DTYPE_TOWN) return "Can't spawn monsters in town";
 	if (name.empty()) return "name is required";
 	const unsigned count = countOpt.value_or(1);
 	if (count < 1) return "count must be positive";
@@ -100,7 +100,7 @@ std::string DebugCmdSpawnUniqueMonster(std::string name, std::optional<unsigned>
 
 std::string DebugCmdSpawnMonster(std::string name, std::optional<unsigned> countOpt)
 {
-	if (leveltype == DTYPE_TOWN) return "Can't spawn monsters in town";
+	if (levelType() == DTYPE_TOWN) return "Can't spawn monsters in town";
 	if (name.empty()) return "name is required";
 	const unsigned count = countOpt.value_or(1);
 	if (count < 1) return "count must be positive";

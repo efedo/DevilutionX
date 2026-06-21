@@ -8,6 +8,15 @@
 #include "levels/town.h"
 #include "objects.h"
 
+#if defined(DungeonMask) || defined(Protected) || defined(SetPieceRoom) || defined(SetPiece) \
+    || defined(pSpecialCels) || defined(pMegaTiles) || defined(pDungeonCels) || defined(SOLData) \
+    || defined(dminPosition) || defined(dmaxPosition) || defined(leveltype) || defined(currlevel) \
+    || defined(setlevel) || defined(setlvlnum) || defined(setlvltype) || defined(ViewPosition) \
+    || defined(MicroTileLen) || defined(TransVal) || defined(TransList) || defined(DPieceMicros) \
+    || defined(themeCount) || defined(themeLoc) || defined(tiles) || defined(tileAt)
+#error "Legacy gendung macro shims must not be defined"
+#endif
+
 namespace devilution {
 namespace {
 
@@ -43,7 +52,7 @@ TEST(TileMigrationSyncTest, TileHasAnyUsesTilePiece)
 
 	constexpr Point Pos { 16, 16 };
 	tileAt(Pos).setPiece(230);
-	SOLData[230] = TileProperties::Solid;
+	tileProperties()[230] = TileProperties::Solid;
 
 	EXPECT_TRUE(TileHasAny(Pos, TileProperties::Solid));
 }
@@ -192,8 +201,8 @@ TEST(TileMigrationSyncTest, RuntimeMapChangeAppliesReplacementMegaTile)
 {
 	SelectTownLevel();
 	InitLevels();
-	leveltype = DTYPE_TOWN;
-	pMegaTiles = std::make_unique<MegaTile[]>(1);
+	levelType() = DTYPE_TOWN;
+	megaTiles() = std::make_unique<MegaTile[]>(1);
 	megaTileAt(5, 6).setCurrent(2);
 	megaTileAt(5, 6).setReplacement(1);
 
@@ -216,7 +225,7 @@ TEST(TileMigrationSyncTest, InitTransparencyClearsOnlyTransparency)
 
 	EXPECT_EQ(tileAt(Pos).piece(), 321);
 	EXPECT_EQ(tileAt(Pos).transVal(), 0);
-	EXPECT_EQ(TransVal, 1);
+	EXPECT_EQ(nextTransparencyValue(), 1);
 }
 
 TEST(TileMigrationSyncTest, RectTransparencyAssignsAndAdvancesRegion)
@@ -231,7 +240,7 @@ TEST(TileMigrationSyncTest, RectTransparencyAssignsAndAdvancesRegion)
 	EXPECT_EQ(tileAt(21, 30).transVal(), 1);
 	EXPECT_EQ(tileAt(22, 31).transVal(), 1);
 	EXPECT_EQ(tileAt(19, 30).transVal(), 0);
-	EXPECT_EQ(TransVal, 2);
+	EXPECT_EQ(nextTransparencyValue(), 2);
 }
 
 TEST(TileMigrationSyncTest, CopyTransparencyCopiesTileRegion)

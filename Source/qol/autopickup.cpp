@@ -95,7 +95,7 @@ void AutoPickup(const Player &player)
 {
 	if (&player != MyPlayer)
 		return;
-	if (leveltype == DTYPE_TOWN && !*GetOptions().Gameplay.autoPickupInTown)
+	if (levelType() == DTYPE_TOWN && !*GetOptions().Gameplay.autoPickupInTown)
 		return;
 
 	for (auto pathDir : PathDirs) {

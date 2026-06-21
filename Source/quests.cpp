@@ -89,7 +89,7 @@ const char *const QuestTriggerNames[5] = {
  */
 void DrawButcher()
 {
-	const Point position = SetPiece.position.megaToWorld() + Displacement { 3, 3 };
+	const Point position = setPiece().position.megaToWorld() + Displacement { 3, 3 };
 	DRLG_RectTrans({ position, { 7, 7 } });
 }
 
@@ -102,7 +102,7 @@ void DrawWarLord(Point position)
 {
 	auto dunData = LoadFileInMem<uint16_t>("levels\\l4data\\warlord2.dun");
 
-	SetPiece = { position, GetDunSize(dunData.get()) };
+	setPiece() = { position, GetDunSize(dunData.get()) };
 
 	PlaceDunTiles(dunData.get(), position, 6);
 }
@@ -111,7 +111,7 @@ void DrawSChamber(quest_id q, Point position)
 {
 	auto dunData = LoadFileInMem<uint16_t>("levels\\l2data\\bonestr1.dun");
 
-	SetPiece = { position, GetDunSize(dunData.get()) };
+	setPiece() = { position, GetDunSize(dunData.get()) };
 
 	PlaceDunTiles(dunData.get(), position, 3);
 
@@ -124,7 +124,7 @@ void DrawLTBanner(Point position)
 
 	const WorldTileSize size = GetDunSize(dunData.get());
 
-	SetPiece = { position, size };
+	setPiece() = { position, size };
 
 	const uint16_t *tileLayer = &dunData[2];
 
@@ -151,7 +151,7 @@ void DrawBlood(Point position)
 {
 	auto dunData = LoadFileInMem<uint16_t>("levels\\l2data\\blood2.dun");
 
-	SetPiece = { position, GetDunSize(dunData.get()) };
+	setPiece() = { position, GetDunSize(dunData.get()) };
 
 	PlaceDunTiles(dunData.get(), position, 0);
 }
@@ -283,7 +283,7 @@ void CheckQuests()
 
 	auto &quest = Quests[Q_BETRAYER];
 	if (quest.IsAvailable() && UseMultiplayerQuests() && quest._qvar1 == 2) {
-		AddObject(OBJ_ALTBOY, SetPiece.position.megaToWorld() + Displacement { 4, 6 });
+		AddObject(OBJ_ALTBOY, setPiece().position.megaToWorld() + Displacement { 4, 6 });
 		quest._qvar1 = 3;
 		NetSendCmdQuest(true, quest);
 	}
@@ -292,8 +292,8 @@ void CheckQuests()
 		return;
 	}
 
-	if (currlevel == quest._qlevel
-	    && !setlevel
+	if (currentLevelNumber() == quest._qlevel
+	    && !isSetLevel()
 	    && quest._qvar1 >= 2
 	    && (quest._qactive == QUEST_ACTIVE || quest._qactive == QUEST_DONE)
 	    && (quest._qvar2 == 0 || quest._qvar2 == 2)) {
@@ -306,19 +306,19 @@ void CheckQuests()
 	}
 
 	if (quest._qactive == QUEST_DONE
-	    && setlevel
-	    && setlvlnum == SL_VILEBETRAYER
+	    && isSetLevel()
+	    && setLevelNumber() == SL_VILEBETRAYER
 	    && quest._qvar2 == 4) {
 		const Point portalLocation { 35, 32 };
 		AddMissile(portalLocation, portalLocation, Direction::South, MissileID::RedPortal, TARGET_MONSTERS, *MyPlayer, 0, 0);
 		quest._qvar2 = 3;
 	}
 
-	if (setlevel) {
+	if (isSetLevel()) {
 		Quest &poisonWater = Quests[Q_PWATER];
-		if (setlvlnum == poisonWater._qslvl
+		if (setLevelNumber() == poisonWater._qslvl
 		    && poisonWater._qactive != QUEST_INIT
-		    && leveltype == poisonWater._qlvltype
+		    && levelType() == poisonWater._qlvltype
 			&& MonsterPoolAdapter::ActiveMonsterCountValue() == 4
 		    && poisonWater._qactive != QUEST_DONE) {
 			poisonWater._qactive = QUEST_DONE;
@@ -328,13 +328,13 @@ void CheckQuests()
 		}
 	} else if (MyPlayer->_pmode == PM_STAND) {
 		for (auto &currentQuest : Quests) {
-			if (currlevel == currentQuest._qlevel
+			if (currentLevelNumber() == currentQuest._qlevel
 			    && currentQuest._qslvl != 0
 			    && currentQuest._qactive != QUEST_NOTAVAIL
 			    && MyPlayer->position.tile == currentQuest.position
 			    && (currentQuest._qidx != Q_BETRAYER || currentQuest._qvar1 >= 3)) {
 				if (currentQuest._qlvltype != DTYPE_NONE) {
-					setlvltype = currentQuest._qlvltype;
+					setLevelType() = currentQuest._qlvltype;
 				}
 				StartNewLvl(*MyPlayer, WM_DIABSETLVL, currentQuest._qslvl);
 			}
@@ -352,7 +352,7 @@ bool ForceQuests()
 	}
 
 	for (auto &quest : Quests) {
-		if (quest._qidx != Q_BETRAYER && currlevel == quest._qlevel && quest._qslvl != 0) {
+		if (quest._qidx != Q_BETRAYER && currentLevelNumber() == quest._qlevel && quest._qslvl != 0) {
 			const int ql = quest._qslvl - 1;
 
 			if (EntranceBoundaryContains(quest.position, cursPosition)) {
@@ -463,7 +463,7 @@ void DRLG_CheckQuests(Point position)
 
 int GetMapReturnLevel()
 {
-	switch (setlvlnum) {
+	switch (setLevelNumber()) {
 	case SL_SKELKING:
 		return Quests[Q_SKELKING]._qlevel;
 	case SL_BONECHAMB:
@@ -481,10 +481,10 @@ Point GetMapReturnPosition()
 {
 #ifdef _DEBUG
 	if (!TestMapPath.empty())
-		return ViewPosition;
+		return viewPosition();
 #endif
 
-	switch (setlvlnum) {
+	switch (setLevelNumber()) {
 	case SL_SKELKING:
 		return Quests[Q_SKELKING].position + Direction::SouthEast;
 	case SL_BONECHAMB:
@@ -500,7 +500,7 @@ Point GetMapReturnPosition()
 
 void LoadPWaterPalette()
 {
-	if (!setlevel || setlvlnum != Quests[Q_PWATER]._qslvl || Quests[Q_PWATER]._qactive == QUEST_INIT || leveltype != Quests[Q_PWATER]._qlvltype)
+	if (!isSetLevel() || setLevelNumber() != Quests[Q_PWATER]._qslvl || Quests[Q_PWATER]._qactive == QUEST_INIT || levelType() != Quests[Q_PWATER]._qlvltype)
 		return;
 
 	if (Quests[Q_PWATER]._qactive == QUEST_DONE)
@@ -528,42 +528,42 @@ void ResyncMPQuests()
 
 	auto &kingQuest = Quests[Q_SKELKING];
 	if (kingQuest._qactive == QUEST_INIT
-	    && currlevel >= kingQuest._qlevel - 1
-	    && currlevel <= kingQuest._qlevel + 1) {
+	    && currentLevelNumber() >= kingQuest._qlevel - 1
+	    && currentLevelNumber() <= kingQuest._qlevel + 1) {
 		kingQuest._qactive = QUEST_ACTIVE;
 		NetSendCmdQuest(true, kingQuest);
 	}
 
 	auto &butcherQuest = Quests[Q_BUTCHER];
 	if (butcherQuest._qactive == QUEST_INIT
-	    && currlevel >= butcherQuest._qlevel - 1
-	    && currlevel <= butcherQuest._qlevel + 1) {
+	    && currentLevelNumber() >= butcherQuest._qlevel - 1
+	    && currentLevelNumber() <= butcherQuest._qlevel + 1) {
 		butcherQuest._qactive = QUEST_ACTIVE;
 		NetSendCmdQuest(true, butcherQuest);
 	}
 
 	auto &betrayerQuest = Quests[Q_BETRAYER];
-	if (betrayerQuest._qactive == QUEST_INIT && currlevel == betrayerQuest._qlevel - 1) {
+	if (betrayerQuest._qactive == QUEST_INIT && currentLevelNumber() == betrayerQuest._qlevel - 1) {
 		betrayerQuest._qactive = QUEST_ACTIVE;
 		NetSendCmdQuest(true, betrayerQuest);
 	}
 	if (betrayerQuest.IsAvailable())
-		AddObject(OBJ_ALTBOY, SetPiece.position.megaToWorld() + Displacement { 4, 6 });
+		AddObject(OBJ_ALTBOY, setPiece().position.megaToWorld() + Displacement { 4, 6 });
 
 	auto &cryptQuest = Quests[Q_GRAVE];
-	if (cryptQuest._qactive == QUEST_INIT && currlevel == cryptQuest._qlevel - 1) {
+	if (cryptQuest._qactive == QUEST_INIT && currentLevelNumber() == cryptQuest._qlevel - 1) {
 		cryptQuest._qactive = QUEST_ACTIVE;
 		NetSendCmdQuest(true, cryptQuest);
 	}
 
 	auto &defilerQuest = Quests[Q_DEFILER];
-	if (defilerQuest._qactive == QUEST_INIT && currlevel == defilerQuest._qlevel - 1) {
+	if (defilerQuest._qactive == QUEST_INIT && currentLevelNumber() == defilerQuest._qlevel - 1) {
 		defilerQuest._qactive = QUEST_ACTIVE;
 		NetSendCmdQuest(true, defilerQuest);
 	}
 
 	auto &nakrulQuest = Quests[Q_NAKRUL];
-	if (nakrulQuest._qactive == QUEST_INIT && currlevel == nakrulQuest._qlevel - 1) {
+	if (nakrulQuest._qactive == QUEST_INIT && currentLevelNumber() == nakrulQuest._qlevel - 1) {
 		nakrulQuest._qactive = QUEST_ACTIVE;
 		NetSendCmdQuest(true, nakrulQuest);
 	}
@@ -580,24 +580,24 @@ void ResyncQuests()
 		Monster *snotSpill = FindUniqueMonster(UniqueMonsterType::SnotSpill);
 		if (Quests[Q_LTBANNER]._qvar1 == 1) {
 			ObjChangeMapResync(
-			    SetPiece.position.x + SetPiece.size.width - 2,
-			    SetPiece.position.y + SetPiece.size.height - 2,
-			    SetPiece.position.x + SetPiece.size.width + 1,
-			    SetPiece.position.y + SetPiece.size.height + 1);
+			    setPiece().position.x + setPiece().size.width - 2,
+			    setPiece().position.y + setPiece().size.height - 2,
+			    setPiece().position.x + setPiece().size.width + 1,
+			    setPiece().position.y + setPiece().size.height + 1);
 		}
 		if (Quests[Q_LTBANNER]._qvar1 == 2) {
 			ObjChangeMapResync(
-				SetPiece.position.x + SetPiece.size.width - 2,
-				SetPiece.position.y + SetPiece.size.height - 2,
-				SetPiece.position.x + SetPiece.size.width + 1,
-				SetPiece.position.y + SetPiece.size.height + 1);
-			ObjChangeMapResync(SetPiece.position.x, SetPiece.position.y, SetPiece.position.x + (SetPiece.size.width / 2) + 2, SetPiece.position.y + (SetPiece.size.height / 2) - 2);
+				setPiece().position.x + setPiece().size.width - 2,
+				setPiece().position.y + setPiece().size.height - 2,
+				setPiece().position.x + setPiece().size.width + 1,
+				setPiece().position.y + setPiece().size.height + 1);
+			ObjChangeMapResync(setPiece().position.x, setPiece().position.y, setPiece().position.x + (setPiece().size.width / 2) + 2, setPiece().position.y + (setPiece().size.height / 2) - 2);
 			for (Object &object : ObjectPoolAdapter::ActiveObjectsRange())
 				SyncObjectAnim(object);
-			auto tren = TransVal;
-			TransVal = 9;
-			DRLG_MRectTrans({ SetPiece.position, WorldTileSize((SetPiece.size.width / 2) + 4, SetPiece.size.height / 2) });
-			TransVal = tren;
+			auto tren = nextTransparencyValue();
+			nextTransparencyValue() = 9;
+			DRLG_MRectTrans({ setPiece().position, WorldTileSize((setPiece().size.width / 2) + 4, setPiece().size.height / 2) });
+			nextTransparencyValue() = tren;
 			if (gbIsMultiplayer && snotSpill != nullptr && snotSpill->talkMsg != TEXT_BANNER12) {
 				snotSpill->goal = MonsterGoal::Inquiring;
 				snotSpill->talkMsg = Quests[Q_LTBANNER]._qactive == QUEST_DONE ? TEXT_BANNER12 : TEXT_BANNER11;
@@ -605,13 +605,13 @@ void ResyncQuests()
 			}
 		}
 		if (Quests[Q_LTBANNER]._qvar1 == 3) {
-			ObjChangeMapResync(SetPiece.position.x, SetPiece.position.y, SetPiece.position.x + SetPiece.size.width + 1, SetPiece.position.y + SetPiece.size.height + 1);
+			ObjChangeMapResync(setPiece().position.x, setPiece().position.y, setPiece().position.x + setPiece().size.width + 1, setPiece().position.y + setPiece().size.height + 1);
 			for (Object &object : ObjectPoolAdapter::ActiveObjectsRange())
 				SyncObjectAnim(object);
-			auto tren = TransVal;
-			TransVal = 9;
-			DRLG_MRectTrans({ SetPiece.position, WorldTileSize((SetPiece.size.width / 2) + 4, SetPiece.size.height / 2) });
-			TransVal = tren;
+			auto tren = nextTransparencyValue();
+			nextTransparencyValue() = 9;
+			DRLG_MRectTrans({ setPiece().position, WorldTileSize((setPiece().size.width / 2) + 4, setPiece().size.height / 2) });
+			nextTransparencyValue() = tren;
 			if (gbIsMultiplayer && snotSpill != nullptr) {
 				snotSpill->goal = MonsterGoal::Normal;
 				snotSpill->flags |= MFLAG_QUEST_COMPLETE;
@@ -621,7 +621,7 @@ void ResyncQuests()
 			}
 		}
 	}
-	if (currlevel == Quests[Q_MUSHROOM]._qlevel && !setlevel) {
+	if (currentLevelNumber() == Quests[Q_MUSHROOM]._qlevel && !isSetLevel()) {
 		if (Quests[Q_MUSHROOM]._qactive == QUEST_INIT && Quests[Q_MUSHROOM]._qvar1 == QS_INIT) {
 			SpawnQuestItem(IDI_FUNGALTM, { 0, 0 }, 5, SelectionRegion::Bottom, true);
 			Quests[Q_MUSHROOM]._qvar1 = QS_TOMESPAWNED;
@@ -637,12 +637,12 @@ void ResyncQuests()
 			}
 		}
 	}
-	if (currlevel == Quests[Q_VEIL]._qlevel + 1 && Quests[Q_VEIL]._qactive == QUEST_ACTIVE && Quests[Q_VEIL]._qvar1 == 0 && !gbIsMultiplayer) {
+	if (currentLevelNumber() == Quests[Q_VEIL]._qlevel + 1 && Quests[Q_VEIL]._qactive == QUEST_ACTIVE && Quests[Q_VEIL]._qvar1 == 0 && !gbIsMultiplayer) {
 		Quests[Q_VEIL]._qvar1 = 1;
 		SpawnQuestItem(IDI_GLDNELIX, { 0, 0 }, 5, SelectionRegion::Bottom, true);
 		NetSendCmdQuest(true, Quests[Q_VEIL]);
 	}
-	if (setlevel && setlvlnum == SL_VILEBETRAYER) {
+	if (isSetLevel() && setLevelNumber() == SL_VILEBETRAYER) {
 		if (Quests[Q_BETRAYER]._qvar1 >= 4)
 			ObjChangeMapResync(1, 11, 20, 18);
 		if (Quests[Q_BETRAYER]._qvar1 >= 6) {
@@ -661,22 +661,22 @@ void ResyncQuests()
 		for (Object &object : ObjectPoolAdapter::ActiveObjectsRange())
 			SyncObjectAnim(object);
 	}
-	if (currlevel == Quests[Q_BETRAYER]._qlevel
-	    && !setlevel
+	if (currentLevelNumber() == Quests[Q_BETRAYER]._qlevel
+	    && !isSetLevel()
 	    && (Quests[Q_BETRAYER]._qvar2 == 1 || Quests[Q_BETRAYER]._qvar2 >= 3)
 	    && (Quests[Q_BETRAYER]._qactive == QUEST_ACTIVE || Quests[Q_BETRAYER]._qactive == QUEST_DONE)) {
 		Quests[Q_BETRAYER]._qvar2 = 2;
 		NetSendCmdQuest(true, Quests[Q_BETRAYER]);
 	}
-	if (currlevel == Quests[Q_DIABLO]._qlevel
-	    && !setlevel
+	if (currentLevelNumber() == Quests[Q_DIABLO]._qlevel
+	    && !isSetLevel()
 	    && Quests[Q_DIABLO]._qactive == QUEST_ACTIVE
 	    && gbIsMultiplayer) {
 		const Point posPentagram = Quests[Q_DIABLO].position;
 		ObjChangeMapResync(posPentagram.x, posPentagram.y, posPentagram.x + 5, posPentagram.y + 5);
 		InitL4Triggers();
 	}
-	if (currlevel == 0
+	if (currentLevelNumber() == 0
 	    && Quests[Q_PWATER]._qactive == QUEST_DONE
 	    && gbIsMultiplayer) {
 		CleanTownFountain();
@@ -914,9 +914,9 @@ bool UseMultiplayerQuests()
 
 bool Quest::IsAvailable() const
 {
-	if (setlevel)
+	if (isSetLevel())
 		return false;
-	if (currlevel != _qlevel)
+	if (currentLevelNumber() != _qlevel)
 		return false;
 	if (_qactive == QUEST_NOTAVAIL)
 		return false;

@@ -14,12 +14,12 @@ namespace {
 TEST(TilePropertiesTest, Solid)
 {
 	tileAt(Point { 5, 5 }).setPiece(0);
-	SOLData[0] = TileProperties::Solid;
+	tileProperties()[0] = TileProperties::Solid;
 	EXPECT_TRUE(IsTileSolid({ 5, 5 })) << "Solid in-bounds tiles are solid";
 	EXPECT_FALSE(IsTileNotSolid({ 5, 5 })) << "IsTileNotSolid returns the inverse of IsTileSolid for in-bounds tiles";
 
 	tileAt(Point { 6, 6 }).setPiece(1);
-	SOLData[1] = TileProperties::None;
+	tileProperties()[1] = TileProperties::None;
 	EXPECT_FALSE(IsTileSolid({ 6, 6 })) << "Non-solid in-bounds tiles are not solid";
 	EXPECT_TRUE(IsTileNotSolid({ 6, 6 })) << "IsTileNotSolid returns the inverse of IsTileSolid for in-bounds tiles";
 
@@ -30,11 +30,11 @@ TEST(TilePropertiesTest, Solid)
 TEST(TilePropertiesTest, Walkable)
 {
 	tileAt(Point { 5, 5 }).setPiece(0);
-	SOLData[0] = TileProperties::Solid; // Doing this manually to save running through the code in gendung.cpp
+	tileProperties()[0] = TileProperties::Solid; // Doing this manually to save running through the code in gendung.cpp
 	EXPECT_FALSE(IsTileWalkable({ 5, 5 })) << "Tile which is marked as solid should be considered blocked";
 	EXPECT_FALSE(IsTileWalkable({ 5, 5 }, true)) << "Solid non-door tiles remain unwalkable when ignoring doors";
 
-	SOLData[0] = TileProperties::None;
+	tileProperties()[0] = TileProperties::None;
 	EXPECT_TRUE(IsTileWalkable({ 5, 5 })) << "Non-solid tiles are walkable";
 	EXPECT_TRUE(IsTileWalkable({ 5, 5 }, true)) << "Non-solid tiles remain walkable when ignoring doors";
 
@@ -51,7 +51,7 @@ TEST(TilePropertiesTest, Walkable)
 	EXPECT_TRUE(IsTileWalkable({ 5, 5 })) << "Tile occupied by an open door is walkable";
 	EXPECT_TRUE(IsTileWalkable({ 5, 5 }, true)) << "Tile occupied by a door is considered walkable when ignoring doors";
 
-	SOLData[0] = TileProperties::Solid;
+	tileProperties()[0] = TileProperties::Solid;
 	EXPECT_FALSE(IsTileWalkable({ 5, 5 })) << "Solid tiles occupied by an open door remain unwalkable";
 	EXPECT_TRUE(IsTileWalkable({ 5, 5 }, true)) << "Solid tiles occupied by an open door become walkable when ignoring doors";
 }
@@ -62,13 +62,13 @@ TEST(TilePropertiesTest, CanStepTest)
 	tileAt(Point { 0, 1 }).setPiece(0);
 	tileAt(Point { 1, 0 }).setPiece(0);
 	tileAt(Point { 1, 1 }).setPiece(0);
-	SOLData[0] = TileProperties::None;
+	tileProperties()[0] = TileProperties::None;
 	EXPECT_TRUE(CanStep({ 0, 0 }, { 1, 1 })) << "A step in open space is free of solid pieces";
 	EXPECT_TRUE(CanStep({ 1, 1 }, { 0, 0 })) << "A step in open space is free of solid pieces";
 	EXPECT_TRUE(CanStep({ 1, 0 }, { 0, 1 })) << "A step in open space is free of solid pieces";
 	EXPECT_TRUE(CanStep({ 0, 1 }, { 1, 0 })) << "A step in open space is free of solid pieces";
 
-	SOLData[1] = TileProperties::Solid;
+	tileProperties()[1] = TileProperties::Solid;
 	tileAt(Point { 1, 0 }).setPiece(1);
 	EXPECT_TRUE(CanStep({ 0, 1 }, { 1, 0 })) << "Can path to a destination which is solid";
 	EXPECT_TRUE(CanStep({ 1, 0 }, { 0, 1 })) << "Can path from a starting position which is solid";

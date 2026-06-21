@@ -166,21 +166,21 @@ void InitSetPiece()
 
 	if (Quests[Q_WARLORD].IsAvailable()) {
 		setPieceData = LoadFileInMem<uint16_t>("levels\\l4data\\warlord.dun");
-	} else if (currlevel == 15 && UseMultiplayerQuests()) {
+	} else if (currentLevelNumber() == 15 && UseMultiplayerQuests()) {
 		setPieceData = LoadFileInMem<uint16_t>("levels\\l4data\\vile1.dun");
 	} else {
 		return; // no setpiece needed for this level
 	}
 
-	const WorldTilePosition setPiecePosition = SetPieceRoom.position;
+	const WorldTilePosition setPiecePosition = setPieceRoom().position;
 	PlaceDunTiles(setPieceData.get(), setPiecePosition, 6);
-	SetPiece = { setPiecePosition, GetDunSize(setPieceData.get()) };
+	setPiece() = { setPiecePosition, GetDunSize(setPieceData.get()) };
 }
 
 void InitDungeonFlags()
 {
-	DungeonMask.reset();
-	Protected.reset();
+	dungeonMask().reset();
+	protectedTiles().reset();
 	FillCurrentMegaTiles(30);
 }
 
@@ -188,7 +188,7 @@ void MapRoom(WorldTileRectangle room)
 {
 	for (WorldTileCoord y = 0; y < room.size.height && y + room.position.y < DMAXY / 2; y++) {
 		for (WorldTileCoord x = 0; x < room.size.width && x + room.position.x < DMAXX / 2; x++) {
-			DungeonMask.set(room.position.x + x, room.position.y + y);
+			dungeonMask().set(room.position.x + x, room.position.y + y);
 		}
 	}
 }
@@ -204,7 +204,7 @@ bool CheckRoom(WorldTileRectangle room)
 			if (x + room.position.x < 0 || x + room.position.x >= DMAXX / 2 || y + room.position.y < 0 || y + room.position.y >= DMAXY / 2) {
 				return false;
 			}
-			if (DungeonMask.test(room.position.x + x, room.position.y + y)) {
+			if (dungeonMask().test(room.position.x + x, room.position.y + y)) {
 				return false;
 			}
 		}
@@ -261,10 +261,10 @@ void GenerateRoom(WorldTileRectangle area, bool verticalLayout)
 void FirstRoom()
 {
 	WorldTileRectangle room { { 0, 0 }, { 14, 14 } };
-	if (currlevel != 16) {
-		if (currlevel == Quests[Q_WARLORD]._qlevel && Quests[Q_WARLORD]._qactive != QUEST_NOTAVAIL) {
+	if (currentLevelNumber() != 16) {
+		if (currentLevelNumber() == Quests[Q_WARLORD]._qlevel && Quests[Q_WARLORD]._qactive != QUEST_NOTAVAIL) {
 			room.size = { 11, 11 };
-		} else if (currlevel == Quests[Q_BETRAYER]._qlevel && UseMultiplayerQuests()) {
+		} else if (currentLevelNumber() == Quests[Q_BETRAYER]._qlevel && UseMultiplayerQuests()) {
 			room.size = { 11, 11 };
 		} else {
 			const int32_t randomWidth = GenerateRnd(5) + 2;
@@ -281,13 +281,13 @@ void FirstRoom()
 	const int32_t randomY = GenerateRnd(ymax - ymin + 1) + ymin;
 	room.position = WorldTilePosition(randomX, randomY);
 
-	if (currlevel == 16) {
+	if (currentLevelNumber() == 16) {
 		L4Hold = room.position;
 	}
-	if (Quests[Q_WARLORD].IsAvailable() || (currlevel == Quests[Q_BETRAYER]._qlevel && UseMultiplayerQuests())) {
-		SetPieceRoom = { room.position + WorldTileDisplacement { 1, 1 }, WorldTileSize(room.size.width + 1, room.size.height + 1) };
+	if (Quests[Q_WARLORD].IsAvailable() || (currentLevelNumber() == Quests[Q_BETRAYER]._qlevel && UseMultiplayerQuests())) {
+		setPieceRoom() = { room.position + WorldTileDisplacement { 1, 1 }, WorldTileSize(room.size.width + 1, room.size.height + 1) };
 	} else {
-		SetPieceRoom = {};
+		setPieceRoom() = {};
 	}
 
 	MapRoom(room);
@@ -301,10 +301,10 @@ void MirrorDungeonLayout()
 {
 	for (int y = 0; y < DMAXY / 2; y++) {
 		for (int x = 0; x < DMAXX / 2; x++) {
-			if (DungeonMask.test(x, y)) {
-				DungeonMask.set(x, DMAXY - 1 - y);
-				DungeonMask.set(DMAXX - 1 - x, y);
-				DungeonMask.set(DMAXX - 1 - x, DMAXY - 1 - y);
+			if (dungeonMask().test(x, y)) {
+				dungeonMask().set(x, DMAXY - 1 - y);
+				dungeonMask().set(DMAXX - 1 - x, y);
+				dungeonMask().set(DMAXX - 1 - x, DMAXY - 1 - y);
 			}
 		}
 	}
@@ -314,7 +314,7 @@ void MakeDmt()
 {
 	for (int y = 0; y < DMAXY - 1; y++) {
 		for (int x = 0; x < DMAXX - 1; x++) {
-			const int val = (DungeonMask.test(x + 1, y + 1) << 3) | (DungeonMask.test(x, y + 1) << 2) | (DungeonMask.test(x + 1, y) << 1) | (DungeonMask.test(x, y) << 0);
+			const int val = (dungeonMask().test(x + 1, y + 1) << 3) | (dungeonMask().test(x, y + 1) << 2) | (dungeonMask().test(x + 1, y) << 1) | (dungeonMask().test(x, y) << 0);
 			megaTileAt(x, y).setCurrent(L4ConvTbl[val]);
 		}
 	}
@@ -324,7 +324,7 @@ int HorizontalWallOk(int i, int j)
 {
 	int x;
 	for (x = 1; megaTileAt(i + x, j).current() == 6; x++) {
-		if (Protected.test(i + x, j)) {
+		if (protectedTiles().test(i + x, j)) {
 			break;
 		}
 		if (megaTileAt(i + x, j - 1).current() != 6) {
@@ -345,7 +345,7 @@ int VerticalWallOk(int i, int j)
 {
 	int y;
 	for (y = 1; megaTileAt(i, j + y).current() == 6; y++) {
-		if (Protected.test(i, j + y)) {
+		if (protectedTiles().test(i, j + y)) {
 			break;
 		}
 		if (megaTileAt(i - 1, j + y).current() != 6) {
@@ -453,7 +453,7 @@ void AddWall()
 {
 	for (int j = 0; j < DMAXY; j++) {
 		for (int i = 0; i < DMAXX; i++) {
-			if (Protected.test(i, j)) {
+			if (protectedTiles().test(i, j)) {
 				continue;
 			}
 			for (auto d : { 10, 12, 13, 15, 16, 21, 22 }) {
@@ -833,7 +833,7 @@ void Substitution()
 		for (int x = 0; x < DMAXX; x++) {
 			if (FlipCoin(3)) {
 				const uint8_t c = L4BTYPES[megaTileAt(x, y).current()];
-				if (c != 0 && !Protected.test(x, y)) {
+				if (c != 0 && !protectedTiles().test(x, y)) {
 					int rv = GenerateRnd(16);
 					int i = -1;
 					while (rv >= 0) {
@@ -855,7 +855,7 @@ void Substitution()
 		for (int x = 0; x < DMAXX; x++) {
 			if (FlipCoin(10)) {
 				const uint8_t c = megaTileAt(x, y).current();
-				if (L4BTYPES[c] == 6 && !Protected.test(x, y)) {
+				if (L4BTYPES[c] == 6 && !protectedTiles().test(x, y)) {
 					megaTileAt(x, y).setCurrent(PickRandomlyAmong({ 95, 96, 97 }));
 				}
 			}
@@ -870,11 +870,11 @@ void PrepareInnerBorders()
 {
 	for (int y = (DMAXY / 2) - 1; y >= 0; y--) {
 		for (int x = (DMAXX / 2) - 1; x >= 0; x--) {
-			if (!DungeonMask.test(x, y)) {
+			if (!dungeonMask().test(x, y)) {
 				hallok[y] = false;
 			} else {
-				const bool hasSouthWestRoom = y + 1 < DMAXY / 2 && DungeonMask.test(x, y + 1);
-				const bool hasSouthRoom = x + 1 < DMAXX / 2 && y + 1 < DMAXY / 2 && DungeonMask.test(x + 1, y + 1);
+				const bool hasSouthWestRoom = y + 1 < DMAXY / 2 && dungeonMask().test(x, y + 1);
+				const bool hasSouthRoom = x + 1 < DMAXX / 2 && y + 1 < DMAXY / 2 && dungeonMask().test(x + 1, y + 1);
 				hallok[y] = hasSouthWestRoom && !hasSouthRoom;
 				x = 0;
 			}
@@ -885,12 +885,12 @@ void PrepareInnerBorders()
 	do {
 		if (hallok[ry]) {
 			for (int x = (DMAXX / 2) - 1; x >= 0; x--) {
-				if (DungeonMask.test(x, ry)) {
+				if (dungeonMask().test(x, ry)) {
 					x = -1;
 					ry = 0;
 				} else {
-					DungeonMask.set(x, ry);
-					DungeonMask.set(x, ry + 1);
+					dungeonMask().set(x, ry);
+					dungeonMask().set(x, ry + 1);
 				}
 			}
 		} else {
@@ -903,11 +903,11 @@ void PrepareInnerBorders()
 
 	for (int x = (DMAXX / 2) - 1; x >= 0; x--) {
 		for (int y = (DMAXY / 2) - 1; y >= 0; y--) {
-			if (!DungeonMask.test(x, y)) {
+			if (!dungeonMask().test(x, y)) {
 				hallok[x] = false;
 			} else {
-				const bool hasSouthEastRoom = x + 1 < DMAXX / 2 && DungeonMask.test(x + 1, y);
-				const bool hasSouthRoom = x + 1 < DMAXX / 2 && y + 1 < DMAXY / 2 && DungeonMask.test(x + 1, y + 1);
+				const bool hasSouthEastRoom = x + 1 < DMAXX / 2 && dungeonMask().test(x + 1, y);
+				const bool hasSouthRoom = x + 1 < DMAXX / 2 && y + 1 < DMAXY / 2 && dungeonMask().test(x + 1, y + 1);
 				hallok[x] = hasSouthEastRoom && !hasSouthRoom;
 				y = 0;
 			}
@@ -918,12 +918,12 @@ void PrepareInnerBorders()
 	do {
 		if (hallok[rx]) {
 			for (int y = (DMAXY / 2) - 1; y >= 0; y--) {
-				if (DungeonMask.test(rx, y)) {
+				if (dungeonMask().test(rx, y)) {
 					y = -1;
 					rx = 0;
 				} else {
-					DungeonMask.set(rx, y);
-					DungeonMask.set(rx + 1, y);
+					dungeonMask().set(rx, y);
+					dungeonMask().set(rx + 1, y);
 				}
 			}
 		} else {
@@ -942,17 +942,17 @@ inline size_t FindArea()
 {
 	// Hell layouts are mirrored based on a single quadrant, this function is called after the quadrant has been
 	// generated but before mirroring the layout. We need to multiply by 4 to get the expected number of tiles
-	return DungeonMask.count() * 4;
+	return dungeonMask().count() * 4;
 }
 
 void ProtectQuads()
 {
 	for (int y = 0; y < 14; y++) {
 		for (int x = 0; x < 14; x++) {
-			Protected.set(L4Hold.x + x, L4Hold.y + y);
-			Protected.set(DMAXX - 1 - x - L4Hold.x, L4Hold.y + y);
-			Protected.set(L4Hold.x + x, DMAXY - 1 - y - L4Hold.y);
-			Protected.set(DMAXX - 1 - x - L4Hold.x, DMAXY - 1 - y - L4Hold.y);
+			protectedTiles().set(L4Hold.x + x, L4Hold.y + y);
+			protectedTiles().set(DMAXX - 1 - x - L4Hold.x, L4Hold.y + y);
+			protectedTiles().set(L4Hold.x + x, DMAXY - 1 - y - L4Hold.y);
+			protectedTiles().set(DMAXX - 1 - x - L4Hold.x, DMAXY - 1 - y - L4Hold.y);
 		}
 	}
 }
@@ -1076,10 +1076,10 @@ void FixCornerTiles()
 void CloseOuterBorders()
 {
 	for (int x = 0; x < DMAXX / 2; x++) { // NOLINT(modernize-loop-convert)
-		DungeonMask.reset(x, 0);
+		dungeonMask().reset(x, 0);
 	}
 	for (int y = 0; y < DMAXY / 2; y++) {
-		DungeonMask.reset(0, y);
+		dungeonMask().reset(0, y);
 	}
 }
 
@@ -1103,30 +1103,30 @@ bool PlaceStairs(lvl_entry entry)
 	if (!position)
 		return false;
 	if (entry == ENTRY_MAIN)
-		ViewPosition = position->megaToWorld() + Displacement { 6, 6 };
+		viewPosition() = position->megaToWorld() + Displacement { 6, 6 };
 
-	if (currlevel != 15) {
+	if (currentLevelNumber() != 15) {
 		// Place stairs down
-		if (currlevel != 16) {
+		if (currentLevelNumber() != 16) {
 			if (Quests[Q_WARLORD].IsAvailable()) {
 				if (entry == ENTRY_PREV)
-					ViewPosition = SetPiece.position.megaToWorld() + Displacement { 7, 7 };
+					viewPosition() = setPiece().position.megaToWorld() + Displacement { 7, 7 };
 			} else {
 				position = PlaceMiniSet(L4DSTAIRS);
 				if (!position)
 					return false;
 				if (entry == ENTRY_PREV)
-					ViewPosition = position->megaToWorld() + Displacement { 7, 5 };
+					viewPosition() = position->megaToWorld() + Displacement { 7, 5 };
 			}
 		}
 
 		// Place town warp stairs
-		if (currlevel == 13) {
+		if (currentLevelNumber() == 13) {
 			position = PlaceMiniSet(L4TWARP);
 			if (!position)
 				return false;
 			if (entry == ENTRY_TWARPDN)
-				ViewPosition = position->megaToWorld() + Displacement { 6, 6 };
+				viewPosition() = position->megaToWorld() + Displacement { 6, 6 };
 		}
 	} else {
 		// Place hell gate
@@ -1135,7 +1135,7 @@ bool PlaceStairs(lvl_entry entry)
 			return false;
 		Quests[Q_DIABLO].position = *position;
 		if (entry == ENTRY_PREV)
-			ViewPosition = position->megaToWorld() + Displacement { 6, 5 };
+			viewPosition() = position->megaToWorld() + Displacement { 6, 5 };
 	}
 
 	return true;
@@ -1143,15 +1143,15 @@ bool PlaceStairs(lvl_entry entry)
 
 void GenerateLevel(lvl_entry entry)
 {
-	if (LevelSeeds[currlevel])
-		SetRndSeed(*LevelSeeds[currlevel]);
+	if (LevelSeeds[currentLevelNumber()])
+		SetRndSeed(*LevelSeeds[currentLevelNumber()]);
 
 	while (true) {
 		DRLG_InitTrans();
 
 		constexpr size_t Minarea = 692;
 		do {
-			LevelSeeds[currlevel] = GetLCGEngineState();
+			LevelSeeds[currentLevelNumber()] = GetLCGEngineState();
 			InitDungeonFlags();
 			FirstRoom();
 			CloseOuterBorders();
@@ -1162,13 +1162,13 @@ void GenerateLevel(lvl_entry entry)
 
 		MakeDmt();
 		FixTilesPatterns();
-		if (currlevel == 16) {
+		if (currentLevelNumber() == 16) {
 			ProtectQuads();
 		}
-		if (Quests[Q_WARLORD].IsAvailable() || (currlevel == Quests[Q_BETRAYER]._qlevel && UseMultiplayerQuests())) {
-			for (int spi = SetPieceRoom.position.x; spi < SetPieceRoom.position.x + SetPieceRoom.size.width - 1; spi++) {
-				for (int spj = SetPieceRoom.position.y; spj < SetPieceRoom.position.y + SetPieceRoom.size.height - 1; spj++) {
-					Protected.set(spi, spj);
+		if (Quests[Q_WARLORD].IsAvailable() || (currentLevelNumber() == Quests[Q_BETRAYER]._qlevel && UseMultiplayerQuests())) {
+			for (int spi = setPieceRoom().position.x; spi < setPieceRoom().position.x + setPieceRoom().size.width - 1; spi++) {
+				for (int spj = setPieceRoom().position.y; spj < setPieceRoom().position.y + setPieceRoom().size.height - 1; spj++) {
+					protectedTiles().set(spi, spj);
 				}
 			}
 		}
@@ -1176,7 +1176,7 @@ void GenerateLevel(lvl_entry entry)
 		FloodTransparencyValues(6);
 		FixTransparency();
 		InitSetPiece();
-		if (currlevel == 16) {
+		if (currentLevelNumber() == 16) {
 			LoadDiabQuads(true);
 		}
 		if (PlaceStairs(entry))
@@ -1185,7 +1185,7 @@ void GenerateLevel(lvl_entry entry)
 
 	GeneralFix();
 
-	if (currlevel != 16) {
+	if (currentLevelNumber() != 16) {
 		DRLG_PlaceThemeRooms(7, 10, 6, 8, true);
 	}
 
@@ -1195,9 +1195,9 @@ void GenerateLevel(lvl_entry entry)
 
 	SnapshotReplacementMegaTiles();
 
-	DRLG_CheckQuests(SetPieceRoom.position);
+	DRLG_CheckQuests(setPieceRoom().position);
 
-	if (currlevel == 15) {
+	if (currentLevelNumber() == 15) {
 		const bool isGateOpen = UseMultiplayerQuests() || IsAnyOf(Quests[Q_DIABLO]._qactive, QUEST_ACTIVE, QUEST_DONE);
 		if (!isGateOpen)
 			L4PENTA.place(Quests[Q_DIABLO].position);
@@ -1212,7 +1212,7 @@ void GenerateLevel(lvl_entry entry)
 			}
 		}
 	}
-	if (currlevel == 16) {
+	if (currentLevelNumber() == 16) {
 		LoadDiabQuads(false);
 	}
 }

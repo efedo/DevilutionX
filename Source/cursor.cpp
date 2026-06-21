@@ -302,7 +302,7 @@ bool TrySelectPixelBased(Point tile)
 		// Never select a monster if a target-player-only spell is selected
 		if (monsterId != 0 && IsNoneOf(pcurs, CURSOR_HEALOTHER, CURSOR_RESURRECT)) {
 			monsterId = std::abs(monsterId) - 1;
-			if (leveltype == DTYPE_TOWN) {
+			if (levelType() == DTYPE_TOWN) {
 				const Towner &towner = Towners[monsterId];
 				const ClxSprite sprite = towner.currentSprite();
 				const Displacement renderingOffset = towner.getRenderingOffset();
@@ -611,7 +611,7 @@ void DrawSoftwareCursor(const Surface &out, Point position, int cursId)
 void InitLevelCursor()
 {
 	NewCursor(CURSOR_HAND);
-	cursPosition = ViewPosition;
+	cursPosition = viewPosition();
 	pcurstemp = -1;
 	pcursmonst = -1;
 	ObjectUnderCursor = nullptr;
@@ -642,7 +642,7 @@ void CheckRportal()
 			if (EntranceBoundaryContains(missile.position.tile, cursPosition)) {
 				trigflag = true;
 				InfoString = _("Portal to");
-				AddInfoBoxString(!setlevel ? _("The Unholy Altar") : _("level 15"));
+				AddInfoBoxString(!isSetLevel() ? _("The Unholy Altar") : _("level 15"));
 				cursPosition = missile.position.tile;
 			}
 		}
@@ -729,7 +729,7 @@ Point ConvertToTileGrid(Point &screenPosition)
 	const int lrow = rows - RowsCoveredByPanel();
 
 	// Center player tile on screen
-	Point currentTile = ViewPosition;
+	Point currentTile = viewPosition();
 	ShiftGrid(&currentTile, -columns / 2, -lrow / 2);
 
 	// Align grid
@@ -864,7 +864,7 @@ bool CheckCursorActions(const Point currentTile, bool flipflag)
 	if (TrySelectPixelBased(currentTile))
 		return true;
 
-	if (leveltype != DTYPE_TOWN) {
+	if (levelType() != DTYPE_TOWN) {
 		// Never select a monster if a target-player-only spell is selected
 		if (IsNoneOf(pcurs, CURSOR_HEALOTHER, CURSOR_RESURRECT)) {
 			if (pcurstemp != -1 && TrySelectMonster(flipflag, currentTile, [](const Monster &monster) {

@@ -14,7 +14,7 @@
  *
  * Relationship to existing globals
  * ----------------------------------
- * The globals in gendung.h (currlevel, leveltype, setlevel, …) and
+ * The globals in gendung.h (currentLevelNumber(), levelType(), isSetLevel(), …) and
  * diablo.h (DungeonSeeds, LevelSeeds, sgGameInitInfo, …) represent state
  * that logically belongs here.  They will be migrated incrementally;
  * in the meantime World::syncFromGlobals() / syncToGlobals() bridge the
@@ -116,7 +116,7 @@ inline Level &currentLevel()
 /**
  * @brief Creates (if needed) and activates the level at @p index.
  *
- * Must be called before any gendung macro (currlevel, leveltype, …) is
+ * Must be called before any gendung macro (currentLevelNumber(), levelType(), …) is
  * first written on a level transition so that currentLevel() resolves
  * to a valid Level object.
  */

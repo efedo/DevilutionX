@@ -198,7 +198,7 @@ void FindItemOrObject()
 		cursPosition = targetPosition;
 	}
 
-	if (leveltype == DTYPE_TOWN || pcursitem != -1) {
+	if (levelType() == DTYPE_TOWN || pcursitem != -1) {
 		return; // Don't look for objects in town
 	}
 
@@ -428,7 +428,7 @@ void CheckPlayerNearby()
 
 void FindActor()
 {
-	if (leveltype != DTYPE_TOWN)
+	if (levelType() != DTYPE_TOWN)
 		CheckMonstersNearby();
 	else
 		CheckTownersNearby();
@@ -477,7 +477,7 @@ void FindTrigger()
 
 		if (pcurstrig == -1) {
 			for (auto &quest : Quests) {
-				if (quest._qidx == Q_BETRAYER || currlevel != quest._qlevel || quest._qslvl == 0)
+				if (quest._qidx == Q_BETRAYER || currentLevelNumber() != quest._qlevel || quest._qslvl == 0)
 					continue;
 				const int newDistance = GetDistance(quest.position, 2);
 				if (newDistance == 0)
@@ -512,14 +512,14 @@ bool IsStandingGround()
 
 void Interact()
 {
-	if (leveltype == DTYPE_TOWN && pcursmonst != -1) {
+	if (levelType() == DTYPE_TOWN && pcursmonst != -1) {
 		NetSendCmdLocParam1(true, CMD_TALKXY, Towners[pcursmonst].position, pcursmonst);
 		return;
 	}
 
 	const Player &myPlayer = *MyPlayer;
 
-	if (leveltype != DTYPE_TOWN && IsStandingGround()) {
+	if (levelType() != DTYPE_TOWN && IsStandingGround()) {
 		Direction pdir = myPlayer.direction;
 		const AxisDirection moveDir = GetMoveDirection();
 		const bool motion = moveDir.x != AxisDirectionX_NONE || moveDir.y != AxisDirectionY_NONE;
@@ -547,7 +547,7 @@ void Interact()
 		return;
 	}
 
-	if (leveltype != DTYPE_TOWN && PlayerUnderCursor != nullptr && !PlayerUnderCursor->hasNoLife() && !myPlayer.friendlyMode) {
+	if (levelType() != DTYPE_TOWN && PlayerUnderCursor != nullptr && !PlayerUnderCursor->hasNoLife() && !myPlayer.friendlyMode) {
 		NetSendCmdParam1(true, myPlayer.UsesRangedWeapon() ? CMD_RATTACKPID : CMD_ATTACKPID, PlayerUnderCursor->getId());
 		LastPlayerAction = PlayerActionType::AttackPlayerTarget;
 		return;
@@ -2399,7 +2399,7 @@ bool TryDropItem()
 		return false;
 	}
 
-	if (leveltype == DTYPE_TOWN) {
+	if (levelType() == DTYPE_TOWN) {
 		if (UseItemOpensHive(myPlayer.HoldItem, myPlayer.position.tile)) {
 			OpenHive();
 			NewCursor(CURSOR_HAND);

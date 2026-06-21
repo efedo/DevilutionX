@@ -65,7 +65,7 @@ std::string DebugCmdShowTileData(std::optional<std::string_view> dataType)
 		"AutomapView",
 		"currentMegaTile",
 		"replacementMegaTile",
-		"Protected",
+		"protectedTiles()",
 	};
 	if (!dataType.has_value()) {
 		std::string result = "Valid values for the first argument:\nclear";

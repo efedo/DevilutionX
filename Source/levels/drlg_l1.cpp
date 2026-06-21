@@ -301,13 +301,13 @@ void ApplyShadowsPatterns()
 				if (shadow.s3 != 0 && shadow.s3 != slice[1][0])
 					continue;
 
-				if (shadow.nv1 != 0 && !Protected.test(x - 1, y - 1)) {
+				if (shadow.nv1 != 0 && !protectedTiles().test(x - 1, y - 1)) {
 					megaTileAt(x - 1, y - 1).setCurrent(shadow.nv1);
 				}
-				if (shadow.nv2 != 0 && !Protected.test(x, y - 1)) {
+				if (shadow.nv2 != 0 && !protectedTiles().test(x, y - 1)) {
 					megaTileAt(x, y - 1).setCurrent(shadow.nv2);
 				}
-				if (shadow.nv3 != 0 && !Protected.test(x - 1, y)) {
+				if (shadow.nv3 != 0 && !protectedTiles().test(x - 1, y)) {
 					megaTileAt(x - 1, y).setCurrent(shadow.nv3);
 				}
 			}
@@ -316,7 +316,7 @@ void ApplyShadowsPatterns()
 
 	for (int y = 1; y < DMAXY; y++) {
 		for (int x = 1; x < DMAXX; x++) {
-			if (Protected.test(x - 1, y))
+			if (protectedTiles().test(x - 1, y))
 				continue;
 
 			if (megaTileAt(x - 1, y).current() == Floor12) {
@@ -366,7 +366,7 @@ void FillFloor()
 {
 	for (int j = 0; j < DMAXY; j++) {
 		for (int i = 0; i < DMAXX; i++) {
-			if (megaTileAt(i, j).current() != Floor || Protected.test(i, j))
+			if (megaTileAt(i, j).current() != Floor || protectedTiles().test(i, j))
 				continue;
 
 			const int rv = RandomIntLessThan(3);
@@ -393,12 +393,12 @@ void InitSetPiece()
 
 	const WorldTilePosition setPiecePosition = SelectChamber();
 	PlaceDunTiles(setPieceData.get(), setPiecePosition, Floor);
-	SetPiece = { setPiecePosition, GetDunSize(setPieceData.get()) };
+	setPiece() = { setPiecePosition, GetDunSize(setPieceData.get()) };
 }
 
 void InitDungeonPieces()
 {
-	for (auto &tile : tiles) {
+	for (auto &tile : tiles()) {
 		int8_t pc;
 		const uint16_t piece = tile.piece();
 		if (IsAnyOf(piece, 11, 70, 320, 210, 340, 417)) {
@@ -423,7 +423,7 @@ void InitDungeonPieces()
 void InitDungeonFlags()
 {
 	FillCurrentMegaTiles(Dirt);
-	Protected.reset();
+	protectedTiles().reset();
 	Chamber.reset();
 }
 
@@ -431,7 +431,7 @@ void MapRoom(Rectangle room)
 {
 	for (int y = 0; y < room.size.height; y++) {
 		for (int x = 0; x < room.size.width; x++) {
-			DungeonMask.set(room.position.x + x, room.position.y + y);
+			dungeonMask().set(room.position.x + x, room.position.y + y);
 		}
 	}
 }
@@ -443,7 +443,7 @@ bool CheckRoom(Rectangle room)
 			if (i + room.position.x < 0 || i + room.position.x >= DMAXX || j + room.position.y < 0 || j + room.position.y >= DMAXY) {
 				return false;
 			}
-			if (DungeonMask.test(i + room.position.x, j + room.position.y)) {
+			if (dungeonMask().test(i + room.position.x, j + room.position.y)) {
 				return false;
 			}
 		}
@@ -502,7 +502,7 @@ void GenerateRoom(Rectangle area, bool verticalLayout)
  */
 void FirstRoom()
 {
-	DungeonMask.reset();
+	dungeonMask().reset();
 
 	VerticalLayout = FlipCoin();
 	HasChamber1 = !FlipCoin();
@@ -547,28 +547,28 @@ void FirstRoom()
 }
 
 /**
- * @brief Find the number of mega tiles used by layout
+ * @brief Find the number of mega tiles() used by layout
  */
 inline size_t FindArea()
 {
-	return DungeonMask.count();
+	return dungeonMask().count();
 }
 
 void MakeDmt()
 {
 	for (int j = 0; j < DMAXY - 1; j++) {
 		for (int i = 0; i < DMAXX - 1; i++) {
-			if (DungeonMask.test(i, j))
+			if (dungeonMask().test(i, j))
 				megaTileAt(i, j).setCurrent(Floor);
-			else if (!DungeonMask.test(i + 1, j + 1) && DungeonMask.test(i, j + 1) && DungeonMask.test(i + 1, j))
+			else if (!dungeonMask().test(i + 1, j + 1) && dungeonMask().test(i, j + 1) && dungeonMask().test(i + 1, j))
 				megaTileAt(i, j).setCurrent(Floor); // Remove diagonal corners
-			else if (DungeonMask.test(i + 1, j + 1) && DungeonMask.test(i, j + 1) && DungeonMask.test(i + 1, j))
+			else if (dungeonMask().test(i + 1, j + 1) && dungeonMask().test(i, j + 1) && dungeonMask().test(i + 1, j))
 				megaTileAt(i, j).setCurrent(VCorner);
-			else if (DungeonMask.test(i, j + 1))
+			else if (dungeonMask().test(i, j + 1))
 				megaTileAt(i, j).setCurrent(HWall);
-			else if (DungeonMask.test(i + 1, j))
+			else if (dungeonMask().test(i + 1, j))
 				megaTileAt(i, j).setCurrent(VWall);
-			else if (DungeonMask.test(i + 1, j + 1))
+			else if (dungeonMask().test(i + 1, j + 1))
 				megaTileAt(i, j).setCurrent(DWall);
 			else
 				megaTileAt(i, j).setCurrent(Dirt);
@@ -580,7 +580,7 @@ int HorizontalWallOk(Point position)
 {
 	int length;
 	for (length = 1; megaTileAt(position.x + length, position.y).current() == Floor; length++) {
-		if (megaTileAt(position.x + length, position.y - 1).current() != Floor || megaTileAt(position.x + length, position.y + 1).current() != Floor || Protected.test(position.x + length, position.y) || Chamber.test(position.x + length, position.y))
+		if (megaTileAt(position.x + length, position.y - 1).current() != Floor || megaTileAt(position.x + length, position.y + 1).current() != Floor || protectedTiles().test(position.x + length, position.y) || Chamber.test(position.x + length, position.y))
 			break;
 	}
 
@@ -599,7 +599,7 @@ int VerticalWallOk(Point position)
 {
 	int length;
 	for (length = 1; megaTileAt(position.x, position.y + length).current() == Floor; length++) {
-		if (megaTileAt(position.x - 1, position.y + length).current() != Floor || megaTileAt(position.x + 1, position.y + length).current() != Floor || Protected.test(position.x, position.y + length) || Chamber.test(position.x, position.y + length))
+		if (megaTileAt(position.x - 1, position.y + length).current() != Floor || megaTileAt(position.x + 1, position.y + length).current() != Floor || protectedTiles().test(position.x, position.y + length) || Chamber.test(position.x, position.y + length))
 			break;
 	}
 
@@ -652,7 +652,7 @@ void HorizontalWall(Point position, Tile start, int maxX)
 
 	megaTileAt(position.x + x, position.y).setCurrent(doorTile);
 	if (doorTile == HDoor) {
-		Protected.set(position.x + x, position.y);
+		protectedTiles().set(position.x + x, position.y);
 	}
 }
 
@@ -694,7 +694,7 @@ void VerticalWall(Point position, Tile start, int maxY)
 
 	megaTileAt(position.x, position.y + y).setCurrent(doorTile);
 	if (doorTile == VDoor) {
-		Protected.set(position.x, position.y + y);
+		protectedTiles().set(position.x, position.y + y);
 	}
 }
 
@@ -702,7 +702,7 @@ void AddWall()
 {
 	for (int j = 0; j < DMAXY; j++) {
 		for (int i = 0; i < DMAXX; i++) {
-			if (Protected.test(i, j) || Chamber.test(i, j))
+			if (protectedTiles().test(i, j) || Chamber.test(i, j))
 				continue;
 
 			if (megaTileAt(i, j).current() == Corner) {
@@ -949,7 +949,7 @@ void Substitution()
 		for (int x = 0; x < DMAXX; x++) {
 			if (FlipCoin(4)) {
 				const uint8_t c = TileDecorations[megaTileAt(x, y).current()];
-				if (c != 0 && !Protected.test(x, y)) {
+				if (c != 0 && !protectedTiles().test(x, y)) {
 					int rv = GenerateRnd(16);
 					int i = -1;
 					while (rv >= 0) {
@@ -964,14 +964,14 @@ void Substitution()
 
 					// BUGFIX: Add `&& y > 0` to the if statement. (fixed)
 					if (i == VWall4 && y > 0) {
-						if (TileDecorations[megaTileAt(x, y - 1).current()] != VWall2 || Protected.test(x, y - 1))
+						if (TileDecorations[megaTileAt(x, y - 1).current()] != VWall2 || protectedTiles().test(x, y - 1))
 							i = VWall2;
 						else
 							megaTileAt(x, y - 1).setCurrent(VWall5);
 					}
 					// BUGFIX: Add `&& x + 1 < DMAXX` to the if statement. (fixed)
 					if (i == HWall4 && x + 1 < DMAXX) {
-						if (TileDecorations[megaTileAt(x + 1, y).current()] != HWall2 || Protected.test(x + 1, y))
+						if (TileDecorations[megaTileAt(x + 1, y).current()] != HWall2 || protectedTiles().test(x + 1, y))
 							i = HWall2;
 						else
 							megaTileAt(x + 1, y).setCurrent(HWall5);
@@ -1012,8 +1012,8 @@ void FillChambers()
 		GenerateHall(hall1, 16, VerticalLayout);
 	}
 
-	if (leveltype == DTYPE_CRYPT) {
-		if (currlevel == 24) {
+	if (levelType() == DTYPE_CRYPT) {
+		if (currentLevelNumber() == 24) {
 			SetCryptRoom();
 		} else if (CornerStone.isAvailable()) {
 			SetCornerRoom();
@@ -1089,9 +1089,9 @@ void FixCornerTiles()
 {
 	for (int j = 1; j < DMAXY - 1; j++) {
 		for (int i = 1; i < DMAXX - 1; i++) {
-			if (!Protected.test(i, j) && megaTileAt(i, j).current() == HCorner && megaTileAt(i - 1, j).current() == Floor && megaTileAt(i, j - 1).current() == VWall) {
+			if (!protectedTiles().test(i, j) && megaTileAt(i, j).current() == HCorner && megaTileAt(i - 1, j).current() == Floor && megaTileAt(i, j - 1).current() == VWall) {
 				megaTileAt(i, j).setCurrent(VCorner);
-				// BUGFIX: Set tile as Protected
+				// BUGFIX: Set tile as protectedTiles()
 			}
 			if (megaTileAt(i, j).current() == DirtCorner2 && megaTileAt(i + 1, j).current() == Floor && megaTileAt(i, j + 1).current() == VWall) {
 				megaTileAt(i, j).setCurrent(HArchEnd);
@@ -1114,14 +1114,14 @@ bool PlaceCathedralStairs(lvl_entry entry)
 		if (!position) {
 			success = false;
 		} else {
-			const int8_t t = TransVal;
-			TransVal = 0;
+			const int8_t t = nextTransparencyValue();
+			nextTransparencyValue() = 0;
 			const Point miniPosition = *position;
 			DRLG_MRectTrans({ miniPosition + Displacement { 0, 2 }, { 5, 2 } });
-			TransVal = t;
+			nextTransparencyValue() = t;
 			Quests[Q_PWATER].position = miniPosition.megaToWorld() + Displacement { 5, 6 };
 			if (entry == ENTRY_RTNLVL)
-				ViewPosition = Quests[Q_PWATER].position;
+				viewPosition() = Quests[Q_PWATER].position;
 		}
 	}
 
@@ -1132,19 +1132,19 @@ bool PlaceCathedralStairs(lvl_entry entry)
 			return false;
 		success = false;
 	} else if (entry == ENTRY_MAIN) {
-		ViewPosition = position->megaToWorld() + Displacement { 3, 4 };
+		viewPosition() = position->megaToWorld() + Displacement { 3, 4 };
 	}
 
 	// Place stairs down
 	if (Quests[Q_LTBANNER].IsAvailable()) {
 		if (entry == ENTRY_PREV)
-			ViewPosition = SetPiece.position.megaToWorld() + Displacement { 3, 11 };
+			viewPosition() = setPiece().position.megaToWorld() + Displacement { 3, 11 };
 	} else {
 		position = PlaceMiniSet(STAIRSDOWN, DMAXX * DMAXY, true);
 		if (!position) {
 			success = false;
 		} else if (entry == ENTRY_PREV) {
-			ViewPosition = position->megaToWorld() + Displacement { 3, 3 };
+			viewPosition() = position->megaToWorld() + Displacement { 3, 3 };
 		}
 	}
 
@@ -1153,7 +1153,7 @@ bool PlaceCathedralStairs(lvl_entry entry)
 
 bool PlaceStairs(lvl_entry entry)
 {
-	if (leveltype == DTYPE_CRYPT) {
+	if (levelType() == DTYPE_CRYPT) {
 		return PlaceCryptStairs(entry);
 	}
 
@@ -1162,11 +1162,11 @@ bool PlaceStairs(lvl_entry entry)
 
 void GenerateLevel(lvl_entry entry)
 {
-	if (LevelSeeds[currlevel])
-		SetRndSeed(*LevelSeeds[currlevel]);
+	if (LevelSeeds[currentLevelNumber()])
+		SetRndSeed(*LevelSeeds[currentLevelNumber()]);
 
 	size_t minarea = 761;
-	switch (currlevel) {
+	switch (currentLevelNumber()) {
 	case 1:
 		minarea = 533;
 		break;
@@ -1181,7 +1181,7 @@ void GenerateLevel(lvl_entry entry)
 		DRLG_InitTrans();
 
 		do {
-			LevelSeeds[currlevel] = GetLCGEngineState();
+			LevelSeeds[currentLevelNumber()] = GetLCGEngineState();
 			FirstRoom();
 		} while (FindArea() < minarea);
 
@@ -1207,14 +1207,14 @@ void GenerateLevel(lvl_entry entry)
 	}
 
 	FixTransparency();
-	if (leveltype == DTYPE_CRYPT) {
+	if (levelType() == DTYPE_CRYPT) {
 		FixCryptDirtTiles();
 	} else {
 		FixDirtTiles();
 	}
 	FixCornerTiles();
 
-	if (leveltype == DTYPE_CRYPT) {
+	if (levelType() == DTYPE_CRYPT) {
 		CryptSubstitution();
 	} else {
 		Substitution();
@@ -1230,14 +1230,14 @@ void GenerateLevel(lvl_entry entry)
 
 	SnapshotReplacementMegaTiles();
 
-	DRLG_CheckQuests(SetPiece.position);
+	DRLG_CheckQuests(setPiece().position);
 }
 
 void Pass3()
 {
 	DRLG_LPass3(Dirt - 1);
 
-	if (leveltype == DTYPE_CRYPT)
+	if (levelType() == DTYPE_CRYPT)
 		InitCryptPieces();
 	else
 		InitDungeonPieces();
@@ -1303,7 +1303,7 @@ void CreateL5Dungeon(uint32_t rseed, lvl_entry entry)
 
 	Pass3();
 
-	if (leveltype == DTYPE_CRYPT) {
+	if (levelType() == DTYPE_CRYPT) {
 		PlaceCryptLights();
 		SetCryptSetPieceRoom();
 	}
@@ -1316,7 +1316,7 @@ void LoadPreL1Dungeon(const char *path)
 	auto dunData = LoadFileInMem<uint16_t>(path);
 	PlaceDunTiles(dunData.get(), { 0, 0 }, Floor);
 
-	if (setlvltype == DTYPE_CATHEDRAL)
+	if (setLevelType() == DTYPE_CATHEDRAL)
 		FillFloor();
 
 	SnapshotReplacementMegaTiles();
@@ -1326,12 +1326,12 @@ void LoadL1Dungeon(const char *path, Point spawn)
 {
 	LoadDungeonBase(path, spawn, Floor, Dirt);
 
-	if (setlvltype == DTYPE_CATHEDRAL)
+	if (setLevelType() == DTYPE_CATHEDRAL)
 		FillFloor();
 
 	Pass3();
 
-	if (setlvltype == DTYPE_CRYPT) {
+	if (setLevelType() == DTYPE_CRYPT) {
 		AddCryptObjects(0, 0, MAXDUNX, MAXDUNY);
 		PlaceCryptLights();
 	} else {

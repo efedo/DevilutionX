@@ -75,7 +75,7 @@ void DrawMonsterHealthBar(const Surface &out)
 	if (!*GetOptions().Gameplay.enemyHealthBar)
 		return;
 
-	if (leveltype == DTYPE_TOWN)
+	if (levelType() == DTYPE_TOWN)
 		return;
 	if (pcursmonst == -1)
 		return;

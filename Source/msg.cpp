@@ -1019,7 +1019,7 @@ void DeltaLeaveSync(uint8_t bLevel)
 {
 	if (!gbIsMultiplayer)
 		return;
-	if (leveltype == DTYPE_TOWN) {
+	if (levelType() == DTYPE_TOWN) {
 		DungeonSeeds[0] = GenerateSeed();
 		return;
 	}
@@ -1666,7 +1666,7 @@ size_t OnStandingAttackTile(const TCmdLoc &message, Player &player)
 {
 	const Point position { message.x, message.y };
 
-	if (gbBufferMsgs != 1 && player.isOnActiveLevel() && leveltype != DTYPE_TOWN && InDungeonBounds(position)) {
+	if (gbBufferMsgs != 1 && player.isOnActiveLevel() && levelType() != DTYPE_TOWN && InDungeonBounds(position)) {
 		player.clearPath();
 		player.destAction = ACTION_ATTACK;
 		player.destParam1 = position.x;
@@ -1680,7 +1680,7 @@ size_t OnRangedAttackTile(const TCmdLoc &message, Player &player)
 {
 	const Point position { message.x, message.y };
 
-	if (gbBufferMsgs != 1 && player.isOnActiveLevel() && leveltype != DTYPE_TOWN && InDungeonBounds(position)) {
+	if (gbBufferMsgs != 1 && player.isOnActiveLevel() && levelType() != DTYPE_TOWN && InDungeonBounds(position)) {
 		player.clearPath();
 		player.destAction = ACTION_RATTACK;
 		player.destParam1 = position.x;
@@ -1703,7 +1703,7 @@ bool InitNewSpell(Player &player, uint16_t wParamSpellID, uint16_t wParamSpellTy
 		LogError(_("{:s} has cast an invalid spell."), player._pName);
 		return false;
 	}
-	if (leveltype == DTYPE_TOWN && !GetSpellData(spellID).isAllowedInTown()) {
+	if (levelType() == DTYPE_TOWN && !GetSpellData(spellID).isAllowedInTown()) {
 		LogError(_("{:s} has cast an illegal spell."), player._pName);
 		return false;
 	}
@@ -1808,7 +1808,7 @@ size_t OnAttackMonster(const TCmdParam1 &message, Player &player)
 {
 	const uint16_t monsterIdx = Swap16LE(message.wParam1);
 
-	if (gbBufferMsgs != 1 && player.isOnActiveLevel() && leveltype != DTYPE_TOWN && monsterIdx < MaxMonsters) {
+	if (gbBufferMsgs != 1 && player.isOnActiveLevel() && levelType() != DTYPE_TOWN && monsterIdx < MaxMonsters) {
 		const Point position = Monsters[monsterIdx].position.future;
 		if (player.position.tile.WalkingDistance(position) > 1)
 			player.makePath(position, false);
@@ -1823,7 +1823,7 @@ size_t OnAttackPlayer(const TCmdParam1 &message, Player &player)
 {
 	const uint16_t playerIdx = Swap16LE(message.wParam1);
 
-	if (gbBufferMsgs != 1 && player.isOnActiveLevel() && leveltype != DTYPE_TOWN && playerIdx < Players.size()) {
+	if (gbBufferMsgs != 1 && player.isOnActiveLevel() && levelType() != DTYPE_TOWN && playerIdx < Players.size()) {
 		player.makePath(Players[playerIdx].position.future, false);
 		player.destAction = ACTION_ATTACKPLR;
 		player.destParam1 = playerIdx;
@@ -1836,7 +1836,7 @@ size_t OnRangedAttackMonster(const TCmdParam1 &message, Player &player)
 {
 	const uint16_t monsterIdx = Swap16LE(message.wParam1);
 
-	if (gbBufferMsgs != 1 && player.isOnActiveLevel() && leveltype != DTYPE_TOWN && monsterIdx < MaxMonsters) {
+	if (gbBufferMsgs != 1 && player.isOnActiveLevel() && levelType() != DTYPE_TOWN && monsterIdx < MaxMonsters) {
 		player.clearPath();
 		player.destAction = ACTION_RATTACKMON;
 		player.destParam1 = monsterIdx;
@@ -1849,7 +1849,7 @@ size_t OnRangedAttackPlayer(const TCmdParam1 &message, Player &player)
 {
 	const uint16_t playerIdx = Swap16LE(message.wParam1);
 
-	if (gbBufferMsgs != 1 && player.isOnActiveLevel() && leveltype != DTYPE_TOWN && playerIdx < Players.size()) {
+	if (gbBufferMsgs != 1 && player.isOnActiveLevel() && levelType() != DTYPE_TOWN && playerIdx < Players.size()) {
 		player.clearPath();
 		player.destAction = ACTION_RATTACKPLR;
 		player.destParam1 = playerIdx;
@@ -1864,7 +1864,7 @@ size_t OnSpellMonster(const TCmdParam4 &message, Player &player)
 		return sizeof(message);
 	if (!player.isOnActiveLevel())
 		return sizeof(message);
-	if (leveltype == DTYPE_TOWN)
+	if (levelType() == DTYPE_TOWN)
 		return sizeof(message);
 	const uint16_t monsterIdx = Swap16LE(message.wParam1);
 	if (monsterIdx >= MaxMonsters)
@@ -1906,7 +1906,7 @@ size_t OnKnockback(const TCmdParam1 &message, Player &player)
 {
 	const uint16_t monsterIdx = Swap16LE(message.wParam1);
 
-	if (gbBufferMsgs != 1 && player.isOnActiveLevel() && leveltype != DTYPE_TOWN && monsterIdx < MaxMonsters) {
+	if (gbBufferMsgs != 1 && player.isOnActiveLevel() && levelType() != DTYPE_TOWN && monsterIdx < MaxMonsters) {
 		Monster &monster = Monsters[monsterIdx];
 		monster.getKnockback(player.position.tile);
 		monster.startHit(player, 0);
@@ -2051,7 +2051,7 @@ size_t OnMonstDamage(const TCmdMonDamage &message, Player &player)
 
 	if (gbBufferMsgs != 1) {
 		if (&player != MyPlayer) {
-			if (player.isOnActiveLevel() && leveltype != DTYPE_TOWN && monsterIdx < MaxMonsters) {
+			if (player.isOnActiveLevel() && levelType() != DTYPE_TOWN && monsterIdx < MaxMonsters) {
 				Monster &monster = Monsters[monsterIdx];
 				monster.tag(player);
 				if (monster.hitPoints > 0) {
@@ -2090,7 +2090,7 @@ size_t OnPlayerDamage(const TCmdDamage &message, Player &player)
 	const uint32_t damage = Swap32LE(message.dwDam);
 
 	Player &target = Players[message.bPlr];
-	if (&target == MyPlayer && leveltype != DTYPE_TOWN && gbBufferMsgs != 1) {
+	if (&target == MyPlayer && levelType() != DTYPE_TOWN && gbBufferMsgs != 1) {
 		if (player.isOnActiveLevel() && damage <= 192000 && !target.hasNoLife()) {
 			target.applyDamage(message.damageType, 0, 0, static_cast<int>(damage), DeathReason::Player);
 		}
@@ -2364,7 +2364,7 @@ size_t OnActivatePortal(const TCmdLocParam3 &message, Player &player)
 
 		ActivatePortal(player, position, level, dungeonType, isSetLevel);
 		if (&player != MyPlayer) {
-			if (leveltype == DTYPE_TOWN) {
+			if (levelType() == DTYPE_TOWN) {
 				AddPortalInTown(player);
 			} else if (player.isOnActiveLevel()) {
 				bool addPortal = true;
@@ -2570,7 +2570,7 @@ size_t OnSetReflect(const TCmdParam1 &message, Player &player)
 size_t OnNakrul(const TCmd &cmd)
 {
 	if (gbBufferMsgs != 1) {
-		if (currlevel == 24) {
+		if (currentLevelNumber() == 24) {
 			PlaySfxLoc(SfxID::CryptDoorOpen, { UberRow, UberCol });
 			SyncNakrulRoom();
 		}
@@ -2597,7 +2597,7 @@ size_t OnOpenGrave(const TCmd &cmd)
 	if (gbBufferMsgs != 1) {
 		TownOpenGrave();
 		InitTownTriggers();
-		if (leveltype == DTYPE_TOWN)
+		if (levelType() == DTYPE_TOWN)
 			PlaySFX(SfxID::Sarcophagus);
 	}
 	return sizeof(cmd);
@@ -2930,12 +2930,12 @@ void DeltaSaveLevel()
 			player.resetGraphics();
 	}
 	uint8_t localLevel;
-	if (setlevel) {
-		localLevel = GetLevelForMultiplayer(static_cast<uint8_t>(setlvlnum), setlevel);
-		MyPlayer->_pSLvlVisited[static_cast<uint8_t>(setlvlnum)] = true;
+	if (isSetLevel()) {
+		localLevel = GetLevelForMultiplayer(static_cast<uint8_t>(setLevelNumber()), isSetLevel());
+		MyPlayer->_pSLvlVisited[static_cast<uint8_t>(setLevelNumber())] = true;
 	} else {
-		localLevel = GetLevelForMultiplayer(currlevel, setlevel);
-		MyPlayer->_pLvlVisited[currlevel] = true;
+		localLevel = GetLevelForMultiplayer(currentLevelNumber(), isSetLevel());
+		MyPlayer->_pLvlVisited[currentLevelNumber()] = true;
 	}
 	DeltaLeaveSync(localLevel);
 }
@@ -2964,7 +2964,7 @@ void DeltaLoadLevel()
 
 	const uint8_t localLevel = GetLevelForMultiplayer(*MyPlayer);
 	DLevel &deltaLevel = GetDeltaLevel(localLevel);
-	if (leveltype != DTYPE_TOWN) {
+	if (levelType() != DTYPE_TOWN) {
 		DeltaLoadSpawnedMonsters(deltaLevel);
 		DeltaLoadMonsters(deltaLevel);
 

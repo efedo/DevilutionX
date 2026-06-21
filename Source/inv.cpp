@@ -996,7 +996,7 @@ void CheckQuestItem(Player &player, Item &questItem)
 
 	if (Quests[Q_BLIND]._qactive == QUEST_ACTIVE
 	    && (questItem.IDidx == IDI_OPTAMULET
-	        || (Quests[Q_BLIND].IsAvailable() && questItem.position == (SetPiece.position.megaToWorld() + Displacement { 5, 5 })))) {
+	        || (Quests[Q_BLIND].IsAvailable() && questItem.position == (setPiece().position.megaToWorld() + Displacement { 5, 5 })))) {
 		Quests[Q_BLIND]._qactive = QUEST_DONE;
 		NetSendCmdQuest(true, Quests[Q_BLIND]);
 	}
@@ -1033,7 +1033,7 @@ void CheckQuestItem(Player &player, Item &questItem)
 
 	if (Quests[Q_BLOOD]._qactive == QUEST_ACTIVE
 	    && (questItem.IDidx == IDI_ARMOFVAL
-	        || (Quests[Q_BLOOD].IsAvailable() && questItem.position == (SetPiece.position.megaToWorld() + Displacement { 9, 3 })))) {
+	        || (Quests[Q_BLOOD].IsAvailable() && questItem.position == (setPiece().position.megaToWorld() + Displacement { 9, 3 })))) {
 		Quests[Q_BLOOD]._qactive = QUEST_DONE;
 		NetSendCmdQuest(true, Quests[Q_BLOOD]);
 		myPlayer.Say(HeroSpeech::MayTheSpiritOfArkaineProtectMe, 20);
@@ -1844,7 +1844,7 @@ bool CanPut(Point position)
 		return false;
 	}
 
-	if (leveltype == DTYPE_TOWN) {
+	if (levelType() == DTYPE_TOWN) {
 		if (tileAt(position).hasMonster()) {
 			return false;
 		}
@@ -2053,7 +2053,7 @@ void ConsumeScroll(Player &player)
 
 bool CanUseScroll(Player &player, SpellID spell)
 {
-	if (leveltype == DTYPE_TOWN && !GetSpellData(spell).isAllowedInTown())
+	if (levelType() == DTYPE_TOWN && !GetSpellData(spell).isAllowedInTown())
 		return false;
 
 	return HasInventoryOrBeltItem(player, [spell](const Item &item) {
@@ -2184,11 +2184,11 @@ bool UseInvItem(int cii)
 
 	CloseGoldDrop();
 
-	if (item->isScroll() && leveltype == DTYPE_TOWN && !GetSpellData(item->_iSpell).isAllowedInTown()) {
+	if (item->isScroll() && levelType() == DTYPE_TOWN && !GetSpellData(item->_iSpell).isAllowedInTown()) {
 		return true;
 	}
 
-	if (item->_iMiscId > IMISC_RUNEFIRST && item->_iMiscId < IMISC_RUNELAST && leveltype == DTYPE_TOWN) {
+	if (item->_iMiscId > IMISC_RUNEFIRST && item->_iMiscId < IMISC_RUNELAST && levelType() == DTYPE_TOWN) {
 		return true;
 	}
 

@@ -53,7 +53,7 @@ constexpr size_t NumLightRadiuses = 16;
 /** Falloff tables for the light cone */
 uint8_t LightFalloffs[NumLightRadiuses][128];
 bool UpdateVision;
-/** interpolations of a 32x32 (16x16 mirrored) light circle moving between tiles in steps of 1/8 of a tile */
+/** interpolations of a 32x32 (16x16 mirrored) light circle moving between tiles() in steps of 1/8 of a tile */
 uint8_t LightConeInterpolations[8][8][16][16];
 
 void RotateRadius(DisplacementOf<int8_t> &offset, DisplacementOf<int8_t> &dist, DisplacementOf<int8_t> &light, DisplacementOf<int8_t> &block)
@@ -119,7 +119,7 @@ void DoVisionFlags(Point position, MapExplorationType doAutomap, bool visible)
 void DoUnLight(Point position, uint8_t radius)
 {
 	radius++;
-	radius++; // If lights moved at a diagonal it can result in some extra tiles being lit
+	radius++; // If lights moved at a diagonal it can result in some extra tiles() being lit
 
 	auto searchArea = PointsInRectangle(WorldTileRectangle { position, radius });
 
@@ -169,7 +169,7 @@ void DoLighting(Point position, uint8_t radius, DisplacementOf<int8_t> offset)
 	}
 
 	// Allow for dim lights in crypt and nest
-	if (IsAnyOf(leveltype, DTYPE_NEST, DTYPE_CRYPT)) {
+	if (IsAnyOf(levelType(), DTYPE_NEST, DTYPE_CRYPT)) {
 		if (GetLight(position) > LightFalloffs[radius][0])
 			SetLight(position, LightFalloffs[radius][0]);
 	} else {
@@ -199,7 +199,7 @@ void DoLighting(Point position, uint8_t radius, DisplacementOf<int8_t> offset)
 void DoUnVision(Point position, uint8_t radius)
 {
 	radius++;
-	radius++; // increasing the radius even further here prevents leaving stray vision tiles behind and doesn't seem to affect monster AI - applying new vision happens in the same tick
+	radius++; // increasing the radius even further here prevents leaving stray vision tiles() behind and doesn't seem to affect monster AI - applying new vision happens in the same tick
 
 	auto searchArea = PointsInRectangle(WorldTileRectangle { position, radius });
 
@@ -217,7 +217,7 @@ void DoVision(Point position, uint8_t radius, MapExplorationType doAutomap, bool
 	auto markTransparentFn = [](Point rayPoint) {
 		const int8_t trans = tileAt(rayPoint).transVal();
 		if (trans != 0)
-			TransList[trans] = true;
+			visibleTransparencyRegions()[trans] = true;
 	};
 	auto passesLightFn = [](Point rayPoint) {
 		return TileAllowsLight(rayPoint);
@@ -266,7 +266,7 @@ void MakeLightTable()
 	FullyLitLightTable = LightTables[0].data();
 	FullyDarkLightTable = LightTables[LightsMax].data();
 
-	if (leveltype == DTYPE_HELL) {
+	if (levelType() == DTYPE_HELL) {
 		// Blood wall lighting
 		const auto shades = static_cast<int>(LightTables.size() - 1);
 		for (int i = 0; i < shades; i++) {
@@ -281,8 +281,8 @@ void MakeLightTable()
 				lightTable[idx] = color;
 			}
 		}
-		FullyLitLightTable = nullptr; // A color map is used for the ceiling animation, so even fully lit tiles have a color map
-	} else if (IsAnyOf(leveltype, DTYPE_NEST, DTYPE_CRYPT)) {
+		FullyLitLightTable = nullptr; // A color map is used for the ceiling animation, so even fully lit tiles() have a color map
+	} else if (IsAnyOf(levelType(), DTYPE_NEST, DTYPE_CRYPT)) {
 		// Make the lava fully bright
 		for (auto &lightTable : LightTables)
 			std::iota(lightTable.begin(), lightTable.begin() + 16, uint8_t { 0 });
@@ -306,7 +306,7 @@ void MakeLightTable()
 			} else {
 				const float factor = static_cast<float>(distance) / static_cast<float>(maxDistance);
 				float scaled;
-				if (IsAnyOf(leveltype, DTYPE_NEST, DTYPE_CRYPT)) {
+				if (IsAnyOf(levelType(), DTYPE_NEST, DTYPE_CRYPT)) {
 					// quardratic falloff with over exposure
 					const float brightness = static_cast<float>(radius) * 1.25F;
 					scaled = factor * factor * brightness + (maxDarkness - brightness);
@@ -341,12 +341,12 @@ void ToggleLighting()
 	DisableLighting = !DisableLighting;
 
 	if (DisableLighting) {
-		for (Tile &tile : tiles.columnMajor())
+		for (Tile &tile : tiles().columnMajor())
 			tile.setLight(0);
 		return;
 	}
 
-	for (Tile &tile : tiles.columnMajor())
+	for (Tile &tile : tiles().columnMajor())
 		tile.setLight(tile.preLight());
 
 	for (const Player &player : Players) {
@@ -368,7 +368,7 @@ void InitLighting()
 
 	std::iota(ActiveLights.begin(), ActiveLights.end(), uint8_t { 0 });
 	VisionActive = {};
-	TransList = {};
+	visibleTransparencyRegions() = {};
 }
 
 int AddLight(Point position, uint8_t radius)
@@ -519,7 +519,7 @@ void ProcessLightList()
 
 void SavePreLighting()
 {
-	for (Tile &tile : tiles.columnMajor())
+	for (Tile &tile : tiles().columnMajor())
 		tile.setPreLight(tile.light());
 }
 
@@ -560,7 +560,7 @@ void ProcessVisionList()
 	if (!UpdateVision)
 		return;
 
-	TransList = {};
+	visibleTransparencyRegions() = {};
 
 	for (const Player &player : Players) {
 		const size_t id = player.getId();

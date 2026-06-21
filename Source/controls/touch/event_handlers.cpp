@@ -245,7 +245,7 @@ bool VirtualGamepadEventHandler::Handle(const SDL_Event &event)
 	if (directionPadEventHandler.Handle(event))
 		return true;
 
-	if (leveltype != DTYPE_TOWN && standButtonEventHandler.Handle(event))
+	if (levelType() != DTYPE_TOWN && standButtonEventHandler.Handle(event))
 		return true;
 
 	if (primaryActionButtonEventHandler.Handle(event))

@@ -47,7 +47,7 @@ bool InvTest::missingMpqAssets_ = false;
 void set_up_scroll(Item &item, SpellID spell)
 {
 	pcurs = CURSOR_HAND;
-	leveltype = DTYPE_CATACOMBS;
+	levelType() = DTYPE_CATACOMBS;
 	MyPlayer->_pRSpell = static_cast<SpellID>(spell);
 	item._itype = ItemType::Misc;
 	item._iMiscId = IMISC_SCROLL;
@@ -91,7 +91,7 @@ TEST_F(InvTest, UseScroll_from_inventory_invalid_conditions)
 	MyPlayer->_pNumInv = 5;
 
 	set_up_scroll(MyPlayer->InvList[2], SpellID::Firebolt);
-	leveltype = DTYPE_TOWN;
+	levelType() = DTYPE_TOWN;
 	EXPECT_FALSE(CanUseScroll(*MyPlayer, SpellID::Firebolt));
 
 	set_up_scroll(MyPlayer->InvList[2], SpellID::Firebolt);
@@ -114,7 +114,7 @@ TEST_F(InvTest, UseScroll_from_belt_invalid_conditions)
 	MyPlayer->_pNumInv = 0;
 
 	set_up_scroll(MyPlayer->SpdList[2], SpellID::Firebolt);
-	leveltype = DTYPE_TOWN;
+	levelType() = DTYPE_TOWN;
 	EXPECT_FALSE(CanUseScroll(*MyPlayer, SpellID::Firebolt));
 
 	set_up_scroll(MyPlayer->SpdList[2], SpellID::Firebolt);

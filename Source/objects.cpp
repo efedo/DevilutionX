@@ -245,7 +245,7 @@ bool RndLocOk(Point p)
 	if (TileHasAny(p, TileProperties::Solid))
 		return false;
 	const uint16_t piece = tileAt(p).piece();
-	return IsNoneOf(leveltype, DTYPE_CATHEDRAL, DTYPE_CRYPT) || piece <= 125 || piece >= 143;
+	return IsNoneOf(levelType(), DTYPE_CATHEDRAL, DTYPE_CRYPT) || piece <= 125 || piece >= 143;
 }
 
 bool IsAreaOk(Rectangle rect)
@@ -380,7 +380,7 @@ void AddBookLever(_object_id type, WorldTileRectangle affectedArea, _speech_id m
 		return;
 
 	if (type == OBJ_BLOODBOOK)
-		position = SetPiece.position.megaToWorld() + Displacement { 9, 24 };
+		position = setPiece().position.megaToWorld() + Displacement { 9, 24 };
 
 	Object *lever = AddObject(type, *position);
 	assert(lever != nullptr);
@@ -393,10 +393,10 @@ void InitRndBarrels()
 {
 	_object_id barrelId = OBJ_BARREL;
 	_object_id explosiveBarrelId = OBJ_BARRELEX;
-	if (leveltype == DTYPE_NEST) {
+	if (levelType() == DTYPE_NEST) {
 		barrelId = OBJ_POD;
 		explosiveBarrelId = OBJ_PODEX;
-	} else if (leveltype == DTYPE_CRYPT) {
+	} else if (levelType() == DTYPE_CRYPT) {
 		barrelId = OBJ_URN;
 		explosiveBarrelId = OBJ_URNEX;
 	}
@@ -473,13 +473,13 @@ void AddL2Torches()
 void AddObjTraps()
 {
 	int rndv;
-	if (currlevel == 1)
+	if (currentLevelNumber() == 1)
 		rndv = 10;
-	if (currlevel >= 2)
+	if (currentLevelNumber() >= 2)
 		rndv = 15;
-	if (currlevel >= 5)
+	if (currentLevelNumber() >= 5)
 		rndv = 20;
-	if (currlevel >= 7)
+	if (currentLevelNumber() >= 7)
 		rndv = 25;
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) {
@@ -541,7 +541,7 @@ void AddChestTraps()
 					break;
 				}
 				chestObject->_oTrapFlag = true;
-				if (leveltype == DTYPE_CATACOMBS) {
+				if (levelType() == DTYPE_CATACOMBS) {
 					chestObject->_oVar4 = GenerateRnd(2);
 				} else {
 					chestObject->_oVar4 = GenerateRnd(gbIsHellfire ? 6 : 3);
@@ -910,7 +910,7 @@ void AddChest(Object &chest)
 	switch (chest._otype) {
 	case OBJ_CHEST1:
 	case OBJ_TCHEST1:
-		if (setlevel) {
+		if (isSetLevel()) {
 			chest._oVar1 = 1;
 			break;
 		}
@@ -918,7 +918,7 @@ void AddChest(Object &chest)
 		break;
 	case OBJ_TCHEST2:
 	case OBJ_CHEST2:
-		if (setlevel) {
+		if (isSetLevel()) {
 			chest._oVar1 = 2;
 			break;
 		}
@@ -926,7 +926,7 @@ void AddChest(Object &chest)
 		break;
 	case OBJ_TCHEST3:
 	case OBJ_CHEST3:
-		if (setlevel) {
+		if (isSetLevel()) {
 			chest._oVar1 = 3;
 			break;
 		}
@@ -1216,10 +1216,10 @@ void AddFlameLever(Object &flameLever)
 
 void AddTrap(Object &trap)
 {
-	int effectiveLevel = currlevel;
-	if (leveltype == DTYPE_NEST)
+	int effectiveLevel = currentLevelNumber();
+	if (levelType() == DTYPE_NEST)
 		effectiveLevel -= 4;
-	else if (leveltype == DTYPE_CRYPT)
+	else if (levelType() == DTYPE_CRYPT)
 		effectiveLevel -= 8;
 
 	const int missileType = GenerateRnd((effectiveLevel / 3) + 1);
@@ -1302,7 +1302,7 @@ void AddShrine(Object &shrine)
 		}
 
 		const bool isEnchantedShrine = (i == ShrineEnchanted);
-		const bool isCorrectLevelType = IsAnyOf(leveltype, DTYPE_CATHEDRAL, DTYPE_CATACOMBS);
+		const bool isCorrectLevelType = IsAnyOf(levelType(), DTYPE_CATHEDRAL, DTYPE_CATACOMBS);
 
 		slist[i] = isShrineAvailable && (!isEnchantedShrine || isCorrectLevelType);
 	}
@@ -1356,7 +1356,7 @@ void AddDecapitatedBody(Object &decapitatedBody)
 
 void AddBookOfVileness(Object &bookOfVileness)
 {
-	if (setlevel && setlvlnum == SL_VILEBETRAYER) {
+	if (isSetLevel() && setLevelNumber() == SL_VILEBETRAYER) {
 		bookOfVileness._oAnimFrame = 4;
 	}
 }
@@ -1371,23 +1371,23 @@ void AddMagicCircle(Object &magicCircle)
 
 void AddPedestalOfBlood(Object &pedestalOfBlood)
 {
-	pedestalOfBlood._oVar1 = SetPiece.position.x;
-	pedestalOfBlood._oVar2 = SetPiece.position.y;
-	pedestalOfBlood._oVar3 = SetPiece.position.x + SetPiece.size.width;
-	pedestalOfBlood._oVar4 = SetPiece.position.y + SetPiece.size.height;
+	pedestalOfBlood._oVar1 = setPiece().position.x;
+	pedestalOfBlood._oVar2 = setPiece().position.y;
+	pedestalOfBlood._oVar3 = setPiece().position.x + setPiece().size.width;
+	pedestalOfBlood._oVar4 = setPiece().position.y + setPiece().size.height;
 	pedestalOfBlood._oVar6 = 0;
 }
 
 void AddStoryBook(Object &storyBook)
 {
 	storyBook._oVar1 = (DungeonSeeds[16] >> 16) % 3;
-	if (currlevel == 4)
+	if (currentLevelNumber() == 4)
 		storyBook._oVar2 = StoryText[storyBook._oVar1][0];
-	else if (currlevel == 8)
+	else if (currentLevelNumber() == 8)
 		storyBook._oVar2 = StoryText[storyBook._oVar1][1];
-	else if (currlevel == 12)
+	else if (currentLevelNumber() == 12)
 		storyBook._oVar2 = StoryText[storyBook._oVar1][2];
-	storyBook._oVar3 = (currlevel / 4) + 3 * storyBook._oVar1 - 1;
+	storyBook._oVar3 = (currentLevelNumber() / 4) + 3 * storyBook._oVar1 - 1;
 	storyBook._oAnimFrame = 5 - 2 * storyBook._oVar1;
 	storyBook._oVar4 = storyBook._oAnimFrame + 1;
 }
@@ -1608,7 +1608,7 @@ void UpdateFlameTrap(Object &trap)
 	} else {
 		const int damage[6] = { 6, 8, 10, 12, 10, 12 };
 
-		const int mindam = damage[leveltype - 1];
+		const int mindam = damage[levelType() - 1];
 		const int maxdam = mindam * 2;
 
 		constexpr MissileID TrapMissile = MissileID::FireWallControl;
@@ -1639,12 +1639,12 @@ void UpdateBurningCrossDamage(Object &cross)
 
 	const int8_t fireResist = myPlayer._pFireResist;
 	if (fireResist > 0)
-		damage[leveltype - 1] -= fireResist * damage[leveltype - 1] / 100;
+		damage[levelType() - 1] -= fireResist * damage[levelType() - 1] / 100;
 
 	if (myPlayer.position.tile != cross.position + Displacement { 0, -1 })
 		return;
 
-	myPlayer.applyDamage(DamageType::Fire, 0, 0, damage[leveltype - 1]);
+	myPlayer.applyDamage(DamageType::Fire, 0, 0, damage[levelType() - 1]);
 	if (!myPlayer.hasNoLife()) {
 		myPlayer.Say(HeroSpeech::Argh);
 	}
@@ -1652,7 +1652,7 @@ void UpdateBurningCrossDamage(Object &cross)
 
 void ObjSetMini(Point position, int v)
 {
-	const MegaTile mega = pMegaTiles[v - 1];
+	const MegaTile mega = megaTiles()[v - 1];
 
 	const Point megaOrigin = position.megaToWorld();
 
@@ -1795,16 +1795,16 @@ void UpdateLeverState(Object &object)
 	object.selectionRegion = SelectionRegion::None;
 	object._oAnimFrame++;
 
-	if (currlevel == 16 && !AreAllLeversActivated(object._oVar8))
+	if (currentLevelNumber() == 16 && !AreAllLeversActivated(object._oVar8))
 		return;
 
-	if (currlevel == 24) {
+	if (currentLevelNumber() == 24) {
 		SyncNakrulRoom();
 		IsUberLeverActivated = true;
 		return;
 	}
 
-	if (setlevel && setlvlnum == SL_VILEBETRAYER)
+	if (isSetLevel() && setLevelNumber() == SL_VILEBETRAYER)
 		ObjectAtPosition({ 35, 36 })._oVar5++;
 
 	ObjChangeMap(object._oVar1, object._oVar2, object._oVar3, object._oVar4);
@@ -1820,7 +1820,7 @@ void OperateLever(Object &object, bool sendmsg)
 
 	UpdateLeverState(object);
 
-	if (currlevel == 24) {
+	if (currentLevelNumber() == 24) {
 		PlaySfxLoc(SfxID::CryptDoorOpen, { UberRow, UberCol });
 		Quests[Q_NAKRUL]._qactive = QUEST_DONE;
 		NetSendCmdQuest(true, Quests[Q_NAKRUL]);
@@ -1836,7 +1836,7 @@ void OperateBook(Player &player, Object &book, bool sendmsg)
 		return;
 	}
 
-	if (setlevel && setlvlnum == SL_VILEBETRAYER) {
+	if (isSetLevel() && setLevelNumber() == SL_VILEBETRAYER) {
 		Point target {};
 		if (book.position == Point { 26, 45 }) {
 			target = { 27, 29 };
@@ -1865,11 +1865,11 @@ void OperateBook(Player &player, Object &book, bool sendmsg)
 	if (sendmsg)
 		NetSendCmdLoc(MyPlayerId, false, CMD_OPERATEOBJ, book.position);
 
-	if (!setlevel) {
+	if (!isSetLevel()) {
 		return;
 	}
 
-	if (setlvlnum == SL_BONECHAMB) {
+	if (setLevelNumber() == SL_BONECHAMB) {
 		if (sendmsg) {
 			const uint8_t newSpellLevel = player._pSplLvl[static_cast<int8_t>(SpellID::Guardian)] + 1;
 			if (newSpellLevel <= MaxSpellLevel) {
@@ -1901,7 +1901,7 @@ void OperateBook(Player &player, Object &book, bool sendmsg)
 		    0,
 		    0);
 	}
-	if (setlvlnum == SL_VILEBETRAYER) {
+	if (setLevelNumber() == SL_VILEBETRAYER) {
 		ObjChangeMap(
 		    book._oVar1,
 		    book._oVar2,
@@ -1930,7 +1930,7 @@ void OperateBookLever(Object &questBook, bool sendmsg)
 			Quests[Q_BLOOD]._qvar1 = 1;
 			NetSendCmdQuest(true, Quests[Q_BLOOD]);
 			if (sendmsg)
-				SpawnQuestItem(IDI_BLDSTONE, SetPiece.position.megaToWorld() + Displacement { 9, 17 }, 0, SelectionRegion::Bottom, true);
+				SpawnQuestItem(IDI_BLDSTONE, setPiece().position.megaToWorld() + Displacement { 9, 17 }, 0, SelectionRegion::Bottom, true);
 		}
 		if (questBook._otype == OBJ_STEELTOME && Quests[Q_WARLORD]._qvar1 == QS_WARLORD_INIT) {
 			Quests[Q_WARLORD]._qactive = QUEST_ACTIVE;
@@ -1943,11 +1943,11 @@ void OperateBookLever(Object &questBook, bool sendmsg)
 				ObjChangeMap(questBook._oVar1, questBook._oVar2, questBook._oVar3, questBook._oVar4);
 			if (questBook._otype == OBJ_BLINDBOOK) {
 				if (sendmsg)
-					SpawnUnique(UITEM_OPTAMULET, SetPiece.position.megaToWorld() + Displacement { 5, 5 }, std::nullopt, true, true);
-				auto tren = TransVal;
-				TransVal = 9;
+					SpawnUnique(UITEM_OPTAMULET, setPiece().position.megaToWorld() + Displacement { 5, 5 }, std::nullopt, true, true);
+				auto tren = nextTransparencyValue();
+				nextTransparencyValue() = 9;
 				DRLG_MRectTrans(WorldTilePosition(questBook._oVar1, questBook._oVar2), WorldTilePosition(questBook._oVar3, questBook._oVar4));
-				TransVal = tren;
+				nextTransparencyValue() = tren;
 			}
 		}
 		questBook._oAnimFrame = questBook._oVar6;
@@ -2016,7 +2016,7 @@ void OperateChest(const Player &player, Object &chest, bool sendLootMsg)
 	chest.selectionRegion = SelectionRegion::None;
 	chest._oAnimFrame += 2;
 	SetRndSeed(chest._oRndSeed);
-	if (setlevel) {
+	if (isSetLevel()) {
 		for (int j = 0; j < chest._oVar1; j++) {
 			CreateRndItem(chest.position, true, sendLootMsg, false);
 		}
@@ -2216,22 +2216,22 @@ void OperatePedestal(Player &player, Object &pedestal, bool sendmsg)
 	pedestal._oVar6++;
 	if (pedestal._oVar6 == 1) {
 		PlaySfxLoc(SfxID::SpellPuddle, pedestal.position);
-		ObjChangeMap(SetPiece.position.x, SetPiece.position.y + 3, SetPiece.position.x + 2, SetPiece.position.y + 7);
+		ObjChangeMap(setPiece().position.x, setPiece().position.y + 3, setPiece().position.x + 2, setPiece().position.y + 7);
 		if (sendmsg)
-			SpawnQuestItem(IDI_BLDSTONE, SetPiece.position.megaToWorld() + Displacement { 3, 10 }, 0, SelectionRegion::Bottom, true);
+			SpawnQuestItem(IDI_BLDSTONE, setPiece().position.megaToWorld() + Displacement { 3, 10 }, 0, SelectionRegion::Bottom, true);
 	}
 	if (pedestal._oVar6 == 2) {
 		PlaySfxLoc(SfxID::SpellPuddle, pedestal.position);
-		ObjChangeMap(SetPiece.position.x + 6, SetPiece.position.y + 3, SetPiece.position.x + SetPiece.size.width, SetPiece.position.y + 7);
+		ObjChangeMap(setPiece().position.x + 6, setPiece().position.y + 3, setPiece().position.x + setPiece().size.width, setPiece().position.y + 7);
 		if (sendmsg)
-			SpawnQuestItem(IDI_BLDSTONE, SetPiece.position.megaToWorld() + Displacement { 15, 10 }, 0, SelectionRegion::Bottom, true);
+			SpawnQuestItem(IDI_BLDSTONE, setPiece().position.megaToWorld() + Displacement { 15, 10 }, 0, SelectionRegion::Bottom, true);
 	}
 	if (pedestal._oVar6 == 3) {
 		PlaySfxLoc(SfxID::SpellBloodStar, pedestal.position);
 		ObjChangeMap(pedestal._oVar1, pedestal._oVar2, pedestal._oVar3, pedestal._oVar4);
-		LoadMapObjects("levels\\l2data\\blood2.dun", SetPiece.position.megaToWorld());
+		LoadMapObjects("levels\\l2data\\blood2.dun", setPiece().position.megaToWorld());
 		if (sendmsg)
-			SpawnUnique(UITEM_ARMOFVAL, SetPiece.position.megaToWorld() + Displacement { 9, 3 }, std::nullopt, true, true);
+			SpawnUnique(UITEM_ARMOFVAL, setPiece().position.megaToWorld() + Displacement { 9, 3 }, std::nullopt, true, true);
 		pedestal.selectionRegion = SelectionRegion::None;
 	}
 }
@@ -2388,7 +2388,7 @@ void OperateShrineMagical(const Player &player)
 	    TARGET_MONSTERS,
 	    player,
 	    0,
-	    2 * leveltype);
+	    2 * levelType());
 
 	if (&player != MyPlayer)
 		return;
@@ -2541,7 +2541,7 @@ void OperateShrineCryptic(Player &player)
 	    TARGET_MONSTERS,
 	    player,
 	    0,
-	    2 * leveltype);
+	    2 * levelType());
 
 	if (&player != MyPlayer)
 		return;
@@ -2611,7 +2611,7 @@ void OperateShrineDivine(Player &player, Point spawnPosition)
 	if (&player != MyPlayer)
 		return;
 
-	if (currlevel < 4) {
+	if (currentLevelNumber() < 4) {
 		CreateTypeItem(spawnPosition, false, ItemType::Misc, IMISC_FULLMANA, false, false, true);
 		CreateTypeItem(spawnPosition, false, ItemType::Misc, IMISC_FULLHEAL, false, false, true);
 	} else {
@@ -2631,7 +2631,7 @@ void OperateShrineDivine(Player &player, Point spawnPosition)
 
 void OperateShrineHoly(const Player &player)
 {
-	AddMissile(player.position.tile, { 0, 0 }, Direction::South, MissileID::Phasing, TARGET_MONSTERS, player, 0, 2 * leveltype);
+	AddMissile(player.position.tile, { 0, 0 }, Direction::South, MissileID::Phasing, TARGET_MONSTERS, player, 0, 2 * levelType());
 
 	if (&player != MyPlayer)
 		return;
@@ -2647,7 +2647,7 @@ void OperateShrineSpiritual(DiabloGenerator &rng, Player &player)
 	for (int8_t &itemIndex : player.InvGrid) {
 		if (itemIndex == 0) {
 			Item &goldItem = player.InvList[player._pNumInv];
-			MakeGoldStack(goldItem, (5 * leveltype) + rng.generateRnd(10 * leveltype));
+			MakeGoldStack(goldItem, (5 * levelType()) + rng.generateRnd(10 * levelType()));
 			player._pNumInv++;
 			itemIndex = player._pNumInv;
 
@@ -2820,7 +2820,7 @@ void OperateShrineOily(Player &player, Point spawnPosition)
 	    MissileID::FireWall,
 	    TARGET_PLAYERS,
 	    -1,
-	    (2 * currlevel) + 2,
+	    (2 * currentLevelNumber()) + 2,
 	    0);
 
 	InitDiabloMsg(EMSG_SHRINE_OILY);
@@ -2870,7 +2870,7 @@ void OperateShrineSparkling(Player &player, Point spawnPosition)
 	if (&player != MyPlayer)
 		return;
 
-	player.addExperience(1000 * currlevel);
+	player.addExperience(1000 * currentLevelNumber());
 
 	AddMissile(
 	    spawnPosition,
@@ -2879,7 +2879,7 @@ void OperateShrineSparkling(Player &player, Point spawnPosition)
 	    MissileID::FlashBottom,
 	    TARGET_PLAYERS,
 	    -1,
-	    (3 * currlevel) + 2,
+	    (3 * currentLevelNumber()) + 2,
 	    0);
 
 	RedrawEverything();
@@ -3163,13 +3163,13 @@ void OperateArmorStand(Object &armorStand, bool sendmsg, bool sendLootMsg)
 	armorStand._oAnimFrame++;
 	SetRndSeed(armorStand._oRndSeed);
 	const bool uniqueRnd = !FlipCoin();
-	if (currlevel <= 5) {
+	if (currentLevelNumber() <= 5) {
 		CreateTypeItem(armorStand.position, true, ItemType::LightArmor, IMISC_NONE, sendLootMsg, false);
-	} else if (currlevel >= 6 && currlevel <= 9) {
+	} else if (currentLevelNumber() >= 6 && currentLevelNumber() <= 9) {
 		CreateTypeItem(armorStand.position, uniqueRnd, ItemType::MediumArmor, IMISC_NONE, sendLootMsg, false);
-	} else if (currlevel >= 10 && currlevel <= 12) {
+	} else if (currentLevelNumber() >= 10 && currentLevelNumber() <= 12) {
 		CreateTypeItem(armorStand.position, false, ItemType::HeavyArmor, IMISC_NONE, sendLootMsg, false);
-	} else if (currlevel >= 13) {
+	} else if (currentLevelNumber() >= 13) {
 		CreateTypeItem(armorStand.position, true, ItemType::HeavyArmor, IMISC_NONE, sendLootMsg, false);
 	}
 	if (sendmsg)
@@ -3180,7 +3180,7 @@ int FindValidShrine()
 {
 	for (;;) {
 		const int rv = GenerateRnd(gbIsHellfire ? NumberOfShrineTypes : 26);
-		if ((rv == ShrineEnchanted && !IsAnyOf(leveltype, DTYPE_CATHEDRAL, DTYPE_CATACOMBS)) || rv == ShrineThaumaturgic)
+		if ((rv == ShrineEnchanted && !IsAnyOf(levelType(), DTYPE_CATHEDRAL, DTYPE_CATACOMBS)) || rv == ShrineThaumaturgic)
 			continue;
 		if (gbIsMultiplayer && shrineavail[rv] == ShrineTypeSingle)
 			continue;
@@ -3260,7 +3260,7 @@ bool OperateFountains(Player &player, Object &fountain)
 		    TARGET_MONSTERS,
 		    player,
 		    0,
-		    2 * leveltype);
+		    2 * levelType());
 		applied = true;
 		if (&player == MyPlayer)
 			NetSendCmdLoc(MyPlayerId, false, CMD_OPERATEOBJ, fountain.position);
@@ -3320,7 +3320,7 @@ void OperateWeaponRack(Object &weaponRack, bool sendmsg, bool sendLootMsg)
 	weaponRack.selectionRegion = SelectionRegion::None;
 	weaponRack._oAnimFrame++;
 
-	CreateTypeItem(weaponRack.position, leveltype != DTYPE_CATHEDRAL, weaponType, IMISC_NONE, sendLootMsg, false);
+	CreateTypeItem(weaponRack.position, levelType() != DTYPE_CATHEDRAL, weaponType, IMISC_NONE, sendLootMsg, false);
 
 	if (sendmsg)
 		NetSendCmdLoc(MyPlayerId, false, CMD_OPERATEOBJ, weaponRack.position);
@@ -3367,12 +3367,12 @@ void OperateStoryBook(Object &storyBook)
 	storyBook._oAnimFrame = storyBook._oVar4;
 	PlaySfxLoc(SfxID::ItemScroll, storyBook.position);
 	auto msg = static_cast<_speech_id>(storyBook._oVar2);
-	if (storyBook._oVar8 != 0 && currlevel == 24) {
+	if (storyBook._oVar8 != 0 && currentLevelNumber() == 24) {
 		if (!IsUberLeverActivated && Quests[Q_NAKRUL]._qactive != QUEST_DONE && OperateNakrulBook(storyBook._oVar8)) {
 			NetSendCmd(false, CMD_NAKRUL);
 			return;
 		}
-	} else if (leveltype == DTYPE_CRYPT && Quests[Q_NAKRUL]._qactive != QUEST_DONE) {
+	} else if (levelType() == DTYPE_CRYPT && Quests[Q_NAKRUL]._qactive != QUEST_DONE) {
 		Quests[Q_NAKRUL]._qactive = QUEST_ACTIVE;
 		Quests[Q_NAKRUL]._qlog = true;
 		Quests[Q_NAKRUL]._qmsg = msg;
@@ -3521,7 +3521,7 @@ void SyncLever(const Object &lever)
 	if (lever.canInteractWith())
 		return;
 
-	if (currlevel == 16 && !AreAllLeversActivated(lever._oVar8))
+	if (currentLevelNumber() == 16 && !AreAllLeversActivated(lever._oVar8))
 		return;
 
 	ObjChangeMap(lever._oVar1, lever._oVar2, lever._oVar3, lever._oVar4);
@@ -3533,10 +3533,10 @@ void SyncQSTLever(const Object &qstLever)
 		if (qstLever._otype != OBJ_BLOODBOOK)
 			ObjChangeMapResync(qstLever._oVar1, qstLever._oVar2, qstLever._oVar3, qstLever._oVar4);
 		if (qstLever._otype == OBJ_BLINDBOOK) {
-			auto tren = TransVal;
-			TransVal = 9;
+			auto tren = nextTransparencyValue();
+			nextTransparencyValue() = 9;
 			DRLG_MRectTrans(WorldTilePosition(qstLever._oVar1, qstLever._oVar2), WorldTilePosition(qstLever._oVar3, qstLever._oVar4));
-			TransVal = tren;
+			nextTransparencyValue() = tren;
 		}
 	}
 }
@@ -3544,14 +3544,14 @@ void SyncQSTLever(const Object &qstLever)
 void SyncPedestal(const Object &pedestal)
 {
 	if (pedestal._oVar6 == 1)
-		ObjChangeMapResync(SetPiece.position.x, SetPiece.position.y + 3, SetPiece.position.x + 2, SetPiece.position.y + 7);
+		ObjChangeMapResync(setPiece().position.x, setPiece().position.y + 3, setPiece().position.x + 2, setPiece().position.y + 7);
 	if (pedestal._oVar6 == 2) {
-		ObjChangeMapResync(SetPiece.position.x, SetPiece.position.y + 3, SetPiece.position.x + 2, SetPiece.position.y + 7);
-		ObjChangeMapResync(SetPiece.position.x + 6, SetPiece.position.y + 3, SetPiece.position.x + SetPiece.size.width, SetPiece.position.y + 7);
+		ObjChangeMapResync(setPiece().position.x, setPiece().position.y + 3, setPiece().position.x + 2, setPiece().position.y + 7);
+		ObjChangeMapResync(setPiece().position.x + 6, setPiece().position.y + 3, setPiece().position.x + setPiece().size.width, setPiece().position.y + 7);
 	}
 	if (pedestal._oVar6 >= 3) {
 		ObjChangeMapResync(pedestal._oVar1, pedestal._oVar2, pedestal._oVar3, pedestal._oVar4);
-		LoadMapObjects("levels\\l2data\\blood2.dun", SetPiece.position.megaToWorld());
+		LoadMapObjects("levels\\l2data\\blood2.dun", setPiece().position.megaToWorld());
 	}
 }
 
@@ -3798,7 +3798,7 @@ tl::expected<void, std::string> LoadLevelObjects(uint16_t filesWidths[65])
 		return {};
 
 	for (const ObjectData objectData : AllObjects) {
-		if (leveltype == objectData.olvltype) {
+		if (levelType() == objectData.olvltype) {
 			filesWidths[objectData.ofindex] = objectData.animWidth;
 		}
 	}
@@ -3821,7 +3821,7 @@ tl::expected<void, std::string> InitObjectGFX()
 {
 	uint16_t filesWidths[65] = {};
 
-	if (IsAnyOf(currlevel, 4, 8, 12)) {
+	if (IsAnyOf(currentLevelNumber(), 4, 8, 12)) {
 		for (const auto id : { OBJ_STORYBOOK, OBJ_STORYCANDLE }) {
 			const ObjectData &obj = AllObjects[id];
 			filesWidths[obj.ofindex] = obj.animWidth;
@@ -3830,8 +3830,8 @@ tl::expected<void, std::string> InitObjectGFX()
 
 	for (size_t id = 0, n = AllObjects.size(); id < n; ++id) {
 		const ObjectData &objectData = AllObjects[id];
-		if (objectData.minlvl != 0 && currlevel >= objectData.minlvl && currlevel <= objectData.maxlvl) {
-			if (IsAnyOf(static_cast<_object_id>(id), OBJ_TRAPL, OBJ_TRAPR) && leveltype == DTYPE_HELL) {
+		if (objectData.minlvl != 0 && currentLevelNumber() >= objectData.minlvl && currentLevelNumber() <= objectData.maxlvl) {
+			if (IsAnyOf(static_cast<_object_id>(id), OBJ_TRAPL, OBJ_TRAPR) && levelType() == DTYPE_HELL) {
 				continue;
 			}
 
@@ -3926,41 +3926,41 @@ void InitObjects()
 	InitializeObjectPool();
 	ClrAllObjects();
 	NaKrulTomeSequence = 0;
-	if (currlevel == 16) {
+	if (currentLevelNumber() == 16) {
 		AddDiabObjs();
 	} else {
 		DiscardRandomValues(1);
-		if (currlevel == 9 && !UseMultiplayerQuests())
+		if (currentLevelNumber() == 9 && !UseMultiplayerQuests())
 			AddSlainHero();
 		if (Quests[Q_MUSHROOM].IsAvailable())
 			AddMushPatch();
 
-		if (currlevel == 4 || currlevel == 8 || currlevel == 12)
+		if (currentLevelNumber() == 4 || currentLevelNumber() == 8 || currentLevelNumber() == 12)
 			AddStoryBooks();
-		if (currlevel == 21) {
+		if (currentLevelNumber() == 21) {
 			AddCryptStoryBook(1);
-		} else if (currlevel == 22) {
+		} else if (currentLevelNumber() == 22) {
 			AddCryptStoryBook(2);
 			AddCryptStoryBook(3);
-		} else if (currlevel == 23) {
+		} else if (currentLevelNumber() == 23) {
 			AddCryptStoryBook(4);
 			AddCryptStoryBook(5);
 		}
-		if (currlevel == 24) {
+		if (currentLevelNumber() == 24) {
 			AddNakrulGate();
 		}
-		if (leveltype == DTYPE_CATHEDRAL) {
+		if (levelType() == DTYPE_CATHEDRAL) {
 			if (Quests[Q_BUTCHER].IsAvailable())
 				AddTortures();
 			if (Quests[Q_PWATER].IsAvailable())
 				AddCandles();
 			if (Quests[Q_LTBANNER].IsAvailable())
-				AddObject(OBJ_SIGNCHEST, SetPiece.position.megaToWorld() + Displacement { 10, 3 });
+				AddObject(OBJ_SIGNCHEST, setPiece().position.megaToWorld() + Displacement { 10, 3 });
 			InitRndLocBigObj(10, 15, OBJ_SARC);
 			AddL1Objs(0, 0, MAXDUNX, MAXDUNY);
 			InitRndBarrels();
 		}
-		if (leveltype == DTYPE_CATACOMBS) {
+		if (levelType() == DTYPE_CATACOMBS) {
 			if (Quests[Q_ROCK].IsAvailable())
 				InitRndLocObj5x5(1, 1, OBJ_STAND);
 			if (Quests[Q_SCHAMB].IsAvailable())
@@ -3992,8 +3992,8 @@ void InitObjects()
 					break;
 				}
 				Quests[Q_BLIND]._qmsg = spId;
-				AddBookLever(OBJ_BLINDBOOK, { SetPiece.position, SetPiece.size + 1 }, spId);
-				LoadMapObjects("levels\\l2data\\blind2.dun", SetPiece.position.megaToWorld());
+				AddBookLever(OBJ_BLINDBOOK, { setPiece().position, setPiece().size + 1 }, spId);
+				LoadMapObjects("levels\\l2data\\blind2.dun", setPiece().position.megaToWorld());
 			}
 			if (Quests[Q_BLOOD].IsAvailable()) {
 				_speech_id spId;
@@ -4020,16 +4020,16 @@ void InitObjects()
 					break;
 				}
 				Quests[Q_BLOOD]._qmsg = spId;
-				AddBookLever(OBJ_BLOODBOOK, { SetPiece.position + Displacement { 0, 3 }, { 2, 4 } }, spId);
-				AddObject(OBJ_PEDESTAL, SetPiece.position.megaToWorld() + Displacement { 9, 16 });
+				AddBookLever(OBJ_BLOODBOOK, { setPiece().position + Displacement { 0, 3 }, { 2, 4 } }, spId);
+				AddObject(OBJ_PEDESTAL, setPiece().position.megaToWorld() + Displacement { 9, 16 });
 			}
 			InitRndBarrels();
 		}
-		if (leveltype == DTYPE_CAVES) {
+		if (levelType() == DTYPE_CAVES) {
 			AddL3Objs(0, 0, MAXDUNX, MAXDUNY);
 			InitRndBarrels();
 		}
-		if (leveltype == DTYPE_HELL) {
+		if (levelType() == DTYPE_HELL) {
 			if (Quests[Q_WARLORD].IsAvailable()) {
 				_speech_id spId;
 				switch (MyPlayer->_pClass) {
@@ -4055,18 +4055,18 @@ void InitObjects()
 					break;
 				}
 				Quests[Q_WARLORD]._qmsg = spId;
-				AddBookLever(OBJ_STEELTOME, SetPiece, spId);
-				LoadMapObjects("levels\\l4data\\warlord.dun", SetPiece.position.megaToWorld());
+				AddBookLever(OBJ_STEELTOME, setPiece(), spId);
+				LoadMapObjects("levels\\l4data\\warlord.dun", setPiece().position.megaToWorld());
 			}
 			if (Quests[Q_BETRAYER].IsAvailable() && !UseMultiplayerQuests())
 				AddLazStand();
 			InitRndBarrels();
 			AddL4Goodies();
 		}
-		if (leveltype == DTYPE_NEST) {
+		if (levelType() == DTYPE_NEST) {
 			InitRndBarrels();
 		}
-		if (leveltype == DTYPE_CRYPT) {
+		if (levelType() == DTYPE_CRYPT) {
 			InitRndLocBigObj(10, 15, OBJ_L5SARC);
 			AddCryptObjects(0, 0, MAXDUNX, MAXDUNY);
 			InitRndBarrels();
@@ -4074,9 +4074,9 @@ void InitObjects()
 		InitRndLocObj(5, 10, OBJ_CHEST1);
 		InitRndLocObj(3, 6, OBJ_CHEST2);
 		InitRndLocObj(1, 5, OBJ_CHEST3);
-		if (leveltype != DTYPE_HELL)
+		if (levelType() != DTYPE_HELL)
 			AddObjTraps();
-		if (IsAnyOf(leveltype, DTYPE_CATACOMBS, DTYPE_CAVES, DTYPE_HELL, DTYPE_NEST))
+		if (IsAnyOf(levelType(), DTYPE_CATACOMBS, DTYPE_CAVES, DTYPE_HELL, DTYPE_NEST))
 			AddChestTraps();
 	}
 }
@@ -4139,7 +4139,7 @@ Object *AddObject(_object_id objType, Point objPos)
 		AddDoor(object);
 		break;
 	case OBJ_BOOK2R:
-		object.InitializeBook({ SetPiece.position, WorldTileSize(SetPiece.size.width + 1, SetPiece.size.height + 1) });
+		object.InitializeBook({ setPiece().position, WorldTileSize(setPiece().size.width + 1, setPiece().size.height + 1) });
 		break;
 	case OBJ_CHEST1:
 	case OBJ_CHEST2:
@@ -4151,7 +4151,7 @@ Object *AddObject(_object_id objType, Point objPos)
 	case OBJ_TCHEST3:
 		AddChest(object);
 		object._oTrapFlag = true;
-		if (leveltype == DTYPE_CATACOMBS) {
+		if (levelType() == DTYPE_CATACOMBS) {
 			object._oVar4 = GenerateRnd(2);
 		} else {
 			object._oVar4 = GenerateRnd(3);
@@ -4435,18 +4435,18 @@ void ObjChangeMap(int x1, int y1, int x2, int y2)
 	const WorldTilePosition mega2 { static_cast<WorldTileCoord>(x2), static_cast<WorldTileCoord>(y2) };
 	const WorldTilePosition world1 = mega1.megaToWorld();
 	const WorldTilePosition world2 = mega2.megaToWorld() + Displacement { 1, 1 };
-	if (leveltype == DTYPE_CATHEDRAL) {
+	if (levelType() == DTYPE_CATHEDRAL) {
 		ObjL1Special(world1.x, world1.y, world2.x, world2.y);
 		AddL1Objs(world1.x, world1.y, world2.x, world2.y);
 	}
-	if (leveltype == DTYPE_CATACOMBS) {
+	if (levelType() == DTYPE_CATACOMBS) {
 		ObjL2Special(world1.x, world1.y, world2.x, world2.y);
 		AddL2Objs(world1.x, world1.y, world2.x, world2.y);
 	}
-	if (leveltype == DTYPE_CAVES) {
+	if (levelType() == DTYPE_CAVES) {
 		AddL3Objs(world1.x, world1.y, world2.x, world2.y);
 	}
-	if (leveltype == DTYPE_CRYPT) {
+	if (levelType() == DTYPE_CRYPT) {
 		AddCryptObjects(world1.x, world1.y, world2.x, world2.y);
 	}
 	ResyncDoors(world1, world2, true);
@@ -4466,10 +4466,10 @@ void ObjChangeMapResync(int x1, int y1, int x2, int y2)
 	const WorldTilePosition mega2 { static_cast<WorldTileCoord>(x2), static_cast<WorldTileCoord>(y2) };
 	const WorldTilePosition world1 = mega1.megaToWorld();
 	const WorldTilePosition world2 = mega2.megaToWorld() + Displacement { 1, 1 };
-	if (leveltype == DTYPE_CATHEDRAL) {
+	if (levelType() == DTYPE_CATHEDRAL) {
 		ObjL1Special(world1.x, world1.y, world2.x, world2.y);
 	}
-	if (leveltype == DTYPE_CATACOMBS) {
+	if (levelType() == DTYPE_CATACOMBS) {
 		ObjL2Special(world1.x, world1.y, world2.x, world2.y);
 	}
 	ResyncDoors(world1, world2, false);
@@ -4922,10 +4922,10 @@ StringOrView Object::name() const
 			return _("Blocked Door");
 		break;
 	case OBJ_BOOK2L:
-		if (setlevel) {
-			if (setlvlnum == SL_BONECHAMB) {
+		if (isSetLevel()) {
+			if (setLevelNumber() == SL_BONECHAMB) {
 				return _("Ancient Tome");
-			} else if (setlvlnum == SL_VILEBETRAYER) {
+			} else if (setLevelNumber() == SL_VILEBETRAYER) {
 				return _("Book of Vileness");
 			}
 		}

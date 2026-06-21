@@ -381,7 +381,7 @@ TEST(Writehero, pfile_write_hero)
 	gbIsSpawn = false;
 	gbIsMultiplayer = true;
 	gbIsHellfireSaveGame = false;
-	leveltype = DTYPE_TOWN;
+	levelType() = DTYPE_TOWN;
 	giNumberOfLevels = 17;
 
 	Players.resize(1);

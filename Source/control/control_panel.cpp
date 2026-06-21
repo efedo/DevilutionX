@@ -775,7 +775,7 @@ void RedBack(const Surface &out)
 	uint8_t *tbl = GetPauseTRN();
 	for (int h = gnViewportHeight; h != 0; h--, dst += out.pitch() - gnScreenWidth) {
 		for (int w = gnScreenWidth; w != 0; w--) {
-			if (leveltype != DTYPE_HELL || *dst >= 32)
+			if (levelType() != DTYPE_HELL || *dst >= 32)
 				*dst = tbl[*dst];
 			dst++;
 		}

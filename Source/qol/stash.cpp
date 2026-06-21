@@ -499,7 +499,7 @@ bool UseStashItem(uint16_t c)
 		return true;
 	}
 
-	if (item->_iMiscId > IMISC_RUNEFIRST && item->_iMiscId < IMISC_RUNELAST && leveltype == DTYPE_TOWN) {
+	if (item->_iMiscId > IMISC_RUNEFIRST && item->_iMiscId < IMISC_RUNELAST && levelType() == DTYPE_TOWN) {
 		return true;
 	}
 

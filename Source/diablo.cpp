@@ -253,7 +253,7 @@ void LeftMouseCmd(bool bShift)
 
 	assert(!GetMainPanel().contains(MousePosition));
 
-	if (leveltype == DTYPE_TOWN) {
+	if (levelType() == DTYPE_TOWN) {
 		CloseGoldWithdraw();
 		CloseStash();
 		CloseVisualStore();
@@ -319,7 +319,7 @@ void LeftMouseCmd(bool bShift)
 
 bool TryOpenDungeonWithMouse()
 {
-	if (leveltype != DTYPE_TOWN)
+	if (levelType() != DTYPE_TOWN)
 		return false;
 
 	const Item &holdItem = MyPlayer->HoldItem;
@@ -1362,31 +1362,31 @@ void DiabloDeinit()
 
 tl::expected<void, std::string> LoadLvlGFX()
 {
-	assert(pDungeonCels == nullptr);
+	assert(dungeonCels() == nullptr);
 	constexpr int SpecialCelWidth = 64;
 
 	const auto loadAll = [](const char *cel, const char *til, const char *special) -> tl::expected<void, std::string> {
-		ASSIGN_OR_RETURN(pDungeonCels, LoadFileInMemWithStatus(cel));
-		ASSIGN_OR_RETURN(pMegaTiles, LoadFileInMemWithStatus<MegaTile>(til));
-		ASSIGN_OR_RETURN(pSpecialCels, LoadCelWithStatus(special, SpecialCelWidth));
+		ASSIGN_OR_RETURN(dungeonCels(), LoadFileInMemWithStatus(cel));
+		ASSIGN_OR_RETURN(megaTiles(), LoadFileInMemWithStatus<MegaTile>(til));
+		ASSIGN_OR_RETURN(specialCels(), LoadCelWithStatus(special, SpecialCelWidth));
 		return {};
 	};
 
-	switch (leveltype) {
+	switch (levelType()) {
 	case DTYPE_TOWN: {
 		auto cel = LoadFileInMemWithStatus("nlevels\\towndata\\town.cel");
 		if (!cel.has_value()) {
-			ASSIGN_OR_RETURN(pDungeonCels, LoadFileInMemWithStatus("levels\\towndata\\town.cel"));
+			ASSIGN_OR_RETURN(dungeonCels(), LoadFileInMemWithStatus("levels\\towndata\\town.cel"));
 		} else {
-			pDungeonCels = std::move(*cel);
+			dungeonCels() = std::move(*cel);
 		}
 		auto til = LoadFileInMemWithStatus<MegaTile>("nlevels\\towndata\\town.til");
 		if (!til.has_value()) {
-			ASSIGN_OR_RETURN(pMegaTiles, LoadFileInMemWithStatus<MegaTile>("levels\\towndata\\town.til"));
+			ASSIGN_OR_RETURN(megaTiles(), LoadFileInMemWithStatus<MegaTile>("levels\\towndata\\town.til"));
 		} else {
-			pMegaTiles = std::move(*til);
+			megaTiles() = std::move(*til);
 		}
-		ASSIGN_OR_RETURN(pSpecialCels, LoadCelWithStatus("levels\\towndata\\towns", SpecialCelWidth));
+		ASSIGN_OR_RETURN(specialCels(), LoadCelWithStatus("levels\\towndata\\towns", SpecialCelWidth));
 		return {};
 	}
 	case DTYPE_CATHEDRAL:
@@ -1443,9 +1443,9 @@ tl::expected<void, std::string> LoadAllGFX()
  */
 void CreateLevel(lvl_entry entry)
 {
-	CreateDungeon(DungeonSeeds[currlevel], entry);
+	CreateDungeon(DungeonSeeds[currentLevelNumber()], entry);
 
-	switch (leveltype) {
+	switch (levelType()) {
 	case DTYPE_TOWN:
 		InitTownTriggers();
 		break;
@@ -1471,10 +1471,10 @@ void CreateLevel(lvl_entry entry)
 		app_fatal("CreateLevel");
 	}
 
-	if (leveltype != DTYPE_TOWN) {
+	if (levelType() != DTYPE_TOWN) {
 		Freeupstairs();
 	}
-	LoadRndLvlPal(leveltype);
+	LoadRndLvlPal(levelType());
 }
 
 void UnstuckChargers()
@@ -1505,7 +1505,7 @@ void UpdateMonsterLights()
 		Monster &monster = Monsters[m];
 
 		if ((monster.flags & MFLAG_BERSERK) != 0) {
-			const int lightRadius = leveltype == DTYPE_NEST ? 9 : 3;
+			const int lightRadius = levelType() == DTYPE_NEST ? 9 : 3;
 			monster.lightId = AddLight(monster.position.tile, lightRadius);
 		}
 
@@ -1532,7 +1532,7 @@ void GameLogic()
 		gGameLogicStep = GameLogicStep::ProcessPlayers;
 		ProcessPlayers();
 	}
-	if (leveltype != DTYPE_TOWN) {
+	if (levelType() != DTYPE_TOWN) {
 		gGameLogicStep = GameLogicStep::ProcessMonsters;
 #ifdef _DEBUG
 		if (!DebugInvisible)
@@ -1632,7 +1632,7 @@ void HelpKeyPressed()
 		CloseCharPanel();
 		SpellbookFlag = false;
 		SpellSelectFlag = false;
-		if (qtextflag && leveltype == DTYPE_TOWN) {
+		if (qtextflag && levelType() == DTYPE_TOWN) {
 			qtextflag = false;
 			stream_stop();
 		}
@@ -2023,7 +2023,7 @@ void InitKeymapActions()
 		    HelpFlag = false;
 		    ChatLogFlag = false;
 		    SpellSelectFlag = false;
-		    if (qtextflag && leveltype == DTYPE_TOWN) {
+		    if (qtextflag && levelType() == DTYPE_TOWN) {
 			    qtextflag = false;
 			    stream_stop();
 		    }
@@ -2541,7 +2541,7 @@ void InitPadmapActions()
 		    HelpFlag = false;
 		    ChatLogFlag = false;
 		    SpellSelectFlag = false;
-		    if (qtextflag && leveltype == DTYPE_TOWN) {
+		    if (qtextflag && levelType() == DTYPE_TOWN) {
 			    qtextflag = false;
 			    stream_stop();
 		    }
@@ -2647,9 +2647,9 @@ void SetCursorPos(Point position)
 
 void FreeGameMem()
 {
-	pDungeonCels = nullptr;
-	pMegaTiles = nullptr;
-	pSpecialCels = std::nullopt;
+	dungeonCels() = nullptr;
+	megaTiles() = nullptr;
+	specialCels() = std::nullopt;
 
 	FreeMonsters();
 	FreeMissileGFX();
@@ -2871,7 +2871,7 @@ bool TryIconCurs()
 		if (IsWallSpell(spellID)) {
 			const Direction sd = GetDirection(myPlayer.position.tile, cursPosition);
 			NetSendCmdLocParam4(true, CMD_SPELLXYD, cursPosition, static_cast<int8_t>(spellID), static_cast<uint8_t>(spellType), static_cast<uint16_t>(sd), spellFrom);
-		} else if (pcursmonst != -1 && leveltype != DTYPE_TOWN) {
+		} else if (pcursmonst != -1 && levelType() != DTYPE_TOWN) {
 			NetSendCmdParam4(true, CMD_SPELLID, pcursmonst, static_cast<int8_t>(spellID), static_cast<uint8_t>(spellType), spellFrom);
 		} else if (PlayerUnderCursor != nullptr && !PlayerUnderCursor->hasNoLife() && !myPlayer.friendlyMode) {
 			NetSendCmdParam4(true, CMD_SPELLPID, PlayerUnderCursor->getId(), static_cast<int8_t>(spellID), static_cast<uint8_t>(spellType), spellFrom);
@@ -3066,13 +3066,13 @@ void LoadGameLevelResetCursor()
 
 void SetRndSeedForDungeonLevel()
 {
-	if (setlevel) {
+	if (isSetLevel()) {
 		// Maps are not randomly generated, but the monsters max hitpoints are.
 		// So we need to ensure that we have a stable seed when generating quest/set-maps.
 		// For this purpose we reuse the normal dungeon seeds.
-		SetRndSeed(DungeonSeeds[static_cast<size_t>(setlvlnum)]);
+		SetRndSeed(DungeonSeeds[static_cast<size_t>(setLevelNumber())]);
 	} else {
-		SetRndSeed(DungeonSeeds[currlevel]);
+		SetRndSeed(DungeonSeeds[currentLevelNumber()]);
 	}
 }
 
@@ -3093,7 +3093,7 @@ void LoadGameLevelFirstFlagEntry()
 
 void LoadGameLevelStores()
 {
-	if (leveltype == DTYPE_TOWN) {
+	if (levelType() == DTYPE_TOWN) {
 		SetupTownStores();
 	} else {
 		FreeStoreMem();
@@ -3111,7 +3111,7 @@ void LoadGameLevelStash()
 
 tl::expected<void, std::string> LoadGameLevelDungeon(bool firstflag, lvl_entry lvldir, const Player &myPlayer)
 {
-	if (firstflag || lvldir == ENTRY_LOAD || !myPlayer._pLvlVisited[currlevel] || gbIsMultiplayer) {
+	if (firstflag || lvldir == ENTRY_LOAD || !myPlayer._pLvlVisited[currentLevelNumber()] || gbIsMultiplayer) {
 		HoldThemeRooms();
 		[[maybe_unused]] const uint32_t mid1Seed = GetLCGEngineState();
 		InitGolems();
@@ -3170,8 +3170,8 @@ void LoadGameLevelSyncPlayerEntry(lvl_entry lvldir)
 
 void LoadGameLevelLightVision()
 {
-	if (leveltype != DTYPE_TOWN) {
-		for (Tile &tile : tiles.columnMajor())
+	if (levelType() != DTYPE_TOWN) {
+		for (Tile &tile : tiles().columnMajor())
 			tile.setLight(tile.preLight());
 		ChangeLightXY(Players[MyPlayerId].lightId, Players[MyPlayerId].position.tile); // forces player light refresh
 		ProcessLightList();
@@ -3181,7 +3181,7 @@ void LoadGameLevelLightVision()
 
 void LoadGameLevelReturn()
 {
-	ViewPosition = GetMapReturnPosition();
+	viewPosition() = GetMapReturnPosition();
 	if (Quests[Q_BETRAYER]._qactive == QUEST_DONE)
 		Quests[Q_BETRAYER]._qvar2 = 2;
 }
@@ -3202,13 +3202,13 @@ void LoadGameLevelSetVisited()
 	bool visited = false;
 	for (const Player &player : Players) {
 		if (player.plractive)
-			visited = visited || player._pLvlVisited[currlevel];
+			visited = visited || player._pLvlVisited[currentLevelNumber()];
 	}
 }
 
 tl::expected<void, std::string> LoadGameLevelTown(bool firstflag, lvl_entry lvldir, const Player &myPlayer)
 {
-	for (Tile &tile : tiles.columnMajor())
+	for (Tile &tile : tiles().columnMajor())
 		tile.addFlags(DungeonFlag::Lit);
 
 	InitTowners();
@@ -3219,7 +3219,7 @@ tl::expected<void, std::string> LoadGameLevelTown(bool firstflag, lvl_entry lvld
 
 	IncProgress();
 
-	if (!firstflag && lvldir != ENTRY_LOAD && myPlayer._pLvlVisited[currlevel] && !gbIsMultiplayer)
+	if (!firstflag && lvldir != ENTRY_LOAD && myPlayer._pLvlVisited[currentLevelNumber()] && !gbIsMultiplayer)
 		RETURN_IF_ERROR(LoadLevel());
 	if (gbIsMultiplayer)
 		DeltaLoadLevel();
@@ -3266,7 +3266,7 @@ tl::expected<void, std::string> LoadGameLevelSetLevel(bool firstflag, lvl_entry 
 	InitMultiView();
 	IncProgress();
 
-	if (firstflag || lvldir == ENTRY_LOAD || !myPlayer._pSLvlVisited[setlvlnum] || gbIsMultiplayer) {
+	if (firstflag || lvldir == ENTRY_LOAD || !myPlayer._pSLvlVisited[setLevelNumber()] || gbIsMultiplayer) {
 		InitItems();
 		SavePreLighting();
 	} else {
@@ -3292,7 +3292,7 @@ tl::expected<void, std::string> LoadGameLevelStandardLevel(bool firstflag, lvl_e
 
 	SetRndSeedForDungeonLevel();
 
-	if (leveltype != DTYPE_TOWN) {
+	if (levelType() != DTYPE_TOWN) {
 		RETURN_IF_ERROR(GetLevelMTypes());
 		InitThemes();
 		if (!HeadlessMode)
@@ -3332,7 +3332,7 @@ tl::expected<void, std::string> LoadGameLevelStandardLevel(bool firstflag, lvl_e
 
 	SetRndSeedForDungeonLevel();
 
-	if (leveltype == DTYPE_TOWN) {
+	if (levelType() == DTYPE_TOWN) {
 		LoadGameLevelTown(firstflag, lvldir, myPlayer);
 	} else {
 		LoadGameLevelDungeon(firstflag, lvldir, myPlayer);
@@ -3352,7 +3352,7 @@ void LoadGameLevelCrypt()
 	if (CornerStone.isAvailable()) {
 		CornerstoneLoad(CornerStone.position);
 	}
-	if (Quests[Q_NAKRUL]._qactive == QUEST_DONE && currlevel == 24) {
+	if (Quests[Q_NAKRUL]._qactive == QUEST_DONE && currentLevelNumber() == 24) {
 		SyncNakrulRoom();
 	}
 }
@@ -3369,7 +3369,7 @@ void LoadGameLevelCalculateCursor()
 
 tl::expected<void, std::string> LoadGameLevel(bool firstflag, lvl_entry lvldir)
 {
-	const _music_id neededTrack = GetLevelMusic(leveltype);
+	const _music_id neededTrack = GetLevelMusic(levelType());
 
 	ClearFloatingNumbers();
 	LoadGameLevelStopMusic(neededTrack);
@@ -3386,7 +3386,7 @@ tl::expected<void, std::string> LoadGameLevel(bool firstflag, lvl_entry lvldir)
 	IncProgress();
 
 	RETURN_IF_ERROR(LoadLvlGFX());
-	SetDungeonMicros(pDungeonCels, MicroTileLen);
+	SetDungeonMicros(dungeonCels(), microTileLength());
 	ClearClxDrawCache();
 
 	IncProgress();
@@ -3407,7 +3407,7 @@ tl::expected<void, std::string> LoadGameLevel(bool firstflag, lvl_entry lvldir)
 
 	InitAutomap();
 
-	if (leveltype != DTYPE_TOWN && lvldir != ENTRY_LOAD) {
+	if (levelType() != DTYPE_TOWN && lvldir != ENTRY_LOAD) {
 		InitLighting();
 	}
 
@@ -3417,7 +3417,7 @@ tl::expected<void, std::string> LoadGameLevel(bool firstflag, lvl_entry lvldir)
 
 	const Player &myPlayer = *MyPlayer;
 
-	if (setlevel) {
+	if (isSetLevel()) {
 		RETURN_IF_ERROR(LoadGameLevelSetLevel(firstflag, lvldir, myPlayer));
 	} else {
 		RETURN_IF_ERROR(LoadGameLevelStandardLevel(firstflag, lvldir, myPlayer));
@@ -3440,7 +3440,7 @@ tl::expected<void, std::string> LoadGameLevel(bool firstflag, lvl_entry lvldir)
 
 	LoadGameLevelLightVision();
 
-	if (leveltype == DTYPE_CRYPT) {
+	if (levelType() == DTYPE_CRYPT) {
 		LoadGameLevelCrypt();
 	}
 
@@ -3482,17 +3482,17 @@ void diablo_color_cyc_logic()
 	if (PauseMode != 0)
 		return;
 
-	if (leveltype == DTYPE_CAVES) {
-		if (setlevel && setlvlnum == Quests[Q_PWATER]._qslvl) {
+	if (levelType() == DTYPE_CAVES) {
+		if (isSetLevel() && setLevelNumber() == Quests[Q_PWATER]._qslvl) {
 			UpdatePWaterPalette();
 		} else {
 			palette_update_caves();
 		}
-	} else if (leveltype == DTYPE_HELL) {
+	} else if (levelType() == DTYPE_HELL) {
 		lighting_color_cycling();
-	} else if (leveltype == DTYPE_NEST) {
+	} else if (levelType() == DTYPE_NEST) {
 		palette_update_hive();
-	} else if (leveltype == DTYPE_CRYPT) {
+	} else if (levelType() == DTYPE_CRYPT) {
 		palette_update_crypt();
 	}
 }

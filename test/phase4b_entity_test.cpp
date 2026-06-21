@@ -57,8 +57,8 @@ TEST_F(Phase4BEntityTest, PlayerEntityRead)
 TEST_F(Phase4BEntityTest, LegacyGenerationPassUpdatesTilePieces)
 {
 	currentLevel().setId(Level::create(LevelId { .levelNum = 1, .type = DTYPE_CATHEDRAL }).id());
-	pMegaTiles = std::make_unique<MegaTile[]>(1);
-	pMegaTiles[0] = MegaTile {
+	megaTiles() = std::make_unique<MegaTile[]>(1);
+	megaTiles()[0] = MegaTile {
 		Swap16LE(static_cast<uint16_t>(101)),
 		Swap16LE(static_cast<uint16_t>(102)),
 		Swap16LE(static_cast<uint16_t>(103)),
@@ -70,7 +70,7 @@ TEST_F(Phase4BEntityTest, LegacyGenerationPassUpdatesTilePieces)
 			megaTile.setCurrent(1);
 		}
 	}
-	tiles[16][16].clear();
+	tiles()[16][16].clear();
 
 	DRLG_LPass3(0);
 
@@ -434,7 +434,7 @@ TEST_F(Phase4BEntityTest, EntityClear)
 
 TEST_F(Phase4BEntityTest, EntityBoundaryConditions)
 {
-	// Test corner tiles
+	// Test corner tiles()
 	const Point corners[] = {
 		{ 0, 0 },
 		{ MAXDUNX - 1, 0 },
@@ -460,7 +460,7 @@ TEST_F(Phase4BEntityTest, EntityBoundaryConditions)
 
 TEST_F(Phase4BEntityTest, StressTestEntityBulkOperations)
 {
-	// Set entities on many tiles
+	// Set entities on many tiles()
 	for (int x = 10; x < 20; x++) {
 		for (int y = 10; y < 20; y++) {
 			Point pos { static_cast<WorldTileCoord>(x), static_cast<WorldTileCoord>(y) };
@@ -548,13 +548,13 @@ TEST_F(Phase4BEntityTest, StressTestTileOccupancy)
 	tile.clear();
 	tile.setItem(1);
 	EXPECT_FALSE(tile.isEmpty());
-	EXPECT_TRUE(tile.isOccupied());  // Items occupy tiles
+	EXPECT_TRUE(tile.isOccupied());  // Items occupy tiles()
 
 	// With object only
 	tile.clear();
 	tile.setObject(1);
 	EXPECT_FALSE(tile.isEmpty());
-	EXPECT_TRUE(tile.isOccupied());  // Objects occupy tiles
+	EXPECT_TRUE(tile.isOccupied());  // Objects occupy tiles()
 }
 
 } // namespace devilution

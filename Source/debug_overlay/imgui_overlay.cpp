@@ -80,7 +80,7 @@ uint64_t PiecePreviewFrame;
 
 int PiecePreviewHeight()
 {
-	return std::max<int>(TILE_HEIGHT, (MicroTileLen / 2) * TILE_HEIGHT);
+	return std::max<int>(TILE_HEIGHT, (microTileLength() / 2) * TILE_HEIGHT);
 }
 
 std::string_view BoolToString(bool value)
@@ -169,16 +169,16 @@ SDL_Texture *GetPiecePreviewTexture(PiecePaletteEntry &entry)
 	const uint8_t *const lightTable = FullyLitLightTable != nullptr ? FullyLitLightTable : LightTables[0].data();
 
 	const MICROS &micros = levelMicros()[entry.piece];
-	const TileProperties pieceProperties = SOLData[entry.piece];
+	const TileProperties pieceProperties = tileProperties()[entry.piece];
 	const bool isFloorPiece = !HasAnyOf(pieceProperties, TileProperties::Solid | TileProperties::BlockMissile);
 	Point position { 0, previewHeight - 1 };
-	for (uint_fast8_t i = 0; i < MicroTileLen; i += 2) {
+	for (uint_fast8_t i = 0; i < microTileLength(); i += 2) {
 		const LevelCelBlock left { micros.mt[i] };
 		if (left.hasValue()) {
 			if (IsDebugPiecePreviewFoliage(isFloorPiece, i, left.type())) {
-				RenderTileFoliage(previewSurface, lightmap, position, pDungeonCels.get(), left, lightTable);
+				RenderTileFoliage(previewSurface, lightmap, position, dungeonCels().get(), left, lightTable);
 			} else {
-				RenderTile(previewSurface, lightmap, position, pDungeonCels.get(), left, MaskType::Solid, lightTable);
+				RenderTile(previewSurface, lightmap, position, dungeonCels().get(), left, MaskType::Solid, lightTable);
 			}
 		}
 
@@ -186,9 +186,9 @@ SDL_Texture *GetPiecePreviewTexture(PiecePaletteEntry &entry)
 		if (right.hasValue()) {
 			const Point rightPosition = position + Displacement { DunFrameWidth, 0 };
 			if (IsDebugPiecePreviewFoliage(isFloorPiece, i + 1, right.type())) {
-				RenderTileFoliage(previewSurface, lightmap, rightPosition, pDungeonCels.get(), right, lightTable);
+				RenderTileFoliage(previewSurface, lightmap, rightPosition, dungeonCels().get(), right, lightTable);
 			} else {
-				RenderTile(previewSurface, lightmap, rightPosition, pDungeonCels.get(), right, MaskType::Solid, lightTable);
+				RenderTile(previewSurface, lightmap, rightPosition, dungeonCels().get(), right, MaskType::Solid, lightTable);
 			}
 		}
 		position.y -= TILE_HEIGHT;
@@ -497,7 +497,7 @@ void DrawInspectorContent()
 	ImGui::Text("Tile: %d, %d", tile.x, tile.y);
 	ImGui::Text("Solid: %s   Walkable: %s   Occupied: %s", BoolToString(IsTileSolid(tile)).data(), BoolToString(IsTileWalkable(tile)).data(), BoolToString(IsTileOccupied(tile)).data());
 	DrawCompactSummaryLabel("Piece", dungeonTile.piece());
-	DrawValue("TransVal", dungeonTile.transVal());
+	DrawValue("nextTransparencyValue()", dungeonTile.transVal());
 	DrawValue("Light", dungeonTile.light());
 	DrawValue("PreLight", dungeonTile.preLight());
 	DrawValue("Flags", static_cast<int>(dungeonTile.flags()));

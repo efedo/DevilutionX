@@ -444,9 +444,9 @@ void SendPlayerInfo(uint8_t pnum, _cmd_id cmd)
 
 void SetupLocalPositions()
 {
-	currlevel = 0;
-	leveltype = DTYPE_TOWN;
-	setlevel = false;
+	currentLevelNumber() = 0;
+	levelType() = DTYPE_TOWN;
+	isSetLevel() = false;
 
 	const WorldTilePosition spawns[9] = { { 75, 68 }, { 77, 70 }, { 75, 70 }, { 77, 68 }, { 76, 69 }, { 75, 69 }, { 76, 68 }, { 77, 69 }, { 76, 70 } };
 
@@ -454,7 +454,7 @@ void SetupLocalPositions()
 
 	myPlayer.position.tile = spawns[MyPlayerId];
 	myPlayer.position.future = myPlayer.position.tile;
-	myPlayer.setLevel(currlevel);
+	myPlayer.setLevel(currentLevelNumber());
 	myPlayer._pLvlChanging = true;
 	myPlayer.pLvlLoad = 0;
 	myPlayer._pmode = PM_NEWLVL;

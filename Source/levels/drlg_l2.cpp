@@ -1603,7 +1603,7 @@ void PlaceMiniSetRandom(const Miniset &miniset, int rndper)
 
 	for (WorldTileCoord sy = 0; sy < DMAXY - sh; sy++) {
 		for (WorldTileCoord sx = 0; sx < DMAXX - sw; sx++) {
-			if (SetPieceRoom.contains(sx, sy))
+			if (setPieceRoom().contains(sx, sy))
 				continue;
 			if (!miniset.matches({ sx, sy }))
 				continue;
@@ -1644,14 +1644,14 @@ void InitSetPiece()
 		return; // no setpiece needed for this level
 	}
 
-	const WorldTilePosition setPiecePosition = SetPieceRoom.position;
+	const WorldTilePosition setPiecePosition = setPieceRoom().position;
 	PlaceDunTiles(setPieceData.get(), setPiecePosition, 3);
-	SetPiece = { setPiecePosition, GetDunSize(setPieceData.get()) };
+	setPiece() = { setPiecePosition, GetDunSize(setPieceData.get()) };
 }
 
 void InitDungeonPieces()
 {
-	for (Tile &tile : tiles) {
+	for (Tile &tile : tiles()) {
 		int8_t pc;
 		const uint16_t piece = tile.piece();
 		if (IsAnyOf(piece, 540, 177, 550)) {
@@ -1679,7 +1679,7 @@ void InitDungeonPieces()
 
 void InitDungeonFlags()
 {
-	Protected.reset();
+	protectedTiles().reset();
 	memset(predungeon, ' ', sizeof(predungeon));
 }
 
@@ -1714,7 +1714,7 @@ void DefineRoom(Point topLeft, Point bottomRight, bool forceHW)
 		for (int i = topLeft.x; i < bottomRight.x; i++) {
 			/// BUGFIX: Should loop j between nY1 and nY2 instead of always using nY1.
 			while (i < bottomRight.y) {
-				Protected.set(i, topLeft.y);
+				protectedTiles().set(i, topLeft.y);
 				i++;
 			}
 		}
@@ -1806,7 +1806,7 @@ void CreateRoom(WorldTilePosition topLeft, WorldTilePosition bottomRight, int nR
 
 	constexpr WorldTileDisplacement standoff { 2, 2 };
 	if (size)
-		SetPieceRoom = { roomTopLeft + standoff, roomSize - 1 };
+		setPieceRoom() = { roomTopLeft + standoff, roomSize - 1 };
 
 	const int nRid = nRoomCnt;
 
@@ -2075,7 +2075,7 @@ void Substitution()
 {
 	for (WorldTileCoord y = 0; y < DMAXY; y++) {
 		for (WorldTileCoord x = 0; x < DMAXX; x++) {
-			if (SetPieceRoom.contains(x, y))
+			if (setPieceRoom().contains(x, y))
 				continue;
 			if (!FlipCoin(4))
 				continue;
@@ -2441,7 +2441,7 @@ bool CreateDungeon()
 {
 	std::optional<WorldTileSize> size;
 
-	switch (currlevel) {
+	switch (currentLevelNumber()) {
 	case 5:
 		if (Quests[Q_BLOOD]._qactive != QUEST_NOTAVAIL)
 			size = { 14, 20 };
@@ -2578,7 +2578,7 @@ void FixLockout()
 	}
 	for (int j = 1; j < DMAXY - 1; j++) {
 		for (int i = 1; i < DMAXX - 1; i++) {
-			if (Protected.test(i, j)) {
+			if (protectedTiles().test(i, j)) {
 				continue;
 			}
 			if ((megaTileAt(i, j).current() == 2 || megaTileAt(i, j).current() == 5) && megaTileAt(i, j - 1).current() == 3 && megaTileAt(i, j + 1).current() == 3) {
@@ -2595,7 +2595,7 @@ void FixLockout()
 					}
 					i++;
 				}
-				if (!doorok && !Protected.test(i - 1, j)) {
+				if (!doorok && !protectedTiles().test(i - 1, j)) {
 					megaTileAt(i - 1, j).setCurrent(5);
 				}
 			}
@@ -2603,7 +2603,7 @@ void FixLockout()
 	}
 	for (int j = 1; j < DMAXX - 1; j++) { /* check: might be flipped */
 		for (int i = 1; i < DMAXY - 1; i++) {
-			if (Protected.test(j, i)) {
+			if (protectedTiles().test(j, i)) {
 				continue;
 			}
 			if ((megaTileAt(j, i).current() == 1 || megaTileAt(j, i).current() == 4) && megaTileAt(j - 1, i).current() == 3 && megaTileAt(j + 1, i).current() == 3) {
@@ -2620,7 +2620,7 @@ void FixLockout()
 					}
 					i++;
 				}
-				if (!doorok && !Protected.test(j, i - 1)) {
+				if (!doorok && !protectedTiles().test(j, i - 1)) {
 					megaTileAt(j, i - 1).setCurrent(4);
 				}
 			}
@@ -2651,22 +2651,22 @@ bool PlaceStairs(lvl_entry entry)
 	if (!position)
 		return false;
 	if (entry == ENTRY_MAIN)
-		ViewPosition = position->megaToWorld() + Displacement { 5, 4 };
+		viewPosition() = position->megaToWorld() + Displacement { 5, 4 };
 
 	// Place stairs down
 	position = PlaceMiniSet(DSTAIRS);
 	if (!position)
 		return false;
 	if (entry == ENTRY_PREV)
-		ViewPosition = position->megaToWorld() + Displacement { 4, 6 };
+		viewPosition() = position->megaToWorld() + Displacement { 4, 6 };
 
 	// Place town warp stairs
-	if (currlevel == 5) {
+	if (currentLevelNumber() == 5) {
 		position = PlaceMiniSet(WARPSTAIRS);
 		if (!position)
 			return false;
 		if (entry == ENTRY_TWARPDN)
-			ViewPosition = position->megaToWorld() + Displacement { 5, 4 };
+			viewPosition() = position->megaToWorld() + Displacement { 5, 4 };
 	}
 
 	return true;
@@ -2674,11 +2674,11 @@ bool PlaceStairs(lvl_entry entry)
 
 void GenerateLevel(lvl_entry entry)
 {
-	if (LevelSeeds[currlevel])
-		SetRndSeed(*LevelSeeds[currlevel]);
+	if (LevelSeeds[currentLevelNumber()])
+		SetRndSeed(*LevelSeeds[currentLevelNumber()]);
 
 	while (true) {
-		LevelSeeds[currlevel] = GetLCGEngineState();
+		LevelSeeds[currentLevelNumber()] = GetLCGEngineState();
 		nRoomCnt = 0;
 		InitDungeonFlags();
 		DRLG_InitTrans();
@@ -2811,7 +2811,7 @@ void GenerateLevel(lvl_entry entry)
 
 	SnapshotReplacementMegaTiles();
 
-	DRLG_CheckQuests(SetPieceRoom.position);
+	DRLG_CheckQuests(setPieceRoom().position);
 }
 
 void Pass3()

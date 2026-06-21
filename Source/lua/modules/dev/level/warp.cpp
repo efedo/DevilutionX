@@ -23,7 +23,7 @@ std::string DebugCmdWarpToDungeonLevel(uint8_t level)
 	Player &myPlayer = *MyPlayer;
 	if (level > (gbIsHellfire ? 24 : 16))
 		return StrCat("Level ", level, " does not exist!");
-	if (!setlevel && myPlayer.isOnLevel(level))
+	if (!isSetLevel() && myPlayer.isOnLevel(level))
 		return StrCat("You are already on level ", level, "!");
 
 	StartNewLvl(myPlayer, (level != 21) ? interface_mode::WM_DIABNEXTLVL : interface_mode::WM_DIABTOWNWARP, level);
@@ -34,14 +34,14 @@ std::string DebugCmdWarpToQuestLevel(uint8_t level)
 {
 	if (level < 1)
 		return StrCat("Quest level number must be 1 or higher!");
-	if (setlevel && setlvlnum == level)
+	if (isSetLevel() && setLevelNumber() == level)
 		return StrCat("You are already on quest level", level, "!");
 
 	for (Quest &quest : Quests) {
 		if (level != quest._qslvl)
 			continue;
 
-		setlvltype = quest._qlvltype;
+		setLevelType() = quest._qlvltype;
 		StartNewLvl(*MyPlayer, WM_DIABSETLVL, level);
 
 		return StrCat("Moved you to quest level ", QuestLevelNames[level], ".");
@@ -59,8 +59,8 @@ std::string DebugCmdWarpToCustomMap(std::string_view path, int dunType, int x, i
 	if (!InDungeonBounds(spawn)) return "spawn location is out of bounds";
 
 	TestMapPath = StrCat(path, ".dun");
-	setlvltype = static_cast<dungeon_type>(dunType);
-	ViewPosition = spawn;
+	setLevelType() = static_cast<dungeon_type>(dunType);
+	viewPosition() = spawn;
 
 	StartNewLvl(*MyPlayer, WM_DIABSETLVL, SL_NONE);
 
