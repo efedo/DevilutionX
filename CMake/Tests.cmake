@@ -36,6 +36,7 @@ set(tests
   phase4a_lighting_test
   phase4b_entity_test
   player_test
+  portal_test
   quests_test
   scrollrt_test
   stores_test
