@@ -12,7 +12,7 @@
 #include "items.h"
 #include "monster.h"
 #include "objects.h"
-#include "portal.h"
+#include "game/portals/portal.hpp"
 #include "quests.h"
 
 namespace devilution {

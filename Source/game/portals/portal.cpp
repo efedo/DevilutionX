@@ -1,9 +1,9 @@
 /**
- * @file portal.cpp
+ * @file game/portals/portal.cpp
  *
  * Implementation of functionality for handling town portals.
  */
-#include "portal.h"
+#include "game/portals/portal.hpp"
 
 #include "engine/world.hpp"
 #include "lighting.h"

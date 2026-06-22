@@ -28,7 +28,7 @@ set(libdevilutionx_SRCS
   nthread.cpp
   pfile.cpp
   plrmsg.cpp
-  portal.cpp
+  game/portals/portal.cpp
   restrict.cpp
   sync.cpp
   tmsg.cpp
@@ -148,7 +148,7 @@ set(libdevilutionx_SRCS
 
   players/validation.cpp
 
-  portals/validation.cpp
+  game/portals/validation.cpp
 
   qol/autopickup.cpp
   qol/chatlog.cpp

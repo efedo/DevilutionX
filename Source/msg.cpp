@@ -53,7 +53,7 @@
 #include "player.h"
 #include "players/validation.hpp"
 #include "plrmsg.h"
-#include "portals/validation.hpp"
+#include "game/portals/validation.hpp"
 #include "quests/validation.hpp"
 #include "spells.h"
 #include "storm/storm_net.hpp"

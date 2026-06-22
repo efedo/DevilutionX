@@ -1,10 +1,10 @@
 /**
- * @file portals/validation.cpp
+ * @file game/portals/validation.cpp
  *
  * Implementation of functions for validation of portal data.
  */
 
-#include "portals/validation.hpp"
+#include "game/portals/validation.hpp"
 
 #include <cstdint>
 
