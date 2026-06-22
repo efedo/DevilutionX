@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use range-based traversal for coordinate-independent tile-grid operations.
 - Add coordinate-yielding tile-grid ranges in both traversal orders.
 - Replace transitional level-state macros with typed accessors.
+- Move portal gameplay code into the domain-oriented source layout while
+  preserving legacy include paths.
 
 ### Bug Fixes
 
