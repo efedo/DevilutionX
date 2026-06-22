@@ -451,10 +451,10 @@ Under `Unreleased` -> `Features` -> `Stability / Performance / System`, add:
 Run:
 
 ```powershell
-rg -n 'Source/portal\.cpp|Source\\portal\.cpp|Source/portals/validation\.cpp|Source\\portals\\validation\.cpp' . -g '!build/**' -g '!.git/**'
+rg -n 'Source/portal\.cpp|Source\\portal\.cpp|Source/portals/validation\.cpp|Source\\portals\\validation\.cpp' Source CMake test
 ```
 
-Expected: no stale references to the old implementation paths.
+Expected: no stale references to the old implementation paths in production or build-relevant roots.
 
 Run:
 
