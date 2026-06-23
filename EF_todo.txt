@@ -1,4 +1,0 @@
-- Clean up redundancy between networked game and local game function
-- Level map should have a single 2D grid of tiles, and each tile should have a list of entities on it (instead of having separate 2D arrays for each entity type)
-- Move all implementation details from items.h to items.cpp
-- Move all implementation details from player.h to player.cpp

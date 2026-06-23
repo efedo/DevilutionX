@@ -9,6 +9,11 @@ EF tasks:
 - Rename this project (my fork of DevilutionX) Devilved (tag: "Devolution devolved")
 - Add a new change log for Devilved (similar format to DevilutionX change log -- see devilution subfolder) and insert list of changes completed to date
 - Add Copilot/Codex instructions, including where to put AI-generated working docs
+- - Clean up redundancy between networked game and local game function
+- Level map should have a single 2D grid of tiles, and each tile should have a list of entities on it (instead of having separate 2D arrays for each entity type)
+- Move all implementation details from items.h to items.cpp
+- Move all implementation details from player.h to player.cpp
+
 
 
 - Finish moving any remaining dungeon grids to level objects (e.g. extern int8_t dItem[MAXDUNX][MAXDUNY])
