@@ -7,7 +7,7 @@
 #include "engine/lighting_defs.hpp"
 #include "engine/render/light_render.hpp"
 #include "engine/surface.hpp"
-#include "levels/gendung_defs.hpp"
+#include "game/levels/gendung_defs.hpp"
 #include "utils/log.hpp"
 #include "utils/paths.h"
 #include "utils/sdl_wrap.h"

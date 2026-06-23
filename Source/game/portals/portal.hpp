@@ -8,7 +8,7 @@
 #include <cstddef>
 
 #include "engine/point.hpp"
-#include "levels/gendung.h"
+#include "game/levels/gendung.h"
 #include "utils/attributes.h"
 
 namespace devilution {

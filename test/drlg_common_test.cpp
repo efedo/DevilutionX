@@ -5,7 +5,7 @@
 
 #include "engine/points_in_rectangle_range.hpp"
 #include "engine/world_tile.hpp"
-#include "levels/gendung.h"
+#include "game/levels/gendung.h"
 
 namespace devilution {
 

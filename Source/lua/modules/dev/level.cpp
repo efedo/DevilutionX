@@ -9,7 +9,7 @@
 #include <sol/sol.hpp>
 
 #include "diablo.h"
-#include "levels/gendung.h"
+#include "game/levels/gendung.h"
 #include "lua/metadoc.hpp"
 #include "lua/modules/dev/level/map.hpp"
 #include "lua/modules/dev/level/warp.hpp"

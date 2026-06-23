@@ -4,9 +4,9 @@
 #include "engine/lighting_defs.hpp"
 #include "engine/point.hpp"
 #include "engine/world_tile.hpp"
-#include "levels/gendung.h"
-#include "levels/level.hpp"
-#include "levels/tile.hpp"
+#include "game/levels/gendung.h"
+#include "game/levels/level.hpp"
+#include "game/levels/tile.hpp"
 #include "lighting.h"
 
 namespace devilution {

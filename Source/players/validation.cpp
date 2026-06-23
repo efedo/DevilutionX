@@ -9,7 +9,7 @@
 #include <string_view>
 
 #include "diablo.h"
-#include "levels/gendung.h"
+#include "game/levels/gendung.h"
 #include "player.h"
 #include "tables/playerdat.hpp"
 

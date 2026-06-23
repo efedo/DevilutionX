@@ -16,7 +16,7 @@
 #include "game_mode.hpp"
 #include "init.hpp"
 #include "inv.h"
-#include "levels/gendung.h"
+#include "game/levels/gendung.h"
 #include "minitext.h"
 #include "panels/ui_panels.hpp"
 #include "qol/stash.h"

@@ -9,8 +9,8 @@
 #include <cstdint>
 
 #include "engine/world_tile.hpp"
-#include "levels/gendung.h"
-#include "levels/setmaps.h"
+#include "game/levels/gendung.h"
+#include "game/levels/setmaps.h"
 #include "quests.h"
 
 namespace devilution {

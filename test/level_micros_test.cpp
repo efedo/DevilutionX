@@ -15,10 +15,10 @@
 
 #include <gtest/gtest.h>
 
-#include "levels/dun_tile.hpp"
-#include "levels/gendung.h"
-#include "levels/gendung_defs.hpp"
-#include "levels/level.hpp"
+#include "game/levels/dun_tile.hpp"
+#include "game/levels/gendung.h"
+#include "game/levels/gendung_defs.hpp"
+#include "game/levels/level.hpp"
 
 namespace devilution {
 

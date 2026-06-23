@@ -11,8 +11,8 @@
 #include "engine/displacement.hpp"
 #include "engine/lighting_defs.hpp"
 #include "engine/point.hpp"
-#include "levels/dun_tile.hpp"
-#include "levels/gendung_defs.hpp"
+#include "game/levels/dun_tile.hpp"
+#include "game/levels/gendung_defs.hpp"
 
 namespace devilution {
 

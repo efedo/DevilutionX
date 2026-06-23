@@ -11,7 +11,7 @@
 #include "engine/point.hpp"
 #include "engine/render/light_render.hpp"
 #include "engine/surface.hpp"
-#include "levels/dun_tile.hpp"
+#include "game/levels/dun_tile.hpp"
 #include "utils/attributes.h"
 #include "utils/endian_swap.hpp"
 

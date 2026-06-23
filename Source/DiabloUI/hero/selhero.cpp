@@ -30,7 +30,7 @@
 #include "engine/assets.hpp"
 #include "engine/point.hpp"
 #include "game_mode.hpp"
-#include "levels/gendung.h"
+#include "game/levels/gendung.h"
 #include "options.h"
 #include "pfile.h"
 #include "tables/playerdat.hpp"

@@ -29,6 +29,7 @@ set(tests
   items_test
   math_test
   missiles_test
+  monster_test
   multi_logging_test
   objects_test
   pack_test
@@ -40,6 +41,7 @@ set(tests
   quests_test
   scrollrt_test
   stores_test
+  spells_test
   tile_properties_test
   timedemo_test
   tile_migration_sync_test

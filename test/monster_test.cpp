@@ -1,0 +1,58 @@
+#include <gtest/gtest.h>
+
+#include "monster.h"
+#include "tables/monstdat.h"
+
+namespace devilution {
+namespace {
+
+TEST(MonsterTest, IsMonsterModeMove)
+{
+	EXPECT_TRUE(IsMonsterModeMove(MonsterMode::MoveNorthwards));
+	EXPECT_TRUE(IsMonsterModeMove(MonsterMode::MoveSouthwards));
+	EXPECT_TRUE(IsMonsterModeMove(MonsterMode::MoveSideways));
+	EXPECT_FALSE(IsMonsterModeMove(MonsterMode::Stand));
+	EXPECT_FALSE(IsMonsterModeMove(MonsterMode::MeleeAttack));
+	EXPECT_FALSE(IsMonsterModeMove(MonsterMode::Death));
+	EXPECT_FALSE(IsMonsterModeMove(MonsterMode::Petrified));
+}
+
+TEST(MonsterTest, IsSkel)
+{
+	EXPECT_TRUE(IsSkel(MT_WSKELAX));
+	EXPECT_TRUE(IsSkel(MT_TSKELAX));
+	EXPECT_TRUE(IsSkel(MT_RSKELAX));
+	EXPECT_TRUE(IsSkel(MT_XSKELAX));
+	EXPECT_TRUE(IsSkel(MT_WSKELBW));
+	EXPECT_TRUE(IsSkel(MT_TSKELBW));
+	EXPECT_TRUE(IsSkel(MT_RSKELBW));
+	EXPECT_TRUE(IsSkel(MT_XSKELBW));
+	EXPECT_TRUE(IsSkel(MT_WSKELSD));
+	EXPECT_TRUE(IsSkel(MT_TSKELSD));
+	EXPECT_TRUE(IsSkel(MT_RSKELSD));
+	EXPECT_TRUE(IsSkel(MT_XSKELSD));
+
+	EXPECT_FALSE(IsSkel(MT_NZOMBIE));
+	EXPECT_FALSE(IsSkel(MT_NGOATMC));
+	EXPECT_FALSE(IsSkel(MT_SKING));
+	EXPECT_FALSE(IsSkel(MT_NSCAV));
+}
+
+TEST(MonsterTest, IsGoat)
+{
+	EXPECT_TRUE(IsGoat(MT_NGOATMC));
+	EXPECT_TRUE(IsGoat(MT_BGOATMC));
+	EXPECT_TRUE(IsGoat(MT_RGOATMC));
+	EXPECT_TRUE(IsGoat(MT_GGOATMC));
+	EXPECT_TRUE(IsGoat(MT_NGOATBW));
+	EXPECT_TRUE(IsGoat(MT_BGOATBW));
+	EXPECT_TRUE(IsGoat(MT_RGOATBW));
+	EXPECT_TRUE(IsGoat(MT_GGOATBW));
+
+	EXPECT_FALSE(IsGoat(MT_NZOMBIE));
+	EXPECT_FALSE(IsGoat(MT_WSKELAX));
+	EXPECT_FALSE(IsGoat(MT_SKING));
+}
+
+} // namespace
+} // namespace devilution

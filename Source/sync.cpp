@@ -7,7 +7,7 @@
 
 #include <limits>
 
-#include "levels/gendung.h"
+#include "game/levels/gendung.h"
 #include "lighting.h"
 #include "item_pool.h"
 #include "monster.h"

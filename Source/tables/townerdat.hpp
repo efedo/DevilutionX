@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "engine/direction.hpp"
-#include "levels/gendung.h"
+#include "game/levels/gendung.h"
 #include "tables/objdat.h"
 #include "tables/textdat.h"
 #include "towners.h"

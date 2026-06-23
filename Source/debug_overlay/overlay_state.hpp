@@ -5,7 +5,7 @@
 #include <optional>
 
 #include "engine/point.hpp"
-#include "levels/dun_tile.hpp"
+#include "game/levels/dun_tile.hpp"
 
 namespace devilution {
 

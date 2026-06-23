@@ -26,8 +26,8 @@
 #include <optional>
 #include <unordered_map>
 
-#include "levels/level.hpp"
-#include "levels/gendung_defs.hpp"
+#include "game/levels/level.hpp"
+#include "game/levels/gendung_defs.hpp"
 #include "utils/attributes.h"
 
 namespace devilution {

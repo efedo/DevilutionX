@@ -9,7 +9,7 @@
 
 #include "diablo.h"
 #include "headless_mode.hpp"
-#include "levels/gendung.h"
+#include "game/levels/gendung.h"
 #include "lighting.h"
 #include "monster.h"
 #include "monster_pool.h"

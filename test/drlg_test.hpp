@@ -9,7 +9,7 @@
 
 #include "engine/assets.hpp"
 #include "engine/load_file.hpp"
-#include "levels/themes.h"
+#include "game/levels/themes.h"
 #include "multi.h"
 #include "player.h"
 #include "quests.h"

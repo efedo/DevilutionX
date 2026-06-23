@@ -27,7 +27,7 @@
 #include "game_mode.hpp"
 #include "inv.h"
 #include "item_pool.h"
-#include "levels/dun_tile.hpp"
+#include "game/levels/dun_tile.hpp"
 #include "lighting.h"
 #include "menu.h"
 #include "missiles.h"

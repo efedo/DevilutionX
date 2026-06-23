@@ -1,10 +1,10 @@
-#include "levels/tile_properties.hpp"
+#include "game/levels/tile_properties.hpp"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "levels/dun_tile.hpp"
-#include "levels/gendung.h"
+#include "game/levels/dun_tile.hpp"
+#include "game/levels/gendung.h"
 #include "objects.h"
 #include "tables/objdat.h"
 

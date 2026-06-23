@@ -21,7 +21,7 @@
 #ifdef _DEBUG
 #include "tables/monstdat.h"
 #endif
-#include "levels/gendung.h"
+#include "game/levels/gendung.h"
 #include "utils/attributes.h"
 #include "utils/endian_read.hpp"
 

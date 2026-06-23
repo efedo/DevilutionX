@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "drlg_test.hpp"
-#include "levels/gendung.h"
+#include "game/levels/gendung.h"
 
 using namespace devilution;
 

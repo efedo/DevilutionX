@@ -1,6 +1,6 @@
 #pragma once
 
-#include "levels/gendung.h"
+#include "game/levels/gendung.h"
 
 namespace devilution {
 

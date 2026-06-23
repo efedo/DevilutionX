@@ -3,7 +3,7 @@
 
 #include "engine/render/primitive_render.hpp"
 #include "inv.h"
-#include "levels/trigs.h"
+#include "game/levels/trigs.h"
 #include "panels/partypanel.hpp"
 #include "qol/stash.h"
 #include "qol/visual_store.h"

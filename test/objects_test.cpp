@@ -14,8 +14,8 @@
 
 #include "engine/assets.hpp"
 #include "engine/random.hpp"
-#include "levels/gendung.h"
-#include "levels/level.hpp"
+#include "game/levels/gendung.h"
+#include "game/levels/level.hpp"
 #include "object_pool.h"
 #include "objects.h"
 #include "cursor.h"

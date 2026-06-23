@@ -29,7 +29,7 @@
 #include "diablo.h"
 #include "engine/point.hpp"
 #include "engine/render/text_render.hpp"
-#include "levels/gendung.h"
+#include "game/levels/gendung.h"
 #include "menu.h"
 #include "multi.h"
 #include "options.h"

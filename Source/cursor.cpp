@@ -35,7 +35,7 @@
 #include "headless_mode.hpp"
 #include "hwcursor.hpp"
 #include "inv.h"
-#include "levels/trigs.h"
+#include "game/levels/trigs.h"
 #include "missiles.h"
 #include "options.h"
 #include "qol/itemlabels.h"

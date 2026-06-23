@@ -4,7 +4,7 @@
 #include "diablo_msg.hpp"
 #include "engine/backbuffer_state.hpp"
 #include "inv.h"
-#include "levels/setmaps.h"
+#include "game/levels/setmaps.h"
 #include "storm/storm_net.hpp"
 #include "utils/algorithm/container.hpp"
 #include "utils/log.hpp"

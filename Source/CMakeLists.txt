@@ -22,7 +22,7 @@ set(libdevilutionx_SRCS
   loadsave.cpp
   menu.cpp
   minitext.cpp
-  missiles.cpp
+  game/missiles/missiles.cpp
   movie.cpp
   msg.cpp
   nthread.cpp
@@ -32,7 +32,7 @@ set(libdevilutionx_SRCS
   restrict.cpp
   sync.cpp
   tmsg.cpp
-  towners.cpp
+  game/towners/towners.cpp
   track.cpp
 
   control/control_chat.cpp
@@ -95,13 +95,13 @@ set(libdevilutionx_SRCS
 
   items/validation.cpp
 
-  levels/level.cpp
-  levels/reencode_dun_cels.cpp
-  levels/setmaps.cpp
-  levels/themes.cpp
-  levels/tile_properties.cpp
-  levels/town.cpp
-  levels/trigs.cpp
+  game/levels/level.cpp
+  game/levels/reencode_dun_cels.cpp
+  game/levels/setmaps.cpp
+  game/levels/themes.cpp
+  game/levels/tile_properties.cpp
+  game/levels/town.cpp
+  game/levels/trigs.cpp
 
   lua/autocomplete.cpp
   lua/lua_event.cpp
@@ -149,6 +149,7 @@ set(libdevilutionx_SRCS
   players/validation.cpp
 
   game/portals/validation.cpp
+  game/objects/object_manager.cpp
 
   qol/autopickup.cpp
   qol/chatlog.cpp
@@ -159,7 +160,7 @@ set(libdevilutionx_SRCS
   qol/visual_store.cpp
   qol/xpbar.cpp
 
-  quests/validation.cpp
+  game/quests/validation.cpp
 
   storm/storm_net.cpp
   storm/storm_svid.cpp
@@ -377,12 +378,12 @@ target_link_dependencies(libdevilutionx_game_mode PRIVATE
 )
 
 add_devilutionx_object_library(libdevilutionx_gendung
-  levels/crypt.cpp
-  levels/drlg_l1.cpp
-  levels/drlg_l2.cpp
-  levels/drlg_l3.cpp
-  levels/drlg_l4.cpp
-  levels/gendung.cpp
+  game/levels/crypt.cpp
+  game/levels/drlg_l1.cpp
+  game/levels/drlg_l2.cpp
+  game/levels/drlg_l3.cpp
+  game/levels/drlg_l4.cpp
+  game/levels/gendung.cpp
 )
 target_link_dependencies(libdevilutionx_gendung PUBLIC
   DevilutionX::SDL
@@ -507,8 +508,8 @@ target_link_dependencies(libdevilutionx_logged_fstream PUBLIC
 
 add_devilutionx_object_library(libdevilutionx_items
   tables/itemdat.cpp
-  items.cpp
-  item_pool.cpp
+  game/items/items.cpp
+  game/items/item_pool.cpp
 )
 target_link_dependencies(libdevilutionx_items PUBLIC
   DevilutionX::SDL
@@ -545,8 +546,8 @@ target_sources(libdevilutionx_log INTERFACE $<TARGET_OBJECTS:libdevilutionx_stri
 
 add_devilutionx_object_library(libdevilutionx_level_objects
   tables/objdat.cpp
-  objects.cpp
-  object_pool.cpp
+  game/objects/objects.cpp
+  game/objects/object_pool.cpp
 )
 target_link_dependencies(libdevilutionx_level_objects PUBLIC
   DevilutionX::SDL
@@ -563,8 +564,8 @@ target_link_dependencies(libdevilutionx_level_objects PUBLIC
 
 add_devilutionx_object_library(libdevilutionx_monster
   tables/monstdat.cpp
-  monster.cpp
-  monster_pool.cpp
+  game/monsters/monsters.cpp
+  game/monsters/monster_pool.cpp
 )
 target_link_dependencies(libdevilutionx_monster
   PUBLIC
@@ -662,7 +663,7 @@ else()
 endif()
 
 add_devilutionx_object_library(libdevilutionx_player
-  player.cpp
+  game/players/players.cpp
   tables/playerdat.cpp
 )
 target_link_dependencies(libdevilutionx_player
@@ -680,7 +681,7 @@ target_link_dependencies(libdevilutionx_player
 )
 
 add_devilutionx_object_library(libdevilutionx_quests
-  quests.cpp
+  game/quests/quests.cpp
 )
 target_link_dependencies(libdevilutionx_quests PUBLIC
   libdevilutionx_surface
@@ -697,7 +698,7 @@ add_devilutionx_object_library(libdevilutionx_quick_messages
 
 add_devilutionx_object_library(libdevilutionx_spells
   tables/spelldat.cpp
-  spells.cpp
+  game/spells/spells.cpp
 )
 target_link_dependencies(libdevilutionx_spells PUBLIC
   tl
@@ -798,7 +799,7 @@ else()
 endif()
 
 add_devilutionx_object_library(libdevilutionx_stores
-  stores.cpp
+  game/stores/stores.cpp
 )
 target_link_dependencies(libdevilutionx_stores PUBLIC
   DevilutionX::SDL

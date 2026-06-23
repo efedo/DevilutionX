@@ -2,7 +2,7 @@
 
 #include "dead.h"
 #include "engine/render/primitive_render.hpp"
-#include "levels/gendung.h"
+#include "game/levels/gendung.h"
 
 using namespace devilution;
 

@@ -3,9 +3,9 @@
 #include <type_traits>
 #include <vector>
 
-#include "levels/gendung.h"
-#include "levels/level.hpp"
-#include "levels/town.h"
+#include "game/levels/gendung.h"
+#include "game/levels/level.hpp"
+#include "game/levels/town.h"
 #include "objects.h"
 
 #if defined(DungeonMask) || defined(Protected) || defined(SetPieceRoom) || defined(SetPiece) \

@@ -8,7 +8,7 @@
 #include <algorithm>
 
 #include "inv_iterators.hpp"
-#include "levels/gendung.h"
+#include "game/levels/gendung.h"
 #include "options.h"
 #include "player.h"
 #include "utils/algorithm/container.hpp"

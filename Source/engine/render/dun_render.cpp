@@ -18,7 +18,7 @@
 #include "appfat.h"
 #include "engine/point.hpp"
 #include "engine/render/blit_impl.hpp"
-#include "levels/dun_tile.hpp"
+#include "game/levels/dun_tile.hpp"
 #include "options.h"
 #include "utils/attributes.h"
 #ifdef DEBUG_STR

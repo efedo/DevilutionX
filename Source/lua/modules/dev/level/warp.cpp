@@ -9,7 +9,7 @@
 
 #include "debug.h"
 #include "interfac.h"
-#include "levels/setmaps.h"
+#include "game/levels/setmaps.h"
 #include "lua/metadoc.hpp"
 #include "player.h"
 #include "quests.h"
