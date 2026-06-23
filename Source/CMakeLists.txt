@@ -3,37 +3,37 @@ include(functions/devilutionx_library)
 include(functions/genex)
 
 set(libdevilutionx_SRCS
-  appfat.cpp
-  automap.cpp
-  capture.cpp
-  cursor.cpp
-  dead.cpp
-  debug.cpp
+  application/appfat.cpp
+  ui/automap.cpp
+  application/capture.cpp
+  engine/cursor.cpp
+  game/monsters/dead.cpp
+  application/debug.cpp
   debug_overlay/imgui_overlay.cpp
-  diablo.cpp
-  diablo_msg.cpp
-  doom.cpp
-  gamemenu.cpp
-  gmenu.cpp
-  help.cpp
-  hwcursor.cpp
-  interfac.cpp
-  inv.cpp
-  loadsave.cpp
-  menu.cpp
-  minitext.cpp
+  application/diablo.cpp
+  ui/diablo_msg.cpp
+  game/quests/doom.cpp
+  ui/gamemenu.cpp
+  ui/gmenu.cpp
+  ui/help.cpp
+  engine/hwcursor.cpp
+  ui/interfac.cpp
+  game/players/inv.cpp
+  persistence/loadsave.cpp
+  ui/menu.cpp
+  ui/minitext.cpp
   game/missiles/missiles.cpp
-  movie.cpp
-  msg.cpp
-  nthread.cpp
-  pfile.cpp
-  plrmsg.cpp
+  ui/movie.cpp
+  network/msg.cpp
+  network/nthread.cpp
+  persistence/pfile.cpp
+  ui/plrmsg.cpp
   game/portals/portal.cpp
-  restrict.cpp
-  sync.cpp
-  tmsg.cpp
+  application/restrict.cpp
+  network/sync.cpp
+  network/tmsg.cpp
   game/towners/towners.cpp
-  track.cpp
+  engine/track.cpp
 
   control/control_chat.cpp
   control/control_chat_commands.cpp
@@ -242,8 +242,8 @@ target_link_dependencies(libdevilutionx_clx_render PUBLIC
 )
 
 add_devilutionx_object_library(libdevilutionx_codec
-  codec.cpp
-  sha.cpp
+  support/codec.cpp
+  support/sha.cpp
 )
 target_link_dependencies(libdevilutionx_codec PRIVATE
   DevilutionX::SDL
@@ -318,7 +318,7 @@ target_link_dependencies(libdevilutionx_primitive_render
 )
 
 add_devilutionx_object_library(libdevilutionx_crawl
-  crawl.cpp
+  engine/crawl.cpp
 )
 target_link_dependencies(libdevilutionx_crawl PUBLIC
   tl
@@ -369,7 +369,7 @@ target_link_dependencies(libdevilutionx_format_int PUBLIC
 )
 
 add_devilutionx_object_library(libdevilutionx_game_mode
-  game_mode.cpp
+  application/game_mode.cpp
 )
 target_link_dependencies(libdevilutionx_game_mode PRIVATE
   tl
@@ -396,11 +396,11 @@ target_link_dependencies(libdevilutionx_gendung PUBLIC
 )
 
 add_devilutionx_object_library(libdevilutionx_headless_mode
-  headless_mode.cpp
+  application/headless_mode.cpp
 )
 
 add_devilutionx_object_library(libdevilutionx_init
-  init.cpp
+  application/init.cpp
 )
 target_link_dependencies(libdevilutionx_init PUBLIC
   magic_enum::magic_enum
@@ -487,7 +487,7 @@ add_devilutionx_object_library(libdevilutionx_light_render
 )
 
 add_devilutionx_object_library(libdevilutionx_lighting
-  lighting.cpp
+  engine/lighting.cpp
 )
 target_link_dependencies(libdevilutionx_lighting PUBLIC
   DevilutionX::SDL
@@ -616,8 +616,8 @@ else()
 endif()
 
 add_devilutionx_object_library(libdevilutionx_multiplayer
-  multi.cpp
-  pack.cpp
+  network/multi.cpp
+  persistence/pack.cpp
 )
 target_link_dependencies(libdevilutionx_multiplayer PUBLIC
   libdevilutionx_config
@@ -625,7 +625,7 @@ target_link_dependencies(libdevilutionx_multiplayer PUBLIC
 )
 
 add_devilutionx_object_library(libdevilutionx_options
-  options.cpp
+  persistence/options.cpp
 )
 target_link_dependencies(libdevilutionx_options PUBLIC
   DevilutionX::SDL
@@ -652,7 +652,7 @@ target_link_dependencies(libdevilutionx_pathfinding PUBLIC
 
 if(SUPPORTS_MPQ OR NOT NONET)
   add_devilutionx_object_library(libdevilutionx_pkware_encrypt
-    encrypt.cpp
+    support/encrypt.cpp
   )
   target_link_dependencies(libdevilutionx_pkware_encrypt PUBLIC
     DevilutionX::SDL
@@ -693,7 +693,7 @@ add_devilutionx_object_library(libdevilutionx_random
 )
 
 add_devilutionx_object_library(libdevilutionx_quick_messages
-  quick_messages.cpp
+  ui/quick_messages.cpp
 )
 
 add_devilutionx_object_library(libdevilutionx_spells
@@ -756,7 +756,7 @@ target_link_dependencies(libdevilutionx_utf8 PRIVATE
 
 if(NOSOUND)
   add_devilutionx_object_library(libdevilutionx_sound
-    effects_stubs.cpp
+    engine/effects_stubs.cpp
     engine/sound_stubs.cpp
   )
   target_link_dependencies(libdevilutionx_sound PUBLIC
@@ -771,7 +771,7 @@ if(NOSOUND)
   )
 else()
   add_devilutionx_object_library(libdevilutionx_sound
-    effects.cpp
+    engine/effects.cpp
     engine/sound.cpp
     utils/soundsample.cpp
   )
@@ -823,7 +823,7 @@ add_devilutionx_object_library(libdevilutionx_utils_console
 )
 
 add_devilutionx_object_library(libdevilutionx_vision
-  vision.cpp
+  engine/vision.cpp
 )
 target_link_dependencies(libdevilutionx_vision PUBLIC
   tl

@@ -1,36 +1,42 @@
-# Phase 2 Source File Reorganization - Execution Plan
+# Phase 2 Source File Reorganization
 
-## Strategy
-Game domains first. Compatibility forwarders for single-domain moves (proven portals pattern). Direct include-site updates for the `levels/` directory move. Characterization tests created before moving weakly-tested domains.
+## Completed
 
-## Task Order
+All top-level `Source/` files migrated to domain subdirectories:
 
-| # | Task | Domain | New files | Forwarders | Key risk |
-|---|------|--------|-----------|------------|----------|
-| 1 | Characterization tests | spells, monsters | 2 test files | - | Test design |
-| 2 | spells ships game/spells/ | 2 files | 2 | 1 | Low |
-| 3 | missiles ships game/missiles/ | 2 files | 2 | 1 | Low |
-| 4 | objects ships game/objects/ | 6 files | 6 | 3 | Low |
-| 5 | items ships game/items/ | 4+2 files | 6 | 2 | Low |
-| 6 | monsters ships game/monsters/ | 4+2 files | 6 | 2 | Low |
-| 7 | player ships game/players/ | 2+2 files | 4 | 1 | Med (64 consumers) |
-| 8 | levels/ ships game/levels/ | 30 files | 0 | 0 (direct update) | Med (79 files to update) |
-| 9 | engine support ships engine/ | 12 files | 12 | 12 | Low |
-| 10 | support files ships support/ | 5 files | 5 | 4 | Low |
-| 11 | network files ships network/ | 5 files | 5 | 5 | Low |
-| 12 | persistence files ships persistence/ | 3 files | 3 | 3 | Low |
-| 13 | application files ships application/ | 7 files | 7 | 7 | Med (game_mode 47 consumers) |
-| 14 | UI files ships ui/ | 12 files | 12 | 12 | Low |
+| Domain | Directory | Files moved |
+|--------|-----------|-------------|
+| Game (portals) | `game/portals/` | `portal.cpp` + validation |
+| Game (spells) | `game/spells/` | `spells.cpp` |
+| Game (missiles) | `game/missiles/` | `missiles.cpp` |
+| Game (objects) | `game/objects/` | `objects.cpp`, `object_pool.cpp`, `object_manager.cpp` |
+| Game (items) | `game/items/` | `items.cpp`, `item_pool.cpp` |
+| Game (monsters) | `game/monsters/` | `monsters.cpp`, `monster_pool.cpp`, `dead.cpp` |
+| Game (players) | `game/players/` | `players.cpp`, `inv.cpp` + `inv_iterators.hpp` |
+| Game (levels) | `game/levels/` | entire `levels/` directory |
+| Game (quests) | `game/quests/` | `quests.cpp`, `validation.cpp`, `doom.cpp` |
+| Game (stores) | `game/stores/` | `stores.cpp` |
+| Game (towners) | `game/towners/` | `towners.cpp` |
+| Engine | `engine/` | `lighting`, `vision`, `crawl`, `cursor`, `hwcursor`, `track`, `effects`, `effects_stubs` |
+| Support | `support/` | `codec`, `sha`, `encrypt`, `translation_dummy` |
+| Network | `network/` | `msg`, `multi`, `nthread`, `sync`, `tmsg` |
+| Persistence | `persistence/` | `loadsave`, `pfile`, `pack`, `options` |
+| Application | `application/` | `main`, `diablo`, `game_mode`, `headless_mode`, `init`, `appfat`, `capture`, `restrict`, `debug` |
+| UI | `ui/` | `automap`, `diablo_msg`, `plrmsg`, `quick_messages`, `help`, `interfac`, `minitext`, `movie`, `gamemenu`, `gmenu`, `menu` |
 
-## Pattern for each domain move (compatibility forwarder approach)
-1. Create canonical header at `game/<domain>/<domain>.hpp`
-2. Convert old header to `#include "game/<domain>/<domain>.hpp"` forwarder
-3. `git mv` the `.cpp` to `game/<domain>/<domain>.cpp`
-4. Update the `.cpp`'s self-include and `@file` line to canonical path
-5. Update `Source/CMakeLists.txt` source paths
-6. Build `libdevilutionx` + `devilutionx` + domain test
-7. Run domain test
+## Migration pattern used
 
-## Verification
-Each task: build affected target, run domain test, confirm no regressions.
-Final: full build + `ctest --test-dir build --output-on-failure -j $(nproc)`.
+1. `git mv` `.cpp` files to preserve history
+2. `git mv` `.h`/`.hpp` files to destination (except where game domain created new `.hpp`)
+3. Create forwarder at old location: `#include "domain/file"`
+4. Update `.cpp` self-include and `@file` doc line
+5. Update `Source/CMakeLists.txt` and root `CMakeLists.txt` paths
+6. Build `libdevilutionx` to verify
+
+## Notable details
+
+- All game domains use canonical `.hpp` headers at `game/<domain>/<domain>.hpp`
+- Other domains moved `.h` files directly (engine, support, network, persistence, application, ui all use `.h`)
+- Compatibility forwarders remain at old `Source/` locations for all moved headers
+- `libdevilutionx_multiplayer` spans two domains: `network/multi.cpp` and `persistence/pack.cpp`
+- `main.cpp` is referenced from root `CMakeLists.txt`, not `Source/CMakeLists.txt`

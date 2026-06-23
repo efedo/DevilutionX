@@ -357,14 +357,14 @@ elseif(TARGET_PLATFORM STREQUAL "dos")
 endif()
 
 if(ANDROID)
-  add_library(${BIN_TARGET} SHARED Source/main.cpp)
+  add_library(${BIN_TARGET} SHARED Source/application/main.cpp)
 elseif(UWP_LIB)
   set(BIN_TARGET libdevilutionx)
 else()
   add_executable(${BIN_TARGET}
     WIN32
     MACOSX_BUNDLE
-    Source/main.cpp
+    Source/application/main.cpp
     Packaging/windows/devilutionx.exe.manifest
     Packaging/windows/devilutionx.rc
     Packaging/apple/LaunchScreen.storyboard)

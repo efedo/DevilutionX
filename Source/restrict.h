@@ -1,15 +1,8 @@
 /**
  * @file restrict.h
  *
- * Interface of functionality for checking if the game will be able run on the system.
+ * Compatibility forwarder.
  */
 #pragma once
 
-namespace devilution {
-
-/**
- * @brief Check that we have write access to the game install folder
- */
-void ReadOnlyTest();
-
-} // namespace devilution
+#include "application/restrict.h"

@@ -1,14 +1,8 @@
 /**
  * @file track.h
  *
- * Interface of functionality tracking what the mouse cursor is pointing at.
+ * Compatibility forwarder.
  */
 #pragma once
 
-namespace devilution {
-
-void InvalidateTargets();
-void RepeatPlayerAction();
-bool track_isscrolling();
-
-} // namespace devilution
+#include "engine/track.h"
