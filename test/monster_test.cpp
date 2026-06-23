@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "monster.h"
+#include "game/monsters/monsters.hpp"
 #include "tables/monstdat.h"
 
 namespace devilution {

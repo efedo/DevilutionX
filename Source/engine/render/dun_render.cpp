@@ -15,11 +15,11 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "appfat.h"
+#include "application/appfat.h"
 #include "engine/point.hpp"
 #include "engine/render/blit_impl.hpp"
 #include "game/levels/dun_tile.hpp"
-#include "options.h"
+#include "persistence/options.h"
 #include "utils/attributes.h"
 #ifdef DEBUG_STR
 #include "engine/render/text_render.hpp"

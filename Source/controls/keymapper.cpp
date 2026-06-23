@@ -13,7 +13,7 @@
 #endif
 
 #include "control/control.hpp"
-#include "options.h"
+#include "persistence/options.h"
 #include "utils/is_of.hpp"
 
 namespace devilution {

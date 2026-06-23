@@ -5,9 +5,9 @@
  */
 #include "game/objects/object_manager.hpp"
 
-#include "monster.h"
+#include "game/monsters/monsters.hpp"
 #include "game/objects/objects.hpp"
-#include "player.h"
+#include "game/players/players.hpp"
 
 namespace devilution {
 namespace ObjectManager {

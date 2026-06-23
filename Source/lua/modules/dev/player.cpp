@@ -6,13 +6,13 @@
 
 #include <sol/sol.hpp>
 
-#include "debug.h"
+#include "application/debug.h"
 #include "engine/assets.hpp"
 #include "lua/metadoc.hpp"
 #include "lua/modules/dev/player/gold.hpp"
 #include "lua/modules/dev/player/spells.hpp"
 #include "lua/modules/dev/player/stats.hpp"
-#include "player.h"
+#include "game/players/players.hpp"
 
 namespace devilution {
 

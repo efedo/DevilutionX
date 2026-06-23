@@ -8,7 +8,7 @@
 #include <array>
 #include <cstdint>
 
-#include "effects.h"
+#include "engine/effects.h"
 #include "tables/itemdat.h"
 #include "tables/spelldat.h"
 

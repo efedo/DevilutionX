@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "cursor.h"
+#include "engine/cursor.h"
 #include "game/levels/gendung.h"
 #include "utils/attributes.h"
 #include "utils/enum_traits.h"

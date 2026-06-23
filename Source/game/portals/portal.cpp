@@ -6,10 +6,10 @@
 #include "game/portals/portal.hpp"
 
 #include "engine/world.hpp"
-#include "lighting.h"
-#include "missiles.h"
-#include "multi.h"
-#include "player.h"
+#include "engine/lighting.h"
+#include "game/missiles/missiles.hpp"
+#include "network/multi.h"
+#include "game/players/players.hpp"
 #include "tables/misdat.h"
 
 namespace devilution {

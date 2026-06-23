@@ -8,7 +8,7 @@
 #include "data/file.hpp"
 #include "engine/point.hpp"
 #include "lua/metadoc.hpp"
-#include "monster.h"
+#include "game/monsters/monsters.hpp"
 #include "tables/monstdat.h"
 #include "utils/language.h"
 #include "utils/str_split.hpp"

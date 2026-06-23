@@ -11,7 +11,7 @@
 #include <expected.hpp>
 #include <magic_enum/magic_enum.hpp>
 
-#include "sound_effect_enums.h"
+#include "engine/sound_effect_enums.h"
 
 namespace devilution {
 

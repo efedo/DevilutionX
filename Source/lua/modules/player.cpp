@@ -4,14 +4,14 @@
 
 #include <sol/sol.hpp>
 
-#include "effects.h"
+#include "engine/effects.h"
 #include "engine/backbuffer_state.hpp"
 #include "engine/point.hpp"
 #include "engine/random.hpp"
-#include "inv.h"
-#include "items.h"
+#include "game/players/inv.hpp"
+#include "game/items/items.hpp"
 #include "lua/metadoc.hpp"
-#include "player.h"
+#include "game/players/players.hpp"
 
 namespace devilution {
 namespace {

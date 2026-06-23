@@ -10,9 +10,9 @@
 #include "engine/load_file.hpp"
 #include "engine/random.hpp"
 #include "game/levels/gendung.h"
-#include "monster.h"
-#include "multi.h"
-#include "player.h"
+#include "game/monsters/monsters.hpp"
+#include "network/multi.h"
+#include "game/players/players.hpp"
 #include "tables/objdat.h"
 #include "utils/is_of.hpp"
 

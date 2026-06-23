@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "dead.h"
+#include "game/monsters/dead.hpp"
 #include "engine/render/primitive_render.hpp"
 #include "game/levels/gendung.h"
 

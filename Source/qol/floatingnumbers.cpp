@@ -13,7 +13,7 @@
 #endif
 
 #include "engine/render/text_render.hpp"
-#include "options.h"
+#include "persistence/options.h"
 #include "utils/str_cat.hpp"
 
 namespace devilution {

@@ -11,7 +11,7 @@
 
 #include <mpqfs/mpqfs.h>
 
-#include "encrypt.h"
+#include "support/encrypt.h"
 
 namespace devilution {
 

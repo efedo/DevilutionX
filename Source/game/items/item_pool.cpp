@@ -5,7 +5,7 @@
  */
 #include "game/items/item_pool.hpp"
 
-#include "items.h"
+#include "game/items/items.hpp"
 
 namespace devilution {
 

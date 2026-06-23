@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "appfat.h"
-#include "diablo.h"
+#include "application/appfat.h"
+#include "application/diablo.h"
 
 using namespace devilution;
 

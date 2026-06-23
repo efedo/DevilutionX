@@ -8,8 +8,8 @@
 
 #include <cstddef>
 
-#include "monster.h"
-#include "player.h"
+#include "game/monsters/monsters.hpp"
+#include "game/players/players.hpp"
 
 namespace devilution {
 

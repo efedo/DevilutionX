@@ -7,12 +7,12 @@
 #include "engine/load_file.hpp"
 #include "engine/random.hpp"
 #include "engine/world_tile.hpp"
-#include "game_mode.hpp"
+#include "application/game_mode.hpp"
 #include "game/levels/drlg_l1.h"
 #include "game/levels/trigs.h"
-#include "multi.h"
-#include "player.h"
-#include "quests.h"
+#include "network/multi.h"
+#include "game/players/players.hpp"
+#include "game/quests/quests.hpp"
 #include "utils/endian_swap.hpp"
 
 namespace devilution {

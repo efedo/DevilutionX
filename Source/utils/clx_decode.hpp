@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#include "appfat.h"
+#include "application/appfat.h"
 #include "utils/attributes.h"
 
 namespace devilution {

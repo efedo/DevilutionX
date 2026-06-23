@@ -7,8 +7,8 @@
 #include <sol/sol.hpp>
 
 #include "lua/lua_global.hpp"
-#include "monster.h"
-#include "player.h"
+#include "game/monsters/monsters.hpp"
+#include "game/players/players.hpp"
 #include "utils/log.hpp"
 
 namespace devilution {

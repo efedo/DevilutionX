@@ -9,15 +9,15 @@
 #include <cstdint>
 #include <unordered_map>
 
-#include "cursor.h"
+#include "engine/cursor.h"
 #include "engine/clx_sprite.hpp"
 #include "engine/load_cel.hpp"
 #include "engine/load_file.hpp"
 #include "engine/random.hpp"
-#include "game_mode.hpp"
-#include "inv.h"
-#include "minitext.h"
-#include "stores.h"
+#include "application/game_mode.hpp"
+#include "game/players/inv.hpp"
+#include "ui/minitext.h"
+#include "game/stores/stores.hpp"
 #include "tables/textdat.h"
 #include "tables/townerdat.hpp"
 #include "utils/is_of.hpp"

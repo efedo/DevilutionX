@@ -12,7 +12,7 @@
 #include <array>
 #include <string_view>
 
-#include "diablo.h"
+#include "application/diablo.h"
 #include "engine/actor.hpp"
 #include "engine/attributes.hpp"
 #include "engine/combat_actor.hpp"
@@ -21,13 +21,13 @@
 #include "engine/displacement.hpp"
 #include "engine/path.h"
 #include "engine/point.hpp"
-#include "game_mode.hpp"
-#include "interfac.h"
+#include "application/game_mode.hpp"
+#include "ui/interfac.h"
 #include "game/items/items.hpp"
 #include "items/validation.h"
 #include "game/levels/dun_tile.hpp"
 #include "game/levels/gendung.h"
-#include "multi.h"
+#include "network/multi.h"
 #include "tables/playerdat.hpp"
 #include "tables/spelldat.h"
 #include "utils/attributes.h"

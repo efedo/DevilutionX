@@ -5,8 +5,8 @@
 
 #include "DiabloUI/text_input.hpp"
 #include "engine/clx_sprite.hpp"
-#include "msg.h"
-#include "multi.h"
+#include "network/msg.h"
+#include "network/multi.h"
 
 #ifdef USE_SDL3
 #include <SDL3/SDL_events.h>

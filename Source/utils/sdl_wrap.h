@@ -15,7 +15,7 @@
 #endif
 #endif
 
-#include "appfat.h"
+#include "application/appfat.h"
 #include "utils/sdl_ptrs.h"
 
 #define NonNull(x) NullErrDlg(x, __FILE__, __LINE__)

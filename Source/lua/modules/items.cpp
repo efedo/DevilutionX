@@ -6,9 +6,9 @@
 #include <sol/sol.hpp>
 
 #include "data/file.hpp"
-#include "items.h"
+#include "game/items/items.hpp"
 #include "lua/metadoc.hpp"
-#include "player.h"
+#include "game/players/players.hpp"
 #include "tables/itemdat.h"
 #include "utils/utf8.hpp"
 

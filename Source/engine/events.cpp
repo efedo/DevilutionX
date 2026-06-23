@@ -17,9 +17,9 @@
 #include "controls/padmapper.hpp"
 #include "engine/demomode.h"
 #include "engine/render/primitive_render.hpp"
-#include "interfac.h"
-#include "movie.h"
-#include "options.h"
+#include "ui/interfac.h"
+#include "ui/movie.h"
+#include "persistence/options.h"
 #include "panels/console.hpp"
 #include "utils/display.h"
 #include "utils/is_of.hpp"
@@ -31,7 +31,7 @@
 #endif
 
 #ifdef __vita__
-#include "diablo.h"
+#include "application/diablo.h"
 #include "platform/vita/touch.h"
 #endif
 

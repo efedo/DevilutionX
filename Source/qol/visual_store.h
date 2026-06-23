@@ -11,7 +11,7 @@
 
 #include "engine/point.hpp"
 #include "engine/surface.hpp"
-#include "items.h"
+#include "game/items/items.hpp"
 #include "utils/attributes.h"
 
 namespace devilution {

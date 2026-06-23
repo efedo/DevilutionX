@@ -4,7 +4,7 @@
 
 #include "controller.h"
 #include "game_controls.h"
-#include "options.h"
+#include "persistence/options.h"
 
 namespace devilution {
 

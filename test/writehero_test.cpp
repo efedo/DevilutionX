@@ -7,13 +7,13 @@
 #include <gtest/gtest.h>
 #include <picosha2.h>
 
-#include "cursor.h"
+#include "engine/cursor.h"
 #include "engine/assets.hpp"
-#include "game_mode.hpp"
-#include "init.hpp"
-#include "loadsave.h"
-#include "pack.h"
-#include "pfile.h"
+#include "application/game_mode.hpp"
+#include "application/init.hpp"
+#include "persistence/loadsave.h"
+#include "persistence/pack.h"
+#include "persistence/pfile.h"
 #include "tables/playerdat.hpp"
 #include "utils/endian_swap.hpp"
 #include "utils/file_util.h"

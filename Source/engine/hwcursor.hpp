@@ -14,7 +14,7 @@
 #include <SDL_version.h>
 #endif
 
-#include "options.h"
+#include "persistence/options.h"
 #include "utils/log.hpp"
 #include "utils/sdl_compat.h"
 

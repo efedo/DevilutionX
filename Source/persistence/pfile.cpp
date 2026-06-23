@@ -19,14 +19,14 @@
 #include <SDL.h>
 #endif
 
-#include "codec.h"
+#include "support/codec.h"
 #include "engine/load_file.hpp"
 #include "engine/render/primitive_render.hpp"
-#include "game_mode.hpp"
-#include "loadsave.h"
-#include "menu.h"
+#include "application/game_mode.hpp"
+#include "persistence/loadsave.h"
+#include "ui/menu.h"
 #include "mpq/mpq_common.hpp"
-#include "pack.h"
+#include "persistence/pack.h"
 #include "qol/stash.h"
 #include "tables/playerdat.hpp"
 #include "utils/endian_read.hpp"

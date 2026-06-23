@@ -8,10 +8,10 @@
 
 #include <cstdint>
 
-#include "items.h"
-#include "msg.h"
-#include "player.h"
-#include "spells.h"
+#include "game/items/items.hpp"
+#include "network/msg.h"
+#include "game/players/players.hpp"
+#include "game/spells/spells.hpp"
 #include "tables/monstdat.h"
 #include "utils/endian_swap.hpp"
 #include "utils/is_of.hpp"

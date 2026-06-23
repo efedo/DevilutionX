@@ -21,8 +21,8 @@
 
 #include "DiabloUI/diabloui.h"
 
-#include "appfat.h"
-#include "cursor.h"
+#include "application/appfat.h"
+#include "engine/cursor.h"
 #include "engine/clx_sprite.hpp"
 #include "engine/render/clx_render.hpp"
 #include "engine/surface.hpp"

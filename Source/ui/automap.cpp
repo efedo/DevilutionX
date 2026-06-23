@@ -17,8 +17,8 @@
 #include "engine/render/primitive_render.hpp"
 #include "game/levels/gendung.h"
 #include "game/levels/setmaps.h"
-#include "options.h"
-#include "player.h"
+#include "persistence/options.h"
+#include "game/players/players.hpp"
 #include "utils/attributes.h"
 #include "utils/enum_traits.h"
 #include "utils/is_of.hpp"
@@ -27,8 +27,8 @@
 #include "utils/utf8.hpp"
 
 #ifdef _DEBUG
-#include "debug.h"
-#include "lighting.h"
+#include "application/debug.h"
+#include "engine/lighting.h"
 #endif
 
 namespace devilution {

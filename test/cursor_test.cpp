@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "cursor.h"
+#include "engine/cursor.h"
 
 using namespace devilution;
 

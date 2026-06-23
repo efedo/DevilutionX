@@ -26,7 +26,7 @@
 #include "engine/render/clx_render.hpp"
 #include "engine/render/text_render.hpp"
 #include "engine/surface.hpp"
-#include "hwcursor.hpp"
+#include "engine/hwcursor.hpp"
 #include "utils/display.h"
 #include "utils/is_of.hpp"
 #include "utils/language.h"

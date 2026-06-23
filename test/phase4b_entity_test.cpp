@@ -16,7 +16,7 @@
 #include "game/levels/level.hpp"
 #include "game/levels/tile.hpp"
 #include "game/levels/tile_properties.hpp"
-#include "objects.h"
+#include "game/objects/objects.hpp"
 #include "utils/endian_swap.hpp"
 
 namespace devilution {

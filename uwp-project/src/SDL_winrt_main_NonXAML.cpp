@@ -3,7 +3,7 @@
 */
 
 #include <SDL.h>
-#include <diablo.h>
+#include <application/diablo.h>
 #include <wrl.h>
 
 /* At least one file in any SDL/WinRT app appears to require compilation

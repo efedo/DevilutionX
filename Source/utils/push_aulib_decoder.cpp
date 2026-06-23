@@ -10,7 +10,7 @@
 
 #include <aulib.h>
 
-#include "appfat.h"
+#include "application/appfat.h"
 
 namespace devilution {
 

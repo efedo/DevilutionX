@@ -25,12 +25,12 @@
 #include <ankerl/unordered_dense.h>
 #include <function_ref.hpp>
 
-#include "appfat.h"
+#include "application/appfat.h"
 #include "controls/controller_buttons.h"
 #include "engine/size.hpp"
 #include "engine/sound_defs.hpp"
-#include "pack.h"
-#include "quick_messages.hpp"
+#include "persistence/pack.h"
+#include "ui/quick_messages.hpp"
 #include "utils/enum_traits.h"
 #include "utils/string_view_hash.hpp"
 

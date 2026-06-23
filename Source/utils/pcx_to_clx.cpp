@@ -15,7 +15,7 @@
 #include <SDL.h>
 #endif
 
-#include "appfat.h"
+#include "application/appfat.h"
 #include "utils/clx_encode.hpp"
 #include "utils/endian_read.hpp"
 #include "utils/endian_swap.hpp"

@@ -13,8 +13,8 @@
 #include <SDL.h>
 #endif
 
-#include "appfat.h"
-#include "game_mode.hpp"
+#include "application/appfat.h"
+#include "application/game_mode.hpp"
 #include "utils/file_util.h"
 #include "utils/log.hpp"
 #include "utils/paths.h"

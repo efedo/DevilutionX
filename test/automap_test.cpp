@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "automap.h"
+#include "ui/automap.h"
 
 using namespace devilution;
 

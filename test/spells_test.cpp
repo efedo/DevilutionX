@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "engine/assets.hpp"
-#include "spells.h"
+#include "game/spells/spells.hpp"
 #include "tables/spelldat.h"
 
 namespace devilution {

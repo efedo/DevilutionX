@@ -8,11 +8,11 @@
 #include <cstdint>
 
 #include "engine/random.hpp"
-#include "game_mode.hpp"
+#include "application/game_mode.hpp"
 #include "items/validation.h"
-#include "loadsave.h"
-#include "plrmsg.h"
-#include "stores.h"
+#include "persistence/loadsave.h"
+#include "ui/plrmsg.h"
+#include "game/stores/stores.hpp"
 #include "tables/playerdat.hpp"
 #include "utils/endian_read.hpp"
 #include "utils/endian_swap.hpp"

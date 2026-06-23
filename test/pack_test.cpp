@@ -2,10 +2,10 @@
 
 #include <gtest/gtest.h>
 
-#include "cursor.h"
+#include "engine/cursor.h"
 #include "engine/assets.hpp"
-#include "game_mode.hpp"
-#include "pack.h"
+#include "application/game_mode.hpp"
+#include "persistence/pack.h"
 #include "tables/monstdat.h"
 #include "tables/playerdat.hpp"
 #include "utils/endian_swap.hpp"

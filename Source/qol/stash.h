@@ -12,7 +12,7 @@
 
 #include "engine/point.hpp"
 #include "engine/points_in_rectangle_range.hpp"
-#include "items.h"
+#include "game/items/items.hpp"
 #include "utils/attributes.h"
 
 namespace devilution {

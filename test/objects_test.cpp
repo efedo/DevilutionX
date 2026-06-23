@@ -16,9 +16,9 @@
 #include "engine/random.hpp"
 #include "game/levels/gendung.h"
 #include "game/levels/level.hpp"
-#include "object_pool.h"
-#include "objects.h"
-#include "cursor.h"
+#include "game/objects/object_pool.hpp"
+#include "game/objects/objects.hpp"
+#include "engine/cursor.h"
 #include "tables/objdat.h"
 #include "utils/paths.h"
 

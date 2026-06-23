@@ -20,9 +20,9 @@
 
 #include <fmt/format.h>
 
-#include "appfat.h"
-#include "game_mode.hpp"
-#include "headless_mode.hpp"
+#include "application/appfat.h"
+#include "application/game_mode.hpp"
+#include "application/headless_mode.hpp"
 #include "utils/file_util.h"
 #include "utils/language.h"
 #include "utils/sdl_compat.h"

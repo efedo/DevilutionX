@@ -25,10 +25,10 @@
 #endif
 #include <expected.hpp>
 
-#include "appfat.h"
+#include "application/appfat.h"
 #include "engine/assets.hpp"
-#include "game_mode.hpp"
-#include "options.h"
+#include "application/game_mode.hpp"
+#include "persistence/options.h"
 #include "utils/log.hpp"
 #include "utils/math.h"
 #include "utils/sdl_mutex.h"

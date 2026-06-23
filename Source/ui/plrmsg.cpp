@@ -20,7 +20,7 @@
 #include "control/control.hpp"
 #include "engine/render/primitive_render.hpp"
 #include "engine/render/text_render.hpp"
-#include "inv.h"
+#include "game/players/inv.hpp"
 #include "qol/chatlog.h"
 #include "qol/stash.h"
 #include "utils/algorithm/container.hpp"

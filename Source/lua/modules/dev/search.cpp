@@ -5,7 +5,7 @@
 
 #include <sol/sol.hpp>
 
-#include "debug.h"
+#include "application/debug.h"
 #include "lua/metadoc.hpp"
 #include "utils/str_case.hpp"
 #include "utils/str_cat.hpp"

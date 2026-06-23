@@ -8,8 +8,8 @@
 #include "engine/rectangle.hpp"
 #include "game/levels/crypt.h"
 #include "game/levels/gendung.h"
-#include "player.h"
-#include "quests.h"
+#include "game/players/players.hpp"
+#include "game/quests/quests.hpp"
 #include "utils/bitset2d.hpp"
 #include "utils/is_of.hpp"
 

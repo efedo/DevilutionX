@@ -17,13 +17,13 @@
 #include "controls/padmapper.hpp"
 #include "controls/plrctrls.h"
 #include "controls/touch/gamepad.h"
-#include "doom.h"
-#include "gamemenu.h"
-#include "gmenu.h"
-#include "options.h"
+#include "game/quests/doom.hpp"
+#include "ui/gamemenu.h"
+#include "ui/gmenu.h"
+#include "persistence/options.h"
 #include "panels/spell_list.hpp"
 #include "qol/stash.h"
-#include "stores.h"
+#include "game/stores/stores.hpp"
 #include "utils/is_of.hpp"
 
 namespace devilution {

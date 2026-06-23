@@ -11,10 +11,10 @@
 #include "DiabloUI/ui_flags.hpp"
 #include "engine/render/clx_render.hpp"
 #include "engine/render/text_render.hpp"
-#include "game_mode.hpp"
-#include "minitext.h"
+#include "application/game_mode.hpp"
+#include "ui/minitext.h"
 #include "qol/chatlog.h"
-#include "stores.h"
+#include "game/stores/stores.hpp"
 #include "utils/language.h"
 
 namespace devilution {

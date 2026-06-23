@@ -1,9 +1,9 @@
 #include "control_chat_commands.hpp"
 #include "control.hpp"
 
-#include "diablo_msg.hpp"
+#include "ui/diablo_msg.hpp"
 #include "engine/backbuffer_state.hpp"
-#include "inv.h"
+#include "game/players/inv.hpp"
 #include "game/levels/setmaps.h"
 #include "storm/storm_net.hpp"
 #include "utils/algorithm/container.hpp"
@@ -13,7 +13,7 @@
 #include "utils/str_cat.hpp"
 
 #ifdef _DEBUG
-#include "debug.h"
+#include "application/debug.h"
 #endif
 
 namespace devilution {

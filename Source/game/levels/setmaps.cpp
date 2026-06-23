@@ -3,7 +3,7 @@
 #include <cstdint>
 
 #ifdef _DEBUG
-#include "debug.h"
+#include "application/debug.h"
 #endif
 #include "engine/load_file.hpp"
 #include "engine/palette.h"
@@ -13,9 +13,9 @@
 #include "game/levels/drlg_l4.h"
 #include "game/levels/gendung.h"
 #include "game/levels/trigs.h"
-#include "msg.h"
-#include "objects.h"
-#include "quests.h"
+#include "network/msg.h"
+#include "game/objects/objects.hpp"
+#include "game/quests/quests.hpp"
 #include "tables/objdat.h"
 #include "utils/language.h"
 

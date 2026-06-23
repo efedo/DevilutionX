@@ -8,7 +8,7 @@
 #include "game/levels/gendung.h"
 #include "game/levels/level.hpp"
 #include "game/levels/tile.hpp"
-#include "lighting.h"
+#include "engine/lighting.h"
 
 namespace devilution {
 namespace {

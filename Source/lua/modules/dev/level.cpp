@@ -8,14 +8,14 @@
 
 #include <sol/sol.hpp>
 
-#include "diablo.h"
+#include "application/diablo.h"
 #include "game/levels/gendung.h"
 #include "lua/metadoc.hpp"
 #include "lua/modules/dev/level/map.hpp"
 #include "lua/modules/dev/level/warp.hpp"
-#include "monster.h"
-#include "objects.h"
-#include "player.h"
+#include "game/monsters/monsters.hpp"
+#include "game/objects/objects.hpp"
+#include "game/players/players.hpp"
 #include "utils/endian_stream.hpp"
 #include "utils/file_util.h"
 

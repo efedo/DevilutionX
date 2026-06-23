@@ -32,7 +32,7 @@
 #include "engine/dx.h"
 #include "engine/palette.h"
 #include "engine/sound.h"
-#include "options.h"
+#include "persistence/options.h"
 #include "utils/display.h"
 #include "utils/log.hpp"
 #include "utils/sdl_compat.h"

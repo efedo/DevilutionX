@@ -1,9 +1,9 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "items.h"
-#include "player.h"
-#include "stores.h"
+#include "game/items/items.hpp"
+#include "game/players/players.hpp"
+#include "game/stores/stores.hpp"
 #include "tables/playerdat.hpp"
 
 #include "engine/assets.hpp"

@@ -7,7 +7,7 @@
 
 #include <cstdint>
 
-#include "multi.h"
+#include "network/multi.h"
 
 namespace devilution {
 

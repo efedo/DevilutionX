@@ -29,7 +29,7 @@
 #include "engine/render/primitive_render.hpp"
 #include "engine/surface.hpp"
 #include "engine/ticks.hpp"
-#include "game_mode.hpp"
+#include "application/game_mode.hpp"
 #include "utils/algorithm/container.hpp"
 #include "utils/is_of.hpp"
 #include "utils/language.h"

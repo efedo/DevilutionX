@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "vision.hpp"
+#include "engine/vision.hpp"
 
 namespace devilution {
 

@@ -3,7 +3,7 @@
 #include <cmath>
 #include <cstdint>
 
-#include "options.h"
+#include "persistence/options.h"
 #include "utils/display.h"
 #include "utils/ui_fwd.h"
 

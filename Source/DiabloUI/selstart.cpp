@@ -10,7 +10,7 @@
 #include "DiabloUI/ui_item.h"
 #include "engine/load_clx.hpp"
 #include "engine/point.hpp"
-#include "options.h"
+#include "persistence/options.h"
 #include "utils/language.h"
 #include "utils/ui_fwd.h"
 

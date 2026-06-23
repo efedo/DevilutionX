@@ -18,9 +18,9 @@
 
 #include "ui_test.hpp"
 
-#include "diablo.h"
-#include "gamemenu.h"
-#include "gmenu.h"
+#include "application/diablo.h"
+#include "ui/gamemenu.h"
+#include "ui/gmenu.h"
 
 namespace devilution {
 namespace {

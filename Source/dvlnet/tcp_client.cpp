@@ -16,7 +16,7 @@
 #include <asio/connect.hpp>
 #include <expected.hpp>
 
-#include "options.h"
+#include "persistence/options.h"
 #include "utils/language.h"
 #include "utils/str_cat.hpp"
 #include "utils/str_split.hpp"

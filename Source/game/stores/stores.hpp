@@ -17,8 +17,8 @@
 #include "control/control.hpp"
 #include "engine/clx_sprite.hpp"
 #include "engine/surface.hpp"
-#include "game_mode.hpp"
-#include "items.h"
+#include "application/game_mode.hpp"
+#include "game/items/items.hpp"
 #include "utils/attributes.h"
 #include "utils/static_vector.hpp"
 

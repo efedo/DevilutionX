@@ -13,17 +13,17 @@
 
 #include <ankerl/unordered_dense.h>
 
-#include "debug.h"
+#include "application/debug.h"
 
-#include "automap.h"
-#include "cursor.h"
+#include "ui/automap.h"
+#include "engine/cursor.h"
 #include "engine/load_cel.hpp"
 #include "engine/point.hpp"
-#include "lighting.h"
-#include "missiles.h"
-#include "monster.h"
-#include "monster_pool.h"
-#include "plrmsg.h"
+#include "engine/lighting.h"
+#include "game/missiles/missiles.hpp"
+#include "game/monsters/monsters.hpp"
+#include "game/monsters/monster_pool.hpp"
+#include "ui/plrmsg.h"
 #include "utils/str_case.hpp"
 #include "utils/str_cat.hpp"
 

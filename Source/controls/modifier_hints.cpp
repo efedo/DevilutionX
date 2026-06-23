@@ -12,7 +12,7 @@
 #include "engine/load_clx.hpp"
 #include "engine/render/clx_render.hpp"
 #include "engine/render/text_render.hpp"
-#include "options.h"
+#include "persistence/options.h"
 #include "panels/spell_book.hpp"
 #include "panels/spell_icons.hpp"
 #include "utils/language.h"

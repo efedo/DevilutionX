@@ -7,8 +7,8 @@
 #include <sol/sol.hpp>
 
 #include "lua/metadoc.hpp"
-#include "msg.h"
-#include "spells.h"
+#include "network/msg.h"
+#include "game/spells/spells.hpp"
 #include "tables/spelldat.h"
 #include "utils/str_cat.hpp"
 

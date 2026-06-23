@@ -10,7 +10,7 @@
 #include <vector>
 
 #include "dvlnet/leaveinfo.hpp"
-#include "msg.h"
+#include "network/msg.h"
 #include "utils/attributes.h"
 
 namespace devilution {

@@ -10,7 +10,7 @@
 
 #include "dvlnet/abstract_net.h"
 #include "dvlnet/packet.h"
-#include "multi.h"
+#include "network/multi.h"
 #include "storm/storm_net.hpp"
 
 namespace devilution {

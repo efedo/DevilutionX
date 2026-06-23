@@ -11,7 +11,7 @@
 #include "engine/world_tile.hpp"
 #include "game/levels/gendung.h"
 #include "game/levels/setmaps.h"
-#include "quests.h"
+#include "game/quests/quests.hpp"
 
 namespace devilution {
 

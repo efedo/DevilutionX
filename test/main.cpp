@@ -4,8 +4,8 @@
 #include <string>
 #include <unordered_map>
 
-#include "headless_mode.hpp"
-#include "options.h"
+#include "application/headless_mode.hpp"
+#include "persistence/options.h"
 #include "utils/paths.h"
 
 namespace {

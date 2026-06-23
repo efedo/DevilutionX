@@ -14,11 +14,11 @@
 #include <SDL.h>
 #endif
 
-#include "diablo.h"
+#include "application/diablo.h"
 #include "engine/animationinfo.h"
 #include "engine/demomode.h"
-#include "game_mode.hpp"
-#include "gmenu.h"
+#include "application/game_mode.hpp"
+#include "ui/gmenu.h"
 #include "storm/storm_net.hpp"
 #include "utils/sdl_mutex.h"
 #include "utils/sdl_thread.h"

@@ -21,9 +21,9 @@
 
 #include <fmt/format.h>
 
-#include "diablo.h"
+#include "application/diablo.h"
 #include "dvlnet/leaveinfo.hpp"
-#include "multi.h"
+#include "network/multi.h"
 #include "storm/storm_net.hpp"
 #include "utils/language.h"
 #include "utils/sdl_thread.h"

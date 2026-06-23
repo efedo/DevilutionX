@@ -22,8 +22,8 @@
 
 #include <config.h>
 
-#include "appfat.h"
-#include "effects.h"
+#include "application/appfat.h"
+#include "engine/effects.h"
 #include "engine/assets.hpp"
 #include "lua/lua_event.hpp"
 #include "lua/modules/audio.hpp"
@@ -37,9 +37,9 @@
 #include "lua/modules/render.hpp"
 #include "lua/modules/system.hpp"
 #include "lua/modules/towners.hpp"
-#include "options.h"
-#include "plrmsg.h"
-#include "stores.h"
+#include "persistence/options.h"
+#include "ui/plrmsg.h"
+#include "game/stores/stores.hpp"
 #include "utils/console.h"
 #include "utils/log.hpp"
 #include "utils/str_cat.hpp"

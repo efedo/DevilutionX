@@ -12,7 +12,7 @@
 #include <sol/sol.hpp>
 #include <sol/utility/to_string.hpp>
 
-#include "appfat.h"
+#include "application/appfat.h"
 #include "engine/assets.hpp"
 #include "lua/lua_global.hpp"
 #include "lua/metadoc.hpp"

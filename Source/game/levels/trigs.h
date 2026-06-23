@@ -6,7 +6,7 @@
 #pragma once
 
 #include "engine/point.hpp"
-#include "interfac.h"
+#include "ui/interfac.h"
 #include "game/levels/gendung.h"
 
 namespace devilution {

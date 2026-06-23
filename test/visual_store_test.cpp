@@ -25,13 +25,13 @@
 #include "ui_test.hpp"
 
 #include "engine/random.hpp"
-#include "inv.h"
-#include "items.h"
-#include "options.h"
-#include "player.h"
+#include "game/players/inv.hpp"
+#include "game/items/items.hpp"
+#include "persistence/options.h"
+#include "game/players/players.hpp"
 #include "qol/stash.h"
 #include "qol/visual_store.h"
-#include "stores.h"
+#include "game/stores/stores.hpp"
 
 namespace devilution {
 namespace {

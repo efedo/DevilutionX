@@ -2,8 +2,8 @@
 
 #include <cstdint>
 
-#include "multi.h"
-#include "player.h"
+#include "network/multi.h"
+#include "game/players/players.hpp"
 #include "utils/language.h"
 #include "utils/stubs.h"
 

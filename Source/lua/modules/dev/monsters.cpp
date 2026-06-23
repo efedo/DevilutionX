@@ -6,14 +6,14 @@
 
 #include <sol/sol.hpp>
 
-#include "crawl.hpp"
+#include "engine/crawl.hpp"
 #include "game/levels/gendung.h"
 #include "game/levels/tile_properties.hpp"
-#include "lighting.h"
+#include "engine/lighting.h"
 #include "lua/metadoc.hpp"
-#include "monster.h"
-#include "monster_pool.h"
-#include "player.h"
+#include "game/monsters/monsters.hpp"
+#include "game/monsters/monster_pool.hpp"
+#include "game/players/players.hpp"
 #include "tables/monstdat.h"
 #include "utils/str_case.hpp"
 #include "utils/str_cat.hpp"

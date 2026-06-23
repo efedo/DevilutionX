@@ -8,7 +8,7 @@
 #include <expected.hpp>
 #include <function_ref.hpp>
 
-#include "appfat.h"
+#include "application/appfat.h"
 #include "engine/clx_sprite.hpp"
 #include "engine/load_file.hpp"
 #include "mpq/mpq_common.hpp"

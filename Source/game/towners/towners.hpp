@@ -17,8 +17,8 @@
 #include "engine/actor.hpp"
 #include "engine/clx_sprite.hpp"
 #include "game/levels/dun_tile.hpp"
-#include "player.h"
-#include "quests.h"
+#include "game/players/players.hpp"
+#include "game/quests/quests.hpp"
 #include "utils/attributes.h"
 
 namespace devilution {

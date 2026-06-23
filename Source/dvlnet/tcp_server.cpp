@@ -8,7 +8,7 @@
 #include <expected.hpp>
 
 #include "dvlnet/base.h"
-#include "player.h"
+#include "game/players/players.hpp"
 #include "utils/log.hpp"
 
 namespace devilution::net {

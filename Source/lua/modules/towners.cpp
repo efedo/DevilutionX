@@ -8,9 +8,9 @@
 
 #include "engine/point.hpp"
 #include "lua/metadoc.hpp"
-#include "player.h"
-#include "stores.h"
-#include "towners.h"
+#include "game/players/players.hpp"
+#include "game/stores/stores.hpp"
+#include "game/towners/towners.hpp"
 
 namespace devilution {
 namespace {

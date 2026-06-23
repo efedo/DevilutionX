@@ -7,7 +7,7 @@
 
 #include "engine/backbuffer_state.hpp"
 #include "lua/metadoc.hpp"
-#include "player.h"
+#include "game/players/players.hpp"
 #include "utils/str_cat.hpp"
 
 namespace devilution {

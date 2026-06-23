@@ -12,13 +12,13 @@
 
 #include <sol/sol.hpp>
 
-#include "cursor.h"
+#include "engine/cursor.h"
 #include "engine/random.hpp"
-#include "items.h"
-#include "item_pool.h"
+#include "game/items/items.hpp"
+#include "game/items/item_pool.hpp"
 #include "lua/metadoc.hpp"
-#include "pack.h"
-#include "player.h"
+#include "persistence/pack.h"
+#include "game/players/players.hpp"
 #include "utils/is_of.hpp"
 #include "utils/str_case.hpp"
 #include "utils/str_cat.hpp"

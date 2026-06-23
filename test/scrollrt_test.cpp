@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
 #include "control/control.hpp"
-#include "diablo.h"
+#include "application/diablo.h"
 #include "engine/render/scrollrt.h"
-#include "options.h"
+#include "persistence/options.h"
 #include "utils/ui_fwd.h"
 
 using namespace devilution;

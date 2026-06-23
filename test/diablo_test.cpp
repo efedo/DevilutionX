@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "diablo.h"
-#include "multi.h"
+#include "application/diablo.h"
+#include "network/multi.h"
 
 using namespace devilution;
 

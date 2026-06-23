@@ -1,4 +1,4 @@
-#include "portal.h"
+#include "game/portals/portal.hpp"
 #include "portals/validation.hpp"
 
 #include "game/portals/portal.hpp"

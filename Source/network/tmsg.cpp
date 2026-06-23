@@ -14,7 +14,7 @@
 #include <SDL.h>
 #endif
 
-#include "diablo.h"
+#include "application/diablo.h"
 
 namespace devilution {
 

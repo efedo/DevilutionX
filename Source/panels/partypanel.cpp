@@ -3,7 +3,7 @@
 #include <expected.hpp>
 #include <optional>
 
-#include "automap.h"
+#include "ui/automap.h"
 #include "control/control.hpp"
 #include "engine/backbuffer_state.hpp"
 #include "engine/clx_sprite.hpp"
@@ -14,12 +14,12 @@
 #include "engine/render/clx_render.hpp"
 #include "engine/render/primitive_render.hpp"
 #include "engine/size.hpp"
-#include "inv.h"
-#include "options.h"
-#include "pfile.h"
+#include "game/players/inv.hpp"
+#include "persistence/options.h"
+#include "persistence/pfile.h"
 #include "qol/monhealthbar.h"
 #include "qol/stash.h"
-#include "stores.h"
+#include "game/stores/stores.hpp"
 #include "tables/playerdat.hpp"
 #include "utils/status_macros.hpp"
 #include "utils/surface_to_clx.hpp"

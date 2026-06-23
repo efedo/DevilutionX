@@ -10,7 +10,7 @@
 
 #include <expected.hpp>
 
-#include "automap.h"
+#include "ui/automap.h"
 #include "engine/displacement.hpp"
 #include "engine/lighting_defs.hpp"
 #include "engine/point.hpp"

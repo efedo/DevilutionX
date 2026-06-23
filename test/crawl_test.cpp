@@ -3,7 +3,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "crawl.hpp"
+#include "engine/crawl.hpp"
 #include "engine/displacement.hpp"
 
 namespace devilution {

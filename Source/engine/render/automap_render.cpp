@@ -7,7 +7,7 @@
 
 #include <cstdint>
 
-#include "automap.h"
+#include "ui/automap.h"
 #include "engine/render/primitive_render.hpp"
 
 namespace devilution {

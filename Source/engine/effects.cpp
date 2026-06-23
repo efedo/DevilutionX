@@ -18,9 +18,9 @@
 #include "engine/sound.h"
 #include "engine/sound_defs.hpp"
 #include "engine/sound_position.hpp"
-#include "game_mode.hpp"
-#include "options.h"
-#include "player.h"
+#include "application/game_mode.hpp"
+#include "persistence/options.h"
+#include "game/players/players.hpp"
 #include "utils/is_of.hpp"
 
 namespace devilution {

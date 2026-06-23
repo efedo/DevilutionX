@@ -11,7 +11,7 @@
 
 #include <ankerl/unordered_dense.h>
 
-#include "diablo.h"
+#include "application/diablo.h"
 #include "engine/clx_sprite.hpp"
 #include "engine/point.hpp"
 

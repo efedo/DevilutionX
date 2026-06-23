@@ -3,7 +3,7 @@
 #include <string_view>
 
 #include "controls/controller_buttons.h"
-#include "options.h"
+#include "persistence/options.h"
 
 namespace devilution {
 

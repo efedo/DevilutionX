@@ -5,10 +5,10 @@
 
 #include "engine/assets.hpp"
 #include "engine/random.hpp"
-#include "game_mode.hpp"
-#include "items.h"
-#include "player.h"
-#include "spells.h"
+#include "application/game_mode.hpp"
+#include "game/items/items.hpp"
+#include "game/players/players.hpp"
+#include "game/spells/spells.hpp"
 #include "utils/str_cat.hpp"
 
 namespace devilution {

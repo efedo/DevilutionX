@@ -24,8 +24,8 @@
 
 #include "control/control.hpp"
 #include "control/control_panel.hpp"
-#include "diablo.h"
-#include "player.h"
+#include "application/diablo.h"
+#include "game/players/players.hpp"
 
 namespace devilution {
 namespace {

@@ -20,11 +20,11 @@
 #include "ui_test.hpp"
 
 #include "control/control.hpp"
-#include "diablo.h"
+#include "application/diablo.h"
 #include "panels/spell_icons.hpp"
 #include "panels/spell_list.hpp"
-#include "player.h"
-#include "spells.h"
+#include "game/players/players.hpp"
+#include "game/spells/spells.hpp"
 #include "tables/spelldat.h"
 
 namespace devilution {

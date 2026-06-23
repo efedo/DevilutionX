@@ -8,9 +8,9 @@
 
 #include <string_view>
 
-#include "diablo.h"
+#include "application/diablo.h"
 #include "game/levels/gendung.h"
-#include "player.h"
+#include "game/players/players.hpp"
 #include "tables/playerdat.hpp"
 
 namespace devilution {

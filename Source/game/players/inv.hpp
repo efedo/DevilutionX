@@ -9,9 +9,9 @@
 
 #include "engine/palette.h"
 #include "engine/point.hpp"
-#include "inv_iterators.hpp"
-#include "items.h"
-#include "player.h"
+#include "game/players/inv_iterators.hpp"
+#include "game/items/items.hpp"
+#include "game/players/players.hpp"
 #include "utils/algorithm/container.hpp"
 #include "utils/attributes.h"
 

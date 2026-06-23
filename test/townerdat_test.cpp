@@ -8,7 +8,7 @@
 
 #include "engine/assets.hpp"
 #include "tables/townerdat.hpp"
-#include "towners.h"
+#include "game/towners/towners.hpp"
 #include "utils/paths.h"
 
 namespace devilution {

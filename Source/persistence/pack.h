@@ -7,10 +7,10 @@
 
 #include <cstdint>
 
-#include "inv.h"
-#include "items.h"
-#include "msg.h"
-#include "player.h"
+#include "game/players/inv.hpp"
+#include "game/items/items.hpp"
+#include "network/msg.h"
+#include "game/players/players.hpp"
 
 namespace devilution {
 

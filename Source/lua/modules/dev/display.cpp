@@ -7,10 +7,10 @@
 
 #include <sol/sol.hpp>
 
-#include "debug.h"
-#include "lighting.h"
+#include "application/debug.h"
+#include "engine/lighting.h"
 #include "lua/metadoc.hpp"
-#include "player.h"
+#include "game/players/players.hpp"
 #include "utils/str_cat.hpp"
 
 namespace devilution {

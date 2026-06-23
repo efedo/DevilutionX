@@ -30,13 +30,13 @@
 #include <fmt/format.h>
 #include <function_ref.hpp>
 
-#include "appfat.h"
+#include "application/appfat.h"
 #include "controls/control_mode.hpp"
 #include "controls/controller_buttons.h"
 #include "engine/assets.hpp"
 #include "engine/sound_defs.hpp"
 #include "platform/locale.hpp"
-#include "quick_messages.hpp"
+#include "ui/quick_messages.hpp"
 #include "utils/algorithm/container.hpp"
 #include "utils/file_util.h"
 #include "utils/ini.hpp"

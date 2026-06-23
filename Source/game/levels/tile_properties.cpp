@@ -4,7 +4,7 @@
 #include "engine/path.h"
 #include "engine/point.hpp"
 #include "gendung.h"
-#include "objects.h"
+#include "game/objects/objects.hpp"
 
 namespace devilution {
 

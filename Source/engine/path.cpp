@@ -15,8 +15,8 @@
 
 #include <function_ref.hpp>
 
-#include "appfat.h"
-#include "crawl.hpp"
+#include "application/appfat.h"
+#include "engine/crawl.hpp"
 #include "engine/displacement.hpp"
 #include "engine/point.hpp"
 #include "utils/algorithm/container.hpp"

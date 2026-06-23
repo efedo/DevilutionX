@@ -5,10 +5,10 @@
 #include <fmt/format.h>
 
 #ifdef _DEBUG
-#include "debug.h"
+#include "application/debug.h"
 #endif
 #include "engine/load_file.hpp"
-#include "lighting.h"
+#include "engine/lighting.h"
 #include "utils/str_cat.hpp"
 
 namespace devilution {

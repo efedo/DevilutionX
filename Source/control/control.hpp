@@ -28,7 +28,7 @@
 #include "engine/render/text_render.hpp"
 #include "engine/size.hpp"
 #include "panels/ui_panels.hpp"
-#include "spells.h"
+#include "game/spells/spells.hpp"
 #include "tables/spelldat.h"
 #include "utils/attributes.h"
 #include "utils/string_or_view.hpp"

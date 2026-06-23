@@ -15,7 +15,7 @@
 #include <Aulib/ResamplerSdl.h>
 #endif
 
-#include "options.h"
+#include "persistence/options.h"
 
 namespace devilution {
 

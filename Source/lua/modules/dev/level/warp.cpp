@@ -7,12 +7,12 @@
 
 #include <sol/sol.hpp>
 
-#include "debug.h"
-#include "interfac.h"
+#include "application/debug.h"
+#include "ui/interfac.h"
 #include "game/levels/setmaps.h"
 #include "lua/metadoc.hpp"
-#include "player.h"
-#include "quests.h"
+#include "game/players/players.hpp"
+#include "game/quests/quests.hpp"
 #include "utils/str_cat.hpp"
 
 namespace devilution {

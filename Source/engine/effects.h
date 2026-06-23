@@ -12,7 +12,7 @@
 #include <expected.hpp>
 
 #include "engine/sound.h"
-#include "sound_effect_enums.h"
+#include "engine/sound_effect_enums.h"
 
 namespace devilution {
 

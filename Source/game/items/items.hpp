@@ -5,12 +5,12 @@
 #include <optional>
 
 #include "DiabloUI/ui_flags.hpp"
-#include "cursor.h"
+#include "engine/cursor.h"
 #include "engine/animationinfo.h"
 #include "engine/point.hpp"
 #include "engine/surface.hpp"
 #include "game/levels/dun_tile.hpp"
-#include "monster.h"
+#include "game/monsters/monsters.hpp"
 #include "tables/itemdat.h"
 #include "utils/is_of.hpp"
 #include "utils/string_or_view.hpp"

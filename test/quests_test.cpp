@@ -1,7 +1,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "quests.h"
+#include "game/quests/quests.hpp"
 
 #include "tables/objdat.h" // For quest IDs
 

@@ -14,7 +14,7 @@
 #include "game/levels/gendung.h"
 #include "tables/objdat.h"
 #include "tables/textdat.h"
-#include "towners.h"
+#include "game/towners/towners.hpp"
 #include "utils/attributes.h"
 
 namespace devilution {

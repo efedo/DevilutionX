@@ -12,7 +12,7 @@
 
 #include "controls/controller.h"
 #include "controls/game_controls.h"
-#include "player.h"
+#include "game/players/players.hpp"
 
 namespace devilution {
 

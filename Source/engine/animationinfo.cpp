@@ -9,8 +9,8 @@
 #include <algorithm>
 #include <cstdint>
 
-#include "appfat.h"
-#include "nthread.h"
+#include "application/appfat.h"
+#include "network/nthread.h"
 #include "utils/log.hpp"
 
 namespace devilution {

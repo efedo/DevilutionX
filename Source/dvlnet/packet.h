@@ -13,7 +13,7 @@
 #include <sodium.h>
 #endif
 
-#include "appfat.h"
+#include "application/appfat.h"
 #include "dvlnet/abstract_net.h"
 #include "dvlnet/leaveinfo.hpp"
 #include "utils/attributes.h"

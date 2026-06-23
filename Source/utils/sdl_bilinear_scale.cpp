@@ -12,7 +12,7 @@
 #include <SDL.h>
 #endif
 
-#include "appfat.h"
+#include "application/appfat.h"
 
 // Performs bilinear scaling using fixed-width integer math.
 

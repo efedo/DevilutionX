@@ -7,7 +7,7 @@
 
 #include "DiabloUI/ui_flags.hpp"
 #include "engine/surface.hpp"
-#include "player.h"
+#include "game/players/players.hpp"
 
 namespace devilution {
 

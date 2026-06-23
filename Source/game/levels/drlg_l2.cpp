@@ -11,14 +11,14 @@
 #include <list>
 #include <optional>
 
-#include "diablo.h"
+#include "application/diablo.h"
 #include "engine/load_file.hpp"
 #include "engine/random.hpp"
 #include "engine/size.hpp"
 #include "game/levels/gendung.h"
 #include "game/levels/setmaps.h"
-#include "player.h"
-#include "quests.h"
+#include "game/players/players.hpp"
+#include "game/quests/quests.hpp"
 #include "utils/is_of.hpp"
 
 namespace devilution {

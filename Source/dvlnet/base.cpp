@@ -13,7 +13,7 @@
 
 #include <expected.hpp>
 
-#include "player.h"
+#include "game/players/players.hpp"
 
 namespace devilution {
 namespace net {

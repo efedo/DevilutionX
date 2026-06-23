@@ -18,14 +18,14 @@
 #include <fmt/core.h>
 #include <magic_enum/magic_enum.hpp>
 
-#include "appfat.h"
-#include "cursor.h"
+#include "application/appfat.h"
+#include "engine/cursor.h"
 #include "data/file.hpp"
 #include "data/iterators.hpp"
 #include "data/record_reader.hpp"
-#include "items.h"
+#include "game/items/items.hpp"
 #include "lua/lua_event.hpp"
-#include "monster.h"
+#include "game/monsters/monsters.hpp"
 #include "tables/textdat.h"
 #include "utils/language.h"
 

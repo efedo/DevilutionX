@@ -7,9 +7,9 @@
 
 #include <sol/sol.hpp>
 
-#include "items.h"
+#include "game/items/items.hpp"
 #include "lua/metadoc.hpp"
-#include "player.h"
+#include "game/players/players.hpp"
 
 namespace devilution {
 namespace {

@@ -24,7 +24,7 @@
 #include <gperftools/heap-profiler.h>
 #endif
 
-#include "diablo.h"
+#include "application/diablo.h"
 
 #if !defined(__APPLE__)
 extern "C" const char *__asan_default_options() // NOLINT(bugprone-reserved-identifier, readability-identifier-naming)

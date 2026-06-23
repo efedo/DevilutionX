@@ -12,9 +12,9 @@
 
 #include "ui_test.hpp"
 
-#include "inv.h"
-#include "items.h"
-#include "player.h"
+#include "game/players/inv.hpp"
+#include "game/items/items.hpp"
+#include "game/players/players.hpp"
 #include "qol/stash.h"
 
 namespace devilution {

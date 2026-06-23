@@ -7,10 +7,10 @@
 
 #include <algorithm>
 
-#include "inv_iterators.hpp"
+#include "game/players/inv_iterators.hpp"
 #include "game/levels/gendung.h"
-#include "options.h"
-#include "player.h"
+#include "persistence/options.h"
+#include "game/players/players.hpp"
 #include "utils/algorithm/container.hpp"
 
 namespace devilution {

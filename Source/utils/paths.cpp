@@ -11,7 +11,7 @@
 #include <SDL.h>
 #endif
 
-#include "appfat.h"
+#include "application/appfat.h"
 #include "utils/file_util.h"
 #include "utils/log.hpp"
 #include "utils/sdl_ptrs.h"

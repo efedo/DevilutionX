@@ -15,7 +15,7 @@
 
 #include "dvlnet/base.h"
 #include "dvlnet/packet.h"
-#include "player.h"
+#include "game/players/players.hpp"
 #include "utils/algorithm/container.hpp"
 #include "utils/is_of.hpp"
 #include "utils/log.hpp"

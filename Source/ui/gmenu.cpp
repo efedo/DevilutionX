@@ -19,7 +19,7 @@
 #endif
 
 #include "DiabloUI/ui_flags.hpp"
-#include "appfat.h"
+#include "application/appfat.h"
 #include "control/control.hpp"
 #include "controls/axis_direction.h"
 #include "controls/controller_motion.h"
@@ -29,9 +29,9 @@
 #include "engine/render/clx_render.hpp"
 #include "engine/render/primitive_render.hpp"
 #include "engine/render/text_render.hpp"
-#include "headless_mode.hpp"
-#include "options.h"
-#include "stores.h"
+#include "application/headless_mode.hpp"
+#include "persistence/options.h"
+#include "game/stores/stores.hpp"
 #include "utils/language.h"
 #include "utils/sdl_compat.h"
 #include "utils/ui_fwd.h"

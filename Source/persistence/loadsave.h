@@ -9,8 +9,8 @@
 
 #include <expected.hpp>
 
-#include "pfile.h"
-#include "player.h"
+#include "persistence/pfile.h"
+#include "game/players/players.hpp"
 #include "utils/attributes.h"
 
 namespace devilution {

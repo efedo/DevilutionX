@@ -23,13 +23,13 @@
 
 #include <expected.hpp>
 
-#include "cursor.h"
+#include "engine/cursor.h"
 #include "engine/clx_sprite.hpp"
 #include "engine/point.hpp"
 #include "engine/rectangle.hpp"
 #include "engine/world_tile.hpp"
 #include "game/levels/dun_tile.hpp"
-#include "monster.h"
+#include "game/monsters/monsters.hpp"
 #include "tables/itemdat.h"
 #include "tables/objdat.h"
 #include "tables/textdat.h"

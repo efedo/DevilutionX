@@ -15,8 +15,8 @@
 #include "engine/surface.hpp"
 #include "game/levels/dun_tile.hpp"
 #include "game/levels/gendung.h"
-#include "lighting.h"
-#include "options.h"
+#include "engine/lighting.h"
+#include "persistence/options.h"
 #include "utils/log.hpp"
 #include "utils/sdl_wrap.h"
 

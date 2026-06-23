@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "codec.h"
+#include "support/codec.h"
 
 using namespace devilution;
 

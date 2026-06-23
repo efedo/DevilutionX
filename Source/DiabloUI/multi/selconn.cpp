@@ -17,7 +17,7 @@
 #include "DiabloUI/ui_item.h"
 #include "engine/point.hpp"
 #include "engine/render/text_render.hpp"
-#include "multi.h"
+#include "network/multi.h"
 #include "storm/storm_net.hpp"
 #include "utils/language.h"
 #include "utils/ui_fwd.h"

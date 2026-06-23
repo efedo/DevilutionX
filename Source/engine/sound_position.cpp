@@ -1,7 +1,7 @@
 #include "engine/sound_position.hpp"
 
 #include "engine/sound_defs.hpp"
-#include "player.h"
+#include "game/players/players.hpp"
 
 namespace devilution {
 

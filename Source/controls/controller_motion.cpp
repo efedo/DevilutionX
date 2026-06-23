@@ -21,7 +21,7 @@
 #include "controls/plrctrls.h"
 #include "controls/touch/gamepad.h"
 #include "engine/demomode.h"
-#include "options.h"
+#include "persistence/options.h"
 #include "utils/is_of.hpp"
 #include "utils/log.hpp"
 #include "utils/sdl_compat.h"

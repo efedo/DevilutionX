@@ -7,7 +7,7 @@
 
 #include <cstdint>
 
-#include "player.h"
+#include "game/players/players.hpp"
 #include "utils/attributes.h"
 
 namespace devilution {

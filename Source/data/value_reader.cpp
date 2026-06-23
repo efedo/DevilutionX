@@ -2,7 +2,7 @@
 
 #include <fmt/core.h>
 
-#include "appfat.h"
+#include "application/appfat.h"
 
 namespace devilution {
 

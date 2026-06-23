@@ -9,12 +9,12 @@
 #include <limits>
 
 #include "game/levels/gendung.h"
-#include "lighting.h"
-#include "item_pool.h"
-#include "monster.h"
-#include "monster_pool.h"
+#include "engine/lighting.h"
+#include "game/items/item_pool.hpp"
+#include "game/monsters/monsters.hpp"
+#include "game/monsters/monster_pool.hpp"
 #include "monsters/validation.hpp"
-#include "player.h"
+#include "game/players/players.hpp"
 #include "utils/endian_swap.hpp"
 #include "utils/is_of.hpp"
 

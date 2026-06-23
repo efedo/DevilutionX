@@ -10,13 +10,13 @@
 #include <fmt/format.h>
 
 #include "control/control.hpp"
-#include "cursor.h"
+#include "engine/cursor.h"
 #include "engine/clx_sprite.hpp"
 #include "engine/load_clx.hpp"
 #include "engine/render/clx_render.hpp"
 #include "engine/render/primitive_render.hpp"
-#include "game_mode.hpp"
-#include "options.h"
+#include "application/game_mode.hpp"
+#include "persistence/options.h"
 #include "utils/language.h"
 #include "utils/str_cat.hpp"
 

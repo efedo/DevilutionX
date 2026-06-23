@@ -2,9 +2,9 @@
 
 #include <gtest/gtest.h>
 
-#include "cursor.h"
+#include "engine/cursor.h"
 #include "engine/assets.hpp"
-#include "init.hpp"
+#include "application/init.hpp"
 #include "tables/playerdat.hpp"
 
 using namespace devilution;

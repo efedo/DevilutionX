@@ -8,8 +8,8 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "msg.h"
-#include "player.h"
+#include "network/msg.h"
+#include "game/players/players.hpp"
 
 namespace devilution {
 

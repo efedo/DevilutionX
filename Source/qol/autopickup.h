@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "player.h"
+#include "game/players/players.hpp"
 
 namespace devilution {
 

@@ -27,7 +27,7 @@
 #ifdef USE_SDL3
 #include "engine/sound.h" // for CurrentMixer
 #endif
-#include "options.h"
+#include "persistence/options.h"
 #include "utils/log.hpp"
 #include "utils/math.h"
 #include "utils/stubs.h"

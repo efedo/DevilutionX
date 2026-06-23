@@ -10,7 +10,7 @@
 #include <SDL_version.h>
 #endif
 
-#include "appfat.h"
+#include "application/appfat.h"
 
 namespace devilution {
 

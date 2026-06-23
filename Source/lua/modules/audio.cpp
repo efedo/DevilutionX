@@ -3,9 +3,9 @@
 #include <magic_enum/magic_enum.hpp>
 #include <sol/sol.hpp>
 
-#include "effects.h"
+#include "engine/effects.h"
 #include "lua/metadoc.hpp"
-#include "sound_effect_enums.h"
+#include "engine/sound_effect_enums.h"
 
 namespace devilution {
 

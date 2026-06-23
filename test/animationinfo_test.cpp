@@ -3,7 +3,7 @@
 #include <gtest/gtest.h>
 
 #include "engine/animationinfo.h"
-#include "nthread.h"
+#include "network/nthread.h"
 
 using namespace devilution;
 

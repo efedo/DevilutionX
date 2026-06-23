@@ -4,7 +4,7 @@
 #include <ankerl/unordered_dense.h>
 
 #include "engine/random.hpp"
-#include "missiles.h"
+#include "game/missiles/missiles.hpp"
 
 using namespace devilution;
 using ::testing::AllOf;

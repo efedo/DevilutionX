@@ -6,7 +6,7 @@
 #include "game/levels/gendung.h"
 #include "game/levels/level.hpp"
 #include "game/levels/town.h"
-#include "objects.h"
+#include "game/objects/objects.hpp"
 
 #if defined(DungeonMask) || defined(Protected) || defined(SetPieceRoom) || defined(SetPiece) \
     || defined(pSpecialCels) || defined(pMegaTiles) || defined(pDungeonCels) || defined(SOLData) \

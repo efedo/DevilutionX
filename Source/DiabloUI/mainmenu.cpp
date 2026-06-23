@@ -17,7 +17,7 @@
 #include "engine/assets.hpp"
 #include "engine/load_clx.hpp"
 #include "engine/point.hpp"
-#include "game_mode.hpp"
+#include "application/game_mode.hpp"
 #include "utils/language.h"
 #include "utils/ui_fwd.h"
 

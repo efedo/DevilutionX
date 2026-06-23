@@ -2,7 +2,7 @@
 
 #include <function_ref.hpp>
 
-#include "options.h"
+#include "persistence/options.h"
 
 namespace devilution {
 namespace {

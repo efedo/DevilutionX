@@ -20,7 +20,7 @@
 #include <function_ref.hpp>
 
 #include "engine/assets.hpp"
-#include "options.h"
+#include "persistence/options.h"
 #include "utils/algorithm/container.hpp"
 #include "utils/endian_swap.hpp"
 #include "utils/file_util.h"

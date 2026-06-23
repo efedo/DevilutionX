@@ -12,7 +12,7 @@
 
 #include <expected.hpp>
 
-#include "effects.h"
+#include "engine/effects.h"
 #include "engine/clx_sprite.hpp"
 #include "tables/spelldat.h"
 #include "utils/enum_traits.h"

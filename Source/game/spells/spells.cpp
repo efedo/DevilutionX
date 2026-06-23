@@ -6,18 +6,18 @@
 #include "game/spells/spells.hpp"
 
 #include "control/control.hpp"
-#include "cursor.h"
+#include "engine/cursor.h"
 #ifdef _DEBUG
-#include "debug.h"
+#include "application/debug.h"
 #endif
 #include "engine/backbuffer_state.hpp"
 #include "engine/point.hpp"
 #include "engine/random.hpp"
 #include "engine/world_tile.hpp"
-#include "game_mode.hpp"
-#include "gamemenu.h"
-#include "inv.h"
-#include "missiles.h"
+#include "application/game_mode.hpp"
+#include "ui/gamemenu.h"
+#include "game/players/inv.hpp"
+#include "game/missiles/missiles.hpp"
 
 namespace devilution {
 

@@ -10,9 +10,9 @@
 #include "engine/assets.hpp"
 #include "engine/load_file.hpp"
 #include "game/levels/themes.h"
-#include "multi.h"
-#include "player.h"
-#include "quests.h"
+#include "network/multi.h"
+#include "game/players/players.hpp"
+#include "game/quests/quests.hpp"
 #include "utils/endian_swap.hpp"
 #include "utils/paths.h"
 

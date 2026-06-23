@@ -8,9 +8,9 @@
 
 #include <expected.hpp>
 
-#include "appfat.h"
+#include "application/appfat.h"
 #include "engine/assets.hpp"
-#include "headless_mode.hpp"
+#include "application/headless_mode.hpp"
 #include "mpq/mpq_common.hpp"
 #include "utils/static_vector.hpp"
 #include "utils/str_cat.hpp"

@@ -4,9 +4,9 @@
 
 #include "engine/load_file.hpp"
 #include "engine/point.hpp"
-#include "items.h"
+#include "game/items/items.hpp"
 #include "game/levels/drlg_l1.h"
-#include "lighting.h"
+#include "engine/lighting.h"
 
 namespace devilution {
 

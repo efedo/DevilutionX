@@ -9,11 +9,11 @@
 
 #include "dvlnet/leaveinfo.hpp"
 #include "engine/point.hpp"
-#include "items.h"
-#include "monster.h"
-#include "objects.h"
+#include "game/items/items.hpp"
+#include "game/monsters/monsters.hpp"
+#include "game/objects/objects.hpp"
 #include "game/portals/portal.hpp"
-#include "quests.h"
+#include "game/quests/quests.hpp"
 
 namespace devilution {
 

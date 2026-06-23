@@ -6,8 +6,8 @@
 #include <utility>
 #include <vector>
 
-#include "items.h"
-#include "player.h"
+#include "game/items/items.hpp"
+#include "game/players/players.hpp"
 
 namespace devilution {
 

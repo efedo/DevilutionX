@@ -21,7 +21,7 @@
 #include "engine/actor_position.hpp"
 #include "engine/point.hpp"
 #include "engine/world_tile.hpp"
-#include "game_mode.hpp"
+#include "application/game_mode.hpp"
 #include "game/levels/dun_tile.hpp"
 #include "tables/misdat.h"
 #include "tables/monstdat.h"

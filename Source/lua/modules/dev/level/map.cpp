@@ -5,7 +5,7 @@
 
 #include <sol/sol.hpp>
 
-#include "automap.h"
+#include "ui/automap.h"
 #include "lua/metadoc.hpp"
 
 namespace devilution {
