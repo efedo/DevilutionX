@@ -1,4 +1,4 @@
-#include "panels/charpanel.hpp"
+#include "panel/charpanel.hpp"
 
 #include <cstdint>
 
@@ -9,11 +9,11 @@
 #include <fmt/format.h>
 #include <function_ref.hpp>
 
-#include "control/control.hpp"
+#include "panel/control.hpp"
 #include "engine/load_clx.hpp"
 #include "engine/render/clx_render.hpp"
 #include "engine/render/text_render.hpp"
-#include "panels/ui_panels.hpp"
+#include "panel/ui_panels.hpp"
 #include "game/players/players.hpp"
 #include "tables/playerdat.hpp"
 #include "utils/algorithm/container.hpp"

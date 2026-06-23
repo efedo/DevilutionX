@@ -29,7 +29,7 @@
 #include "ui/minitext.h"
 #include "network/multi.h"
 #include "persistence/options.h"
-#include "panels/info_box.hpp"
+#include "panel/info_box.hpp"
 #include "qol/stash.h"
 #include "qol/visual_store.h"
 #include "tables/townerdat.hpp"

@@ -1,10 +1,10 @@
-#include "panels/spell_list.hpp"
+#include "panel/spell_list.hpp"
 
 #include <cstdint>
 
 #include <fmt/format.h>
 
-#include "control/control.hpp"
+#include "panel/control.hpp"
 #include "controls/control_mode.hpp"
 #include "controls/plrctrls.h"
 #include "engine/backbuffer_state.hpp"
@@ -13,7 +13,7 @@
 #include "engine/render/text_render.hpp"
 #include "game/players/inv_iterators.hpp"
 #include "persistence/options.h"
-#include "panels/spell_icons.hpp"
+#include "panel/spell_icons.hpp"
 #include "game/players/players.hpp"
 #include "game/spells/spells.hpp"
 #include "utils/algorithm/container.hpp"

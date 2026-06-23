@@ -4,7 +4,7 @@
 #include <cstdint>
 
 #include "DiabloUI/ui_flags.hpp"
-#include "control/control.hpp"
+#include "panel/control.hpp"
 #include "controls/controller_motion.h"
 #include "controls/game_controls.h"
 #include "controls/plrctrls.h"
@@ -13,8 +13,8 @@
 #include "engine/render/clx_render.hpp"
 #include "engine/render/text_render.hpp"
 #include "persistence/options.h"
-#include "panels/spell_book.hpp"
-#include "panels/spell_icons.hpp"
+#include "panel/spell_book.hpp"
+#include "panel/spell_icons.hpp"
 #include "utils/language.h"
 
 namespace devilution {

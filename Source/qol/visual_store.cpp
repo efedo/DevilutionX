@@ -9,7 +9,7 @@
 #include <cstdint>
 #include <span>
 
-#include "control/control.hpp"
+#include "panel/control.hpp"
 #include "controls/plrctrls.h"
 #include "engine/cursor.h"
 #include "engine/clx_sprite.hpp"
@@ -25,8 +25,8 @@
 #include "game/items/items.hpp"
 #include "ui/minitext.h"
 #include "persistence/options.h"
-#include "panels/info_box.hpp"
-#include "panels/ui_panels.hpp"
+#include "panel/info_box.hpp"
+#include "panel/ui_panels.hpp"
 #include "game/players/players.hpp"
 #include "qol/stash.h"
 #include "game/spells/spells.hpp"

@@ -4,7 +4,7 @@
 #include "engine/render/primitive_render.hpp"
 #include "game/players/inv.hpp"
 #include "game/levels/trigs.h"
-#include "panels/partypanel.hpp"
+#include "panel/partypanel.hpp"
 #include "qol/stash.h"
 #include "qol/visual_store.h"
 #include "qol/xpbar.h"

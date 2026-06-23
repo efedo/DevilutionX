@@ -35,12 +35,12 @@ set(libdevilutionx_SRCS
   game/towners/towners.cpp
   engine/track.cpp
 
-  control/control_chat.cpp
-  control/control_chat_commands.cpp
-  control/control_flasks.cpp
-  control/control_gold.cpp
-  control/control_infobox.cpp
-  control/control_panel.cpp
+  panel/control_chat.cpp
+  panel/control_chat_commands.cpp
+  panel/control_flasks.cpp
+  panel/control_gold.cpp
+  panel/control_infobox.cpp
+  panel/control_panel.cpp
 
   controls/axis_direction.cpp
   controls/controller_motion.cpp
@@ -135,14 +135,14 @@ set(libdevilutionx_SRCS
 
   monsters/validation.cpp
 
-  panels/charpanel.cpp
-  panels/console.cpp
-  panels/info_box.cpp
-  panels/mainpanel.cpp
-  panels/partypanel.cpp
-  panels/spell_book.cpp
-  panels/spell_icons.cpp
-  panels/spell_list.cpp
+  panel/charpanel.cpp
+  panel/console.cpp
+  panel/info_box.cpp
+  panel/mainpanel.cpp
+  panel/partypanel.cpp
+  panel/spell_book.cpp
+  panel/spell_icons.cpp
+  panel/spell_list.cpp
 
   platform/locale.cpp
 

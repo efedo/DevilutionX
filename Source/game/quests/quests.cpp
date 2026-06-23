@@ -10,7 +10,7 @@
 #include <fmt/format.h>
 
 #include "DiabloUI/ui_flags.hpp"
-#include "control/control.hpp"
+#include "panel/control.hpp"
 #include "engine/cursor.h"
 #include "data/file.hpp"
 #include "data/record_reader.hpp"
@@ -29,7 +29,7 @@
 #include "game/monsters/monster_pool.hpp"
 #include "game/objects/object_pool.hpp"
 #include "persistence/options.h"
-#include "panels/ui_panels.hpp"
+#include "panel/ui_panels.hpp"
 #include "game/stores/stores.hpp"
 #include "tables/townerdat.hpp"
 #include "game/towners/towners.hpp"

@@ -1,4 +1,4 @@
-#include "panels/spell_icons.hpp"
+#include "panel/spell_icons.hpp"
 
 #include <cstdint>
 #include <optional>

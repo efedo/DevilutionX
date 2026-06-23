@@ -6,7 +6,7 @@
 #include <SDL.h>
 #endif
 
-#include "control/control.hpp"
+#include "panel/control.hpp"
 #include "controls/touch/event_handlers.h"
 #include "controls/touch/gamepad.h"
 #include "game/quests/quests.hpp"

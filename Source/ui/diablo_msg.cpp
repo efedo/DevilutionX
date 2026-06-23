@@ -20,7 +20,7 @@
 #include "engine/render/clx_render.hpp"
 #include "engine/render/primitive_render.hpp"
 #include "engine/render/text_render.hpp"
-#include "panels/info_box.hpp"
+#include "panel/info_box.hpp"
 #include "utils/algorithm/container.hpp"
 #include "utils/language.h"
 #include "utils/str_split.hpp"

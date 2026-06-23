@@ -37,7 +37,7 @@
 #include "game/monsters/monsters.hpp"
 #include "network/multi.h"
 #include "game/objects/objects.hpp"
-#include "panels/console.hpp"
+#include "panel/console.hpp"
 #include "utils/display.h"
 #include "utils/sdl_compat.h"
 #include "utils/sdl_ptrs.h"

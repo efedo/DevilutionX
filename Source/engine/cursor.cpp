@@ -21,7 +21,7 @@
 #include <fmt/format.h>
 
 #include "DiabloUI/diabloui.h"
-#include "control/control.hpp"
+#include "panel/control.hpp"
 #include "controls/control_mode.hpp"
 #include "controls/plrctrls.h"
 #include "game/quests/doom.hpp"

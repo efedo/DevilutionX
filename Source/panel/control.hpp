@@ -27,7 +27,7 @@
 #include "engine/rectangle.hpp"
 #include "engine/render/text_render.hpp"
 #include "engine/size.hpp"
-#include "panels/ui_panels.hpp"
+#include "panel/ui_panels.hpp"
 #include "game/spells/spells.hpp"
 #include "tables/spelldat.h"
 #include "utils/attributes.h"

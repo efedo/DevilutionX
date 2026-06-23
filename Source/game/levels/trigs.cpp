@@ -10,7 +10,7 @@
 
 #include <fmt/format.h>
 
-#include "control/control.hpp"
+#include "panel/control.hpp"
 #include "controls/control_mode.hpp"
 #include "controls/plrctrls.h"
 #include "engine/cursor.h"

@@ -1,4 +1,4 @@
-#include "panels/spell_book.hpp"
+#include "panel/spell_book.hpp"
 
 #include <cstdint>
 #include <optional>
@@ -7,7 +7,7 @@
 #include <expected.hpp>
 #include <fmt/format.h>
 
-#include "control/control.hpp"
+#include "panel/control.hpp"
 #include "engine/backbuffer_state.hpp"
 #include "engine/clx_sprite.hpp"
 #include "engine/load_cel.hpp"
@@ -17,8 +17,8 @@
 #include "engine/render/text_render.hpp"
 #include "application/game_mode.hpp"
 #include "game/missiles/missiles.hpp"
-#include "panels/spell_icons.hpp"
-#include "panels/ui_panels.hpp"
+#include "panel/spell_icons.hpp"
+#include "panel/ui_panels.hpp"
 #include "game/players/players.hpp"
 #include "tables/spelldat.h"
 #include "utils/language.h"

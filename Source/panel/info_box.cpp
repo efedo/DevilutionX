@@ -1,4 +1,4 @@
-#include "panels/info_box.hpp"
+#include "panel/info_box.hpp"
 
 #include "engine/load_cel.hpp"
 

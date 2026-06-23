@@ -29,7 +29,7 @@
 #include <fmt/core.h>
 
 #include "DiabloUI/ui_flags.hpp"
-#include "control/control.hpp"
+#include "panel/control.hpp"
 #include "controls/control_mode.hpp"
 #include "controls/controller_buttons.h"
 #include "engine/cursor.h"
@@ -67,8 +67,8 @@
 #include "game/objects/object_pool.hpp"
 #include "persistence/options.h"
 #include "persistence/pack.h"
-#include "panels/info_box.hpp"
-#include "panels/ui_panels.hpp"
+#include "panel/info_box.hpp"
+#include "panel/ui_panels.hpp"
 #include "game/players/players.hpp"
 #include "qol/stash.h"
 #include "game/quests/quests.hpp"

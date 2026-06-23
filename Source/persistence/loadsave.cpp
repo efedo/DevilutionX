@@ -17,7 +17,7 @@
 
 #include "ui/automap.h"
 #include "support/codec.h"
-#include "control/control.hpp"
+#include "panel/control.hpp"
 #include "engine/cursor.h"
 #include "game/monsters/dead.hpp"
 #include "game/quests/doom.hpp"

@@ -21,7 +21,7 @@
 #include "game/levels/setmaps.h"
 #include "lua/lua_global.hpp"
 #include "network/multi.h"
-#include "panels/charpanel.hpp"
+#include "panel/charpanel.hpp"
 #include "game/players/players.hpp"
 #include "tables/playerdat.hpp"
 #include "utils/language.h"

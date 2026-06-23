@@ -1,10 +1,10 @@
-#include "panels/partypanel.hpp"
+#include "panel/partypanel.hpp"
 
 #include <expected.hpp>
 #include <optional>
 
 #include "ui/automap.h"
-#include "control/control.hpp"
+#include "panel/control.hpp"
 #include "engine/backbuffer_state.hpp"
 #include "engine/clx_sprite.hpp"
 #include "engine/load_cel.hpp"

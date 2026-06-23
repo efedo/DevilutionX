@@ -21,7 +21,7 @@
 #include "ui/gamemenu.h"
 #include "ui/gmenu.h"
 #include "persistence/options.h"
-#include "panels/spell_list.hpp"
+#include "panel/spell_list.hpp"
 #include "qol/stash.h"
 #include "game/stores/stores.hpp"
 #include "utils/is_of.hpp"

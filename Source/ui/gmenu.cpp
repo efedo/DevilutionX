@@ -20,7 +20,7 @@
 
 #include "DiabloUI/ui_flags.hpp"
 #include "application/appfat.h"
-#include "control/control.hpp"
+#include "panel/control.hpp"
 #include "controls/axis_direction.h"
 #include "controls/controller_motion.h"
 #include "engine/clx_sprite.hpp"

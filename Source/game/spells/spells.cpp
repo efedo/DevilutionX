@@ -5,7 +5,7 @@
  */
 #include "game/spells/spells.hpp"
 
-#include "control/control.hpp"
+#include "panel/control.hpp"
 #include "engine/cursor.h"
 #ifdef _DEBUG
 #include "application/debug.h"

@@ -1,4 +1,4 @@
-#include "panels/mainpanel.hpp"
+#include "panel/mainpanel.hpp"
 
 #include <cstdint>
 #include <optional>
@@ -6,7 +6,7 @@
 
 #include <expected.hpp>
 
-#include "control/control.hpp"
+#include "panel/control.hpp"
 #include "engine/clx_sprite.hpp"
 #include "engine/load_clx.hpp"
 #include "engine/render/clx_render.hpp"

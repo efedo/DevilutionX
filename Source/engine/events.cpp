@@ -20,7 +20,7 @@
 #include "ui/interfac.h"
 #include "ui/movie.h"
 #include "persistence/options.h"
-#include "panels/console.hpp"
+#include "panel/console.hpp"
 #include "utils/display.h"
 #include "utils/is_of.hpp"
 #include "utils/log.hpp"

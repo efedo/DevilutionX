@@ -11,7 +11,7 @@
 #include <sol/utility/to_string.hpp>
 
 #include "lua/lua_global.hpp"
-#include "panels/console.hpp"
+#include "panel/console.hpp"
 #include "utils/str_cat.hpp"
 
 namespace devilution {
