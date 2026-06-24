@@ -14,9 +14,9 @@
 #include <SDL.h>
 
 #ifdef USE_SDL1
-#include "utils/sdl2_to_1_2_backports.h"
+#include "utils/sdl/sdl2_to_1_2_backports.h"
 #endif
-#include "utils/sdl_compat.h"
+#include "utils/sdl/sdl_compat.h"
 #endif
 
 #include <fmt/format.h>
@@ -26,8 +26,8 @@
 #include "network/multi.h"
 #include "storm/storm_net.hpp"
 #include "utils/language.h"
-#include "utils/sdl_thread.h"
-#include "utils/str_cat.hpp"
+#include "utils/sdl/sdl_thread.h"
+#include "utils/string/str_cat.hpp"
 #include "utils/ui_fwd.h"
 
 namespace devilution {

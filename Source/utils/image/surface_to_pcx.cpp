@@ -1,4 +1,4 @@
-#include "utils/surface_to_pcx.hpp"
+#include "utils/image/surface_to_pcx.hpp"
 
 #include <cerrno>
 #include <cstdint>
@@ -16,9 +16,9 @@
 #include <expected.hpp>
 
 #include "engine/gfx/surface.hpp"
-#include "utils/endian_swap.hpp"
-#include "utils/pcx.hpp"
-#include "utils/sdl_compat.h"
+#include "utils/endian/endian_swap.hpp"
+#include "utils/image/pcx.hpp"
+#include "utils/sdl/sdl_compat.h"
 
 namespace devilution {
 namespace {

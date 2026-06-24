@@ -19,9 +19,9 @@
 #include <fmt/core.h>
 
 #include "utils/algorithm/container.hpp"
-#include "utils/str_cat.hpp"
-#include "utils/string_view_hash.hpp"
-#include "utils/utf8.hpp"
+#include "utils/string/str_cat.hpp"
+#include "utils/string/string_view_hash.hpp"
+#include "utils/string/utf8.hpp"
 
 namespace devilution {
 

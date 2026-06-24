@@ -12,7 +12,7 @@
 #include <SDL.h>
 
 #ifdef USE_SDL1
-#include "utils/sdl2_to_1_2_backports.h"
+#include "utils/sdl/sdl2_to_1_2_backports.h"
 #endif
 #endif
 
@@ -22,11 +22,11 @@
 #include "engine/assets.hpp"
 #include "persistence/options.h"
 #include "utils/algorithm/container.hpp"
-#include "utils/endian_swap.hpp"
-#include "utils/file_util.h"
+#include "utils/endian/endian_swap.hpp"
+#include "utils/file/file_util.h"
 #include "utils/log.hpp"
 #include "utils/paths.h"
-#include "utils/string_view_hash.hpp"
+#include "utils/string/string_view_hash.hpp"
 
 #define MO_MAGIC 0x950412de
 

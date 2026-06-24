@@ -1,4 +1,4 @@
-#include "utils/sdl_thread.h"
+#include "utils/sdl/sdl_thread.h"
 
 namespace devilution {
 

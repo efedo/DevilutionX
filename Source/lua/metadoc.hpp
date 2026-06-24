@@ -7,7 +7,7 @@
 
 #include <sol/sol.hpp>
 
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 
 namespace devilution {
 

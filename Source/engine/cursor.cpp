@@ -47,9 +47,9 @@
 #include "utils/is_of.hpp"
 #include "utils/language.h"
 #include "utils/palette_blending.hpp"
-#include "utils/sdl_bilinear_scale.hpp"
-#include "utils/surface_to_clx.hpp"
-#include "utils/utf8.hpp"
+#include "utils/sdl/sdl_bilinear_scale.hpp"
+#include "utils/image/surface_to_clx.hpp"
+#include "utils/string/utf8.hpp"
 
 #ifdef UNPACKED_MPQS
 #include "engine/load/load_clx.hpp"

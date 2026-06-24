@@ -14,7 +14,7 @@
 #include "utils/log.hpp"
 
 #ifdef USE_SDL1
-#include "utils/sdl2_to_1_2_backports.h"
+#include "utils/sdl/sdl2_to_1_2_backports.h"
 #endif
 
 namespace devilution {

@@ -20,7 +20,7 @@
 #include "engine/math/displacement.hpp"
 #include "engine/math/point.hpp"
 #include "utils/algorithm/container.hpp"
-#include "utils/static_vector.hpp"
+#include "utils/container/static_vector.hpp"
 
 namespace devilution {
 

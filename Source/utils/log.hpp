@@ -12,10 +12,10 @@
 #include <fmt/format.h>
 #include <fmt/ranges.h>
 
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 
 #ifdef USE_SDL1
-#include "utils/sdl2_to_1_2_backports.h"
+#include "utils/sdl/sdl2_to_1_2_backports.h"
 #endif
 
 namespace devilution {

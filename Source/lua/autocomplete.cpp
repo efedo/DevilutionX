@@ -17,8 +17,8 @@
 #include "lua/lua_global.hpp"
 #include "lua/metadoc.hpp"
 #include "utils/algorithm/container.hpp"
-#include "utils/str_cat.hpp"
-#include "utils/str_split.hpp"
+#include "utils/string/str_cat.hpp"
+#include "utils/string/str_split.hpp"
 
 namespace devilution {
 

@@ -17,7 +17,7 @@
 #include <SDL.h>
 
 #ifdef USE_SDL1
-#include "utils/sdl2_to_1_2_backports.h"
+#include "utils/sdl/sdl2_to_1_2_backports.h"
 #endif
 #endif
 
@@ -38,11 +38,11 @@
 #include "lua/repl.hpp"
 #include "utils/algorithm/container.hpp"
 #include "utils/display.h"
-#include "utils/sdl_compat.h"
-#include "utils/sdl_geometry.h"
-#include "utils/str_case.hpp"
-#include "utils/str_cat.hpp"
-#include "utils/str_split.hpp"
+#include "utils/sdl/sdl_compat.h"
+#include "utils/sdl/sdl_geometry.h"
+#include "utils/string/str_case.hpp"
+#include "utils/string/str_cat.hpp"
+#include "utils/string/str_split.hpp"
 
 namespace devilution {
 

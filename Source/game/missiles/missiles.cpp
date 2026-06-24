@@ -66,7 +66,7 @@
 #include "engine/lighting.h"
 #include "game/monsters/monsters.hpp"
 #include "utils/is_of.hpp"
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 
 namespace devilution {
 

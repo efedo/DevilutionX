@@ -1,4 +1,4 @@
-#include "utils/logged_fstream.hpp"
+#include "utils/file/logged_fstream.hpp"
 
 namespace devilution {
 

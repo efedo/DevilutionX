@@ -10,8 +10,8 @@
 #include "panel/mainpanel.hpp"
 #include "ui/quick_messages.hpp"
 #include "utils/display.h"
-#include "utils/sdl_compat.h"
-#include "utils/str_cat.hpp"
+#include "utils/sdl/sdl_compat.h"
+#include "utils/string/str_cat.hpp"
 
 namespace devilution {
 

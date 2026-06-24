@@ -6,7 +6,7 @@
 #include <optional>
 #include <string>
 
-#include "utils/file_util.h"
+#include "utils/file/file_util.h"
 #include "utils/log.hpp"
 namespace devilution {
 

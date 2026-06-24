@@ -24,8 +24,8 @@
 #include "game/monsters/monsters.hpp"
 #include "game/monsters/monster_pool.hpp"
 #include "ui/plrmsg.h"
-#include "utils/str_case.hpp"
-#include "utils/str_cat.hpp"
+#include "utils/string/str_case.hpp"
+#include "utils/string/str_cat.hpp"
 
 namespace devilution {
 

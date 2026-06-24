@@ -2,7 +2,7 @@
 #include <cstring>
 
 #include "platform/ctr/keyboard.h"
-#include "utils/utf8.hpp"
+#include "utils/string/utf8.hpp"
 
 constexpr size_t MAX_TEXT_LENGTH = 255;
 

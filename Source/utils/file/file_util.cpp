@@ -1,4 +1,4 @@
-#include "utils/file_util.h"
+#include "utils/file/file_util.h"
 
 #include <algorithm>
 #include <cerrno>
@@ -11,14 +11,14 @@
 #else
 #include <SDL.h>
 
-#include "utils/sdl_compat.h"
+#include "utils/sdl/sdl_compat.h"
 #endif
 
 #include "utils/log.hpp"
 #include "utils/stdcompat/filesystem.hpp"
 
 #ifdef USE_SDL1
-#include "utils/sdl2_to_1_2_backports.h"
+#include "utils/sdl/sdl2_to_1_2_backports.h"
 #endif
 
 #ifdef _WIN32

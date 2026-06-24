@@ -12,8 +12,8 @@
 #include "controls/plrctrls.h"
 #include "controls/touch/gamepad.h"
 #include "engine/gfx/surface.hpp"
-#include "utils/png.h"
-#include "utils/sdl_ptrs.h"
+#include "utils/image/png.h"
+#include "utils/sdl/sdl_ptrs.h"
 
 namespace devilution {
 

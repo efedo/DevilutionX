@@ -20,7 +20,7 @@
 #include <span>
 
 #include "game/objects/objects.hpp" // For MAXOBJECTS definition
-#include "utils/entity_pool.hpp"
+#include "utils/container/entity_pool.hpp"
 
 namespace devilution {
 

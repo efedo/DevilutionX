@@ -20,7 +20,7 @@
 #include "application/game_mode.hpp"
 #include "game/items/items.hpp"
 #include "utils/attributes.h"
-#include "utils/static_vector.hpp"
+#include "utils/container/static_vector.hpp"
 
 namespace devilution {
 

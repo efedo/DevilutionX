@@ -14,7 +14,7 @@
 
 #include "engine/render/text_render.hpp"
 #include "persistence/options.h"
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 
 namespace devilution {
 

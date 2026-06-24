@@ -21,7 +21,7 @@
 #include "qol/stash.h"
 #include "game/stores/stores.hpp"
 #include "utils/is_of.hpp"
-#include "utils/sdl_compat.h"
+#include "utils/sdl/sdl_compat.h"
 #include "utils/ui_fwd.h"
 
 namespace devilution {

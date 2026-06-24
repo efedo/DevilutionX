@@ -17,9 +17,9 @@
 #include "dvlnet/abstract_net.h"
 #include "dvlnet/leaveinfo.hpp"
 #include "utils/attributes.h"
-#include "utils/endian_read.hpp"
-#include "utils/endian_write.hpp"
-#include "utils/str_cat.hpp"
+#include "utils/endian/endian_read.hpp"
+#include "utils/endian/endian_write.hpp"
+#include "utils/string/str_cat.hpp"
 #include "utils/stubs.h"
 
 namespace devilution {

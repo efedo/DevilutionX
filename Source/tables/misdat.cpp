@@ -26,9 +26,9 @@
 #include "mpq/mpq_common.hpp"
 #include "engine/audio/sound_effect_enums.h"
 #include "tables/spelldat.h"
-#include "utils/file_name_generator.hpp"
+#include "utils/file/file_name_generator.hpp"
 #include "utils/status_macros.hpp"
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 
 #ifdef UNPACKED_MPQS
 #include "engine/load/load_clx.hpp"

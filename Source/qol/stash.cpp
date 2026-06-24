@@ -28,11 +28,11 @@
 #include "ui/minitext.h"
 #include "game/stores/stores.hpp"
 #include "utils/display.h"
-#include "utils/format_int.hpp"
+#include "utils/string/format_int.hpp"
 #include "utils/language.h"
-#include "utils/sdl_compat.h"
-#include "utils/str_cat.hpp"
-#include "utils/utf8.hpp"
+#include "utils/sdl/sdl_compat.h"
+#include "utils/string/str_cat.hpp"
+#include "utils/string/utf8.hpp"
 
 namespace devilution {
 

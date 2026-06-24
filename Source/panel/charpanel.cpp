@@ -19,11 +19,11 @@
 #include "utils/algorithm/container.hpp"
 #include "utils/display.h"
 #include "utils/enum_traits.h"
-#include "utils/format_int.hpp"
+#include "utils/string/format_int.hpp"
 #include "utils/language.h"
 #include "utils/status_macros.hpp"
-#include "utils/str_cat.hpp"
-#include "utils/surface_to_clx.hpp"
+#include "utils/string/str_cat.hpp"
+#include "utils/image/surface_to_clx.hpp"
 
 namespace devilution {
 

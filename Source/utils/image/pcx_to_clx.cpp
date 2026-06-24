@@ -1,4 +1,4 @@
-#include "utils/pcx_to_clx.hpp"
+#include "utils/image/pcx_to_clx.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -16,11 +16,11 @@
 #endif
 
 #include "application/appfat.h"
-#include "utils/clx_encode.hpp"
-#include "utils/endian_read.hpp"
-#include "utils/endian_swap.hpp"
-#include "utils/endian_write.hpp"
-#include "utils/pcx.hpp"
+#include "utils/image/clx_encode.hpp"
+#include "utils/endian/endian_read.hpp"
+#include "utils/endian/endian_swap.hpp"
+#include "utils/endian/endian_write.hpp"
+#include "utils/image/pcx.hpp"
 
 #ifdef DEBUG_PCX_TO_CL2_SIZE
 #include <iomanip>

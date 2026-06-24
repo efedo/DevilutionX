@@ -15,9 +15,9 @@
 #else
 #include <SDL.h>
 #ifdef USE_SDL1
-#include "utils/sdl2_to_1_2_backports.h"
+#include "utils/sdl/sdl2_to_1_2_backports.h"
 #else
-#include "utils/sdl2_backports.h"
+#include "utils/sdl/sdl2_backports.h"
 #endif
 #endif
 
@@ -49,10 +49,10 @@
 #include "application/headless_mode.hpp"
 #include "persistence/options.h"
 #include "utils/log.hpp"
-#include "utils/sdl_compat.h"
-#include "utils/sdl_geometry.h"
-#include "utils/sdl_wrap.h"
-#include "utils/str_cat.hpp"
+#include "utils/sdl/sdl_compat.h"
+#include "utils/sdl/sdl_geometry.h"
+#include "utils/sdl/sdl_wrap.h"
+#include "utils/string/str_cat.hpp"
 
 #ifdef USE_SDL1
 #ifndef SDL1_VIDEO_MODE_BPP

@@ -42,7 +42,7 @@
 #include "game/stores/stores.hpp"
 #include "utils/console.h"
 #include "utils/log.hpp"
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 
 #ifdef _DEBUG
 #include "lua/modules/dev.hpp"

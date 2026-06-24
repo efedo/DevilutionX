@@ -16,8 +16,8 @@
 #include "game/monsters/monsters.hpp"
 #include "game/objects/objects.hpp"
 #include "game/players/players.hpp"
-#include "utils/endian_stream.hpp"
-#include "utils/file_util.h"
+#include "utils/endian/endian_stream.hpp"
+#include "utils/file/file_util.h"
 
 namespace devilution {
 

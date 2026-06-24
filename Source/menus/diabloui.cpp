@@ -57,11 +57,11 @@
 #include "utils/enum_traits.h"
 #include "utils/is_of.hpp"
 #include "utils/screen_reader.hpp"
-#include "utils/sdl_compat.h"
-#include "utils/sdl_geometry.h"
-#include "utils/str_cat.hpp"
+#include "utils/sdl/sdl_compat.h"
+#include "utils/sdl/sdl_geometry.h"
+#include "utils/string/str_cat.hpp"
 #include "utils/ui_fwd.h"
-#include "utils/utf8.hpp"
+#include "utils/string/utf8.hpp"
 
 #ifdef __SWITCH__
 // for virtual keyboard on Switch

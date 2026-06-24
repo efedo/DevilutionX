@@ -26,7 +26,7 @@
 #include "persistence/options.h"
 #include "utils/display.h"
 #include "utils/log.hpp"
-#include "utils/sdl_wrap.h"
+#include "utils/sdl/sdl_wrap.h"
 
 #ifndef USE_SDL1
 #include "controls/touch/renderers.h"

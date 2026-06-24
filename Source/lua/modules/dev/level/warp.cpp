@@ -13,7 +13,7 @@
 #include "lua/metadoc.hpp"
 #include "game/players/players.hpp"
 #include "game/quests/quests.hpp"
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 
 namespace devilution {
 namespace {

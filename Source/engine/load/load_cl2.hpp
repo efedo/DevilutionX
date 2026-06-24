@@ -12,17 +12,17 @@
 #include "engine/gfx/clx_sprite.hpp"
 #include "engine/load/load_file.hpp"
 #include "mpq/mpq_common.hpp"
-#include "utils/endian_read.hpp"
-#include "utils/endian_write.hpp"
+#include "utils/endian/endian_read.hpp"
+#include "utils/endian/endian_write.hpp"
 #include "utils/pointer_value_union.hpp"
-#include "utils/static_vector.hpp"
+#include "utils/container/static_vector.hpp"
 #include "utils/status_macros.hpp"
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 
 #ifdef UNPACKED_MPQS
 #define DEVILUTIONX_CL2_EXT ".clx"
 #else
-#include "utils/cl2_to_clx.hpp"
+#include "utils/image/cl2_to_clx.hpp"
 
 #define DEVILUTIONX_CL2_EXT ".cl2"
 #endif

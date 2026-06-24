@@ -12,7 +12,7 @@
 #include <SDL.h>
 #endif
 
-#include "utils/utf8.hpp"
+#include "utils/string/utf8.hpp"
 
 namespace devilution {
 

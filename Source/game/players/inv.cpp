@@ -45,12 +45,12 @@
 #include "game/stores/stores.hpp"
 #include "game/towners/towners.hpp"
 #include "utils/display.h"
-#include "utils/format_int.hpp"
+#include "utils/string/format_int.hpp"
 #include "utils/is_of.hpp"
 #include "utils/language.h"
-#include "utils/sdl_geometry.h"
-#include "utils/str_cat.hpp"
-#include "utils/utf8.hpp"
+#include "utils/sdl/sdl_geometry.h"
+#include "utils/string/str_cat.hpp"
+#include "utils/string/utf8.hpp"
 
 namespace devilution {
 

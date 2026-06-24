@@ -18,19 +18,19 @@
 
 #include "mpq/mpq_common.hpp"
 #include "utils/log.hpp"
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 
 #ifdef UNPACKED_MPQS
 #include "engine/load/load_clx.hpp"
 #include "engine/load/load_file.hpp"
 #else
 #include "engine/assets.hpp"
-#include "utils/pcx.hpp"
-#include "utils/pcx_to_clx.hpp"
+#include "utils/image/pcx.hpp"
+#include "utils/image/pcx_to_clx.hpp"
 #endif
 
 #ifdef USE_SDL1
-#include "utils/sdl2_to_1_2_backports.h"
+#include "utils/sdl/sdl2_to_1_2_backports.h"
 #endif
 
 namespace devilution {

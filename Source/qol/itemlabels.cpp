@@ -20,7 +20,7 @@
 #include "qol/stash.h"
 #include "game/stores/stores.hpp"
 #include "utils/algorithm/container.hpp"
-#include "utils/format_int.hpp"
+#include "utils/string/format_int.hpp"
 #include "utils/language.h"
 
 namespace devilution {

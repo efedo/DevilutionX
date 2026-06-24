@@ -171,9 +171,9 @@ set(libdevilutionx_SRCS
 
   utils/display.cpp
   utils/language.cpp
-  utils/sdl_bilinear_scale.cpp
-  utils/sdl_thread.cpp
-  utils/surface_to_clx.cpp
+  utils/sdl/sdl_bilinear_scale.cpp
+  utils/sdl/sdl_thread.cpp
+  utils/image/surface_to_clx.cpp
   utils/timer.cpp)
 
 # These files are responsible for most of the runtime in Debug mode.
@@ -184,9 +184,9 @@ set(_optimize_in_debug_srcs
   engine/render/clx_render.cpp
   engine/render/dun_render.cpp
   engine/render/text_render.cpp
-  utils/cel_to_clx.cpp
-  utils/cl2_to_clx.cpp
-  utils/pcx_to_clx.cpp)
+  utils/image/cel_to_clx.cpp
+  utils/image/cl2_to_clx.cpp
+  utils/image/pcx_to_clx.cpp)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   set_source_files_properties(${_optimize_in_debug_srcs} PROPERTIES COMPILE_OPTIONS "-O2;--param=max-vartrack-size=900000000")
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -215,7 +215,7 @@ target_link_dependencies(libdevilutionx_assets PUBLIC
 )
 
 add_devilutionx_object_library(libdevilutionx_cel_to_clx
-  utils/cel_to_clx.cpp
+  utils/image/cel_to_clx.cpp
 )
 target_link_dependencies(libdevilutionx_cel_to_clx
   PRIVATE
@@ -223,7 +223,7 @@ target_link_dependencies(libdevilutionx_cel_to_clx
 )
 
 add_devilutionx_object_library(libdevilutionx_cl2_to_clx
-  utils/cl2_to_clx.cpp
+  utils/image/cl2_to_clx.cpp
 )
 target_link_dependencies(libdevilutionx_cl2_to_clx
   PRIVATE
@@ -299,7 +299,7 @@ target_link_dependencies(libdevilutionx_paths PUBLIC
 )
 
 add_devilutionx_object_library(libdevilutionx_pcx_to_clx
-  utils/pcx_to_clx.cpp
+  utils/image/pcx_to_clx.cpp
 )
 target_link_dependencies(libdevilutionx_pcx_to_clx
   PUBLIC
@@ -353,7 +353,7 @@ target_link_dependencies(libdevilutionx_surface PUBLIC
 )
 
 add_devilutionx_object_library(libdevilutionx_file_util
-  utils/file_util.cpp
+  utils/file/file_util.cpp
 )
 target_link_dependencies(libdevilutionx_file_util PRIVATE
   DevilutionX::SDL
@@ -362,7 +362,7 @@ target_link_dependencies(libdevilutionx_file_util PRIVATE
 )
 
 add_devilutionx_object_library(libdevilutionx_format_int
-  utils/format_int.cpp
+  utils/string/format_int.cpp
 )
 target_link_dependencies(libdevilutionx_format_int PUBLIC
   libdevilutionx_strings
@@ -499,7 +499,7 @@ target_link_dependencies(libdevilutionx_lighting PUBLIC
 )
 
 add_devilutionx_object_library(libdevilutionx_logged_fstream
-  utils/logged_fstream.cpp
+  utils/file/logged_fstream.cpp
 )
 target_link_dependencies(libdevilutionx_logged_fstream PUBLIC
   libdevilutionx_file_util
@@ -748,7 +748,7 @@ target_link_dependencies(libdevilutionx_txtdata PUBLIC
 )
 
 add_devilutionx_object_library(libdevilutionx_utf8
-  utils/utf8.cpp
+  utils/string/utf8.cpp
 )
 target_link_dependencies(libdevilutionx_utf8 PRIVATE
   SheenBidi::SheenBidi
@@ -812,8 +812,8 @@ target_link_dependencies(libdevilutionx_stores PUBLIC
 )
 
 add_devilutionx_object_library(libdevilutionx_strings
-  utils/str_cat.cpp
-  utils/str_case.cpp
+  utils/string/str_cat.cpp
+  utils/string/str_case.cpp
 )
 target_link_dependencies(libdevilutionx_strings PRIVATE
   fmt::fmt)
@@ -831,7 +831,7 @@ target_link_dependencies(libdevilutionx_vision PUBLIC
 
 if(USE_SDL1)
   add_devilutionx_library(libdevilutionx_sdl2_to_1_2_backports STATIC
-    utils/sdl2_to_1_2_backports.cpp
+    utils/sdl/sdl2_to_1_2_backports.cpp
   )
   target_link_dependencies(libdevilutionx_sdl2_to_1_2_backports PRIVATE
     libdevilutionx_strings
@@ -895,13 +895,13 @@ endif()
 
 if(DEVILUTIONX_SCREENSHOT_FORMAT STREQUAL DEVILUTIONX_SCREENSHOT_FORMAT_PCX)
   list(APPEND libdevilutionx_SRCS
-    utils/surface_to_pcx.cpp
+    utils/image/surface_to_pcx.cpp
   )
 endif()
 
 if(DEVILUTIONX_SCREENSHOT_FORMAT STREQUAL DEVILUTIONX_SCREENSHOT_FORMAT_PNG)
   add_devilutionx_object_library(libdevilutionx_surface_to_png
-    utils/surface_to_png.cpp
+    utils/image/surface_to_png.cpp
   )
   target_link_dependencies(libdevilutionx_surface_to_png
     PUBLIC

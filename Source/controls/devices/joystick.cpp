@@ -10,13 +10,13 @@
 #include <SDL.h>
 
 #ifdef USE_SDL1
-#include "utils/sdl2_to_1_2_backports.h"
+#include "utils/sdl/sdl2_to_1_2_backports.h"
 #endif
 #endif
 
 #include "controls/controller_motion.h"
 #include "utils/log.hpp"
-#include "utils/sdl_compat.h"
+#include "utils/sdl/sdl_compat.h"
 #include "utils/stubs.h"
 
 namespace devilution {

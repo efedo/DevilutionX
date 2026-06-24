@@ -21,7 +21,7 @@
 #include <span>
 
 #include "game/monsters/monsters.hpp"
-#include "utils/entity_pool.hpp"
+#include "utils/container/entity_pool.hpp"
 
 namespace devilution {
 

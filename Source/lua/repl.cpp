@@ -12,7 +12,7 @@
 
 #include "lua/lua_global.hpp"
 #include "panel/console.hpp"
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 
 namespace devilution {
 

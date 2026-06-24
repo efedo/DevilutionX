@@ -7,7 +7,7 @@
 #endif
 
 #include "controller_buttons.h"
-#include "utils/static_vector.hpp"
+#include "utils/container/static_vector.hpp"
 
 namespace devilution {
 

@@ -1,10 +1,10 @@
-#include "utils/format_int.hpp"
+#include "utils/string/format_int.hpp"
 
 #include <cstdint>
 #include <string_view>
 
 #include "utils/language.h"
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 
 namespace devilution {
 

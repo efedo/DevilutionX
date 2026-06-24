@@ -22,7 +22,7 @@
 #include "game/stores/stores.hpp"
 #include "tables/playerdat.hpp"
 #include "utils/status_macros.hpp"
-#include "utils/surface_to_clx.hpp"
+#include "utils/image/surface_to_clx.hpp"
 
 namespace devilution {
 

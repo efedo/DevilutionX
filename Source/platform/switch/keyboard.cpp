@@ -6,7 +6,7 @@
 #include <SDL.h>
 #include <switch.h>
 
-#include "utils/utf8.hpp"
+#include "utils/string/utf8.hpp"
 
 static void switch_keyboard_get(std::string_view guide_text, std::string_view initial_text, char *buf, unsigned buf_len)
 {

@@ -22,7 +22,7 @@
 #include "tables/townerdat.hpp"
 #include "utils/is_of.hpp"
 #include "utils/language.h"
-#include "utils/str_case.hpp"
+#include "utils/string/str_case.hpp"
 
 namespace devilution {
 namespace {

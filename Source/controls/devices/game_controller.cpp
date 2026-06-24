@@ -10,14 +10,14 @@
 #else
 #include <SDL.h>
 
-#include "utils/sdl2_backports.h"
+#include "utils/sdl/sdl2_backports.h"
 #endif
 
 #include "controls/controller_motion.h"
 #include "controls/devices/joystick.h"
 #include "utils/log.hpp"
-#include "utils/sdl_compat.h"
-#include "utils/sdl_ptrs.h"
+#include "utils/sdl/sdl_compat.h"
+#include "utils/sdl/sdl_ptrs.h"
 #include "utils/stubs.h"
 
 namespace devilution {

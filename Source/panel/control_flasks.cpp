@@ -2,7 +2,7 @@
 #include "control.hpp"
 
 #include "engine/gfx/surface.hpp"
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 
 namespace devilution {
 

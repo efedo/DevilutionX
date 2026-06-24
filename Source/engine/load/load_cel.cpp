@@ -14,13 +14,13 @@
 #include "application/appfat.h"
 #include "mpq/mpq_common.hpp"
 #include "utils/status_macros.hpp"
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 
 #ifdef UNPACKED_MPQS
 #include "engine/load/load_clx.hpp"
 #else
 #include "engine/load/load_file.hpp"
-#include "utils/cel_to_clx.hpp"
+#include "utils/image/cel_to_clx.hpp"
 #endif
 
 namespace devilution {

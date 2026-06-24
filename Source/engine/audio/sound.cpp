@@ -31,10 +31,10 @@
 #include "persistence/options.h"
 #include "utils/log.hpp"
 #include "utils/math.h"
-#include "utils/sdl_mutex.h"
+#include "utils/sdl/sdl_mutex.h"
 #include "utils/status_macros.hpp"
 #include "utils/stdcompat/shared_ptr_array.hpp"
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 #include "utils/stubs.h"
 
 namespace devilution {

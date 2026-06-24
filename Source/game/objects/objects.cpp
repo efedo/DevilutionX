@@ -47,11 +47,11 @@
 #include "game/towners/towners.hpp"
 #include "engine/track.h"
 #include "utils/algorithm/container.hpp"
-#include "utils/endian_swap.hpp"
+#include "utils/endian/endian_swap.hpp"
 #include "utils/is_of.hpp"
 #include "utils/language.h"
 #include "utils/log.hpp"
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 
 namespace devilution {
 

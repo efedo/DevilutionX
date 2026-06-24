@@ -32,7 +32,7 @@
 #include "persistence/pack.h"
 #include "ui/quick_messages.hpp"
 #include "utils/enum_traits.h"
-#include "utils/string_view_hash.hpp"
+#include "utils/string/string_view_hash.hpp"
 
 namespace devilution {
 

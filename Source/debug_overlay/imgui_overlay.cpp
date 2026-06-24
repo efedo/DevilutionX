@@ -39,9 +39,9 @@
 #include "game/objects/objects.hpp"
 #include "panel/console.hpp"
 #include "utils/display.h"
-#include "utils/sdl_compat.h"
-#include "utils/sdl_ptrs.h"
-#include "utils/str_cat.hpp"
+#include "utils/sdl/sdl_compat.h"
+#include "utils/sdl/sdl_ptrs.h"
+#include "utils/string/str_cat.hpp"
 
 namespace devilution {
 namespace {

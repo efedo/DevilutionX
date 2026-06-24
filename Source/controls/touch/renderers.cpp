@@ -22,9 +22,9 @@
 #include "qol/stash.h"
 #include "game/stores/stores.hpp"
 #include "game/towners/towners.hpp"
-#include "utils/sdl_compat.h"
-#include "utils/sdl_geometry.h"
-#include "utils/sdl_wrap.h"
+#include "utils/sdl/sdl_compat.h"
+#include "utils/sdl/sdl_geometry.h"
+#include "utils/sdl/sdl_wrap.h"
 
 namespace devilution {
 

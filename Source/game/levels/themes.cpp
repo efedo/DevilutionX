@@ -21,7 +21,7 @@
 #include "game/quests/quests.hpp"
 #include "utils/algorithm/container.hpp"
 #include "utils/is_of.hpp"
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 
 namespace devilution {
 

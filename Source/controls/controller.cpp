@@ -14,7 +14,7 @@
 #include "controls/devices/joystick.h"
 #include "controls/devices/kbcontroller.h"
 #include "engine/demomode.h"
-#include "utils/sdl_compat.h"
+#include "utils/sdl/sdl_compat.h"
 
 namespace devilution {
 

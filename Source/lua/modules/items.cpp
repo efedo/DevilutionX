@@ -10,7 +10,7 @@
 #include "lua/metadoc.hpp"
 #include "game/players/players.hpp"
 #include "tables/itemdat.h"
-#include "utils/utf8.hpp"
+#include "utils/string/utf8.hpp"
 
 namespace devilution {
 

@@ -60,12 +60,12 @@
 #include "network/sync.h"
 #include "network/tmsg.h"
 #include "game/towners/towners.hpp"
-#include "utils/endian_swap.hpp"
+#include "utils/endian/endian_swap.hpp"
 #include "utils/is_of.hpp"
 #include "utils/language.h"
-#include "utils/str_cat.hpp"
-#include "utils/str_split.hpp"
-#include "utils/utf8.hpp"
+#include "utils/string/str_cat.hpp"
+#include "utils/string/str_split.hpp"
+#include "utils/string/utf8.hpp"
 
 #define ValidateField(logValue, condition)                    \
 	do {                                                      \

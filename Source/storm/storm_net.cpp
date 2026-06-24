@@ -9,7 +9,7 @@
 #include <thread>
 #include <utility>
 
-#include "utils/sdl_mutex.h"
+#include "utils/sdl/sdl_mutex.h"
 #endif
 
 #include "dvlnet/abstract_net.h"
@@ -20,7 +20,7 @@
 #include "persistence/options.h"
 #include "utils/log.hpp"
 #include "utils/stubs.h"
-#include "utils/utf8.hpp"
+#include "utils/string/utf8.hpp"
 
 namespace devilution {
 

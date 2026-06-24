@@ -1,4 +1,4 @@
-#include "utils/sdl2_to_1_2_backports.h"
+#include "utils/sdl/sdl2_to_1_2_backports.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -16,7 +16,7 @@
 #endif
 
 #include "utils/console.h"
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 
 #define DEFAULT_PRIORITY SDL_LOG_PRIORITY_CRITICAL
 #define DEFAULT_ASSERT_PRIORITY SDL_LOG_PRIORITY_WARN

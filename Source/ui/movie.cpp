@@ -25,7 +25,7 @@
 #include "engine/hwcursor.hpp"
 #include "storm/storm_svid.h"
 #include "utils/display.h"
-#include "utils/sdl_compat.h"
+#include "utils/sdl/sdl_compat.h"
 
 namespace devilution {
 

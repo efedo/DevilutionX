@@ -5,7 +5,7 @@
 #else
 #include <SDL.h>
 
-#include "utils/sdl_compat.h"
+#include "utils/sdl/sdl_compat.h"
 #endif
 
 #include <expected.hpp>

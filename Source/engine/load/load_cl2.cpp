@@ -8,13 +8,13 @@
 
 #include "mpq/mpq_common.hpp"
 #include "utils/status_macros.hpp"
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 
 #ifdef UNPACKED_MPQS
 #include "engine/load/load_clx.hpp"
 #else
 #include "engine/load/load_file.hpp"
-#include "utils/cl2_to_clx.hpp"
+#include "utils/image/cl2_to_clx.hpp"
 #endif
 
 namespace devilution {

@@ -35,9 +35,9 @@
 #include "persistence/options.h"
 #include "storm/storm_net.hpp"
 #include "utils/language.h"
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 #include "utils/ui_fwd.h"
-#include "utils/utf8.hpp"
+#include "utils/string/utf8.hpp"
 
 namespace devilution {
 

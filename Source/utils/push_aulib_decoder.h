@@ -16,8 +16,8 @@
 #include <SDL_mutex.h>
 #endif
 
-#include "utils/sdl_compat.h"
-#include "utils/sdl_mutex.h"
+#include "utils/sdl/sdl_compat.h"
+#include "utils/sdl/sdl_mutex.h"
 
 namespace devilution {
 

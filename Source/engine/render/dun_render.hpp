@@ -13,7 +13,7 @@
 #include "engine/gfx/surface.hpp"
 #include "game/levels/dun_tile.hpp"
 #include "utils/attributes.h"
-#include "utils/endian_swap.hpp"
+#include "utils/endian/endian_swap.hpp"
 
 // #define DUN_RENDER_STATS
 #ifdef DUN_RENDER_STATS

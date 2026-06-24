@@ -25,7 +25,7 @@
 #include <span>
 
 #include "game/items/items.hpp"
-#include "utils/entity_pool.hpp"
+#include "utils/container/entity_pool.hpp"
 
 namespace devilution {
 

@@ -16,7 +16,7 @@
 #include "data/record_reader.hpp"
 #include "lua/lua_event.hpp"
 #include "tables/spelldat.h"
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 
 namespace devilution {
 

@@ -11,7 +11,7 @@
 #include "game/monsters/monsters.hpp"
 #include "tables/monstdat.h"
 #include "utils/language.h"
-#include "utils/str_split.hpp"
+#include "utils/string/str_split.hpp"
 
 namespace devilution {
 

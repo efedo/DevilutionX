@@ -12,9 +12,9 @@
 #endif
 
 #include "application/appfat.h"
-#include "utils/file_util.h"
+#include "utils/file/file_util.h"
 #include "utils/log.hpp"
-#include "utils/sdl_ptrs.h"
+#include "utils/sdl/sdl_ptrs.h"
 
 #ifdef __IPHONEOS__
 #include "platform/ios/ios_paths.h"
@@ -27,7 +27,7 @@
 #endif
 
 #ifdef USE_SDL1
-#include "utils/sdl2_to_1_2_backports.h"
+#include "utils/sdl/sdl2_to_1_2_backports.h"
 #endif
 
 namespace devilution {

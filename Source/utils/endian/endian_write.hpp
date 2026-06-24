@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <cstring>
 
-#include "utils/endian_swap.hpp"
+#include "utils/endian/endian_swap.hpp"
 
 namespace devilution {
 

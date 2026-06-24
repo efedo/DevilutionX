@@ -20,8 +20,8 @@
 #include "persistence/pack.h"
 #include "game/players/players.hpp"
 #include "utils/is_of.hpp"
-#include "utils/str_case.hpp"
-#include "utils/str_cat.hpp"
+#include "utils/string/str_case.hpp"
+#include "utils/string/str_cat.hpp"
 
 namespace devilution {
 

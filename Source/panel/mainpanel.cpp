@@ -13,10 +13,10 @@
 #include "engine/render/text_render.hpp"
 #include "utils/display.h"
 #include "utils/language.h"
-#include "utils/sdl_compat.h"
-#include "utils/sdl_geometry.h"
+#include "utils/sdl/sdl_compat.h"
+#include "utils/sdl/sdl_geometry.h"
 #include "utils/status_macros.hpp"
-#include "utils/surface_to_clx.hpp"
+#include "utils/image/surface_to_clx.hpp"
 
 namespace devilution {
 

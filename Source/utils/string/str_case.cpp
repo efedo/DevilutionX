@@ -1,4 +1,4 @@
-#include "utils/str_case.hpp"
+#include "utils/string/str_case.hpp"
 
 namespace devilution {
 

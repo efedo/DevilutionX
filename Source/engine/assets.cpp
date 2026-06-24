@@ -15,12 +15,12 @@
 
 #include "application/appfat.h"
 #include "application/game_mode.hpp"
-#include "utils/file_util.h"
+#include "utils/file/file_util.h"
 #include "utils/log.hpp"
 #include "utils/paths.h"
-#include "utils/sdl_compat.h"
-#include "utils/str_cat.hpp"
-#include "utils/str_split.hpp"
+#include "utils/sdl/sdl_compat.h"
+#include "utils/string/str_cat.hpp"
+#include "utils/string/str_split.hpp"
 
 #if defined(_WIN32) && !defined(__UWP__) && !defined(DEVILUTIONX_WINDOWS_NO_WCHAR)
 #include <find_steam_game.h>

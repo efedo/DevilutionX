@@ -29,20 +29,20 @@
 #include "persistence/pack.h"
 #include "qol/stash.h"
 #include "tables/playerdat.hpp"
-#include "utils/endian_read.hpp"
-#include "utils/endian_swap.hpp"
-#include "utils/file_util.h"
+#include "utils/endian/endian_read.hpp"
+#include "utils/endian/endian_swap.hpp"
+#include "utils/file/file_util.h"
 #include "utils/language.h"
 #include "utils/parse_int.hpp"
 #include "utils/paths.h"
-#include "utils/sdl_compat.h"
+#include "utils/sdl/sdl_compat.h"
 #include "utils/stdcompat/filesystem.hpp"
-#include "utils/str_cat.hpp"
-#include "utils/str_split.hpp"
-#include "utils/utf8.hpp"
+#include "utils/string/str_cat.hpp"
+#include "utils/string/str_split.hpp"
+#include "utils/string/utf8.hpp"
 
 #ifdef UNPACKED_SAVES
-#include "utils/file_util.h"
+#include "utils/file/file_util.h"
 #else
 #include "mpq/mpq_reader.hpp"
 #endif

@@ -13,7 +13,7 @@
 #ifndef USE_SDL1
 #include <SDL_rwops.h>
 #endif
-#include "utils/sdl_compat.h"
+#include "utils/sdl/sdl_compat.h"
 #endif
 
 namespace devilution {

@@ -28,8 +28,8 @@
 #include "persistence/options.h"
 #include "utils/display.h"
 #include "utils/palette_blending.hpp"
-#include "utils/sdl_compat.h"
-#include "utils/str_cat.hpp"
+#include "utils/sdl/sdl_compat.h"
+#include "utils/string/str_cat.hpp"
 
 namespace devilution {
 

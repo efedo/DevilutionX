@@ -11,10 +11,10 @@
 
 #include "game/levels/dun_tile.hpp"
 #include "utils/attributes.h"
-#include "utils/endian_read.hpp"
-#include "utils/endian_swap.hpp"
-#include "utils/endian_write.hpp"
-#include "utils/format_int.hpp"
+#include "utils/endian/endian_read.hpp"
+#include "utils/endian/endian_swap.hpp"
+#include "utils/endian/endian_write.hpp"
+#include "utils/string/format_int.hpp"
 #include "utils/log.hpp"
 
 namespace devilution {

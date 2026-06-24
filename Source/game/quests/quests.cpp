@@ -33,10 +33,10 @@
 #include "game/stores/stores.hpp"
 #include "tables/townerdat.hpp"
 #include "game/towners/towners.hpp"
-#include "utils/endian_swap.hpp"
+#include "utils/endian/endian_swap.hpp"
 #include "utils/is_of.hpp"
 #include "utils/language.h"
-#include "utils/utf8.hpp"
+#include "utils/string/utf8.hpp"
 
 #ifdef _DEBUG
 #include "application/debug.h"

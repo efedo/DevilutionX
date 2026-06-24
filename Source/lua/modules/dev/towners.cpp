@@ -10,7 +10,7 @@
 #include "game/players/players.hpp"
 #include "game/spells/spells.hpp"
 #include "game/towners/towners.hpp"
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 
 namespace devilution {
 namespace {

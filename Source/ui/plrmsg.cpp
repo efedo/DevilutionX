@@ -25,7 +25,7 @@
 #include "qol/stash.h"
 #include "utils/algorithm/container.hpp"
 #include "utils/language.h"
-#include "utils/utf8.hpp"
+#include "utils/string/utf8.hpp"
 
 namespace devilution {
 

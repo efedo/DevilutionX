@@ -9,7 +9,7 @@
 #endif
 #include "engine/load/load_file.hpp"
 #include "engine/lighting.h"
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 
 namespace devilution {
 

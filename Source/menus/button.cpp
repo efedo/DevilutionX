@@ -19,7 +19,7 @@
 #include "engine/render/clx_render.hpp"
 #include "engine/render/text_render.hpp"
 #include "engine/gfx/surface.hpp"
-#include "utils/sdl_compat.h"
+#include "utils/sdl/sdl_compat.h"
 
 namespace devilution {
 

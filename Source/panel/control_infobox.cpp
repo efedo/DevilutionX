@@ -10,11 +10,11 @@
 #include "qol/xpbar.h"
 #include "game/towners/towners.hpp"
 #include "utils/algorithm/container.hpp"
-#include "utils/format_int.hpp"
+#include "utils/string/format_int.hpp"
 #include "utils/log.hpp"
 #include "utils/screen_reader.hpp"
-#include "utils/str_cat.hpp"
-#include "utils/str_split.hpp"
+#include "utils/string/str_cat.hpp"
+#include "utils/string/str_split.hpp"
 
 namespace devilution {
 

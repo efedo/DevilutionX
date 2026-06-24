@@ -13,14 +13,14 @@
 #include <SDL_rect.h>
 #include <SDL_surface.h>
 #else
-#include "utils/sdl2_to_1_2_backports.h"
+#include "utils/sdl/sdl2_to_1_2_backports.h"
 #include <SDL_video.h>
 #endif
 #endif
 
 #include "engine/math/point.hpp"
-#include "utils/sdl_geometry.h"
-#include "utils/sdl_wrap.h"
+#include "utils/sdl/sdl_geometry.h"
+#include "utils/sdl/sdl_wrap.h"
 
 namespace devilution {
 

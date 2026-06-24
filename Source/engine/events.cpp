@@ -9,7 +9,7 @@
 #include <SDL.h>
 
 #ifdef USE_SDL1
-#include "utils/sdl2_to_1_2_backports.h"
+#include "utils/sdl/sdl2_to_1_2_backports.h"
 #endif
 #endif
 
@@ -24,7 +24,7 @@
 #include "utils/display.h"
 #include "utils/is_of.hpp"
 #include "utils/log.hpp"
-#include "utils/sdl_compat.h"
+#include "utils/sdl/sdl_compat.h"
 
 #ifndef USE_SDL1
 #include "controls/touch/event_handlers.h"

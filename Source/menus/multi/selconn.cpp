@@ -21,7 +21,7 @@
 #include "storm/storm_net.hpp"
 #include "utils/language.h"
 #include "utils/ui_fwd.h"
-#include "utils/utf8.hpp"
+#include "utils/string/utf8.hpp"
 
 namespace devilution {
 

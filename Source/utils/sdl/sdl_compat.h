@@ -15,7 +15,7 @@
 #ifdef USE_SDL1
 #include "utils/display.h"
 #else
-#include "utils/sdl2_backports.h"
+#include "utils/sdl/sdl2_backports.h"
 #endif
 #endif
 

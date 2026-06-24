@@ -12,13 +12,13 @@
 #include "engine/render/blit_impl.hpp"
 #include "engine/gfx/surface.hpp"
 #include "utils/attributes.h"
-#include "utils/clx_decode.hpp"
-#include "utils/static_vector.hpp"
+#include "utils/image/clx_decode.hpp"
+#include "utils/container/static_vector.hpp"
 
 #ifdef DEBUG_CLX
 #include <fmt/format.h>
 
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 #endif
 
 namespace devilution {

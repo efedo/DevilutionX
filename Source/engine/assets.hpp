@@ -23,18 +23,18 @@
 #include "application/appfat.h"
 #include "application/game_mode.hpp"
 #include "application/headless_mode.hpp"
-#include "utils/file_util.h"
+#include "utils/file/file_util.h"
 #include "utils/language.h"
-#include "utils/sdl_compat.h"
-#include "utils/str_cat.hpp"
-#include "utils/string_or_view.hpp"
+#include "utils/sdl/sdl_compat.h"
+#include "utils/string/str_cat.hpp"
+#include "utils/string/string_or_view.hpp"
 
 #ifndef UNPACKED_MPQS
 #include "mpq/mpq_reader.hpp"
 #endif
 
 #ifdef USE_SDL1
-#include "utils/sdl2_to_1_2_backports.h"
+#include "utils/sdl/sdl2_to_1_2_backports.h"
 #endif
 
 namespace devilution {

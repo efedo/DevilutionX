@@ -25,7 +25,7 @@
 #include "engine/render/text_render.hpp"
 #endif
 #if defined(DEBUG_STR) || defined(DUN_RENDER_STATS)
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 #endif
 
 namespace devilution {

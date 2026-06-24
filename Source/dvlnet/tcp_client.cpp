@@ -18,8 +18,8 @@
 
 #include "persistence/options.h"
 #include "utils/language.h"
-#include "utils/str_cat.hpp"
-#include "utils/str_split.hpp"
+#include "utils/string/str_cat.hpp"
+#include "utils/string/str_split.hpp"
 
 namespace devilution::net {
 

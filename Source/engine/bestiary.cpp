@@ -25,13 +25,13 @@
 #include "game/monsters/monster_pool.hpp"
 #include "tables/misdat.h"
 #include "tables/monstdat.h"
-#include "utils/cl2_to_clx.hpp"
+#include "utils/image/cl2_to_clx.hpp"
 #include "utils/is_of.hpp"
 #include "utils/log.hpp"
 #include "utils/pointer_value_union.hpp"
-#include "utils/static_vector.hpp"
+#include "utils/container/static_vector.hpp"
 #include "utils/status_macros.hpp"
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 
 namespace devilution {
 

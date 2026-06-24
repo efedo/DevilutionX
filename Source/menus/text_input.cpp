@@ -15,15 +15,15 @@
 #include <SDL.h>
 
 #ifdef USE_SDL1
-#include "utils/sdl2_to_1_2_backports.h"
+#include "utils/sdl/sdl2_to_1_2_backports.h"
 #endif
 #endif
 
 #include "utils/log.hpp"
 #include "utils/parse_int.hpp"
-#include "utils/sdl_compat.h"
-#include "utils/sdl_ptrs.h"
-#include "utils/str_cat.hpp"
+#include "utils/sdl/sdl_compat.h"
+#include "utils/sdl/sdl_ptrs.h"
+#include "utils/string/str_cat.hpp"
 
 namespace devilution {
 

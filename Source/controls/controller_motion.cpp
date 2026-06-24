@@ -24,7 +24,7 @@
 #include "persistence/options.h"
 #include "utils/is_of.hpp"
 #include "utils/log.hpp"
-#include "utils/sdl_compat.h"
+#include "utils/sdl/sdl_compat.h"
 
 namespace devilution {
 

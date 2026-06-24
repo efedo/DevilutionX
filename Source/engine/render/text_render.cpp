@@ -34,8 +34,8 @@
 #include "utils/is_of.hpp"
 #include "utils/language.h"
 #include "utils/log.hpp"
-#include "utils/str_cat.hpp"
-#include "utils/utf8.hpp"
+#include "utils/string/str_cat.hpp"
+#include "utils/string/utf8.hpp"
 
 namespace devilution {
 

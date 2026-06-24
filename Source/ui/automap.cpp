@@ -24,7 +24,7 @@
 #include "utils/is_of.hpp"
 #include "utils/language.h"
 #include "utils/ui_fwd.h"
-#include "utils/utf8.hpp"
+#include "utils/string/utf8.hpp"
 
 #ifdef _DEBUG
 #include "application/debug.h"

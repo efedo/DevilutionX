@@ -10,7 +10,7 @@
 #include "engine/gfx/clx_sprite.hpp"
 #include "engine/render/text_render.hpp"
 #include "utils/enum_traits.h"
-#include "utils/string_or_view.hpp"
+#include "utils/string/string_or_view.hpp"
 #include "utils/stubs.h"
 
 namespace devilution {

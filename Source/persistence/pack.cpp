@@ -14,11 +14,11 @@
 #include "ui/plrmsg.h"
 #include "game/stores/stores.hpp"
 #include "tables/playerdat.hpp"
-#include "utils/endian_read.hpp"
-#include "utils/endian_swap.hpp"
+#include "utils/endian/endian_read.hpp"
+#include "utils/endian/endian_swap.hpp"
 #include "utils/is_of.hpp"
 #include "utils/log.hpp"
-#include "utils/utf8.hpp"
+#include "utils/string/utf8.hpp"
 
 #define ValidateField(logValue, condition)                         \
 	do {                                                           \

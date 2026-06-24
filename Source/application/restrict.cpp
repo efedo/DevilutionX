@@ -8,7 +8,7 @@
 #include <string>
 
 #include "application/appfat.h"
-#include "utils/file_util.h"
+#include "utils/file/file_util.h"
 #include "utils/paths.h"
 
 #ifdef USE_SDL3
@@ -17,7 +17,7 @@
 #include <SDL.h>
 #endif
 
-#include "utils/sdl_compat.h"
+#include "utils/sdl/sdl_compat.h"
 
 namespace devilution {
 

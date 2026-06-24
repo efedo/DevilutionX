@@ -9,14 +9,14 @@
 #else
 #include <SDL.h>
 #ifdef USE_SDL1
-#include "utils/sdl2_to_1_2_backports.h"
+#include "utils/sdl/sdl2_to_1_2_backports.h"
 #else
-#include "utils/sdl2_backports.h"
+#include "utils/sdl/sdl2_backports.h"
 #endif
 #endif
 
 #include "application/appfat.h"
-#include "utils/sdl_ptrs.h"
+#include "utils/sdl/sdl_ptrs.h"
 
 #define NonNull(x) NullErrDlg(x, __FILE__, __LINE__)
 

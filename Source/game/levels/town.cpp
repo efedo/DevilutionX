@@ -13,7 +13,7 @@
 #include "network/multi.h"
 #include "game/players/players.hpp"
 #include "game/quests/quests.hpp"
-#include "utils/endian_swap.hpp"
+#include "utils/endian/endian_swap.hpp"
 
 namespace devilution {
 

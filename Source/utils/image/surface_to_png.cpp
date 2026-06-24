@@ -1,4 +1,4 @@
-#include "utils/surface_to_png.hpp"
+#include "utils/image/surface_to_png.hpp"
 
 #include <string>
 
@@ -9,7 +9,7 @@
 #else
 #include <SDL.h>
 
-#include "utils/sdl_compat.h"
+#include "utils/sdl/sdl_compat.h"
 #endif
 
 #include <expected.hpp>

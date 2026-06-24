@@ -24,7 +24,7 @@
 #include "utils/display.h"
 #include "utils/is_of.hpp"
 #include "utils/language.h"
-#include "utils/sdl_compat.h"
+#include "utils/sdl/sdl_compat.h"
 #include "utils/ui_fwd.h"
 
 namespace devilution {

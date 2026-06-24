@@ -24,7 +24,7 @@
 #include "game/levels/dun_tile.hpp"
 #include "game/levels/gendung_defs.hpp"
 #include "utils/attributes.h"
-#include "utils/bitset2d.hpp"
+#include "utils/container/bitset2d.hpp"
 #include "utils/enum_traits.h"
 
 namespace devilution {

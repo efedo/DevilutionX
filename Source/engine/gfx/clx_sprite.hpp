@@ -30,8 +30,8 @@
 #include <memory>
 
 #include "application/appfat.h"
-#include "utils/endian_read.hpp"
-#include "utils/intrusive_optional.hpp"
+#include "utils/endian/endian_read.hpp"
+#include "utils/container/intrusive_optional.hpp"
 
 namespace devilution {
 

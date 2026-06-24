@@ -16,7 +16,7 @@
 #include <SDL_pixels.h>
 #endif
 
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 
 #define DEVILUTIONX_PRINT_PALETTE_BLENDING_TREE_GRAPHVIZ 0 // NOLINT(modernize-macro-to-enum)
 

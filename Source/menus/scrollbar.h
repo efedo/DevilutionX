@@ -4,7 +4,7 @@
 
 #include "menus/ui_item.h"
 #include "engine/gfx/clx_sprite.hpp"
-#include "utils/sdl_geometry.h"
+#include "utils/sdl/sdl_geometry.h"
 
 namespace devilution {
 

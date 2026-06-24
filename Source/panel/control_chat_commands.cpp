@@ -9,8 +9,8 @@
 #include "utils/algorithm/container.hpp"
 #include "utils/log.hpp"
 #include "utils/parse_int.hpp"
-#include "utils/str_case.hpp"
-#include "utils/str_cat.hpp"
+#include "utils/string/str_case.hpp"
+#include "utils/string/str_cat.hpp"
 
 #ifdef _DEBUG
 #include "application/debug.h"

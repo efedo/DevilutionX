@@ -13,7 +13,7 @@
 #include <ankerl/unordered_dense.h>
 #include <expected.hpp>
 
-#include "utils/string_view_hash.hpp"
+#include "utils/string/string_view_hash.hpp"
 
 namespace devilution {
 

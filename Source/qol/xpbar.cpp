@@ -19,7 +19,7 @@
 #include "application/game_mode.hpp"
 #include "persistence/options.h"
 #include "tables/playerdat.hpp"
-#include "utils/format_int.hpp"
+#include "utils/string/format_int.hpp"
 #include "utils/language.h"
 
 namespace devilution {

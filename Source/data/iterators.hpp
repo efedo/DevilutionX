@@ -8,8 +8,8 @@
 
 #include "parser.hpp"
 #include "utils/parse_int.hpp"
-#include "utils/str_cat.hpp"
-#include "utils/str_split.hpp"
+#include "utils/string/str_cat.hpp"
+#include "utils/string/str_split.hpp"
 
 namespace devilution {
 

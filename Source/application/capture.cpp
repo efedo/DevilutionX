@@ -17,7 +17,7 @@
 #else
 #include <SDL.h>
 
-#include "utils/sdl_compat.h"
+#include "utils/sdl/sdl_compat.h"
 #endif
 
 #include <expected.hpp>
@@ -26,20 +26,20 @@
 #define DEVILUTIONX_SCREENSHOT_FORMAT_PNG 1
 
 #if DEVILUTIONX_SCREENSHOT_FORMAT == DEVILUTIONX_SCREENSHOT_FORMAT_PCX
-#include "utils/surface_to_pcx.hpp"
+#include "utils/image/surface_to_pcx.hpp"
 #endif
 #if DEVILUTIONX_SCREENSHOT_FORMAT == DEVILUTIONX_SCREENSHOT_FORMAT_PNG
-#include "utils/surface_to_png.hpp"
+#include "utils/image/surface_to_png.hpp"
 #endif
 
 #include "engine/gfx/backbuffer_state.hpp"
 #include "engine/gfx/dx.h"
 #include "engine/gfx/palette.h"
 #include "engine/render/scrollrt.h"
-#include "utils/file_util.h"
+#include "utils/file/file_util.h"
 #include "utils/log.hpp"
 #include "utils/paths.h"
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 
 namespace devilution {
 namespace {

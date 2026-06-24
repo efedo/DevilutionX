@@ -6,8 +6,8 @@
 
 #include "application/appfat.h"
 #include "support/sha.h"
-#include "utils/endian_read.hpp"
-#include "utils/endian_swap.hpp"
+#include "utils/endian/endian_read.hpp"
+#include "utils/endian/endian_swap.hpp"
 #include "utils/log.hpp"
 
 namespace devilution {

@@ -16,7 +16,7 @@
 #include <SDL.h>
 
 #ifdef USE_SDL1
-#include "utils/sdl2_to_1_2_backports.h"
+#include "utils/sdl/sdl2_to_1_2_backports.h"
 #endif
 #endif
 
@@ -115,11 +115,11 @@
 #include "utils/parse_int.hpp"
 #include "utils/paths.h"
 #include "utils/screen_reader.hpp"
-#include "utils/sdl_compat.h"
-#include "utils/sdl_thread.h"
+#include "utils/sdl/sdl_compat.h"
+#include "utils/sdl/sdl_thread.h"
 #include "utils/status_macros.hpp"
-#include "utils/str_cat.hpp"
-#include "utils/utf8.hpp"
+#include "utils/string/str_cat.hpp"
+#include "utils/string/utf8.hpp"
 
 #ifndef USE_SDL1
 #include "controls/touch/gamepad.h"

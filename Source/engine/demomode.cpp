@@ -13,7 +13,7 @@
 #include <SDL.h>
 
 #ifdef USE_SDL1
-#include "utils/sdl2_to_1_2_backports.h"
+#include "utils/sdl/sdl2_to_1_2_backports.h"
 #endif
 #endif
 
@@ -29,11 +29,11 @@
 #include "persistence/pfile.h"
 #include "utils/console.h"
 #include "utils/display.h"
-#include "utils/endian_stream.hpp"
-#include "utils/file_util.h"
+#include "utils/endian/endian_stream.hpp"
+#include "utils/file/file_util.h"
 #include "utils/is_of.hpp"
 #include "utils/paths.h"
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 
 namespace devilution {
 

@@ -35,8 +35,8 @@
 #include "persistence/options.h"
 #include "utils/display.h"
 #include "utils/log.hpp"
-#include "utils/sdl_compat.h"
-#include "utils/sdl_wrap.h"
+#include "utils/sdl/sdl_compat.h"
+#include "utils/sdl/sdl_wrap.h"
 
 namespace devilution {
 namespace {

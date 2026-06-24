@@ -38,16 +38,16 @@
 #include "platform/locale.hpp"
 #include "ui/quick_messages.hpp"
 #include "utils/algorithm/container.hpp"
-#include "utils/file_util.h"
+#include "utils/file/file_util.h"
 #include "utils/ini.hpp"
 #include "utils/language.h"
 #include "utils/log.hpp"
-#include "utils/logged_fstream.hpp"
+#include "utils/file/logged_fstream.hpp"
 #include "utils/paths.h"
-#include "utils/sdl_ptrs.h"
-#include "utils/str_cat.hpp"
-#include "utils/str_split.hpp"
-#include "utils/utf8.hpp"
+#include "utils/sdl/sdl_ptrs.h"
+#include "utils/string/str_cat.hpp"
+#include "utils/string/str_split.hpp"
+#include "utils/string/utf8.hpp"
 
 namespace devilution {
 

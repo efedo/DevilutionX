@@ -14,7 +14,7 @@
 #include <SDL.h>
 
 #ifdef USE_SDL1
-#include "utils/sdl2_to_1_2_backports.h"
+#include "utils/sdl/sdl2_to_1_2_backports.h"
 #endif
 #endif
 
@@ -23,7 +23,7 @@
 #endif
 #include "game/levels/gendung.h"
 #include "utils/attributes.h"
-#include "utils/endian_read.hpp"
+#include "utils/endian/endian_read.hpp"
 
 namespace devilution {
 

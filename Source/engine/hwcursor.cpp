@@ -27,9 +27,9 @@
 #include "engine/render/clx_render.hpp"
 #include "engine/gfx/surface.hpp"
 #include "utils/display.h"
-#include "utils/sdl_bilinear_scale.hpp"
-#include "utils/sdl_compat.h"
-#include "utils/sdl_wrap.h"
+#include "utils/sdl/sdl_bilinear_scale.hpp"
+#include "utils/sdl/sdl_compat.h"
+#include "utils/sdl/sdl_wrap.h"
 
 namespace devilution {
 namespace {

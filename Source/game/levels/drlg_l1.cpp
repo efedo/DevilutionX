@@ -10,7 +10,7 @@
 #include "game/levels/gendung.h"
 #include "game/players/players.hpp"
 #include "game/quests/quests.hpp"
-#include "utils/bitset2d.hpp"
+#include "utils/container/bitset2d.hpp"
 #include "utils/is_of.hpp"
 
 namespace devilution {

@@ -36,12 +36,12 @@
 #include "utils/enum_traits.h"
 #include "utils/is_of.hpp"
 #include "utils/language.h"
-#include "utils/sdl_compat.h"
-#include "utils/sdl_geometry.h"
-#include "utils/static_vector.hpp"
-#include "utils/str_cat.hpp"
+#include "utils/sdl/sdl_compat.h"
+#include "utils/sdl/sdl_geometry.h"
+#include "utils/container/static_vector.hpp"
+#include "utils/string/str_cat.hpp"
 #include "utils/ui_fwd.h"
-#include "utils/utf8.hpp"
+#include "utils/string/utf8.hpp"
 
 namespace devilution {
 namespace {

@@ -13,7 +13,7 @@
 #include <expected.hpp>
 
 #include "utils/algorithm/container.hpp"
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 
 namespace devilution::net {
 

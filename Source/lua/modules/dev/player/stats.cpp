@@ -8,7 +8,7 @@
 #include "engine/gfx/backbuffer_state.hpp"
 #include "lua/metadoc.hpp"
 #include "game/players/players.hpp"
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 
 namespace devilution {
 

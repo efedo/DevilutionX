@@ -28,13 +28,13 @@
 #include "engine/hwcursor.hpp"
 #include "persistence/options.h"
 #include "persistence/pfile.h"
-#include "utils/file_util.h"
+#include "utils/file/file_util.h"
 #include "utils/language.h"
 #include "utils/log.hpp"
 #include "utils/paths.h"
-#include "utils/str_split.hpp"
+#include "utils/string/str_split.hpp"
 #include "utils/ui_fwd.h"
-#include "utils/utf8.hpp"
+#include "utils/string/utf8.hpp"
 
 #ifndef UNPACKED_MPQS
 #include "mpq/mpq_reader.hpp"

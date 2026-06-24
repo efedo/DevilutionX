@@ -1,14 +1,14 @@
-#include "utils/cl2_to_clx.hpp"
+#include "utils/image/cl2_to_clx.hpp"
 
 #include <cstdint>
 #include <cstring>
 
 #include <vector>
 
-#include "utils/clx_decode.hpp"
-#include "utils/clx_encode.hpp"
-#include "utils/endian_read.hpp"
-#include "utils/endian_write.hpp"
+#include "utils/image/clx_decode.hpp"
+#include "utils/image/clx_encode.hpp"
+#include "utils/endian/endian_read.hpp"
+#include "utils/endian/endian_write.hpp"
 
 namespace devilution {
 

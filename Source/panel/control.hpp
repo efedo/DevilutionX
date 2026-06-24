@@ -14,7 +14,7 @@
 #include <SDL.h>
 
 #ifdef USE_SDL1
-#include "utils/sdl2_to_1_2_backports.h"
+#include "utils/sdl/sdl2_to_1_2_backports.h"
 #endif
 #endif
 
@@ -31,7 +31,7 @@
 #include "game/spells/spells.hpp"
 #include "tables/spelldat.h"
 #include "utils/attributes.h"
-#include "utils/string_or_view.hpp"
+#include "utils/string/string_or_view.hpp"
 #include "utils/ui_fwd.h"
 
 namespace devilution {

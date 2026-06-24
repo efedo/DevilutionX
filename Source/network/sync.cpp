@@ -15,7 +15,7 @@
 #include "game/monsters/monster_pool.hpp"
 #include "validation/monster_validation.hpp"
 #include "game/players/players.hpp"
-#include "utils/endian_swap.hpp"
+#include "utils/endian/endian_swap.hpp"
 #include "utils/is_of.hpp"
 
 namespace devilution {

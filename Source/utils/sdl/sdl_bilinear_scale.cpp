@@ -1,4 +1,4 @@
-#include "utils/sdl_bilinear_scale.hpp"
+#include "utils/sdl/sdl_bilinear_scale.hpp"
 
 #include <cstddef>
 #include <cstdint>

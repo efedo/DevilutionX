@@ -15,8 +15,8 @@
 #include <SDL_pixels.h>
 #endif
 
-#include "utils/static_vector.hpp"
-#include "utils/str_cat.hpp"
+#include "utils/container/static_vector.hpp"
+#include "utils/string/str_cat.hpp"
 
 #if DEVILUTIONX_PRINT_PALETTE_BLENDING_TREE_GRAPHVIZ
 #include <cstdio>

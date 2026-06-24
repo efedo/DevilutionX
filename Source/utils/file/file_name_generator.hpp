@@ -4,7 +4,7 @@
 #include <initializer_list>
 #include <string_view>
 
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 
 namespace devilution {
 

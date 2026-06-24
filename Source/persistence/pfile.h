@@ -14,7 +14,7 @@
 #include "game/players/players.hpp"
 
 #ifdef UNPACKED_SAVES
-#include "utils/file_util.h"
+#include "utils/file/file_util.h"
 #else
 #include "mpq/mpq_reader.hpp"
 #include "mpq/mpq_writer.hpp"

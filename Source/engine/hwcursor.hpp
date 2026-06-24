@@ -16,7 +16,7 @@
 
 #include "persistence/options.h"
 #include "utils/log.hpp"
-#include "utils/sdl_compat.h"
+#include "utils/sdl/sdl_compat.h"
 
 // Set this to 1 to log the hardware cursor state changes.
 #define LOG_HWCURSOR 0

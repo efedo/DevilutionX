@@ -6,7 +6,7 @@
 #include <mpqfs/mpqfs.h>
 
 #include "mpq/mpq_common.hpp"
-#include "utils/file_util.h"
+#include "utils/file/file_util.h"
 #include "utils/log.hpp"
 
 namespace devilution {

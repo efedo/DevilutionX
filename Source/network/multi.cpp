@@ -41,12 +41,12 @@
 #include "storm/storm_net.hpp"
 #include "network/sync.h"
 #include "network/tmsg.h"
-#include "utils/endian_read.hpp"
-#include "utils/endian_swap.hpp"
+#include "utils/endian/endian_read.hpp"
+#include "utils/endian/endian_swap.hpp"
 #include "utils/is_of.hpp"
 #include "utils/language.h"
 #include "utils/log.hpp"
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 
 namespace devilution {
 

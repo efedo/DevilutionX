@@ -5,7 +5,7 @@
 
 #include <mpqfs/mpqfs.h>
 
-#include "utils/file_util.h"
+#include "utils/file/file_util.h"
 
 namespace devilution {
 

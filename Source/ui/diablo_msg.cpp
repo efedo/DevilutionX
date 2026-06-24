@@ -23,7 +23,7 @@
 #include "panel/info_box.hpp"
 #include "utils/algorithm/container.hpp"
 #include "utils/language.h"
-#include "utils/str_split.hpp"
+#include "utils/string/str_split.hpp"
 
 namespace devilution {
 

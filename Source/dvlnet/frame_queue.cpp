@@ -5,8 +5,8 @@
 #include "application/appfat.h"
 #include "dvlnet/packet.h"
 #include "utils/attributes.h"
-#include "utils/endian_read.hpp"
-#include "utils/endian_write.hpp"
+#include "utils/endian/endian_read.hpp"
+#include "utils/endian/endian_write.hpp"
 
 namespace devilution {
 namespace net {

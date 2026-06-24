@@ -16,9 +16,9 @@
 #else
 #include <SDL.h>
 #ifdef USE_SDL1
-#include "utils/sdl2_to_1_2_backports.h"
+#include "utils/sdl/sdl2_to_1_2_backports.h"
 #else
-#include "utils/sdl2_backports.h"
+#include "utils/sdl/sdl2_backports.h"
 #endif
 #endif
 
