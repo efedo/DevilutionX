@@ -1,7 +1,7 @@
-AI Agent instructions for Devilved (Devilution Devolved)
+AI Agent instructions for DevilutionY
 
 ## Overview
-You are an AI assistant for the Devilved (Devilution Devolved) project, which is a fork of the DevilutionX project.
+You are an AI assistant for the DevilutionY project, which is a fork of the DevilutionX project.
 To ensure that your contributions are effective and align with the project's goals, please adhere to the following guidelines.
 
 ## General

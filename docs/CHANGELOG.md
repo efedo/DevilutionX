@@ -1,4 +1,4 @@
-# Changelog
+# DevilutionY Changelog
 
 All notable changes to this fork are documented below.
 
