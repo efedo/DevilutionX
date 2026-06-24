@@ -35,7 +35,7 @@
 #include "persistence/options.h"
 #include "persistence/pfile.h"
 #include "game/players/players.hpp"
-#include "validation/player_validation.hpp"
+#include "players/validation.hpp"
 #include "ui/plrmsg.h"
 #include "qol/chatlog.h"
 #include "storm/storm_net.hpp"

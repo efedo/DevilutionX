@@ -24,7 +24,7 @@
 #include "application/game_mode.hpp"
 #include "ui/interfac.h"
 #include "game/items/items.hpp"
-#include "validation/item_validation.h"
+#include "items/validation.h"
 #include "game/levels/dun_tile.hpp"
 #include "game/levels/gendung.h"
 #include "network/multi.h"

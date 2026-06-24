@@ -1,5 +1,5 @@
 /**
- * @file validation/quest_validation.hpp
+ * @file game/quests/validation.hpp
  *
  * Interface of functions for validation of quest data.
  */
