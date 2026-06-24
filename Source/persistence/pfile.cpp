@@ -25,7 +25,7 @@
 #include "application/game_mode.hpp"
 #include "persistence/loadsave.h"
 #include "ui/menu.h"
-#include "mpq/mpq_common.hpp"
+#include "data/mpq/mpq_common.hpp"
 #include "persistence/pack.h"
 #include "qol/stash.h"
 #include "tables/playerdat.hpp"
@@ -44,7 +44,7 @@
 #ifdef UNPACKED_SAVES
 #include "utils/file/file_util.h"
 #else
-#include "mpq/mpq_reader.hpp"
+#include "data/mpq/mpq_reader.hpp"
 #endif
 
 namespace devilution {

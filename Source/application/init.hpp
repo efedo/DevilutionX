@@ -18,7 +18,7 @@
 #ifdef UNPACKED_MPQS
 #include <string_view>
 #else
-#include "mpq/mpq_reader.hpp"
+#include "data/mpq/mpq_reader.hpp"
 #endif
 
 namespace devilution {

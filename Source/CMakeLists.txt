@@ -162,8 +162,8 @@ set(libdevilutionx_SRCS
 
   game/quests/validation.cpp
 
-  storm/storm_net.cpp
-  storm/storm_svid.cpp
+  network/storm/storm_net.cpp
+  network/storm/storm_svid.cpp
 
   tables/misdat.cpp
   tables/textdat.cpp
@@ -600,10 +600,10 @@ target_link_dependencies(libdevilutionx_parse_int PUBLIC
 
 if(SUPPORTS_MPQ)
   add_devilutionx_object_library(libdevilutionx_mpq
-    mpq/mpq_common.cpp
-    mpq/mpq_reader.cpp
-    mpq/mpq_sdl_rwops.cpp
-    mpq/mpq_writer.cpp
+    data/mpq/mpq_common.cpp
+    data/mpq/mpq_reader.cpp
+    data/mpq/mpq_sdl_rwops.cpp
+    data/mpq/mpq_writer.cpp
   )
   target_link_dependencies(libdevilutionx_mpq PUBLIC
     DevilutionX::SDL

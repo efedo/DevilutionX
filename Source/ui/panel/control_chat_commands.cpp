@@ -5,7 +5,7 @@
 #include "engine/gfx/backbuffer_state.hpp"
 #include "game/players/inv.hpp"
 #include "game/levels/setmaps.h"
-#include "storm/storm_net.hpp"
+#include "network/storm/storm_net.hpp"
 #include "utils/algorithm/container.hpp"
 #include "utils/log.hpp"
 #include "utils/parse_int.hpp"

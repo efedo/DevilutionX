@@ -19,7 +19,7 @@
 #include "engine/demomode.h"
 #include "application/game_mode.hpp"
 #include "ui/gmenu.h"
-#include "storm/storm_net.hpp"
+#include "network/storm/storm_net.hpp"
 #include "utils/sdl/sdl_mutex.h"
 #include "utils/sdl/sdl_thread.h"
 

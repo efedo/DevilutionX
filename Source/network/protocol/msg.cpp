@@ -56,7 +56,7 @@
 #include "game/portals/validation.hpp"
 #include "game/quests/validation.hpp"
 #include "game/spells/spells.hpp"
-#include "storm/storm_net.hpp"
+#include "network/storm/storm_net.hpp"
 #include "network/protocol/sync.h"
 #include "network/protocol/tmsg.h"
 #include "game/towners/towners.hpp"

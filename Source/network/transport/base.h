@@ -11,7 +11,7 @@
 #include "network/transport/abstract_net.h"
 #include "network/transport/packet.h"
 #include "network/protocol/multi.h"
-#include "storm/storm_net.hpp"
+#include "network/storm/storm_net.hpp"
 
 namespace devilution {
 namespace net {

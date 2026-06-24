@@ -30,7 +30,7 @@
 #include "utils/string/string_or_view.hpp"
 
 #ifndef UNPACKED_MPQS
-#include "mpq/mpq_reader.hpp"
+#include "data/mpq/mpq_reader.hpp"
 #endif
 
 #ifdef USE_SDL1

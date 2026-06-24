@@ -2,7 +2,7 @@
 
 #include <string_view>
 
-#include "mpq/mpq_reader.hpp"
+#include "data/mpq/mpq_reader.hpp"
 
 // Forward-declare the SDL type for the active SDL version.
 #ifdef USE_SDL3

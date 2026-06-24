@@ -1,4 +1,4 @@
-#include "mpq/mpq_sdl_rwops.hpp"
+#include "data/mpq/mpq_sdl_rwops.hpp"
 
 #include <cstdlib>
 #include <cstring>

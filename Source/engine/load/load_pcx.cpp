@@ -16,7 +16,7 @@
 #include <SDL.h>
 #endif
 
-#include "mpq/mpq_common.hpp"
+#include "data/mpq/mpq_common.hpp"
 #include "utils/log.hpp"
 #include "utils/string/str_cat.hpp"
 

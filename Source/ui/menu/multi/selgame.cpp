@@ -33,7 +33,7 @@
 #include "ui/menu.h"
 #include "network/protocol/multi.h"
 #include "persistence/options.h"
-#include "storm/storm_net.hpp"
+#include "network/storm/storm_net.hpp"
 #include "utils/language.h"
 #include "utils/string/str_cat.hpp"
 #include "utils/ui_fwd.h"

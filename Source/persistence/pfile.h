@@ -16,8 +16,8 @@
 #ifdef UNPACKED_SAVES
 #include "utils/file/file_util.h"
 #else
-#include "mpq/mpq_reader.hpp"
-#include "mpq/mpq_writer.hpp"
+#include "data/mpq/mpq_reader.hpp"
+#include "data/mpq/mpq_writer.hpp"
 #endif
 
 namespace devilution {

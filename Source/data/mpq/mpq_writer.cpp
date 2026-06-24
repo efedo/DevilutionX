@@ -1,11 +1,11 @@
-#include "mpq/mpq_writer.hpp"
+#include "data/mpq/mpq_writer.hpp"
 
 #include <cstring>
 #include <utility>
 
 #include <mpqfs/mpqfs.h>
 
-#include "mpq/mpq_common.hpp"
+#include "data/mpq/mpq_common.hpp"
 #include "utils/file/file_util.h"
 #include "utils/log.hpp"
 

@@ -38,7 +38,7 @@
 #include "players/validation.hpp"
 #include "ui/plrmsg.h"
 #include "qol/chatlog.h"
-#include "storm/storm_net.hpp"
+#include "network/storm/storm_net.hpp"
 #include "network/protocol/sync.h"
 #include "network/protocol/tmsg.h"
 #include "utils/endian/endian_read.hpp"

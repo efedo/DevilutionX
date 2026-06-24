@@ -11,7 +11,7 @@
 #include "application/appfat.h"
 #include "engine/gfx/clx_sprite.hpp"
 #include "engine/load/load_file.hpp"
-#include "mpq/mpq_common.hpp"
+#include "data/mpq/mpq_common.hpp"
 #include "utils/endian/endian_read.hpp"
 #include "utils/endian/endian_write.hpp"
 #include "utils/pointer_value_union.hpp"

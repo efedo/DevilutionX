@@ -23,7 +23,7 @@
 #include "engine/gfx/clx_sprite.hpp"
 #include "application/headless_mode.hpp"
 #include "game/missiles/missiles.hpp"
-#include "mpq/mpq_common.hpp"
+#include "data/mpq/mpq_common.hpp"
 #include "engine/audio/sound_effect_enums.h"
 #include "tables/spelldat.h"
 #include "utils/file/file_name_generator.hpp"

@@ -35,7 +35,7 @@
 #include "game/monsters/monster_pool.hpp"
 #include "game/objects/object_pool.hpp"
 #include "monsters/validation.hpp"
-#include "mpq/mpq_common.hpp"
+#include "data/mpq/mpq_common.hpp"
 #include "persistence/pfile.h"
 #include "ui/plrmsg.h"
 #include "qol/stash.h"

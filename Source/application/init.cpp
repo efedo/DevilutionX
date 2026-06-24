@@ -37,7 +37,7 @@
 #include "utils/string/utf8.hpp"
 
 #ifndef UNPACKED_MPQS
-#include "mpq/mpq_reader.hpp"
+#include "data/mpq/mpq_reader.hpp"
 #endif
 
 #ifdef __vita__

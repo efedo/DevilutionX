@@ -86,7 +86,7 @@
 #include "game/players/players.hpp"
 #include "game/quests/quests.hpp"
 #include "engine/audio/sound_effect_enums.h"
-#include "storm/storm_net.hpp"
+#include "network/storm/storm_net.hpp"
 #include "tables/itemdat.h"
 #include "tables/misdat.h"
 #include "tables/monstdat.h"

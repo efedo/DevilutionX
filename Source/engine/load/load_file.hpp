@@ -11,7 +11,7 @@
 #include "application/appfat.h"
 #include "engine/assets.hpp"
 #include "application/headless_mode.hpp"
-#include "mpq/mpq_common.hpp"
+#include "data/mpq/mpq_common.hpp"
 #include "utils/container/static_vector.hpp"
 #include "utils/string/str_cat.hpp"
 
