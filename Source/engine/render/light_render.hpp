@@ -6,7 +6,7 @@
 #include <span>
 
 #include "engine/lighting_defs.hpp"
-#include "engine/point.hpp"
+#include "engine/math/point.hpp"
 #include "game/levels/gendung_defs.hpp"
 
 namespace devilution {

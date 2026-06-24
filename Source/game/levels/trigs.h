@@ -5,7 +5,7 @@
  */
 #pragma once
 
-#include "engine/point.hpp"
+#include "engine/math/point.hpp"
 #include "ui/interfac.h"
 #include "game/levels/gendung.h"
 

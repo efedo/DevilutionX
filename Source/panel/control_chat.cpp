@@ -3,7 +3,7 @@
 #include "control_panel.hpp"
 
 #include "panel/control_chat_commands.hpp"
-#include "engine/backbuffer_state.hpp"
+#include "engine/gfx/backbuffer_state.hpp"
 #include "engine/render/clx_render.hpp"
 #include "persistence/options.h"
 #include "panel/console.hpp"

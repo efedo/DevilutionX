@@ -4,8 +4,8 @@
 
 #include <expected.hpp>
 
-#include "engine/clx_sprite.hpp"
-#include "engine/surface.hpp"
+#include "engine/gfx/clx_sprite.hpp"
+#include "engine/gfx/surface.hpp"
 
 namespace devilution {
 

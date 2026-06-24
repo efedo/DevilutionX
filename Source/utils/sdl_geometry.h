@@ -16,7 +16,7 @@
 #endif
 #endif
 
-#include "engine/rectangle.hpp"
+#include "engine/math/rectangle.hpp"
 
 namespace devilution {
 

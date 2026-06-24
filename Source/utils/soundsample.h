@@ -6,7 +6,7 @@
 #include <memory>
 #include <string>
 
-#include "engine/sound_defs.hpp"
+#include "engine/audio/sound_defs.hpp"
 #include "utils/stdcompat/shared_ptr_array.hpp"
 
 #ifdef USE_SDL3

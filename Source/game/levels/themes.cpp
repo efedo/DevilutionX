@@ -10,7 +10,7 @@
 #include <fmt/core.h>
 
 #include "engine/path.h"
-#include "engine/points_in_rectangle_range.hpp"
+#include "engine/math/points_in_rectangle_range.hpp"
 #include "engine/random.hpp"
 #include "game/items/items.hpp"
 #include "game/items/item_pool.hpp"

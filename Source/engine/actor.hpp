@@ -12,7 +12,7 @@
 #include <cstdint>
 
 #include "engine/animationinfo.h"
-#include "engine/direction.hpp"
+#include "engine/math/direction.hpp"
 
 namespace devilution {
 

@@ -12,9 +12,9 @@
 
 #include <expected.hpp>
 
-#include "engine/point.hpp"
-#include "engine/rectangle.hpp"
-#include "engine/world_tile.hpp"
+#include "engine/math/point.hpp"
+#include "engine/math/rectangle.hpp"
+#include "engine/math/world_tile.hpp"
 #include "tables/itemdat.h"
 #include "tables/objdat.h"
 

@@ -16,7 +16,7 @@
 #endif
 
 #include "menus/ui_flags.hpp"
-#include "engine/clx_sprite.hpp"
+#include "engine/gfx/clx_sprite.hpp"
 #include "engine/render/clx_render.hpp"
 #include "engine/render/primitive_render.hpp"
 #include "engine/render/text_render.hpp"

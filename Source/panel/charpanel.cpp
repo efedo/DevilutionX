@@ -10,7 +10,7 @@
 #include <function_ref.hpp>
 
 #include "panel/control.hpp"
-#include "engine/load_clx.hpp"
+#include "engine/load/load_clx.hpp"
 #include "engine/render/clx_render.hpp"
 #include "engine/render/text_render.hpp"
 #include "panel/ui_panels.hpp"

@@ -5,8 +5,8 @@
 
 #include <function_ref.hpp>
 
-#include "engine/displacement.hpp"
-#include "engine/point.hpp"
+#include "engine/math/displacement.hpp"
+#include "engine/math/point.hpp"
 
 namespace devilution {
 namespace {

@@ -4,7 +4,7 @@
 
 #include <function_ref.hpp>
 
-#include "engine/point.hpp"
+#include "engine/math/point.hpp"
 
 namespace devilution {
 

@@ -11,8 +11,8 @@
 #include <fmt/format.h>
 
 #include "panel/control.hpp"
-#include "engine/load_file.hpp"
-#include "engine/palette.h"
+#include "engine/load/load_file.hpp"
+#include "engine/gfx/palette.h"
 #include "engine/render/automap_render.hpp"
 #include "engine/render/primitive_render.hpp"
 #include "game/levels/gendung.h"

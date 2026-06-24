@@ -7,7 +7,7 @@
 
 #include <cstdint>
 
-#include "engine/load_file.hpp"
+#include "engine/load/load_file.hpp"
 #include "engine/random.hpp"
 #include "game/levels/gendung.h"
 #include "game/monsters/monsters.hpp"

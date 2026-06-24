@@ -3,7 +3,7 @@
 #include <cstdint>
 
 #include "menus/ui_item.h"
-#include "engine/clx_sprite.hpp"
+#include "engine/gfx/clx_sprite.hpp"
 #include "utils/sdl_geometry.h"
 
 namespace devilution {

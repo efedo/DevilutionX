@@ -10,7 +10,7 @@
 
 #include <expected.hpp>
 
-#include "engine/surface.hpp"
+#include "engine/gfx/surface.hpp"
 
 namespace devilution {
 

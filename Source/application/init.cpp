@@ -20,8 +20,8 @@
 
 #include "menus/diabloui.h"
 #include "engine/assets.hpp"
-#include "engine/backbuffer_state.hpp"
-#include "engine/dx.h"
+#include "engine/gfx/backbuffer_state.hpp"
+#include "engine/gfx/dx.h"
 #include "engine/events.hpp"
 #include "application/game_mode.hpp"
 #include "application/headless_mode.hpp"

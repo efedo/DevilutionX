@@ -27,8 +27,8 @@
 
 #include "application/appfat.h"
 #include "controls/controller_buttons.h"
-#include "engine/size.hpp"
-#include "engine/sound_defs.hpp"
+#include "engine/math/size.hpp"
+#include "engine/audio/sound_defs.hpp"
 #include "persistence/pack.h"
 #include "ui/quick_messages.hpp"
 #include "utils/enum_traits.h"

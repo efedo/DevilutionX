@@ -15,8 +15,8 @@
 
 #include "menus/ui_flags.hpp"
 #include "panel/control.hpp"
-#include "engine/clx_sprite.hpp"
-#include "engine/surface.hpp"
+#include "engine/gfx/clx_sprite.hpp"
+#include "engine/gfx/surface.hpp"
 #include "application/game_mode.hpp"
 #include "game/items/items.hpp"
 #include "utils/attributes.h"

@@ -2,8 +2,8 @@
 
 #include <cstdint>
 
-#include "engine/load_file.hpp"
-#include "engine/point.hpp"
+#include "engine/load/load_file.hpp"
+#include "engine/math/point.hpp"
 #include "game/items/items.hpp"
 #include "game/levels/drlg_l1.h"
 #include "engine/lighting.h"

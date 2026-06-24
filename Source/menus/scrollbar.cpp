@@ -2,8 +2,8 @@
 
 #include <optional>
 
-#include "engine/clx_sprite.hpp"
-#include "engine/load_pcx.hpp"
+#include "engine/gfx/clx_sprite.hpp"
+#include "engine/load/load_pcx.hpp"
 
 namespace devilution {
 

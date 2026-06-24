@@ -6,10 +6,10 @@
 #pragma once
 
 #include "engine/animationinfo.h"
-#include "engine/direction.hpp"
-#include "engine/displacement.hpp"
-#include "engine/point.hpp"
-#include "engine/surface.hpp"
+#include "engine/math/direction.hpp"
+#include "engine/math/displacement.hpp"
+#include "engine/math/point.hpp"
+#include "engine/gfx/surface.hpp"
 
 namespace devilution {
 

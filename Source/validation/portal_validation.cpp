@@ -8,7 +8,7 @@
 
 #include <cstdint>
 
-#include "engine/world_tile.hpp"
+#include "engine/math/world_tile.hpp"
 #include "game/levels/gendung.h"
 #include "game/levels/setmaps.h"
 #include "game/quests/quests.hpp"

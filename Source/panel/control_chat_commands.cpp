@@ -2,7 +2,7 @@
 #include "control.hpp"
 
 #include "ui/diablo_msg.hpp"
-#include "engine/backbuffer_state.hpp"
+#include "engine/gfx/backbuffer_state.hpp"
 #include "game/players/inv.hpp"
 #include "game/levels/setmaps.h"
 #include "storm/storm_net.hpp"

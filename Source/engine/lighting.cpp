@@ -14,12 +14,12 @@
 #include <expected.hpp>
 
 #include "ui/automap.h"
-#include "engine/displacement.hpp"
+#include "engine/math/displacement.hpp"
 #include "engine/lighting_defs.hpp"
-#include "engine/load_file.hpp"
-#include "engine/point.hpp"
-#include "engine/points_in_rectangle_range.hpp"
-#include "engine/world_tile.hpp"
+#include "engine/load/load_file.hpp"
+#include "engine/math/point.hpp"
+#include "engine/math/points_in_rectangle_range.hpp"
+#include "engine/math/world_tile.hpp"
 #include "game/levels/tile_properties.hpp"
 #include "game/objects/objects.hpp"
 #include "game/players/players.hpp"

@@ -11,10 +11,10 @@
 #include <expected.hpp>
 
 #include "ui/automap.h"
-#include "engine/displacement.hpp"
+#include "engine/math/displacement.hpp"
 #include "engine/lighting_defs.hpp"
-#include "engine/point.hpp"
-#include "engine/world_tile.hpp"
+#include "engine/math/point.hpp"
+#include "engine/math/world_tile.hpp"
 #include "utils/attributes.h"
 
 namespace devilution {

@@ -17,8 +17,8 @@
 
 #include "application/appfat.h"
 #include "engine/crawl.hpp"
-#include "engine/displacement.hpp"
-#include "engine/point.hpp"
+#include "engine/math/displacement.hpp"
+#include "engine/math/point.hpp"
 #include "utils/algorithm/container.hpp"
 #include "utils/static_vector.hpp"
 

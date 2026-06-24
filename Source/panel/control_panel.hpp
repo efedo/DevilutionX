@@ -1,6 +1,6 @@
 #pragma once
 
-#include "engine/rectangle.hpp"
+#include "engine/math/rectangle.hpp"
 #include "panel/ui_panels.hpp"
 
 namespace devilution {

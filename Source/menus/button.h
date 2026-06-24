@@ -1,7 +1,7 @@
 #pragma once
 
 #include "menus/ui_item.h"
-#include "engine/clx_sprite.hpp"
+#include "engine/gfx/clx_sprite.hpp"
 
 namespace devilution {
 

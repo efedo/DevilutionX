@@ -11,7 +11,7 @@
 
 #include "data/file.hpp"
 #include "data/record_reader.hpp"
-#include "engine/effects.h"
+#include "engine/audio/effects.h"
 #include "utils/language.h"
 
 namespace devilution {

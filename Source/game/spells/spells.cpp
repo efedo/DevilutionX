@@ -10,10 +10,10 @@
 #ifdef _DEBUG
 #include "application/debug.h"
 #endif
-#include "engine/backbuffer_state.hpp"
-#include "engine/point.hpp"
+#include "engine/gfx/backbuffer_state.hpp"
+#include "engine/math/point.hpp"
 #include "engine/random.hpp"
-#include "engine/world_tile.hpp"
+#include "engine/math/world_tile.hpp"
 #include "application/game_mode.hpp"
 #include "ui/gamemenu.h"
 #include "game/players/inv.hpp"

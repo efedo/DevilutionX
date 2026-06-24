@@ -8,9 +8,9 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "engine/clx_sprite.hpp"
-#include "engine/direction.hpp"
-#include "engine/point.hpp"
+#include "engine/gfx/clx_sprite.hpp"
+#include "engine/math/direction.hpp"
+#include "engine/math/point.hpp"
 
 namespace devilution {
 

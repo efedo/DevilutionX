@@ -11,8 +11,8 @@
 
 #include "panel/control.hpp"
 #include "engine/cursor.h"
-#include "engine/clx_sprite.hpp"
-#include "engine/load_clx.hpp"
+#include "engine/gfx/clx_sprite.hpp"
+#include "engine/load/load_clx.hpp"
 #include "engine/render/clx_render.hpp"
 #include "engine/render/primitive_render.hpp"
 #include "application/game_mode.hpp"

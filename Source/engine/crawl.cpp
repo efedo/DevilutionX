@@ -4,7 +4,7 @@
 
 #include <function_ref.hpp>
 
-#include "engine/displacement.hpp"
+#include "engine/math/displacement.hpp"
 
 namespace devilution {
 

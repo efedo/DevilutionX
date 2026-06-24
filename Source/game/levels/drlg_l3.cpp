@@ -3,8 +3,8 @@
 #include <algorithm>
 #include <cstdint>
 
-#include "engine/load_file.hpp"
-#include "engine/points_in_rectangle_range.hpp"
+#include "engine/load/load_file.hpp"
+#include "engine/math/points_in_rectangle_range.hpp"
 #include "engine/random.hpp"
 #include "game/levels/gendung.h"
 #include "game/levels/setmaps.h"

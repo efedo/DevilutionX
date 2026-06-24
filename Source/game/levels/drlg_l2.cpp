@@ -12,9 +12,9 @@
 #include <optional>
 
 #include "application/diablo.h"
-#include "engine/load_file.hpp"
+#include "engine/load/load_file.hpp"
 #include "engine/random.hpp"
-#include "engine/size.hpp"
+#include "engine/math/size.hpp"
 #include "game/levels/gendung.h"
 #include "game/levels/setmaps.h"
 #include "game/players/players.hpp"

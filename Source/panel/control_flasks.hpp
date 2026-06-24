@@ -2,7 +2,7 @@
 
 #include <optional>
 
-#include "engine/surface.hpp"
+#include "engine/gfx/surface.hpp"
 
 namespace devilution {
 

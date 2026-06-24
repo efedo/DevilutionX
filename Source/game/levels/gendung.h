@@ -15,12 +15,12 @@
 
 #include <expected.hpp>
 
-#include "engine/clx_sprite.hpp"
-#include "engine/point.hpp"
-#include "engine/rectangle.hpp"
+#include "engine/gfx/clx_sprite.hpp"
+#include "engine/math/point.hpp"
+#include "engine/math/rectangle.hpp"
 #include "engine/render/scrollrt.h"
 #include "engine/world.hpp"
-#include "engine/world_tile.hpp"
+#include "engine/math/world_tile.hpp"
 #include "game/levels/dun_tile.hpp"
 #include "game/levels/gendung_defs.hpp"
 #include "utils/attributes.h"

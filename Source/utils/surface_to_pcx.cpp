@@ -15,7 +15,7 @@
 
 #include <expected.hpp>
 
-#include "engine/surface.hpp"
+#include "engine/gfx/surface.hpp"
 #include "utils/endian_swap.hpp"
 #include "utils/pcx.hpp"
 #include "utils/sdl_compat.h"

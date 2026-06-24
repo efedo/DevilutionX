@@ -6,7 +6,7 @@
 
 #include <sol/sol.hpp>
 
-#include "engine/point.hpp"
+#include "engine/math/point.hpp"
 #include "lua/metadoc.hpp"
 #include "game/players/players.hpp"
 #include "game/stores/stores.hpp"

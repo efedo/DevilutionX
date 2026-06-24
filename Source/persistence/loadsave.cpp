@@ -21,7 +21,7 @@
 #include "engine/cursor.h"
 #include "game/monsters/dead.hpp"
 #include "game/quests/doom.hpp"
-#include "engine/point.hpp"
+#include "engine/math/point.hpp"
 #include "engine/random.hpp"
 #include "engine/world.hpp"
 #include "application/game_mode.hpp"

@@ -4,9 +4,9 @@
 #include <initializer_list>
 #include <utility>
 
-#include "engine/load_file.hpp"
+#include "engine/load/load_file.hpp"
 #include "engine/random.hpp"
-#include "engine/world_tile.hpp"
+#include "engine/math/world_tile.hpp"
 #include "application/game_mode.hpp"
 #include "game/levels/drlg_l1.h"
 #include "game/levels/trigs.h"

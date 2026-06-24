@@ -1,6 +1,6 @@
 #include "panel/info_box.hpp"
 
-#include "engine/load_cel.hpp"
+#include "engine/load/load_cel.hpp"
 
 namespace devilution {
 

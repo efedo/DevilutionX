@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <string_view>
 
-#include "engine/surface.hpp"
+#include "engine/gfx/surface.hpp"
 
 namespace devilution {
 

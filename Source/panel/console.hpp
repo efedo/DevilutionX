@@ -12,7 +12,7 @@
 #include <SDL.h>
 #endif
 
-#include "engine/surface.hpp"
+#include "engine/gfx/surface.hpp"
 
 namespace devilution {
 

@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <optional>
 
-#include "engine/point.hpp"
+#include "engine/math/point.hpp"
 #include "game/levels/dun_tile.hpp"
 
 namespace devilution {

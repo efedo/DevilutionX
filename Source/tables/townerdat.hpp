@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "engine/direction.hpp"
+#include "engine/math/direction.hpp"
 #include "game/levels/gendung.h"
 #include "tables/objdat.h"
 #include "tables/textdat.h"

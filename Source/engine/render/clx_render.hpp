@@ -12,10 +12,10 @@
 #include <string>
 #endif
 
-#include "engine/clx_sprite.hpp"
-#include "engine/point.hpp"
+#include "engine/gfx/clx_sprite.hpp"
+#include "engine/math/point.hpp"
 #include "engine/render/light_render.hpp"
-#include "engine/surface.hpp"
+#include "engine/gfx/surface.hpp"
 
 namespace devilution {
 

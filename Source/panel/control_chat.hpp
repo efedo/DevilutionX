@@ -4,7 +4,7 @@
 #include <string_view>
 
 #include "menus/text_input.hpp"
-#include "engine/clx_sprite.hpp"
+#include "engine/gfx/clx_sprite.hpp"
 #include "network/msg.h"
 #include "network/multi.h"
 

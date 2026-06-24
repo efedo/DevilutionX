@@ -15,7 +15,7 @@
 #include "menus/diabloui.h"
 #include "menus/ui_flags.hpp"
 #include "menus/ui_item.h"
-#include "engine/point.hpp"
+#include "engine/math/point.hpp"
 #include "engine/render/text_render.hpp"
 #include "network/multi.h"
 #include "storm/storm_net.hpp"

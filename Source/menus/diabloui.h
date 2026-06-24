@@ -15,8 +15,8 @@
 #include <function_ref.hpp>
 
 #include "menus/ui_item.h"
-#include "engine/clx_sprite.hpp"
-#include "engine/load_pcx.hpp" // IWYU pragma: export
+#include "engine/gfx/clx_sprite.hpp"
+#include "engine/load/load_pcx.hpp" // IWYU pragma: export
 #include "game/players/players.hpp"
 #include "utils/display.h"
 

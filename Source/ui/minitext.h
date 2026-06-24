@@ -5,7 +5,7 @@
  */
 #pragma once
 
-#include "engine/surface.hpp"
+#include "engine/gfx/surface.hpp"
 #include "tables/textdat.h"
 #include "utils/attributes.h"
 

@@ -5,8 +5,8 @@
 #ifdef _DEBUG
 #include "application/debug.h"
 #endif
-#include "engine/load_file.hpp"
-#include "engine/palette.h"
+#include "engine/load/load_file.hpp"
+#include "engine/gfx/palette.h"
 #include "game/levels/drlg_l1.h"
 #include "game/levels/drlg_l2.h"
 #include "game/levels/drlg_l3.h"

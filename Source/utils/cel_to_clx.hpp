@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "engine/clx_sprite.hpp"
+#include "engine/gfx/clx_sprite.hpp"
 #include "utils/pointer_value_union.hpp"
 
 namespace devilution {

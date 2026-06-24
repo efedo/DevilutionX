@@ -7,8 +7,8 @@
 
 #include <cstdint>
 
-#include "engine/palette.h"
-#include "engine/point.hpp"
+#include "engine/gfx/palette.h"
+#include "engine/math/point.hpp"
 #include "game/players/inv_iterators.hpp"
 #include "game/items/items.hpp"
 #include "game/players/players.hpp"

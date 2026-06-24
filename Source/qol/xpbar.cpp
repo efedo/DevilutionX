@@ -11,9 +11,9 @@
 #include <fmt/core.h>
 
 #include "panel/control.hpp"
-#include "engine/clx_sprite.hpp"
-#include "engine/load_clx.hpp"
-#include "engine/point.hpp"
+#include "engine/gfx/clx_sprite.hpp"
+#include "engine/load/load_clx.hpp"
+#include "engine/math/point.hpp"
 #include "engine/render/clx_render.hpp"
 #include "engine/render/primitive_render.hpp"
 #include "application/game_mode.hpp"

@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#include "engine/rectangle.hpp"
+#include "engine/math/rectangle.hpp"
 #include "utils/attributes.h"
 
 namespace devilution {

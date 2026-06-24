@@ -3,9 +3,9 @@
 #include <functional>
 
 #include "controls/controller_buttons.h"
-#include "engine/circle.hpp"
-#include "engine/point.hpp"
-#include "engine/rectangle.hpp"
+#include "engine/math/circle.hpp"
+#include "engine/math/point.hpp"
+#include "engine/math/rectangle.hpp"
 
 namespace devilution {
 

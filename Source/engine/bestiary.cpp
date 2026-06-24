@@ -14,11 +14,11 @@
 #include <expected.hpp>
 #include <fmt/core.h>
 
-#include "engine/clx_sprite.hpp"
-#include "engine/load_cl2.hpp"
-#include "engine/load_file.hpp"
+#include "engine/gfx/clx_sprite.hpp"
+#include "engine/load/load_cl2.hpp"
+#include "engine/load/load_file.hpp"
 #include "engine/render/clx_render.hpp"
-#include "engine/sound.h"
+#include "engine/audio/sound.h"
 #include "application/game_mode.hpp"
 #include "application/headless_mode.hpp"
 #include "game/monsters/monsters.hpp"

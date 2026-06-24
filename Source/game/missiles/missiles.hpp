@@ -10,9 +10,9 @@
 #include <optional>
 
 #include "engine/attributes.hpp"
-#include "engine/displacement.hpp"
-#include "engine/point.hpp"
-#include "engine/world_tile.hpp"
+#include "engine/math/displacement.hpp"
+#include "engine/math/point.hpp"
+#include "engine/math/world_tile.hpp"
 #include "game/monsters/monsters.hpp"
 #include "game/players/players.hpp"
 #include "tables/misdat.h"

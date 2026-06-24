@@ -23,7 +23,7 @@
 #include <config.h>
 
 #include "application/appfat.h"
-#include "engine/effects.h"
+#include "engine/audio/effects.h"
 #include "engine/assets.hpp"
 #include "lua/lua_event.hpp"
 #include "lua/modules/audio.hpp"

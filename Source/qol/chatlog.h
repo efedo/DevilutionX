@@ -6,7 +6,7 @@
 #pragma once
 
 #include "menus/ui_flags.hpp"
-#include "engine/surface.hpp"
+#include "engine/gfx/surface.hpp"
 #include "game/players/players.hpp"
 
 namespace devilution {

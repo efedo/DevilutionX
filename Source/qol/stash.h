@@ -10,8 +10,8 @@
 
 #include <ankerl/unordered_dense.h>
 
-#include "engine/point.hpp"
-#include "engine/points_in_rectangle_range.hpp"
+#include "engine/math/point.hpp"
+#include "engine/math/points_in_rectangle_range.hpp"
 #include "game/items/items.hpp"
 #include "utils/attributes.h"
 

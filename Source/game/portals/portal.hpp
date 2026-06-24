@@ -7,7 +7,7 @@
 
 #include <cstddef>
 
-#include "engine/point.hpp"
+#include "engine/math/point.hpp"
 #include "game/levels/gendung.h"
 #include "utils/attributes.h"
 

@@ -12,8 +12,8 @@
 #include <ankerl/unordered_dense.h>
 
 #include "application/diablo.h"
-#include "engine/clx_sprite.hpp"
-#include "engine/point.hpp"
+#include "engine/gfx/clx_sprite.hpp"
+#include "engine/math/point.hpp"
 
 namespace devilution {
 

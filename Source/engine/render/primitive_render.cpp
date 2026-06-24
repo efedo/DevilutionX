@@ -4,9 +4,9 @@
 #include <cstdint>
 #include <cstring>
 
-#include "engine/point.hpp"
-#include "engine/size.hpp"
-#include "engine/surface.hpp"
+#include "engine/math/point.hpp"
+#include "engine/math/size.hpp"
+#include "engine/gfx/surface.hpp"
 #include "utils/palette_blending.hpp"
 
 namespace devilution {

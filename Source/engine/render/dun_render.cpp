@@ -16,7 +16,7 @@
 #include <cstdint>
 
 #include "application/appfat.h"
-#include "engine/point.hpp"
+#include "engine/math/point.hpp"
 #include "engine/render/blit_impl.hpp"
 #include "game/levels/dun_tile.hpp"
 #include "persistence/options.h"

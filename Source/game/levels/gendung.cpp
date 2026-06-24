@@ -12,10 +12,10 @@
 #include <expected.hpp>
 #include <magic_enum/magic_enum.hpp>
 
-#include "engine/clx_sprite.hpp"
-#include "engine/load_file.hpp"
+#include "engine/gfx/clx_sprite.hpp"
+#include "engine/load/load_file.hpp"
 #include "engine/random.hpp"
-#include "engine/world_tile.hpp"
+#include "engine/math/world_tile.hpp"
 #include "application/game_mode.hpp"
 #include "game/items/items.hpp"
 #include "game/levels/drlg_l1.h"

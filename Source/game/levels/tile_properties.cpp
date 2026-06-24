@@ -1,8 +1,8 @@
 #include "game/levels/tile_properties.hpp"
 
-#include "engine/direction.hpp"
+#include "engine/math/direction.hpp"
 #include "engine/path.h"
-#include "engine/point.hpp"
+#include "engine/math/point.hpp"
 #include "gendung.h"
 #include "game/objects/objects.hpp"
 

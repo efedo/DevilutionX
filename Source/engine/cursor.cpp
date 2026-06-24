@@ -25,13 +25,13 @@
 #include "controls/control_mode.hpp"
 #include "controls/plrctrls.h"
 #include "game/quests/doom.hpp"
-#include "engine/backbuffer_state.hpp"
+#include "engine/gfx/backbuffer_state.hpp"
 #include "engine/demomode.h"
-#include "engine/point.hpp"
-#include "engine/points_in_rectangle_range.hpp"
+#include "engine/math/point.hpp"
+#include "engine/math/points_in_rectangle_range.hpp"
 #include "engine/render/clx_render.hpp"
 #include "engine/render/primitive_render.hpp"
-#include "engine/trn.hpp"
+#include "engine/gfx/trn.hpp"
 #include "application/headless_mode.hpp"
 #include "engine/hwcursor.hpp"
 #include "game/players/inv.hpp"
@@ -52,10 +52,10 @@
 #include "utils/utf8.hpp"
 
 #ifdef UNPACKED_MPQS
-#include "engine/load_clx.hpp"
+#include "engine/load/load_clx.hpp"
 #else
-#include "engine/load_cel.hpp"
-#include "engine/load_file.hpp"
+#include "engine/load/load_cel.hpp"
+#include "engine/load/load_file.hpp"
 #include "utils/parse_int.hpp"
 #endif
 

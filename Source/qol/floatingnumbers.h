@@ -8,9 +8,9 @@
 #include <string>
 
 #include "menus/ui_flags.hpp"
-#include "engine/displacement.hpp"
-#include "engine/point.hpp"
-#include "engine/surface.hpp"
+#include "engine/math/displacement.hpp"
+#include "engine/math/point.hpp"
+#include "engine/gfx/surface.hpp"
 
 namespace devilution {
 

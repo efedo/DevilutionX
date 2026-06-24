@@ -81,13 +81,13 @@ set(libdevilutionx_SRCS
 
   engine/actor_position.cpp
   engine/animationinfo.cpp
-  engine/backbuffer_state.cpp
+  engine/gfx/backbuffer_state.cpp
   engine/bestiary.cpp
-  engine/dx.cpp
+  engine/gfx/dx.cpp
   engine/events.cpp
-  engine/palette.cpp
-  engine/sound_position.cpp
-  engine/trn.cpp
+  engine/gfx/palette.cpp
+  engine/audio/sound_position.cpp
+  engine/gfx/trn.cpp
   engine/world.cpp
 
   engine/render/automap_render.cpp
@@ -325,7 +325,7 @@ target_link_dependencies(libdevilutionx_crawl PUBLIC
 )
 
 add_devilutionx_object_library(libdevilutionx_direction
-  engine/direction.cpp
+  engine/math/direction.cpp
 )
 
 add_devilutionx_object_library(libdevilutionx_dun_render
@@ -346,7 +346,7 @@ target_link_libraries(libdevilutionx_endian_write INTERFACE
 )
 
 add_devilutionx_object_library(libdevilutionx_surface
-  engine/surface.cpp
+  engine/gfx/surface.cpp
 )
 target_link_dependencies(libdevilutionx_surface PUBLIC
   DevilutionX::SDL
@@ -411,7 +411,7 @@ target_link_dependencies(libdevilutionx_init PUBLIC
 )
 
 add_devilutionx_object_library(libdevilutionx_load_cel
-  engine/load_cel.cpp
+  engine/load/load_cel.cpp
 )
 target_link_dependencies(libdevilutionx_load_cel
   PUBLIC
@@ -431,7 +431,7 @@ else()
 endif()
 
 add_devilutionx_object_library(libdevilutionx_load_cl2
-  engine/load_cl2.cpp
+  engine/load/load_cl2.cpp
 )
 target_link_dependencies(libdevilutionx_load_cl2
   PUBLIC
@@ -452,7 +452,7 @@ else()
 endif()
 
 add_devilutionx_object_library(libdevilutionx_load_clx
-  engine/load_clx.cpp
+  engine/load/load_clx.cpp
 )
 target_link_dependencies(libdevilutionx_load_clx
   PUBLIC
@@ -462,7 +462,7 @@ target_link_dependencies(libdevilutionx_load_clx
 )
 
 add_devilutionx_object_library(libdevilutionx_load_pcx
-  engine/load_pcx.cpp
+  engine/load/load_pcx.cpp
 )
 target_link_dependencies(libdevilutionx_load_pcx
   PRIVATE
@@ -756,8 +756,8 @@ target_link_dependencies(libdevilutionx_utf8 PRIVATE
 
 if(NOSOUND)
   add_devilutionx_object_library(libdevilutionx_sound
-    engine/effects_stubs.cpp
-    engine/sound_stubs.cpp
+    engine/audio/effects_stubs.cpp
+    engine/audio/sound_stubs.cpp
   )
   target_link_dependencies(libdevilutionx_sound PUBLIC
     DevilutionX::SDL
@@ -771,8 +771,8 @@ if(NOSOUND)
   )
 else()
   add_devilutionx_object_library(libdevilutionx_sound
-    engine/effects.cpp
-    engine/sound.cpp
+    engine/audio/effects.cpp
+    engine/audio/sound.cpp
     utils/soundsample.cpp
   )
   if(USE_SDL3)

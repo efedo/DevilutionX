@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <type_traits>
 
-#include "engine/clx_sprite.hpp"
+#include "engine/gfx/clx_sprite.hpp"
 
 namespace devilution {
 

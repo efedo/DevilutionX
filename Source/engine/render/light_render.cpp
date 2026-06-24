@@ -8,9 +8,9 @@
 #include <span>
 #include <vector>
 
-#include "engine/displacement.hpp"
+#include "engine/math/displacement.hpp"
 #include "engine/lighting_defs.hpp"
-#include "engine/point.hpp"
+#include "engine/math/point.hpp"
 #include "game/levels/dun_tile.hpp"
 #include "game/levels/gendung_defs.hpp"
 

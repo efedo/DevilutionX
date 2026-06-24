@@ -10,9 +10,9 @@
 #include <unordered_map>
 
 #include "engine/cursor.h"
-#include "engine/clx_sprite.hpp"
-#include "engine/load_cel.hpp"
-#include "engine/load_file.hpp"
+#include "engine/gfx/clx_sprite.hpp"
+#include "engine/load/load_cel.hpp"
+#include "engine/load/load_file.hpp"
 #include "engine/random.hpp"
 #include "application/game_mode.hpp"
 #include "game/players/inv.hpp"

@@ -7,8 +7,8 @@
 #include <expected.hpp>
 
 #include "panel/control.hpp"
-#include "engine/clx_sprite.hpp"
-#include "engine/load_clx.hpp"
+#include "engine/gfx/clx_sprite.hpp"
+#include "engine/load/load_clx.hpp"
 #include "engine/render/clx_render.hpp"
 #include "engine/render/text_render.hpp"
 #include "utils/display.h"

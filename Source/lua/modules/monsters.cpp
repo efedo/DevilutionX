@@ -6,7 +6,7 @@
 #include <sol/sol.hpp>
 
 #include "data/file.hpp"
-#include "engine/point.hpp"
+#include "engine/math/point.hpp"
 #include "lua/metadoc.hpp"
 #include "game/monsters/monsters.hpp"
 #include "tables/monstdat.h"

@@ -3,8 +3,8 @@
 #include <cstdint>
 
 #include "engine/animationinfo.h"
-#include "engine/point.hpp"
-#include "engine/world_tile.hpp"
+#include "engine/math/point.hpp"
+#include "engine/math/world_tile.hpp"
 
 namespace devilution {
 

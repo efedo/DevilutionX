@@ -14,7 +14,7 @@
 #include "menus/diabloui.h"
 #include "menus/ui_flags.hpp"
 #include "menus/ui_item.h"
-#include "engine/point.hpp"
+#include "engine/math/point.hpp"
 #include "engine/render/text_render.hpp"
 #include "utils/language.h"
 #include "utils/ui_fwd.h"

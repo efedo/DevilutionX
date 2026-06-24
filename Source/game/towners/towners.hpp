@@ -15,7 +15,7 @@
 #include <vector>
 
 #include "engine/actor.hpp"
-#include "engine/clx_sprite.hpp"
+#include "engine/gfx/clx_sprite.hpp"
 #include "game/levels/dun_tile.hpp"
 #include "game/players/players.hpp"
 #include "game/quests/quests.hpp"

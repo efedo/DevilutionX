@@ -9,7 +9,7 @@
 #include "controls/game_controls.h"
 #include "controls/plrctrls.h"
 #include "engine/cursor.h"
-#include "engine/point.hpp"
+#include "engine/math/point.hpp"
 #include "game/players/players.hpp"
 #include "game/stores/stores.hpp"
 

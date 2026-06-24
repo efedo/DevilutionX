@@ -4,9 +4,9 @@
 
 #include <sol/sol.hpp>
 
-#include "engine/effects.h"
-#include "engine/backbuffer_state.hpp"
-#include "engine/point.hpp"
+#include "engine/audio/effects.h"
+#include "engine/gfx/backbuffer_state.hpp"
+#include "engine/math/point.hpp"
 #include "engine/random.hpp"
 #include "game/players/inv.hpp"
 #include "game/items/items.hpp"

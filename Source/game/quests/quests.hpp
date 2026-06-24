@@ -7,9 +7,9 @@
 
 #include <cstdint>
 
-#include "engine/clx_sprite.hpp"
-#include "engine/point.hpp"
-#include "engine/surface.hpp"
+#include "engine/gfx/clx_sprite.hpp"
+#include "engine/math/point.hpp"
+#include "engine/gfx/surface.hpp"
 #include "game/levels/gendung.h"
 #include "game/monsters/monsters.hpp"
 #include "panel/info_box.hpp"

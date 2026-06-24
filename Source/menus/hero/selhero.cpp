@@ -28,7 +28,7 @@
 #include "menus/ui_item.h"
 #include "controls/control_mode.hpp"
 #include "engine/assets.hpp"
-#include "engine/point.hpp"
+#include "engine/math/point.hpp"
 #include "application/game_mode.hpp"
 #include "game/levels/gendung.h"
 #include "persistence/options.h"

@@ -2,10 +2,10 @@
 
 #include <cstdint>
 
-#include "engine/load_file.hpp"
-#include "engine/point.hpp"
+#include "engine/load/load_file.hpp"
+#include "engine/math/point.hpp"
 #include "engine/random.hpp"
-#include "engine/rectangle.hpp"
+#include "engine/math/rectangle.hpp"
 #include "game/levels/crypt.h"
 #include "game/levels/gendung.h"
 #include "game/players/players.hpp"

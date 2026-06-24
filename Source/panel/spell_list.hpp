@@ -3,8 +3,8 @@
 #include <cstddef>
 #include <vector>
 
-#include "engine/point.hpp"
-#include "engine/surface.hpp"
+#include "engine/math/point.hpp"
+#include "engine/gfx/surface.hpp"
 #include "tables/spelldat.h"
 
 namespace devilution {

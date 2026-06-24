@@ -11,7 +11,7 @@
 
 #include "controls/plrctrls.h"
 #include "controls/touch/gamepad.h"
-#include "engine/surface.hpp"
+#include "engine/gfx/surface.hpp"
 #include "utils/png.h"
 #include "utils/sdl_ptrs.h"
 

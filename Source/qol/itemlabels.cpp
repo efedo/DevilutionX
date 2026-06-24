@@ -11,7 +11,7 @@
 
 #include "panel/control.hpp"
 #include "engine/cursor.h"
-#include "engine/point.hpp"
+#include "engine/math/point.hpp"
 #include "engine/render/clx_render.hpp"
 #include "engine/render/primitive_render.hpp"
 #include "ui/gmenu.h"

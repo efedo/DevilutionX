@@ -12,8 +12,8 @@
 
 #include <expected.hpp>
 
-#include "engine/effects.h"
-#include "engine/clx_sprite.hpp"
+#include "engine/audio/effects.h"
+#include "engine/gfx/clx_sprite.hpp"
 #include "tables/spelldat.h"
 #include "utils/enum_traits.h"
 

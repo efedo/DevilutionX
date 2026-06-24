@@ -7,7 +7,7 @@
 #include <memory>
 #include <vector>
 
-#include "engine/clx_sprite.hpp"
+#include "engine/gfx/clx_sprite.hpp"
 #include "utils/pointer_value_union.hpp"
 
 namespace devilution {

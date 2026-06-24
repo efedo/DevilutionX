@@ -1,7 +1,7 @@
 #include "control_flasks.hpp"
 #include "control.hpp"
 
-#include "engine/surface.hpp"
+#include "engine/gfx/surface.hpp"
 #include "utils/str_cat.hpp"
 
 namespace devilution {

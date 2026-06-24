@@ -17,8 +17,8 @@
 
 #include "ui/automap.h"
 #include "engine/cursor.h"
-#include "engine/load_cel.hpp"
-#include "engine/point.hpp"
+#include "engine/load/load_cel.hpp"
+#include "engine/math/point.hpp"
 #include "engine/lighting.h"
 #include "game/missiles/missiles.hpp"
 #include "game/monsters/monsters.hpp"

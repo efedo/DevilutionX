@@ -27,7 +27,7 @@
 #include "controls/plrctrls.h"
 #include "controls/remap_keyboard.h"
 #include "engine/assets.hpp"
-#include "engine/rectangle.hpp"
+#include "engine/math/rectangle.hpp"
 #include "engine/render/text_render.hpp"
 #include "application/game_mode.hpp"
 #include "engine/hwcursor.hpp"

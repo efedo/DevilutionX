@@ -27,7 +27,7 @@
 #include "menus/ui_item.h"
 #include "config.h"
 #include "application/diablo.h"
-#include "engine/point.hpp"
+#include "engine/math/point.hpp"
 #include "engine/render/text_render.hpp"
 #include "game/levels/gendung.h"
 #include "ui/menu.h"

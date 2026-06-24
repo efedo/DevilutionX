@@ -2,7 +2,7 @@
 
 #include <sol/sol.hpp>
 
-#include "engine/point.hpp"
+#include "engine/math/point.hpp"
 #include "lua/metadoc.hpp"
 #include "qol/floatingnumbers.h"
 

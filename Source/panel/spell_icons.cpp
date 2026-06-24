@@ -3,9 +3,9 @@
 #include <cstdint>
 #include <optional>
 
-#include "engine/load_cel.hpp"
-#include "engine/load_clx.hpp"
-#include "engine/palette.h"
+#include "engine/load/load_cel.hpp"
+#include "engine/load/load_clx.hpp"
+#include "engine/gfx/palette.h"
 #include "engine/render/clx_render.hpp"
 #include "engine/render/primitive_render.hpp"
 #include "application/game_mode.hpp"

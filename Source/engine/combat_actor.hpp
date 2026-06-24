@@ -15,8 +15,8 @@
 
 #include "engine/actor.hpp"
 #include "engine/actor_position.hpp"
-#include "engine/clx_sprite.hpp"
-#include "engine/displacement.hpp"
+#include "engine/gfx/clx_sprite.hpp"
+#include "engine/math/displacement.hpp"
 #include "engine/render/scrollrt.h"
 #include "game/levels/dun_tile.hpp"
 

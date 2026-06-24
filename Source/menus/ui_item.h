@@ -7,7 +7,7 @@
 
 #include "menus/text_input.hpp"
 #include "menus/ui_flags.hpp"
-#include "engine/clx_sprite.hpp"
+#include "engine/gfx/clx_sprite.hpp"
 #include "engine/render/text_render.hpp"
 #include "utils/enum_traits.h"
 #include "utils/string_or_view.hpp"

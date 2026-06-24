@@ -15,11 +15,11 @@
 #include <vector>
 
 #include "menus/ui_flags.hpp"
-#include "engine/clx_sprite.hpp"
-#include "engine/palette.h"
-#include "engine/point.hpp"
-#include "engine/rectangle.hpp"
-#include "engine/surface.hpp"
+#include "engine/gfx/clx_sprite.hpp"
+#include "engine/gfx/palette.h"
+#include "engine/math/point.hpp"
+#include "engine/math/rectangle.hpp"
+#include "engine/gfx/surface.hpp"
 #include "utils/enum_traits.h"
 
 namespace devilution {

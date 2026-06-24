@@ -8,9 +8,9 @@
 #include <algorithm>
 #include <cstdint>
 
-#include "engine/point.hpp"
+#include "engine/math/point.hpp"
 #include "engine/render/blit_impl.hpp"
-#include "engine/surface.hpp"
+#include "engine/gfx/surface.hpp"
 #include "utils/attributes.h"
 #include "utils/clx_decode.hpp"
 #include "utils/static_vector.hpp"
