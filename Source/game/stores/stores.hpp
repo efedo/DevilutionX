@@ -13,7 +13,7 @@
 #include <utility>
 #include <vector>
 
-#include "DiabloUI/ui_flags.hpp"
+#include "menus/ui_flags.hpp"
 #include "panel/control.hpp"
 #include "engine/clx_sprite.hpp"
 #include "engine/surface.hpp"

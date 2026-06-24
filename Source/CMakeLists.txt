@@ -53,24 +53,24 @@ set(libdevilutionx_SRCS
   controls/modifier_hints.cpp
   controls/plrctrls.cpp
 
-  DiabloUI/button.cpp
-  DiabloUI/credits.cpp
-  DiabloUI/credits_lines.cpp
-  DiabloUI/diabloui.cpp
-  DiabloUI/dialogs.cpp
-  DiabloUI/hero/selhero.cpp
-  DiabloUI/mainmenu.cpp
-  DiabloUI/multi/selconn.cpp
-  DiabloUI/multi/selgame.cpp
-  DiabloUI/progress.cpp
-  DiabloUI/scrollbar.cpp
-  DiabloUI/selok.cpp
-  DiabloUI/selstart.cpp
-  DiabloUI/selyesno.cpp
-  DiabloUI/settingsmenu.cpp
-  DiabloUI/support_lines.cpp
-  DiabloUI/title.cpp
-  DiabloUI/text_input.cpp
+  menus/button.cpp
+  menus/credits.cpp
+  menus/credits_lines.cpp
+  menus/diabloui.cpp
+  menus/dialogs.cpp
+  menus/hero/selhero.cpp
+  menus/mainmenu.cpp
+  menus/multi/selconn.cpp
+  menus/multi/selgame.cpp
+  menus/progress.cpp
+  menus/scrollbar.cpp
+  menus/selok.cpp
+  menus/selstart.cpp
+  menus/selyesno.cpp
+  menus/settingsmenu.cpp
+  menus/support_lines.cpp
+  menus/title.cpp
+  menus/text_input.cpp
 
   dvlnet/abstract_net.cpp
   dvlnet/base.cpp

@@ -19,7 +19,7 @@
 
 #include <ankerl/unordered_dense.h>
 
-#include "DiabloUI/ui_flags.hpp"
+#include "menus/ui_flags.hpp"
 #include "ui/automap.h"
 #include "controls/control_mode.hpp"
 #include "controls/plrctrls.h"

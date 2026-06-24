@@ -1,4 +1,4 @@
-#include "DiabloUI/multi/selgame.h"
+#include "menus/multi/selgame.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -19,12 +19,12 @@
 
 #include <fmt/core.h>
 
-#include "DiabloUI/diabloui.h"
-#include "DiabloUI/hero/selhero.h"
-#include "DiabloUI/scrollbar.h"
-#include "DiabloUI/selok.h"
-#include "DiabloUI/ui_flags.hpp"
-#include "DiabloUI/ui_item.h"
+#include "menus/diabloui.h"
+#include "menus/hero/selhero.h"
+#include "menus/scrollbar.h"
+#include "menus/selok.h"
+#include "menus/ui_flags.hpp"
+#include "menus/ui_item.h"
 #include "config.h"
 #include "application/diablo.h"
 #include "engine/point.hpp"

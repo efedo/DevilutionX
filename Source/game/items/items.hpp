@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <optional>
 
-#include "DiabloUI/ui_flags.hpp"
+#include "menus/ui_flags.hpp"
 #include "engine/cursor.h"
 #include "engine/animationinfo.h"
 #include "engine/point.hpp"

@@ -24,7 +24,7 @@
 
 #include <config.h>
 
-#include "DiabloUI/selstart.h"
+#include "menus/selstart.h"
 #include "application/appfat.h"
 #include "ui/automap.h"
 #include "application/capture.h"
@@ -35,7 +35,7 @@
 #include "application/debug.h"
 #include "debug_overlay/imgui_overlay.hpp"
 #endif
-#include "DiabloUI/diabloui.h"
+#include "menus/diabloui.h"
 #include "controls/control_mode.hpp"
 #include "controls/keymapper.hpp"
 #include "controls/plrctrls.h"

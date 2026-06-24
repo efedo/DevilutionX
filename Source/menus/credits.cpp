@@ -15,10 +15,10 @@
 #include <SDL.h>
 #endif
 
-#include "DiabloUI/credits_lines.h"
-#include "DiabloUI/diabloui.h"
-#include "DiabloUI/support_lines.h"
-#include "DiabloUI/ui_flags.hpp"
+#include "menus/credits_lines.h"
+#include "menus/diabloui.h"
+#include "menus/support_lines.h"
+#include "menus/ui_flags.hpp"
 #include "controls/input.h"
 #include "controls/menu_controls.h"
 #include "engine/load_clx.hpp"

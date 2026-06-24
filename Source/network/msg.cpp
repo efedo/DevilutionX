@@ -25,7 +25,7 @@
 #include "support/encrypt.h"
 #endif
 
-#include "DiabloUI/diabloui.h"
+#include "menus/diabloui.h"
 #include "ui/automap.h"
 #include "config.h"
 #include "panel/control.hpp"

@@ -5,8 +5,8 @@
 #include <string>
 #include <vector>
 
-#include "DiabloUI/text_input.hpp"
-#include "DiabloUI/ui_flags.hpp"
+#include "menus/text_input.hpp"
+#include "menus/ui_flags.hpp"
 #include "engine/clx_sprite.hpp"
 #include "engine/render/text_render.hpp"
 #include "utils/enum_traits.h"

@@ -1,6 +1,6 @@
 #include <cstddef>
 
-#include "DiabloUI/credits_lines.h"
+#include "menus/credits_lines.h"
 #include "utils/language.h"
 
 namespace devilution {

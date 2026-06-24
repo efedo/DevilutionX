@@ -1,4 +1,4 @@
-#include "DiabloUI/text_input.hpp"
+#include "menus/text_input.hpp"
 
 #include <memory>
 #include <string>

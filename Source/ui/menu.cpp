@@ -14,8 +14,8 @@
 #include <SDL.h>
 #endif
 
-#include "DiabloUI/diabloui.h"
-#include "DiabloUI/settingsmenu.h"
+#include "menus/diabloui.h"
+#include "menus/settingsmenu.h"
 #include "engine/assets.hpp"
 #include "engine/demomode.h"
 #include "application/game_mode.hpp"

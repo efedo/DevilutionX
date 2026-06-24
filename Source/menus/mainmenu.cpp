@@ -11,9 +11,9 @@
 #include <SDL.h>
 #endif
 
-#include "DiabloUI/diabloui.h"
-#include "DiabloUI/ui_flags.hpp"
-#include "DiabloUI/ui_item.h"
+#include "menus/diabloui.h"
+#include "menus/ui_flags.hpp"
+#include "menus/ui_item.h"
 #include "engine/assets.hpp"
 #include "engine/load_clx.hpp"
 #include "engine/point.hpp"

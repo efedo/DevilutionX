@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DiabloUI/ui_item.h"
+#include "menus/ui_item.h"
 #include "engine/clx_sprite.hpp"
 
 namespace devilution {

@@ -14,7 +14,7 @@
 
 #include <function_ref.hpp>
 
-#include "DiabloUI/ui_item.h"
+#include "menus/ui_item.h"
 #include "engine/clx_sprite.hpp"
 #include "engine/load_pcx.hpp" // IWYU pragma: export
 #include "game/players/players.hpp"

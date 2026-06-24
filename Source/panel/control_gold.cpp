@@ -1,7 +1,7 @@
 #include "control.hpp"
 #include "control_chat.hpp"
 
-#include "DiabloUI/text_input.hpp"
+#include "menus/text_input.hpp"
 #include "engine/render/clx_render.hpp"
 #include "game/players/inv.hpp"
 #include "utils/display.h"

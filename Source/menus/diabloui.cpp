@@ -1,4 +1,4 @@
-#include "DiabloUI/diabloui.h"
+#include "menus/diabloui.h"
 
 #include <algorithm>
 #include <array>
@@ -23,11 +23,11 @@
 
 #include <function_ref.hpp>
 
-#include "DiabloUI/button.h"
-#include "DiabloUI/scrollbar.h"
-#include "DiabloUI/text_input.hpp"
-#include "DiabloUI/ui_flags.hpp"
-#include "DiabloUI/ui_item.h"
+#include "menus/button.h"
+#include "menus/scrollbar.h"
+#include "menus/text_input.hpp"
+#include "menus/ui_flags.hpp"
+#include "menus/ui_item.h"
 #include "application/appfat.h"
 #include "controls/control_mode.hpp"
 #include "controls/controller.h"

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DiabloUI/diabloui.h"
+#include "menus/diabloui.h"
 
 namespace devilution {
 

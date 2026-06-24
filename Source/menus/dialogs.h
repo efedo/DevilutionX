@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <string_view>
 
-#include "DiabloUI/ui_item.h"
+#include "menus/ui_item.h"
 
 namespace devilution {
 

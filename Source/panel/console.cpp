@@ -21,7 +21,7 @@
 #endif
 #endif
 
-#include "DiabloUI/text_input.hpp"
+#include "menus/text_input.hpp"
 #include "panel/control.hpp"
 #include "debug_overlay/imgui_overlay.hpp"
 #include "engine/assets.hpp"

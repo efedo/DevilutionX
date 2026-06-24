@@ -33,7 +33,7 @@
 #include <hal/video.h>
 #endif
 
-#include "DiabloUI/diabloui.h"
+#include "menus/diabloui.h"
 #include "config.h"
 #include "panel/control.hpp"
 #include "controls/controller.h"

@@ -17,10 +17,10 @@
 
 #include <function_ref.hpp>
 
-#include "DiabloUI/diabloui.h"
-#include "DiabloUI/scrollbar.h"
-#include "DiabloUI/ui_flags.hpp"
-#include "DiabloUI/ui_item.h"
+#include "menus/diabloui.h"
+#include "menus/scrollbar.h"
+#include "menus/ui_flags.hpp"
+#include "menus/ui_item.h"
 #include "controls/controller.h"
 #include "controls/controller_buttons.h"
 #include "controls/controller_motion.h"

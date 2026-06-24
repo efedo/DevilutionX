@@ -3,7 +3,7 @@
 #include <optional>
 #include <string_view>
 
-#include "DiabloUI/text_input.hpp"
+#include "menus/text_input.hpp"
 #include "engine/clx_sprite.hpp"
 #include "network/msg.h"
 #include "network/multi.h"

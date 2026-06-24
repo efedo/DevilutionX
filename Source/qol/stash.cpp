@@ -12,7 +12,7 @@
 
 #include <fmt/format.h>
 
-#include "DiabloUI/text_input.hpp"
+#include "menus/text_input.hpp"
 #include "panel/control.hpp"
 #include "controls/plrctrls.h"
 #include "engine/cursor.h"

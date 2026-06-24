@@ -7,7 +7,7 @@
 
 #include <string>
 
-#include "DiabloUI/ui_flags.hpp"
+#include "menus/ui_flags.hpp"
 #include "engine/displacement.hpp"
 #include "engine/point.hpp"
 #include "engine/surface.hpp"

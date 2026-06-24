@@ -9,7 +9,7 @@
 #include <string>
 #include <string_view>
 
-#include "DiabloUI/ui_flags.hpp"
+#include "menus/ui_flags.hpp"
 #include "engine/surface.hpp"
 #include "game/players/players.hpp"
 

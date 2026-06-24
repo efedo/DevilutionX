@@ -9,7 +9,7 @@
 
 #include <fmt/format.h>
 
-#include "DiabloUI/ui_flags.hpp"
+#include "menus/ui_flags.hpp"
 #include "panel/control.hpp"
 #include "engine/cursor.h"
 #include "data/file.hpp"

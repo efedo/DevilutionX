@@ -1,4 +1,4 @@
-#include "DiabloUI/dialogs.h"
+#include "menus/dialogs.h"
 
 #include <cstdint>
 #include <memory>
@@ -18,10 +18,10 @@
 #include <SDL.h>
 #endif
 
-#include "DiabloUI/button.h"
-#include "DiabloUI/diabloui.h"
-#include "DiabloUI/ui_flags.hpp"
-#include "DiabloUI/ui_item.h"
+#include "menus/button.h"
+#include "menus/diabloui.h"
+#include "menus/ui_flags.hpp"
+#include "menus/ui_item.h"
 #include "controls/input.h"
 #include "controls/menu_controls.h"
 #include "engine/clx_sprite.hpp"

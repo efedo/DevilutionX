@@ -1,6 +1,6 @@
 #include <cstddef>
 
-#include "DiabloUI/support_lines.h"
+#include "menus/support_lines.h"
 #include "utils/language.h"
 
 namespace devilution {

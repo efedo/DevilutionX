@@ -18,7 +18,7 @@
 #include <SDL.h>
 #endif
 
-#include "DiabloUI/ui_flags.hpp"
+#include "menus/ui_flags.hpp"
 #include "application/appfat.h"
 #include "panel/control.hpp"
 #include "controls/axis_direction.h"
