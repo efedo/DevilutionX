@@ -11,8 +11,8 @@
 
 #include <ankerl/unordered_dense.h>
 
-#include "net_transport/frame_queue.h"
-#include "net_transport/packet.h"
+#include "network/transport/frame_queue.h"
+#include "network/transport/packet.h"
 #include "utils/log.hpp"
 
 namespace devilution {

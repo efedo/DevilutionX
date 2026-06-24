@@ -7,7 +7,7 @@
 #include <sol/sol.hpp>
 
 #include "lua/metadoc.hpp"
-#include "network/msg.h"
+#include "network/protocol/msg.h"
 #include "game/spells/spells.hpp"
 #include "tables/spelldat.h"
 #include "utils/string/str_cat.hpp"

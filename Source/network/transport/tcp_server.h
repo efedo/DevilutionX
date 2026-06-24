@@ -21,10 +21,10 @@
 #include <asio/ts/net.hpp>
 #include <asio_handle_exception.hpp>
 
-#include "net_transport/abstract_net.h"
-#include "net_transport/frame_queue.h"
-#include "net_transport/packet.h"
-#include "network/multi.h"
+#include "network/transport/abstract_net.h"
+#include "network/transport/frame_queue.h"
+#include "network/transport/packet.h"
+#include "network/protocol/multi.h"
 
 namespace devilution::net {
 

@@ -8,7 +8,7 @@
 #include "engine/world.hpp"
 #include "engine/lighting.h"
 #include "game/missiles/missiles.hpp"
-#include "network/multi.h"
+#include "network/protocol/multi.h"
 #include "game/players/players.hpp"
 #include "tables/misdat.h"
 

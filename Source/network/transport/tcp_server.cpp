@@ -1,4 +1,4 @@
-#include "net_transport/tcp_server.h"
+#include "network/transport/tcp_server.h"
 
 #include <chrono>
 #include <functional>
@@ -7,7 +7,7 @@
 
 #include <expected.hpp>
 
-#include "net_transport/base.h"
+#include "network/transport/base.h"
 #include "game/players/players.hpp"
 #include "utils/log.hpp"
 

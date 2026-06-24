@@ -12,11 +12,11 @@
 #include "utils/sdl/sdl_mutex.h"
 #endif
 
-#include "net_transport/abstract_net.h"
+#include "network/transport/abstract_net.h"
 #include "engine/demomode.h"
 #include "application/headless_mode.hpp"
 #include "ui/menu.h"
-#include "network/multi.h"
+#include "network/protocol/multi.h"
 #include "persistence/options.h"
 #include "utils/log.hpp"
 #include "utils/stubs.h"

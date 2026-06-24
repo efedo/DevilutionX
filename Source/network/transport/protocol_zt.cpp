@@ -1,4 +1,4 @@
-#include "net_transport/protocol_zt.h"
+#include "network/transport/protocol_zt.h"
 
 #include <optional>
 #include <random>
@@ -21,7 +21,7 @@
 #include <lwip/sockets.h>
 #include <lwip/tcpip.h>
 
-#include "net_transport/zerotier_native.h"
+#include "network/transport/zerotier_native.h"
 #include "utils/log.hpp"
 
 namespace devilution {

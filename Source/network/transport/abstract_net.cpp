@@ -1,18 +1,18 @@
-#include "net_transport/abstract_net.h"
+#include "network/transport/abstract_net.h"
 
-#include "net_transport/loopback.h"
+#include "network/transport/loopback.h"
 #include "utils/stubs.h"
 
 #ifndef NONET
-#include "net_transport/cdwrap.h"
+#include "network/transport/cdwrap.h"
 
 #ifndef DISABLE_ZERO_TIER
-#include "net_transport/base_protocol.h"
-#include "net_transport/protocol_zt.h"
+#include "network/transport/base_protocol.h"
+#include "network/transport/protocol_zt.h"
 #endif
 
 #ifndef DISABLE_TCP
-#include "net_transport/tcp_client.h"
+#include "network/transport/tcp_client.h"
 #endif
 #endif
 

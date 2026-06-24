@@ -16,7 +16,7 @@
 #include "engine/cursor.h"
 #include "ui/diablo_msg.hpp"
 #include "application/game_mode.hpp"
-#include "network/multi.h"
+#include "network/protocol/multi.h"
 #include "utils/algorithm/container.hpp"
 #include "utils/is_of.hpp"
 #include "utils/language.h"

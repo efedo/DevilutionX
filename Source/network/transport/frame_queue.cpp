@@ -1,9 +1,9 @@
-#include "net_transport/frame_queue.h"
+#include "network/transport/frame_queue.h"
 
 #include <cstring>
 
 #include "application/appfat.h"
-#include "net_transport/packet.h"
+#include "network/transport/packet.h"
 #include "utils/attributes.h"
 #include "utils/endian/endian_read.hpp"
 #include "utils/endian/endian_write.hpp"

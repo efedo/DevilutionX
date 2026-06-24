@@ -53,7 +53,7 @@
 #include "lua/lua_event.hpp"
 #include "ui/minitext.h"
 #include "game/missiles/missiles.hpp"
-#include "network/nthread.h"
+#include "network/protocol/nthread.h"
 #include "persistence/options.h"
 #include "ui/panel/charpanel.hpp"
 #include "ui/panel/console.hpp"

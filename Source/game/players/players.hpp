@@ -27,7 +27,7 @@
 #include "items/validation.h"
 #include "game/levels/dun_tile.hpp"
 #include "game/levels/gendung.h"
-#include "network/multi.h"
+#include "network/protocol/multi.h"
 #include "tables/playerdat.hpp"
 #include "tables/spelldat.h"
 #include "utils/attributes.h"

@@ -24,7 +24,7 @@
 #include "ui/gmenu.h"
 #include "application/headless_mode.hpp"
 #include "ui/menu.h"
-#include "network/nthread.h"
+#include "network/protocol/nthread.h"
 #include "persistence/options.h"
 #include "persistence/pfile.h"
 #include "utils/console.h"

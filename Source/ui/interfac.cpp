@@ -38,7 +38,7 @@
 #include "application/headless_mode.hpp"
 #include "engine/hwcursor.hpp"
 #include "persistence/loadsave.h"
-#include "network/multi.h"
+#include "network/protocol/multi.h"
 #include "persistence/pfile.h"
 #include "ui/plrmsg.h"
 #include "utils/log.hpp"

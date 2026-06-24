@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "network/multi.h"
+#include "network/protocol/multi.h"
 
 namespace devilution {
 

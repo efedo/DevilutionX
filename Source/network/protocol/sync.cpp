@@ -1,9 +1,9 @@
 /**
- * @file network/sync.cpp
+ * @file network/protocol/sync.cpp
  *
  * Implementation of functionality for syncing game state with other players.
  */
-#include "network/sync.h"
+#include "network/protocol/sync.h"
 #include <cstdint>
 
 #include <limits>

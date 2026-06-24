@@ -24,14 +24,14 @@ set(libdevilutionx_SRCS
   ui/minitext.cpp
   game/missiles/missiles.cpp
   ui/movie.cpp
-  network/msg.cpp
-  network/nthread.cpp
+  network/protocol/msg.cpp
+  network/protocol/nthread.cpp
   persistence/pfile.cpp
   ui/plrmsg.cpp
   game/portals/portal.cpp
   application/restrict.cpp
-  network/sync.cpp
-  network/tmsg.cpp
+  network/protocol/sync.cpp
+  network/protocol/tmsg.cpp
   game/towners/towners.cpp
   engine/track.cpp
 
@@ -72,12 +72,12 @@ set(libdevilutionx_SRCS
   ui/menu/title.cpp
   ui/menu/text_input.cpp
 
-  net_transport/abstract_net.cpp
-  net_transport/base.cpp
-  net_transport/cdwrap.cpp
-  net_transport/frame_queue.cpp
-  net_transport/loopback.cpp
-  net_transport/packet.cpp
+  network/transport/abstract_net.cpp
+  network/transport/base.cpp
+  network/transport/cdwrap.cpp
+  network/transport/frame_queue.cpp
+  network/transport/loopback.cpp
+  network/transport/packet.cpp
 
   engine/actor_position.cpp
   engine/animationinfo.cpp
@@ -616,7 +616,7 @@ else()
 endif()
 
 add_devilutionx_object_library(libdevilutionx_multiplayer
-  network/multi.cpp
+  network/protocol/multi.cpp
   persistence/pack.cpp
 )
 target_link_dependencies(libdevilutionx_multiplayer PUBLIC
@@ -862,14 +862,14 @@ endif()
 if(NOT NONET)
   if(NOT DISABLE_TCP)
     list(APPEND libdevilutionx_SRCS
-      net_transport/tcp_client.cpp
-      net_transport/tcp_server.cpp)
+      network/transport/tcp_client.cpp
+      network/transport/tcp_server.cpp)
   endif()
   if(NOT DISABLE_ZERO_TIER)
     list(APPEND libdevilutionx_SRCS
-      net_transport/protocol_zt.cpp
-      net_transport/zerotier_native.cpp
-      net_transport/zerotier_lwip.cpp)
+      network/transport/protocol_zt.cpp
+      network/transport/zerotier_native.cpp
+      network/transport/zerotier_lwip.cpp)
   endif()
 endif()
 

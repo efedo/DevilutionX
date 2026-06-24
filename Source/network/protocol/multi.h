@@ -9,8 +9,8 @@
 #include <string>
 #include <vector>
 
-#include "net_transport/leaveinfo.hpp"
-#include "network/msg.h"
+#include "network/transport/leaveinfo.hpp"
+#include "network/protocol/msg.h"
 #include "utils/attributes.h"
 
 namespace devilution {

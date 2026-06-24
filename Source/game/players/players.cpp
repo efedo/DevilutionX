@@ -47,7 +47,7 @@
 #include "game/monsters/monsters.hpp"
 #include "game/monsters/monster_pool.hpp"
 #include "game/items/item_pool.hpp"
-#include "network/nthread.h"
+#include "network/protocol/nthread.h"
 #include "game/objects/objects.hpp"
 #include "game/objects/object_pool.hpp"
 #include "persistence/options.h"

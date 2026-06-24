@@ -1,9 +1,9 @@
 /**
- * @file network/nthread.cpp
+ * @file network/protocol/nthread.cpp
  *
  * Implementation of functions for managing game ticks.
  */
-#include "network/nthread.h"
+#include "network/protocol/nthread.h"
 
 #include <cstddef>
 #include <cstdint>

@@ -13,7 +13,7 @@
 #include "game/levels/drlg_l4.h"
 #include "game/levels/gendung.h"
 #include "game/levels/trigs.h"
-#include "network/msg.h"
+#include "network/protocol/msg.h"
 #include "game/objects/objects.hpp"
 #include "game/quests/quests.hpp"
 #include "tables/objdat.h"

@@ -31,7 +31,7 @@
 #include "engine/render/text_render.hpp"
 #include "game/levels/gendung.h"
 #include "ui/menu.h"
-#include "network/multi.h"
+#include "network/protocol/multi.h"
 #include "persistence/options.h"
 #include "storm/storm_net.hpp"
 #include "utils/language.h"

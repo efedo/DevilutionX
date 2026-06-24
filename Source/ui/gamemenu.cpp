@@ -20,7 +20,7 @@
 #include "ui/gmenu.h"
 #include "application/headless_mode.hpp"
 #include "persistence/loadsave.h"
-#include "network/multi.h"
+#include "network/protocol/multi.h"
 #include "persistence/options.h"
 #include "persistence/pfile.h"
 #include "qol/floatingnumbers.h"

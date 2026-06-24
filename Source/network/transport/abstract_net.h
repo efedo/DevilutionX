@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "network/multi.h"
+#include "network/protocol/multi.h"
 #include "storm/storm_net.hpp"
 
 namespace devilution::net {

@@ -9,7 +9,7 @@
 #include <cstdint>
 
 #include "game/items/items.hpp"
-#include "network/msg.h"
+#include "network/protocol/msg.h"
 #include "game/players/players.hpp"
 #include "game/spells/spells.hpp"
 #include "tables/monstdat.h"

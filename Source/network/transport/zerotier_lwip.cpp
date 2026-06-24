@@ -1,11 +1,11 @@
-#include "net_transport/zerotier_lwip.h"
+#include "network/transport/zerotier_lwip.h"
 
 #include <lwip/igmp.h>
 #include <lwip/mld6.h>
 #include <lwip/sockets.h>
 #include <lwip/tcpip.h>
 
-#include "net_transport/zerotier_native.h"
+#include "network/transport/zerotier_native.h"
 #include "utils/log.hpp"
 
 namespace devilution {

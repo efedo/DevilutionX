@@ -9,7 +9,7 @@
 
 #include "game/players/inv.hpp"
 #include "game/items/items.hpp"
-#include "network/msg.h"
+#include "network/protocol/msg.h"
 #include "game/players/players.hpp"
 
 namespace devilution {

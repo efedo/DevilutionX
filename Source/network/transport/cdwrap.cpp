@@ -1,4 +1,4 @@
-#include "net_transport/cdwrap.h"
+#include "network/transport/cdwrap.h"
 
 namespace devilution::net {
 

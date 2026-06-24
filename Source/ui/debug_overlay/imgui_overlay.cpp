@@ -35,7 +35,7 @@
 #include "game/levels/tile_properties.hpp"
 #include "engine/lighting.h"
 #include "game/monsters/monsters.hpp"
-#include "network/multi.h"
+#include "network/protocol/multi.h"
 #include "game/objects/objects.hpp"
 #include "ui/panel/console.hpp"
 #include "utils/display.h"

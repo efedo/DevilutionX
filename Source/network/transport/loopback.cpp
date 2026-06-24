@@ -1,8 +1,8 @@
-#include "net_transport/loopback.h"
+#include "network/transport/loopback.h"
 
 #include <cstdint>
 
-#include "network/multi.h"
+#include "network/protocol/multi.h"
 #include "game/players/players.hpp"
 #include "utils/language.h"
 #include "utils/stubs.h"

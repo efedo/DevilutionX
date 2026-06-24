@@ -18,10 +18,10 @@
 #include <asio/ts/net.hpp>
 #include <asio_handle_exception.hpp>
 
-#include "net_transport/base.h"
-#include "net_transport/frame_queue.h"
-#include "net_transport/packet.h"
-#include "net_transport/tcp_server.h"
+#include "network/transport/base.h"
+#include "network/transport/frame_queue.h"
+#include "network/transport/packet.h"
+#include "network/transport/tcp_server.h"
 
 namespace devilution::net {
 

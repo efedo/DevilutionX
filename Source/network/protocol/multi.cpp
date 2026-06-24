@@ -1,9 +1,9 @@
 /**
- * @file network/multi.cpp
+ * @file network/protocol/multi.cpp
  *
  * Implementation of functions for keeping multiplaye games in sync.
  */
-#include "network/multi.h"
+#include "network/protocol/multi.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -30,8 +30,8 @@
 #include "application/game_mode.hpp"
 #include "ui/menu.h"
 #include "game/monsters/monsters.hpp"
-#include "network/msg.h"
-#include "network/nthread.h"
+#include "network/protocol/msg.h"
+#include "network/protocol/nthread.h"
 #include "persistence/options.h"
 #include "persistence/pfile.h"
 #include "game/players/players.hpp"
@@ -39,8 +39,8 @@
 #include "ui/plrmsg.h"
 #include "qol/chatlog.h"
 #include "storm/storm_net.hpp"
-#include "network/sync.h"
-#include "network/tmsg.h"
+#include "network/protocol/sync.h"
+#include "network/protocol/tmsg.h"
 #include "utils/endian/endian_read.hpp"
 #include "utils/endian/endian_swap.hpp"
 #include "utils/is_of.hpp"

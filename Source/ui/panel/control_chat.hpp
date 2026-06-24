@@ -5,8 +5,8 @@
 
 #include "ui/menu/text_input.hpp"
 #include "engine/gfx/clx_sprite.hpp"
-#include "network/msg.h"
-#include "network/multi.h"
+#include "network/protocol/msg.h"
+#include "network/protocol/multi.h"
 
 #ifdef USE_SDL3
 #include <SDL3/SDL_events.h>

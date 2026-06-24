@@ -10,7 +10,7 @@
 #include <cstdint>
 
 #include "application/appfat.h"
-#include "network/nthread.h"
+#include "network/protocol/nthread.h"
 #include "utils/log.hpp"
 
 namespace devilution {

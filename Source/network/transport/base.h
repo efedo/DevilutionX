@@ -8,9 +8,9 @@
 
 #include <ankerl/unordered_dense.h>
 
-#include "net_transport/abstract_net.h"
-#include "net_transport/packet.h"
-#include "network/multi.h"
+#include "network/transport/abstract_net.h"
+#include "network/transport/packet.h"
+#include "network/protocol/multi.h"
 #include "storm/storm_net.hpp"
 
 namespace devilution {

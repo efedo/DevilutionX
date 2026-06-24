@@ -10,7 +10,7 @@
 #include "application/game_mode.hpp"
 #include "game/levels/drlg_l1.h"
 #include "game/levels/trigs.h"
-#include "network/multi.h"
+#include "network/protocol/multi.h"
 #include "game/players/players.hpp"
 #include "game/quests/quests.hpp"
 #include "utils/endian/endian_swap.hpp"

@@ -1,9 +1,9 @@
 /**
- * @file network/msg.cpp
+ * @file network/protocol/msg.cpp
  *
  * Implementation of function for sending and receiving network messages.
  */
-#include "network/msg.h"
+#include "network/protocol/msg.h"
 
 #include <climits>
 #include <cmath>
@@ -44,7 +44,7 @@
 #include "game/monsters/monster_pool.hpp"
 #include "game/items/item_pool.hpp"
 #include "monsters/validation.hpp"
-#include "network/nthread.h"
+#include "network/protocol/nthread.h"
 #include "game/objects/objects.hpp"
 #include "game/objects/object_pool.hpp"
 #include "persistence/options.h"
@@ -57,8 +57,8 @@
 #include "game/quests/validation.hpp"
 #include "game/spells/spells.hpp"
 #include "storm/storm_net.hpp"
-#include "network/sync.h"
-#include "network/tmsg.h"
+#include "network/protocol/sync.h"
+#include "network/protocol/tmsg.h"
 #include "game/towners/towners.hpp"
 #include "utils/endian/endian_swap.hpp"
 #include "utils/is_of.hpp"

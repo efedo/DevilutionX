@@ -1,4 +1,4 @@
-#include "net_transport/zerotier_native.h"
+#include "network/transport/zerotier_native.h"
 
 #include <atomic>
 
@@ -40,7 +40,7 @@
 #include "utils/log.hpp"
 #include "utils/paths.h"
 
-#include "net_transport/zerotier_lwip.h"
+#include "network/transport/zerotier_lwip.h"
 
 namespace devilution {
 namespace net {

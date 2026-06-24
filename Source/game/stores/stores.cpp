@@ -27,7 +27,7 @@
 #include "application/game_mode.hpp"
 #include "lua/lua_event.hpp"
 #include "ui/minitext.h"
-#include "network/multi.h"
+#include "network/protocol/multi.h"
 #include "persistence/options.h"
 #include "ui/panel/info_box.hpp"
 #include "qol/stash.h"
