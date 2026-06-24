@@ -1,3 +1,10 @@
+/**
+ * @file ui/menu/button.cpp
+ *
+ * Implementation of menu button widget.
+ */
+
+
 #include "ui/menu/button.h"
 
 #include <optional>

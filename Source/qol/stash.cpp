@@ -1,3 +1,10 @@
+/**
+ * @file qol/stash.cpp
+ *
+ * Implementation of stash functionality.
+ */
+
+
 #include "qol/stash.h"
 
 #include <algorithm>

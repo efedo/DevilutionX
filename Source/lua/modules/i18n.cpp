@@ -1,3 +1,10 @@
+/**
+ * @file lua/modules/i18n.cpp
+ *
+ * Implementation of i18n.
+ */
+
+
 #include "lua/modules/i18n.hpp"
 
 #include <string_view>

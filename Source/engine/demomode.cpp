@@ -1,3 +1,10 @@
+/**
+ * @file engine/demomode.cpp
+ *
+ * Implementation of demo recording and playback.
+ */
+
+
 #include "engine/demomode.h"
 
 #include <cstdint>

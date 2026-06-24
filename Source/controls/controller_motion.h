@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file controls/controller_motion.h
+ *
+ * Interface for controller motion input.
+ */
+
+
 // Processes and stores mouse and joystick motion.
 
 #ifdef USE_SDL3

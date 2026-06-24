@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file ui/panel/ui_panels.hpp
+ *
+ * Interface for panel type definitions.
+ */
+
+
 #include <cstdint>
 
 namespace devilution {

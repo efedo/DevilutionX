@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file ui/debug_overlay/overlay_state.hpp
+ *
+ * Interface for debug overlay state.
+ */
+
+
 #include <cstddef>
 #include <cstdint>
 #include <optional>

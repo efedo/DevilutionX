@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file engine/math/size.hpp
+ *
+ * Interface for size type.
+ */
+
+
 #include "utils/attributes.h"
 
 #ifdef BUILD_TESTING

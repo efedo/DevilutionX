@@ -1,3 +1,10 @@
+/**
+ * @file qol/itemlabels.cpp
+ *
+ * Implementation of item label rendering.
+ */
+
+
 #include "itemlabels.h"
 
 #include <algorithm>

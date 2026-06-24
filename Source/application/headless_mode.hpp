@@ -1,3 +1,10 @@
+/**
+ * @file application/headless_mode.hpp
+ *
+ * Interface for headless mode support.
+ */
+
+
 #pragma once
 
 #include "utils/attributes.h"

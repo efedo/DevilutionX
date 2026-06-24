@@ -1,3 +1,10 @@
+/**
+ * @file engine/render/light_render.cpp
+ *
+ * Implementation of lighting rendering.
+ */
+
+
 #include "engine/render/light_render.hpp"
 
 #include <algorithm>

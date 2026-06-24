@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file controls/axis_direction.h
+ *
+ * Interface for axis-to-direction mapping.
+ */
+
+
 #include <cstdint>
 
 namespace devilution {

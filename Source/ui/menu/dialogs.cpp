@@ -1,3 +1,10 @@
+/**
+ * @file ui/menu/dialogs.cpp
+ *
+ * Implementation of menu dialog screens.
+ */
+
+
 #include "ui/menu/dialogs.h"
 
 #include <cstdint>

@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/image/clx_decode.hpp
+ *
+ * Interface for CLX format decoding.
+ */
+
+
 #include <cstdint>
 
 #include "application/appfat.h"

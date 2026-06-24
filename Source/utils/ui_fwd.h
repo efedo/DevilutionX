@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/ui_fwd.h
+ *
+ * Interface for UI forward declarations.
+ */
+
+
 #include <cstdint>
 
 #include "engine/math/rectangle.hpp"

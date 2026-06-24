@@ -1,3 +1,10 @@
+/**
+ * @file engine/lighting_defs.hpp
+ *
+ * Interface for lighting defs.
+ */
+
+
 #pragma once
 
 #include <cstddef>

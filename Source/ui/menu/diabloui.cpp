@@ -1,3 +1,10 @@
+/**
+ * @file ui/menu/diabloui.cpp
+ *
+ * Implementation of Diablo UI core.
+ */
+
+
 #include "ui/menu/diabloui.h"
 
 #include <algorithm>

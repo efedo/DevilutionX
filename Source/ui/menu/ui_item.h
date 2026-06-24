@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file ui/menu/ui_item.h
+ *
+ * Interface for UI item type definitions.
+ */
+
+
 #include <cstddef>
 #include <cstdint>
 #include <string>

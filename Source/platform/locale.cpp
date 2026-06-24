@@ -1,3 +1,10 @@
+/**
+ * @file platform/locale.cpp
+ *
+ * Implementation of locale.
+ */
+
+
 #include "locale.hpp"
 
 #include <algorithm>

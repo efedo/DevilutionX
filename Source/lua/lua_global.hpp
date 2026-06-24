@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file lua/lua_global.hpp
+ *
+ * Interface for lua global.
+ */
+
+
 #include <string_view>
 
 #include <expected.hpp>

@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file engine/gfx/backbuffer_state.hpp
+ *
+ * Interface for backbuffer state management.
+ */
+
+
 #include <cstdint>
 
 #include "engine/math/rectangle.hpp"

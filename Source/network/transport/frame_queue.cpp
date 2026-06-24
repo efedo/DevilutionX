@@ -1,3 +1,10 @@
+/**
+ * @file network/transport/frame_queue.cpp
+ *
+ * Implementation of network frame queuing.
+ */
+
+
 #include "network/transport/frame_queue.h"
 
 #include <cstring>

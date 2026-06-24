@@ -1,3 +1,10 @@
+/**
+ * @file lua/autocomplete.cpp
+ *
+ * Implementation of autocomplete.
+ */
+
+
 #ifdef _DEBUG
 #include "lua/autocomplete.hpp"
 

@@ -1,3 +1,10 @@
+/**
+ * @file engine/math/direction.cpp
+ *
+ * Implementation of direction enumeration.
+ */
+
+
 #include "engine/math/direction.hpp"
 
 namespace devilution {

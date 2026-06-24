@@ -1,3 +1,10 @@
+/**
+ * @file ui/menu/settingsmenu.cpp
+ *
+ * Implementation of settings menu.
+ */
+
+
 #include <algorithm>
 #include <cassert>
 #include <cstddef>

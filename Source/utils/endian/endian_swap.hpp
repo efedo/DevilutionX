@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/endian/endian_swap.hpp
+ *
+ * Interface for byte order swapping.
+ */
+
+
 #include <cstdint>
 
 #ifdef USE_SDL3

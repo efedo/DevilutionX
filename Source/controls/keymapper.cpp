@@ -1,3 +1,10 @@
+/**
+ * @file controls/keymapper.cpp
+ *
+ * Implementation of key mapping configuration.
+ */
+
+
 #include "controls/keymapper.hpp"
 
 #include <cstdint>

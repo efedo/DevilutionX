@@ -1,3 +1,10 @@
+/**
+ * @file controls/touch/renderers.cpp
+ *
+ * Implementation of renderers.
+ */
+
+
 #include "controls/touch/renderers.h"
 
 #ifdef USE_SDL3

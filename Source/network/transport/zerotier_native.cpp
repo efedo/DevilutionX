@@ -1,3 +1,10 @@
+/**
+ * @file network/transport/zerotier_native.cpp
+ *
+ * Implementation of ZeroTier native integration.
+ */
+
+
 #include "network/transport/zerotier_native.h"
 
 #include <atomic>

@@ -1,4 +1,11 @@
 #pragma once
+/**
+ * @file lua/modules/dev/items.hpp
+ *
+ * Interface for items.
+ */
+
+
 #ifdef _DEBUG
 #include <sol/sol.hpp>
 

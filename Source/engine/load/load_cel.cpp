@@ -1,3 +1,10 @@
+/**
+ * @file engine/load/load_cel.cpp
+ *
+ * Implementation of CEL sprite loading.
+ */
+
+
 #include "engine/load/load_cel.hpp"
 
 #include <cstddef>

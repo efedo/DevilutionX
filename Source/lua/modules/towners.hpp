@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file lua/modules/towners.hpp
+ *
+ * Interface for towners.
+ */
+
+
 #include <sol/sol.hpp>
 
 namespace devilution {

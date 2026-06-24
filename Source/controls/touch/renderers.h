@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file controls/touch/renderers.h
+ *
+ * Interface for renderers.
+ */
+
+
 #include <cstdint>
 #include <optional>
 

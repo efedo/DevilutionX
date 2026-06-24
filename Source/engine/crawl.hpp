@@ -1,3 +1,10 @@
+/**
+ * @file engine/crawl.hpp
+ *
+ * Interface for crawl table iteration.
+ */
+
+
 #include <type_traits>
 
 #include <function_ref.hpp>

@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file network/transport/base.h
+ *
+ * Interface for base network transport.
+ */
+
+
 #include <array>
 #include <cstdint>
 #include <deque>

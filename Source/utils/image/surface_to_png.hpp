@@ -1,3 +1,10 @@
+/**
+ * @file utils/image/surface_to_png.hpp
+ *
+ * Interface for surface to PNG conversion.
+ */
+
+
 #include <cstdio>
 #include <string>
 

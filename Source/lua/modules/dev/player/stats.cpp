@@ -1,3 +1,10 @@
+/**
+ * @file lua/modules/dev/player/stats.cpp
+ *
+ * Implementation of stats.
+ */
+
+
 #ifdef _DEBUG
 #include "lua/modules/dev/player/stats.hpp"
 

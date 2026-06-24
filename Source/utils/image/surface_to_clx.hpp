@@ -1,3 +1,10 @@
+/**
+ * @file utils/image/surface_to_clx.hpp
+ *
+ * Interface for surface to CLX conversion.
+ */
+
+
 #pragma once
 
 #include <cstdint>

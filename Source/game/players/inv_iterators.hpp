@@ -1,3 +1,10 @@
+/**
+ * @file game/players/inv_iterators.hpp
+ *
+ * Interface for inv iterators.
+ */
+
+
 #pragma once
 
 #include <cstddef>

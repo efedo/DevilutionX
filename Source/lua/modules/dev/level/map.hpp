@@ -1,4 +1,11 @@
 #pragma once
+/**
+ * @file lua/modules/dev/level/map.hpp
+ *
+ * Interface for map.
+ */
+
+
 #ifdef _DEBUG
 #include <sol/sol.hpp>
 

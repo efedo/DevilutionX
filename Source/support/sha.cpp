@@ -1,3 +1,10 @@
+/**
+ * @file support/sha.cpp
+ *
+ * Implementation of SHA hashing.
+ */
+
+
 #include "support/sha.h"
 
 #include <cstdint>

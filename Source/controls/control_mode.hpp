@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file controls/control_mode.hpp
+ *
+ * Interface for control mode management.
+ */
+
+
 #include <cstdint>
 
 #include "controls/controller_buttons.h"

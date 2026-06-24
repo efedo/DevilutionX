@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/stdcompat/shared_ptr_array.hpp
+ *
+ * Interface for shared_ptr array compatibility.
+ */
+
+
 #include <cstddef>
 #include <memory>
 

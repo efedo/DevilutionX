@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file engine/vision.hpp
+ *
+ * Interface for field-of-view and vision calculations.
+ */
+
+
 #include <cstdint>
 
 #include <function_ref.hpp>

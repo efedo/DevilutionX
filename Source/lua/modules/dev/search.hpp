@@ -1,4 +1,11 @@
 #pragma once
+/**
+ * @file lua/modules/dev/search.hpp
+ *
+ * Interface for search.
+ */
+
+
 #ifdef _DEBUG
 #include <sol/sol.hpp>
 

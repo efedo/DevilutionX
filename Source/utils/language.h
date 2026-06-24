@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/language.h
+ *
+ * Interface for language and localization.
+ */
+
+
 #include <string>
 #include <string_view>
 

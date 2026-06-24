@@ -1,3 +1,10 @@
+/**
+ * @file ui/menu/multi/selconn.cpp
+ *
+ * Implementation of connection type selection.
+ */
+
+
 #include <cstddef>
 #include <memory>
 #include <optional>

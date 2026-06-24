@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file network/transport/cdwrap.h
+ *
+ * Interface for CD wrapper network transport.
+ */
+
+
 #include <cstdint>
 #include <exception>
 #include <memory>

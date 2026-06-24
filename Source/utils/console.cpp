@@ -1,3 +1,10 @@
+/**
+ * @file utils/console.cpp
+ *
+ * Implementation of debug console.
+ */
+
+
 #include "./console.h"
 
 #if defined(_WIN32) && !defined(DEVILUTIONX_WINDOWS_NO_WCHAR)

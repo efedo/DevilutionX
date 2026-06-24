@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file engine/math/point.hpp
+ *
+ * Interface for point class.
+ */
+
+
 #include <algorithm>
 #include <cmath>
 #include <type_traits>

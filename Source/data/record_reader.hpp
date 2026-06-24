@@ -1,3 +1,10 @@
+/**
+ * @file data/record_reader.hpp
+ *
+ * Interface for record reading from data files.
+ */
+
+
 #pragma once
 
 #include <array>

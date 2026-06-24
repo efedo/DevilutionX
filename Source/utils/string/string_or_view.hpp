@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/string/string_or_view.hpp
+ *
+ * Interface for string or string_view type.
+ */
+
+
 #include <string>
 #include <string_view>
 #include <utility>

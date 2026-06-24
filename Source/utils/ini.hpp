@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/ini.hpp
+ *
+ * Interface for INI file parsing.
+ */
+
+
 #include <cstddef>
 #include <cstdint>
 #include <optional>

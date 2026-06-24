@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/image/png.h
+ *
+ * Interface for PNG image format.
+ */
+
+
 #ifdef USE_SDL3
 #include <SDL3/SDL_iostream.h>
 #include <SDL3_image/SDL_image.h>

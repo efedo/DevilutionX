@@ -1,4 +1,11 @@
 #pragma once
+/**
+ * @file lua/modules/dev/quests.hpp
+ *
+ * Interface for quests.
+ */
+
+
 #ifdef _DEBUG
 #include <sol/sol.hpp>
 

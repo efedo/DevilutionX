@@ -1,3 +1,10 @@
+/**
+ * @file game/levels/dun_tile.hpp
+ *
+ * Interface for dun tile.
+ */
+
+
 #pragma once
 
 #include <cstdint>

@@ -1,3 +1,10 @@
+/**
+ * @file engine/load/load_clx.cpp
+ *
+ * Implementation of CLX sprite loading.
+ */
+
+
 #include "engine/load/load_clx.hpp"
 
 #include <cstddef>

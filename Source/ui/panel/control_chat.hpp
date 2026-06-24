@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file ui/panel/control_chat.hpp
+ *
+ * Interface for chat control.
+ */
+
+
 #include <optional>
 #include <string_view>
 

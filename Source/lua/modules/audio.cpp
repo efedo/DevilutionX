@@ -1,3 +1,10 @@
+/**
+ * @file lua/modules/audio.cpp
+ *
+ * Implementation of audio.
+ */
+
+
 #include "lua/modules/audio.hpp"
 
 #include <magic_enum/magic_enum.hpp>

@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file lua/modules/system.hpp
+ *
+ * Interface for system.
+ */
+
+
 #include <sol/sol.hpp>
 
 namespace devilution {

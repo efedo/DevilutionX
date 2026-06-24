@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file engine/math/rectangle.hpp
+ *
+ * Interface for rectangle geometry.
+ */
+
+
 #include "engine/math/point.hpp"
 #include "engine/math/size.hpp"
 #include "utils/attributes.h"

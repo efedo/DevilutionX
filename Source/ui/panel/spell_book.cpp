@@ -1,3 +1,10 @@
+/**
+ * @file ui/panel/spell_book.cpp
+ *
+ * Implementation of spell book.
+ */
+
+
 #include "ui/panel/spell_book.hpp"
 
 #include <cstdint>

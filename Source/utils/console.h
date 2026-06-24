@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/console.h
+ *
+ * Interface for debug console.
+ */
+
+
 #include <cstdarg>
 #include <cstddef>
 #include <string_view>

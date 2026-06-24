@@ -1,3 +1,10 @@
+/**
+ * @file utils/paths.cpp
+ *
+ * Implementation of file path management.
+ */
+
+
 #include "utils/paths.h"
 
 #include <optional>

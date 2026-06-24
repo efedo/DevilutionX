@@ -1,3 +1,10 @@
+/**
+ * @file lua/modules/dev.cpp
+ *
+ * Implementation of dev.
+ */
+
+
 #ifdef _DEBUG
 #include "lua/modules/dev.hpp"
 

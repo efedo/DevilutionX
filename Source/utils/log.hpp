@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/log.hpp
+ *
+ * Interface for logging system.
+ */
+
+
 #include <string_view>
 
 #ifdef USE_SDL3

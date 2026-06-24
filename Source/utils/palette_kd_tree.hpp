@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/palette_kd_tree.hpp
+ *
+ * Interface for palette KD-tree for color matching.
+ */
+
+
 #include <array>
 #include <cstddef>
 #include <cstdint>

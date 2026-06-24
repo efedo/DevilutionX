@@ -1,3 +1,10 @@
+/**
+ * @file lua/modules/dev/quests.cpp
+ *
+ * Implementation of quests.
+ */
+
+
 #ifdef _DEBUG
 #include "lua/modules/dev/quests.hpp"
 

@@ -1,3 +1,10 @@
+/**
+ * @file utils/push_aulib_decoder.cpp
+ *
+ * Implementation of audio decoder push source.
+ */
+
+
 #include "push_aulib_decoder.h"
 
 #include <algorithm>

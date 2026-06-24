@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file game/levels/reencode_dun_cels.hpp
+ *
+ * Interface for reencode dun cels.
+ */
+
+
 #include <cstddef>
 #include <cstdint>
 #include <memory>

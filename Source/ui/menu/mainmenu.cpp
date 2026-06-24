@@ -1,3 +1,10 @@
+/**
+ * @file ui/menu/mainmenu.cpp
+ *
+ * Implementation of main menu screen.
+ */
+
+
 #include <cstddef>
 #include <cstdint>
 #include <memory>

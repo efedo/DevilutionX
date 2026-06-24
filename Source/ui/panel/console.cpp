@@ -1,3 +1,10 @@
+/**
+ * @file ui/panel/console.cpp
+ *
+ * Implementation of debug console.
+ */
+
+
 #ifdef _DEBUG
 #include "ui/panel/console.hpp"
 

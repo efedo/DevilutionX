@@ -1,3 +1,10 @@
+/**
+ * @file support/codec.cpp
+ *
+ * Implementation of data encoding and decoding.
+ */
+
+
 #include "support/codec.h"
 #include <algorithm>
 #include <cstddef>

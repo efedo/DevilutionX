@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file platform/ctr/asio/include/sys/socket.h
+ *
+ * Interface for socket.
+ */
+
+
 #include_next <sys/socket.h>
 
 #define SO_DEBUG 0

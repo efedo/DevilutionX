@@ -1,3 +1,10 @@
+/**
+ * @file engine/events.cpp
+ *
+ * Implementation of event handling.
+ */
+
+
 #include "engine/events.hpp"
 
 #include <cstdint>

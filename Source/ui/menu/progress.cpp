@@ -1,3 +1,10 @@
+/**
+ * @file ui/menu/progress.cpp
+ *
+ * Implementation of progress indicator.
+ */
+
+
 #include <memory>
 #include <optional>
 #include <vector>

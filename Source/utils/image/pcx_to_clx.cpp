@@ -1,3 +1,10 @@
+/**
+ * @file utils/image/pcx_to_clx.cpp
+ *
+ * Implementation of PCX to CLX format conversion.
+ */
+
+
 #include "utils/image/pcx_to_clx.hpp"
 
 #include <cstddef>

@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file data/mpq/mpq_reader.hpp
+ *
+ * Interface for MPQ archive reading.
+ */
+
+
 #include <cstddef>
 #include <cstdint>
 #include <memory>

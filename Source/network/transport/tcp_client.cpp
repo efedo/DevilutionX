@@ -1,3 +1,10 @@
+/**
+ * @file network/transport/tcp_client.cpp
+ *
+ * Implementation of TCP client transport.
+ */
+
+
 #include "network/transport/tcp_client.h"
 
 #include <exception>

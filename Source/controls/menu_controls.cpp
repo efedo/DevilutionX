@@ -1,3 +1,10 @@
+/**
+ * @file controls/menu_controls.cpp
+ *
+ * Implementation of menu control handling.
+ */
+
+
 #include "controls/menu_controls.h"
 
 #ifdef USE_SDL3

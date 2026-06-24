@@ -1,3 +1,10 @@
+/**
+ * @file ui/menu/title.cpp
+ *
+ * Implementation of title screen.
+ */
+
+
 #include <memory>
 #include <optional>
 #include <vector>

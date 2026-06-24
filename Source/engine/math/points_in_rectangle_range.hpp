@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file engine/math/points_in_rectangle_range.hpp
+ *
+ * Interface for rectangle point iteration.
+ */
+
+
 #include <iterator>
 
 #include "engine/math/point.hpp"

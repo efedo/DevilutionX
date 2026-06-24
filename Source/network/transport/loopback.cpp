@@ -1,3 +1,10 @@
+/**
+ * @file network/transport/loopback.cpp
+ *
+ * Implementation of loopback network transport.
+ */
+
+
 #include "network/transport/loopback.h"
 
 #include <cstdint>

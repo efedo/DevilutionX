@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file lua/lua_event.hpp
+ *
+ * Interface for lua event.
+ */
+
+
 #include <cstdint>
 #include <string_view>
 

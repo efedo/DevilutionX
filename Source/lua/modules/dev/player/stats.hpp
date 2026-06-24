@@ -1,4 +1,11 @@
 #pragma once
+/**
+ * @file lua/modules/dev/player/stats.hpp
+ *
+ * Interface for stats.
+ */
+
+
 #ifdef _DEBUG
 #include <sol/sol.hpp>
 

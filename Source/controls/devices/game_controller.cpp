@@ -1,3 +1,10 @@
+/**
+ * @file controls/devices/game_controller.cpp
+ *
+ * Implementation of game controller device.
+ */
+
+
 #include "controls/devices/game_controller.h"
 
 #include <cstddef>

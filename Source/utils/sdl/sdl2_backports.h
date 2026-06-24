@@ -1,4 +1,11 @@
 #pragma once
+/**
+ * @file utils/sdl/sdl2_backports.h
+ *
+ * Interface for sdl2 backports.
+ */
+
+
 // Backports for older versions of SDL 2.
 
 #include <SDL.h>

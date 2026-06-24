@@ -1,3 +1,10 @@
+/**
+ * @file lua/modules/dev/player/gold.cpp
+ *
+ * Implementation of gold.
+ */
+
+
 #ifdef _DEBUG
 #include "lua/modules/dev/player/gold.hpp"
 

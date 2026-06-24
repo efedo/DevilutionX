@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/stdcompat/filesystem.hpp
+ *
+ * Interface for filesystem compatibility.
+ */
+
+
 #if defined(__APPLE__) && DARWIN_MAJOR_VERSION >= 9
 #include <Availability.h>
 #if (defined(__MAC_OS_X_VERSION_MIN_REQUIRED) && __MAC_OS_X_VERSION_MIN_REQUIRED < 101500) \

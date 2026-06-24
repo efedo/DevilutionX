@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file ui/panel/partypanel.hpp
+ *
+ * Interface for party panel.
+ */
+
+
 #include <string>
 
 #include <expected.hpp>

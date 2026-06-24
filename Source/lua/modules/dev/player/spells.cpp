@@ -1,3 +1,10 @@
+/**
+ * @file lua/modules/dev/player/spells.cpp
+ *
+ * Implementation of spells.
+ */
+
+
 #ifdef _DEBUG
 #include "lua/modules/dev/player/spells.hpp"
 

@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/display.h
+ *
+ * Interface for display and window management.
+ */
+
+
 #include <cstdint>
 #include <type_traits>
 

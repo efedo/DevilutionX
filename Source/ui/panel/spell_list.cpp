@@ -1,3 +1,10 @@
+/**
+ * @file ui/panel/spell_list.cpp
+ *
+ * Implementation of spell list.
+ */
+
+
 #include "ui/panel/spell_list.hpp"
 
 #include <cstdint>

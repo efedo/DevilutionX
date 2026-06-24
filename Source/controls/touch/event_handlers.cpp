@@ -1,3 +1,10 @@
+/**
+ * @file controls/touch/event_handlers.cpp
+ *
+ * Implementation of event handlers.
+ */
+
+
 #include "controls/touch/event_handlers.h"
 
 #ifdef USE_SDL3

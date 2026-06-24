@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file network/transport/protocol_zt.h
+ *
+ * Interface for ZeroTier protocol implementation.
+ */
+
+
 #include <algorithm>
 #include <array>
 #include <atomic>

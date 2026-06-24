@@ -1,3 +1,10 @@
+/**
+ * @file ui/panel/spell_icons.cpp
+ *
+ * Implementation of spell icons.
+ */
+
+
 #include "ui/panel/spell_icons.hpp"
 
 #include <cstdint>

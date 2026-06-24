@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file controls/touch/event_handlers.h
+ *
+ * Interface for event handlers.
+ */
+
+
 #ifdef USE_SDL3
 #include <SDL3/SDL_events.h>
 #else

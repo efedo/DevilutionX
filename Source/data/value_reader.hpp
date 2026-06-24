@@ -1,3 +1,10 @@
+/**
+ * @file data/value_reader.hpp
+ *
+ * Interface for value reading from data files.
+ */
+
+
 #pragma once
 
 #include <array>

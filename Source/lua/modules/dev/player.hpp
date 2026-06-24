@@ -1,4 +1,11 @@
 #pragma once
+/**
+ * @file lua/modules/dev/player.hpp
+ *
+ * Interface for player.
+ */
+
+
 #ifdef _DEBUG
 
 #include <sol/sol.hpp>

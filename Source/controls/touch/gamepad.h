@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file controls/touch/gamepad.h
+ *
+ * Interface for gamepad.
+ */
+
+
 #include <functional>
 
 #include "controls/controller_buttons.h"

@@ -1,3 +1,10 @@
+/**
+ * @file application/game_mode.hpp
+ *
+ * Interface for game mode management.
+ */
+
+
 #pragma once
 
 #include "utils/attributes.h"

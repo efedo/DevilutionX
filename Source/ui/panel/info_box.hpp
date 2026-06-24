@@ -1,3 +1,10 @@
+/**
+ * @file ui/panel/info_box.hpp
+ *
+ * Interface for information box.
+ */
+
+
 #pragma once
 
 #include "engine/gfx/clx_sprite.hpp"

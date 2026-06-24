@@ -1,3 +1,10 @@
+/**
+ * @file utils/sdl/sdl_bilinear_scale.cpp
+ *
+ * Implementation of SDL bilinear scaling.
+ */
+
+
 #include "utils/sdl/sdl_bilinear_scale.hpp"
 
 #include <cstddef>

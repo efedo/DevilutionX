@@ -1,3 +1,10 @@
+/**
+ * @file game/items/items.hpp
+ *
+ * Interface for items.
+ */
+
+
 // Item data, attributes, and floor/inventory management.
 #pragma once
 

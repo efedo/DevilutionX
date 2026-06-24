@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/string/str_case.hpp
+ *
+ * Interface for case-insensitive string comparison.
+ */
+
+
 #include <string>
 #include <string_view>
 

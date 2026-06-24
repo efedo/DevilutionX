@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file ui/menu/dialogs.h
+ *
+ * Interface for menu dialog screens.
+ */
+
+
 #include <cstddef>
 #include <string_view>
 

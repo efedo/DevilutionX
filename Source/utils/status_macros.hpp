@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/status_macros.hpp
+ *
+ * Interface for status checking macros.
+ */
+
+
 #include "utils/attributes.h"
 
 #define RETURN_IF_ERROR(expr)                                         \

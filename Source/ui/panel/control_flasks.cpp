@@ -1,3 +1,10 @@
+/**
+ * @file ui/panel/control_flasks.cpp
+ *
+ * Implementation of flask indicators.
+ */
+
+
 #include "control_flasks.hpp"
 #include "control.hpp"
 

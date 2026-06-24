@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/hp_mana_units.hpp
+ *
+ * Interface for health and mana unit types.
+ */
+
+
 namespace devilution {
 
 constexpr int HpManaFracBits = 6;

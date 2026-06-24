@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file controls/devices/kbcontroller.h
+ *
+ * Interface for keyboard controller device.
+ */
+
+
 // Keyboard keys acting like gamepad buttons
 #ifndef HAS_KBCTRL
 #define HAS_KBCTRL 0

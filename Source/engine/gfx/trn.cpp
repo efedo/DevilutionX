@@ -1,3 +1,10 @@
+/**
+ * @file engine/gfx/trn.cpp
+ *
+ * Implementation of translation table handling.
+ */
+
+
 #include "engine/gfx/trn.hpp"
 
 #include <cstdint>

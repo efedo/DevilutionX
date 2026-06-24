@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file ui/menu/diabloui.h
+ *
+ * Interface for Diablo UI core.
+ */
+
+
 #include <array>
 #include <cstddef>
 #include <cstdint>

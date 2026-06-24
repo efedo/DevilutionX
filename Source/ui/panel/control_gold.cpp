@@ -1,3 +1,10 @@
+/**
+ * @file ui/panel/control_gold.cpp
+ *
+ * Implementation of gold control.
+ */
+
+
 #include "control.hpp"
 #include "control_chat.hpp"
 

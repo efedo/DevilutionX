@@ -1,3 +1,10 @@
+/**
+ * @file Source/platform/switch/asio/pause.c
+ *
+ * pause.
+ */
+
+
 #include <errno.h>
 
 int pause(void)

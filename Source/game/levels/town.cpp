@@ -1,3 +1,10 @@
+/**
+ * @file game/levels/town.cpp
+ *
+ * Implementation of town.
+ */
+
+
 #include "game/levels/town.h"
 
 #include <cstdint>

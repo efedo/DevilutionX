@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file platform/vita/touch.h
+ *
+ * Interface for touch.
+ */
+
+
 #ifdef __vita__
 
 #include <SDL.h>

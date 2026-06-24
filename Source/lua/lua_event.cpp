@@ -1,3 +1,10 @@
+/**
+ * @file lua/lua_event.cpp
+ *
+ * Implementation of lua event.
+ */
+
+
 #include "lua/lua_event.hpp"
 
 #include <optional>

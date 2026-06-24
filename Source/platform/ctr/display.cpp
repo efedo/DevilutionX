@@ -1,3 +1,10 @@
+/**
+ * @file platform/ctr/display.cpp
+ *
+ * Implementation of display and window management.
+ */
+
+
 #include "platform/ctr/display.hpp"
 #include <SDL.h>
 

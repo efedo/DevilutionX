@@ -1,3 +1,10 @@
+/**
+ * @file utils/image/cl2_to_clx.cpp
+ *
+ * Implementation of CL2 to CLX format conversion.
+ */
+
+
 #include "utils/image/cl2_to_clx.hpp"
 
 #include <cstdint>

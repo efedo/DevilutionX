@@ -1,3 +1,10 @@
+/**
+ * @file lua/modules/dev/player.cpp
+ *
+ * Implementation of player.
+ */
+
+
 #ifdef _DEBUG
 #include "lua/modules/dev/player.hpp"
 

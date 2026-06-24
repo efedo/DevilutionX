@@ -1,3 +1,10 @@
+/**
+ * @file data/mpq/mpq_common.cpp
+ *
+ * Implementation of MPQ archive common definitions.
+ */
+
+
 #include "data/mpq/mpq_common.hpp"
 
 #include <string_view>

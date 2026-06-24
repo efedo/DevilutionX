@@ -1,3 +1,10 @@
+/**
+ * @file utils/parse_int.cpp
+ *
+ * Implementation of integer parsing.
+ */
+
+
 #include "parse_int.hpp"
 
 #include <algorithm>

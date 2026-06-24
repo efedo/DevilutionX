@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/image/cel_to_clx.hpp
+ *
+ * Interface for CEL to CLX format conversion.
+ */
+
+
 #include <cstddef>
 #include <cstdint>
 

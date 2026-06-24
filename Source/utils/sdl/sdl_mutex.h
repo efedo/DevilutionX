@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/sdl/sdl_mutex.h
+ *
+ * Interface for SDL mutex wrapper.
+ */
+
+
 #include <memory>
 
 #ifdef USE_SDL3

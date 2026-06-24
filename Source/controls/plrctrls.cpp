@@ -1,3 +1,10 @@
+/**
+ * @file controls/plrctrls.cpp
+ *
+ * Implementation of player controls.
+ */
+
+
 #include "controls/plrctrls.h"
 
 #include <algorithm>

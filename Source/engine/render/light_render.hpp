@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file engine/render/light_render.hpp
+ *
+ * Interface for lighting rendering.
+ */
+
+
 #include <array>
 #include <cstddef>
 #include <cstdint>

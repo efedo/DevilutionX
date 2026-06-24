@@ -1,3 +1,10 @@
+/**
+ * @file platform/locale.hpp
+ *
+ * Interface for locale.
+ */
+
+
 #pragma once
 
 #include <string>

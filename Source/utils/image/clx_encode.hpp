@@ -1,3 +1,10 @@
+/**
+ * @file utils/image/clx_encode.hpp
+ *
+ * Interface for CLX format encoding.
+ */
+
+
 #pragma once
 
 #include <cstddef>

@@ -1,3 +1,10 @@
+/**
+ * @file network/transport/tcp_server.cpp
+ *
+ * Implementation of TCP server transport.
+ */
+
+
 #include "network/transport/tcp_server.h"
 
 #include <chrono>

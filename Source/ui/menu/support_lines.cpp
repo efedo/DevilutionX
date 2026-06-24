@@ -1,3 +1,10 @@
+/**
+ * @file ui/menu/support_lines.cpp
+ *
+ * Implementation of support information lines.
+ */
+
+
 #include <cstddef>
 
 #include "ui/menu/support_lines.h"

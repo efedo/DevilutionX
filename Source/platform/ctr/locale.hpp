@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file platform/ctr/locale.hpp
+ *
+ * Interface for locale.
+ */
+
+
 #include <string>
 
 namespace devilution {

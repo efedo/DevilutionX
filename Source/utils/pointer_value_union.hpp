@@ -1,3 +1,10 @@
+/**
+ * @file utils/pointer_value_union.hpp
+ *
+ * Interface for pointer-value union type.
+ */
+
+
 #pragma once
 
 #include <cstdint>

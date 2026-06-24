@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file data/mpq/mpq_common.hpp
+ *
+ * Interface for MPQ archive common definitions.
+ */
+
+
 #include <array>
 #include <cstddef>
 #include <cstdint>

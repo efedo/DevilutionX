@@ -1,4 +1,11 @@
 #pragma once
+/**
+ * @file controls/plrctrls.h
+ *
+ * Interface for player controls.
+ */
+
+
 // Controller actions implementation
 
 #include <cstddef>

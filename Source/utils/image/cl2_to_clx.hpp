@@ -1,3 +1,10 @@
+/**
+ * @file utils/image/cl2_to_clx.hpp
+ *
+ * Interface for CL2 to CLX format conversion.
+ */
+
+
 #pragma once
 
 #include <cstddef>

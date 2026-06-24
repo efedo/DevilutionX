@@ -1,3 +1,10 @@
+/**
+ * @file controls/control_mode.cpp
+ *
+ * Implementation of control mode management.
+ */
+
+
 #include "controls/control_mode.hpp"
 
 namespace devilution {

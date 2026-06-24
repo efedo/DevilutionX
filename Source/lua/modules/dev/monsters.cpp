@@ -1,3 +1,10 @@
+/**
+ * @file lua/modules/dev/monsters.cpp
+ *
+ * Implementation of monsters.
+ */
+
+
 #ifdef _DEBUG
 #include "lua/modules/dev/monsters.hpp"
 

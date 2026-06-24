@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file lua/modules/log.hpp
+ *
+ * Interface for logging system.
+ */
+
+
 #include <sol/sol.hpp>
 
 namespace devilution {

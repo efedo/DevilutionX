@@ -1,3 +1,10 @@
+/**
+ * @file engine/actor_position.cpp
+ *
+ * Implementation of actor position and movement.
+ */
+
+
 #include "actor_position.hpp"
 
 #include <array>

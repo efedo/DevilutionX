@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file ui/panel/control.hpp
+ *
+ * Interface for game control panel.
+ */
+
+
 #include <cstddef>
 #include <cstdint>
 #include <optional>

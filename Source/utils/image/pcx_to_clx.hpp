@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/image/pcx_to_clx.hpp
+ *
+ * Interface for PCX to CLX format conversion.
+ */
+
+
 #include <cstdint>
 #include <optional>
 

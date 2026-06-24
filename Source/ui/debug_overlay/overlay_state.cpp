@@ -1,3 +1,10 @@
+/**
+ * @file ui/debug_overlay/overlay_state.cpp
+ *
+ * Implementation of debug overlay state.
+ */
+
+
 #include "ui/debug_overlay/overlay_state.hpp"
 
 #include <algorithm>

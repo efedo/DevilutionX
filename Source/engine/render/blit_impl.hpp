@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file engine/render/blit_impl.hpp
+ *
+ * Interface for blitting implementation details.
+ */
+
+
 #include <cassert>
 #include <cstdint>
 #include <cstring>

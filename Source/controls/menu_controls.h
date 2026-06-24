@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file controls/menu_controls.h
+ *
+ * Interface for menu control handling.
+ */
+
+
 #include <cstdint>
 #include <vector>
 

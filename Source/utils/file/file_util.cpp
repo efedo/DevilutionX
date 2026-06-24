@@ -1,3 +1,10 @@
+/**
+ * @file utils/file/file_util.cpp
+ *
+ * Implementation of file utility operations.
+ */
+
+
 #include "utils/file/file_util.h"
 
 #include <algorithm>

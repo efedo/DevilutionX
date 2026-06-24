@@ -1,3 +1,10 @@
+/**
+ * @file utils/image/surface_to_clx.cpp
+ *
+ * Implementation of surface to CLX conversion.
+ */
+
+
 #include "utils/image/surface_to_clx.hpp"
 
 #include <cstdint>

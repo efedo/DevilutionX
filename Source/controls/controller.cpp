@@ -1,3 +1,10 @@
+/**
+ * @file controls/controller.cpp
+ *
+ * Implementation of controller input handling.
+ */
+
+
 #include "controls/controller.h"
 
 #include <cmath>

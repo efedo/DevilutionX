@@ -1,3 +1,10 @@
+/**
+ * @file engine/load/load_pcx.cpp
+ *
+ * Implementation of PCX image loading.
+ */
+
+
 #include "engine/load/load_pcx.hpp"
 
 #include <cstddef>

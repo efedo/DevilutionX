@@ -1,3 +1,10 @@
+/**
+ * @file utils/string/format_int.hpp
+ *
+ * Interface for integer formatting.
+ */
+
+
 #pragma once
 
 #include <cstdint>

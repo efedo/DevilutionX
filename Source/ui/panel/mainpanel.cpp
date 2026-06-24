@@ -1,3 +1,10 @@
+/**
+ * @file ui/panel/mainpanel.cpp
+ *
+ * Implementation of main game panel.
+ */
+
+
 #include "ui/panel/mainpanel.hpp"
 
 #include <cstdint>

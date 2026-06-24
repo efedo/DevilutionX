@@ -1,3 +1,10 @@
+/**
+ * @file game/levels/gendung.cpp
+ *
+ * Implementation of gendung.
+ */
+
+
 #include "game/levels/gendung.h"
 
 #include <cstddef>

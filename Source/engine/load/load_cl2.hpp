@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file engine/load/load_cl2.hpp
+ *
+ * Interface for CL2 sprite loading.
+ */
+
+
 #include <array>
 #include <cstdint>
 #include <cstring>

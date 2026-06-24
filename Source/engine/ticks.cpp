@@ -1,3 +1,10 @@
+/**
+ * @file engine/ticks.cpp
+ *
+ * Implementation of tick and frame timing.
+ */
+
+
 #include "engine/ticks.hpp"
 
 #include <cstdint>

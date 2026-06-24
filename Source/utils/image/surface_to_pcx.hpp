@@ -1,3 +1,10 @@
+/**
+ * @file utils/image/surface_to_pcx.hpp
+ *
+ * Interface for surface to PCX conversion.
+ */
+
+
 #include <string>
 
 #ifdef USE_SDL3

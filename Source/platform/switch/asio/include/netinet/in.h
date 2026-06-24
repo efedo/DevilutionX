@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file platform/switch/asio/include/netinet/in.h
+ *
+ * Interface for in.
+ */
+
+
 #include_next <netinet/in.h>
 
 struct ipv6_mreq {

@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file engine/load/load_clx.hpp
+ *
+ * Interface for CLX sprite loading.
+ */
+
+
 #include <string>
 
 #include <expected.hpp>

@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file ui/menu/multi/selgame.h
+ *
+ * Interface for game selection screen.
+ */
+
+
 #include "game/levels/gendung.h"
 
 namespace devilution {

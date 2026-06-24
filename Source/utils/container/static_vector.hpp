@@ -1,3 +1,10 @@
+/**
+ * @file utils/container/static_vector.hpp
+ *
+ * Interface for static (fixed-capacity) vector.
+ */
+
+
 #pragma once
 
 #include <cstddef>

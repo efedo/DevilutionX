@@ -1,3 +1,10 @@
+/**
+ * @file controls/controller_motion.cpp
+ *
+ * Implementation of controller motion input.
+ */
+
+
 #include "controls/controller_motion.h"
 
 #include <cmath>

@@ -1,3 +1,10 @@
+/**
+ * @file ui/panel/info_box.cpp
+ *
+ * Implementation of information box.
+ */
+
+
 #include "ui/panel/info_box.hpp"
 
 #include "engine/load/load_cel.hpp"

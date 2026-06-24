@@ -1,4 +1,11 @@
 #pragma once
+/**
+ * @file lua/modules/dev/player/spells.hpp
+ *
+ * Interface for spells.
+ */
+
+
 #ifdef _DEBUG
 #include <sol/sol.hpp>
 

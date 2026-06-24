@@ -1,4 +1,11 @@
 #pragma once
+/**
+ * @file lua/modules/dev/level.hpp
+ *
+ * Interface for level.
+ */
+
+
 #ifdef _DEBUG
 #include <sol/sol.hpp>
 

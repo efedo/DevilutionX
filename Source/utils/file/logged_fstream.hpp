@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/file/logged_fstream.hpp
+ *
+ * Interface for logging file stream.
+ */
+
+
 #include <cerrno>
 #include <cstdio>
 #include <cstring>

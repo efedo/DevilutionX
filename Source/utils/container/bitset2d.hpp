@@ -1,3 +1,10 @@
+/**
+ * @file utils/container/bitset2d.hpp
+ *
+ * Interface for 2D bitset container.
+ */
+
+
 #pragma once
 
 #include <bitset>

@@ -1,3 +1,10 @@
+/**
+ * @file lua/modules/dev/display.cpp
+ *
+ * Implementation of display and window management.
+ */
+
+
 #ifdef _DEBUG
 #include "lua/modules/dev/display.hpp"
 

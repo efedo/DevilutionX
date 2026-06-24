@@ -1,3 +1,10 @@
+/**
+ * @file game/levels/setmaps.cpp
+ *
+ * Implementation of setmaps.
+ */
+
+
 #include "game/levels/setmaps.h"
 
 #include <cstdint>

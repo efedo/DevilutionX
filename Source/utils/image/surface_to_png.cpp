@@ -1,3 +1,10 @@
+/**
+ * @file utils/image/surface_to_png.cpp
+ *
+ * Implementation of surface to PNG conversion.
+ */
+
+
 #include "utils/image/surface_to_png.hpp"
 
 #include <string>

@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/is_of.hpp
+ *
+ * Interface for type checking utilities.
+ */
+
+
 #include "utils/attributes.h"
 
 namespace devilution {

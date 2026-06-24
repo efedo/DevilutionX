@@ -1,3 +1,10 @@
+/**
+ * @file ui/quick_messages.cpp
+ *
+ * Implementation of quick message handling.
+ */
+
+
 #include "ui/quick_messages.hpp"
 
 #include <array>

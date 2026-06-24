@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file ui/menu/hero/selhero.h
+ *
+ * Interface for hero selection screen.
+ */
+
+
 #include <cstdint>
 
 namespace devilution {

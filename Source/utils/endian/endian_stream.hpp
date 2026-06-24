@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/endian/endian_stream.hpp
+ *
+ * Interface for endian-aware streaming.
+ */
+
+
 #include <cerrno>
 #include <cstddef>
 #include <cstdint>

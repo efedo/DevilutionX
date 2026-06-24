@@ -1,3 +1,10 @@
+/**
+ * @file engine/audio/effects_stubs.cpp
+ *
+ * Implementation of effects stubs.
+ */
+
+
 // Stubbed implementations of effects for the NOSOUND mode.
 #include "engine/audio/effects.h"
 

@@ -1,4 +1,11 @@
 #pragma once
+/**
+ * @file lua/modules/dev/player/gold.hpp
+ *
+ * Interface for gold.
+ */
+
+
 #ifdef _DEBUG
 #include <sol/sol.hpp>
 

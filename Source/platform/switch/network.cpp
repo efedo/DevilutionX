@@ -1,3 +1,10 @@
+/**
+ * @file platform/switch/network.cpp
+ *
+ * Implementation of network.
+ */
+
+
 #include "platform/switch/network.h"
 #include <cstdlib>
 #include <switch.h>

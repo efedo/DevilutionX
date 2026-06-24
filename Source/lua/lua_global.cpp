@@ -1,3 +1,10 @@
+/**
+ * @file lua/lua_global.cpp
+ *
+ * Implementation of lua global.
+ */
+
+
 #include "lua/lua_global.hpp"
 
 #include <algorithm>

@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file ui/menu/scrollbar.h
+ *
+ * Interface for scrollbar widget.
+ */
+
+
 #include <cstdint>
 
 #include "ui/menu/ui_item.h"

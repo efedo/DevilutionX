@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file network/transport/zerotier_native.h
+ *
+ * Interface for ZeroTier native integration.
+ */
+
+
 #include <cstdint>
 
 namespace devilution {

@@ -1,3 +1,10 @@
+/**
+ * @file ui/menu/hero/selhero.cpp
+ *
+ * Implementation of hero selection screen.
+ */
+
+
 #include "ui/menu/hero/selhero.h"
 
 #include <algorithm>

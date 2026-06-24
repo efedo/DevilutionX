@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file platform/ctr/cfgu_service.hpp
+ *
+ * Interface for cfgu service.
+ */
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif

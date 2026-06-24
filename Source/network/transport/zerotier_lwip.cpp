@@ -1,3 +1,10 @@
+/**
+ * @file network/transport/zerotier_lwip.cpp
+ *
+ * Implementation of ZeroTier lwIP integration.
+ */
+
+
 #include "network/transport/zerotier_lwip.h"
 
 #include <lwip/igmp.h>

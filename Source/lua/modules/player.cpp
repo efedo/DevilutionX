@@ -1,3 +1,10 @@
+/**
+ * @file lua/modules/player.cpp
+ *
+ * Implementation of player.
+ */
+
+
 #include "lua/modules/player.hpp"
 
 #include <optional>

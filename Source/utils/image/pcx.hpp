@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/image/pcx.hpp
+ *
+ * Interface for PCX image format.
+ */
+
+
 #include <cstddef>
 #include <cstdint>
 

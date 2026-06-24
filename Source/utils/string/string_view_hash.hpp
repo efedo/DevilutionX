@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/string/string_view_hash.hpp
+ *
+ * Interface for string_view hashing.
+ */
+
+
 #include <cstdint>
 #include <string>
 #include <string_view>

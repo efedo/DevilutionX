@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file network/transport/tcp_server.h
+ *
+ * Interface for TCP server transport.
+ */
+
+
 #include <array>
 #include <memory>
 #include <string>

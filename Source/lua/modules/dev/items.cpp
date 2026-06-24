@@ -1,3 +1,10 @@
+/**
+ * @file lua/modules/dev/items.cpp
+ *
+ * Implementation of items.
+ */
+
+
 #ifdef _DEBUG
 #include "lua/modules/dev/items.hpp"
 

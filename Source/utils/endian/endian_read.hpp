@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/endian/endian_read.hpp
+ *
+ * Interface for little-endian reading.
+ */
+
+
 #include <cstdint>
 
 namespace devilution {

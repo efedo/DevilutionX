@@ -1,3 +1,10 @@
+/**
+ * @file engine/render/primitive_render.hpp
+ *
+ * Interface for primitive rendering.
+ */
+
+
 #pragma once
 
 #include <cstdint>

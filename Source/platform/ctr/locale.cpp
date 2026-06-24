@@ -1,3 +1,10 @@
+/**
+ * @file platform/ctr/locale.cpp
+ *
+ * Implementation of locale.
+ */
+
+
 #include "platform/ctr/locale.hpp"
 
 #include <3ds.h>

@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file ui/panel/spell_icons.hpp
+ *
+ * Interface for spell icons.
+ */
+
+
 #include <cstdint>
 #include <string>
 

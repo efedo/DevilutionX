@@ -1,3 +1,10 @@
+/**
+ * @file utils/timer.cpp
+ *
+ * Implementation of timer functionality.
+ */
+
+
 #include "engine/demomode.h"
 
 #ifdef USE_SDL3

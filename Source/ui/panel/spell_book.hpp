@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file ui/panel/spell_book.hpp
+ *
+ * Interface for spell book.
+ */
+
+
 #include <string>
 
 #include <expected.hpp>

@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/string/str_cat.hpp
+ *
+ * Interface for string concatenation.
+ */
+
+
 #include <cstdint>
 #include <cstring>
 #include <string>

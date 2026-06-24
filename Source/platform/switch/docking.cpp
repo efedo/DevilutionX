@@ -1,3 +1,10 @@
+/**
+ * @file platform/switch/docking.cpp
+ *
+ * Implementation of docking.
+ */
+
+
 #include "platform/switch/docking.h"
 
 #include <cstdint>

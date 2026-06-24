@@ -1,3 +1,10 @@
+/**
+ * @file engine/render/primitive_render.cpp
+ *
+ * Implementation of primitive rendering.
+ */
+
+
 #include "engine/render/primitive_render.hpp"
 
 #include <cassert>

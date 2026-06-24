@@ -1,3 +1,10 @@
+/**
+ * @file platform/ctr/sockets.cpp
+ *
+ * Implementation of sockets.
+ */
+
+
 #include "platform/ctr/sockets.hpp"
 
 #include <cstdint>

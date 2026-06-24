@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file network/transport/zerotier_lwip.h
+ *
+ * Interface for ZeroTier lwIP integration.
+ */
+
+
 namespace devilution {
 namespace net {
 

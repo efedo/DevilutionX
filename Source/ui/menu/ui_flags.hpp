@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file ui/menu/ui_flags.hpp
+ *
+ * Interface for UI state flags.
+ */
+
+
 #include <cstdint>
 
 #include "utils/enum_traits.h"

@@ -1,4 +1,11 @@
 #pragma once
+/**
+ * @file lua/repl.hpp
+ *
+ * Interface for repl.
+ */
+
+
 #ifdef _DEBUG
 
 #include <string>

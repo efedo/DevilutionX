@@ -1,3 +1,10 @@
+/**
+ * @file network/storm/storm_svid.cpp
+ *
+ * Implementation of Storm video API compatibility.
+ */
+
+
 #include "network/storm/storm_svid.h"
 
 #include <cstddef>

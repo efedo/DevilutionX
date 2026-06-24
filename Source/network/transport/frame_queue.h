@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file network/transport/frame_queue.h
+ *
+ * Interface for network frame queuing.
+ */
+
+
 #include <cstdint>
 #include <deque>
 #include <exception>

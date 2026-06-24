@@ -1,3 +1,10 @@
+/**
+ * @file utils/palette_kd_tree.cpp
+ *
+ * Implementation of palette KD-tree for color matching.
+ */
+
+
 #include "utils/palette_kd_tree.hpp"
 
 #include <array>

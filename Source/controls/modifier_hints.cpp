@@ -1,3 +1,10 @@
+/**
+ * @file controls/modifier_hints.cpp
+ *
+ * Implementation of modifier key hints.
+ */
+
+
 #include "controls/modifier_hints.h"
 
 #include <cstddef>

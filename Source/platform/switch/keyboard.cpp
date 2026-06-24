@@ -1,3 +1,10 @@
+/**
+ * @file platform/switch/keyboard.cpp
+ *
+ * Implementation of keyboard.
+ */
+
+
 #include "platform/switch/keyboard.h"
 
 #include <cstdint>

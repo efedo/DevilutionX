@@ -1,3 +1,10 @@
+/**
+ * @file utils/image/cel_to_clx.cpp
+ *
+ * Implementation of CEL to CLX format conversion.
+ */
+
+
 #include "utils/image/cel_to_clx.hpp"
 
 #include <cstdint>

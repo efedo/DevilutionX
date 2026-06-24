@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file lua/modules/floatingnumbers.hpp
+ *
+ * Interface for floating damage numbers.
+ */
+
+
 #include <sol/forward.hpp>
 
 namespace devilution {

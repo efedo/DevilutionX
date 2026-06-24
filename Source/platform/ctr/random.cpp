@@ -1,3 +1,10 @@
+/**
+ * @file platform/ctr/random.cpp
+ *
+ * Implementation of random number generation.
+ */
+
+
 #include <3ds.h>
 #include <cstdint>
 #include <sodium.h>

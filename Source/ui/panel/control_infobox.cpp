@@ -1,3 +1,10 @@
+/**
+ * @file ui/panel/control_infobox.cpp
+ *
+ * Implementation of information box control.
+ */
+
+
 #include "control.hpp"
 #include "control_panel.hpp"
 

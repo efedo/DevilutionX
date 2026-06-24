@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/screen_reader.hpp
+ *
+ * Interface for screen reader accessibility.
+ */
+
+
 #include <string_view>
 
 namespace devilution {

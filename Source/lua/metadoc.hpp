@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file lua/metadoc.hpp
+ *
+ * Interface for metadoc.
+ */
+
+
 #include <cstdint>
 #include <optional>
 #include <string>

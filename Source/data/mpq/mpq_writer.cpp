@@ -1,3 +1,10 @@
+/**
+ * @file data/mpq/mpq_writer.cpp
+ *
+ * Implementation of MPQ archive writing.
+ */
+
+
 #include "data/mpq/mpq_writer.hpp"
 
 #include <cstring>

@@ -1,3 +1,10 @@
+/**
+ * @file controls/controller_buttons.cpp
+ *
+ * Implementation of controller button definitions.
+ */
+
+
 #include "controller_buttons.h"
 
 namespace devilution {

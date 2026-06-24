@@ -1,3 +1,10 @@
+/**
+ * @file lua/modules/dev/level/map.cpp
+ *
+ * Implementation of map.
+ */
+
+
 #ifdef _DEBUG
 #include "lua/modules/dev/level/map.hpp"
 

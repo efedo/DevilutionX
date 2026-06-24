@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/parse_int.hpp
+ *
+ * Interface for integer parsing.
+ */
+
+
 #include <charconv>
 #include <cstdint>
 #include <string_view>

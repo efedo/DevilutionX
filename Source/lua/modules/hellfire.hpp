@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file lua/modules/hellfire.hpp
+ *
+ * Interface for hellfire.
+ */
+
+
 #include <sol/sol.hpp>
 
 namespace devilution {

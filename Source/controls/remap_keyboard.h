@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file controls/remap_keyboard.h
+ *
+ * Interface for keyboard remapping.
+ */
+
+
 #include <cstddef>
 
 #ifdef USE_SDL3

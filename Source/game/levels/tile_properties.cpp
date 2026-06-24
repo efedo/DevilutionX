@@ -1,3 +1,10 @@
+/**
+ * @file game/levels/tile_properties.cpp
+ *
+ * Implementation of tile properties.
+ */
+
+
 #include "game/levels/tile_properties.hpp"
 
 #include "engine/math/direction.hpp"

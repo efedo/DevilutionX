@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file persistence/options.h
+ *
+ * Interface for game options and configuration.
+ */
+
+
 #include <array>
 #include <cstddef>
 #include <cstdint>

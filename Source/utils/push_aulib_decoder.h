@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/push_aulib_decoder.h
+ *
+ * Interface for audio decoder push source.
+ */
+
+
 #include <chrono>
 #include <cstdint>
 #include <cstring>

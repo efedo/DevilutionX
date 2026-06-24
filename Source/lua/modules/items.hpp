@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file lua/modules/items.hpp
+ *
+ * Interface for items.
+ */
+
+
 #include <sol/sol.hpp>
 
 namespace devilution {

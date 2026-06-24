@@ -1,3 +1,10 @@
+/**
+ * @file platform/vita/random.cpp
+ *
+ * Implementation of random number generation.
+ */
+
+
 #include <cstdint>
 #include <psp2/kernel/rng.h>
 #include <sodium.h>

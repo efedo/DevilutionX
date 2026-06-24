@@ -1,3 +1,10 @@
+/**
+ * @file controls/padmapper.cpp
+ *
+ * Implementation of gamepad-to-keyboard mapping.
+ */
+
+
 #include "controls/padmapper.hpp"
 
 #include <array>

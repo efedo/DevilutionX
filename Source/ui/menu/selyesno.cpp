@@ -1,3 +1,10 @@
+/**
+ * @file ui/menu/selyesno.cpp
+ *
+ * Implementation of yes/no confirmation dialog.
+ */
+
+
 #include "selyesno.h"
 
 #include <cstddef>

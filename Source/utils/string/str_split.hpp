@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/string/str_split.hpp
+ *
+ * Interface for string splitting.
+ */
+
+
 #include <iterator>
 #include <string_view>
 #include <type_traits>

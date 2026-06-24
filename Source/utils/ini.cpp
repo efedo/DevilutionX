@@ -1,3 +1,10 @@
+/**
+ * @file utils/ini.cpp
+ *
+ * Implementation of INI file parsing.
+ */
+
+
 #include "utils/ini.hpp"
 
 #include <algorithm>

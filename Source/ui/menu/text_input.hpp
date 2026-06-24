@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file ui/menu/text_input.hpp
+ *
+ * Interface for text input field.
+ */
+
+
 #include <algorithm>
 #include <cstddef>
 #include <cstring>

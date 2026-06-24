@@ -1,4 +1,11 @@
 #pragma once
+/**
+ * @file utils/aulib.hpp
+ *
+ * Interface for audio library wrapper.
+ */
+
+
 #ifndef NOSOUND
 
 #include <memory>

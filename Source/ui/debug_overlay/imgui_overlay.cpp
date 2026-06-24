@@ -1,3 +1,10 @@
+/**
+ * @file ui/debug_overlay/imgui_overlay.cpp
+ *
+ * Implementation of ImGui debug overlay.
+ */
+
+
 #include "ui/debug_overlay/imgui_overlay.hpp"
 
 #if defined(_DEBUG) && !defined(USE_SDL1)

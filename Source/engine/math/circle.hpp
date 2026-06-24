@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file engine/math/circle.hpp
+ *
+ * Interface for circle geometry.
+ */
+
+
 #include "engine/math/displacement.hpp"
 #include "engine/math/point.hpp"
 

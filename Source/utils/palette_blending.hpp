@@ -1,3 +1,10 @@
+/**
+ * @file utils/palette_blending.hpp
+ *
+ * Interface for palette blending operations.
+ */
+
+
 #pragma once
 
 #include <cstdint>

@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file engine/ticks.hpp
+ *
+ * Interface for tick and frame timing.
+ */
+
+
 #include <cstdint>
 
 namespace devilution {

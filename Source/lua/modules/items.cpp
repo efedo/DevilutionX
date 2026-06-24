@@ -1,3 +1,10 @@
+/**
+ * @file lua/modules/items.cpp
+ *
+ * Implementation of items.
+ */
+
+
 #include "lua/modules/items.hpp"
 
 #include <string_view>

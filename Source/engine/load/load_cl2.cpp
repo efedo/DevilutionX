@@ -1,3 +1,10 @@
+/**
+ * @file engine/load/load_cl2.cpp
+ *
+ * Implementation of CL2 sprite loading.
+ */
+
+
 #include "engine/load/load_cl2.hpp"
 
 #include <cstdint>

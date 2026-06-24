@@ -1,3 +1,10 @@
+/**
+ * @file game/levels/crypt.cpp
+ *
+ * Implementation of crypt.
+ */
+
+
 #include "game/levels/crypt.h"
 
 #include <cstdint>

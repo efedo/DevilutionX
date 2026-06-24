@@ -1,3 +1,10 @@
+/**
+ * @file engine/audio/sound_position.cpp
+ *
+ * Implementation of 3D sound position calculation.
+ */
+
+
 #include "engine/audio/sound_position.hpp"
 
 #include "engine/audio/sound_defs.hpp"

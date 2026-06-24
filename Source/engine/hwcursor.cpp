@@ -1,3 +1,10 @@
+/**
+ * @file engine/hwcursor.cpp
+ *
+ * Implementation of hardware cursor management.
+ */
+
+
 #include "engine/hwcursor.hpp"
 
 #include <cstdint>

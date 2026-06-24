@@ -1,3 +1,10 @@
+/**
+ * @file utils/sdl/sdl2_to_1_2_backports.cpp
+ *
+ * Implementation of SDL 2.0 to 1.2 backport compatibility.
+ */
+
+
 #include "utils/sdl/sdl2_to_1_2_backports.h"
 
 #include <algorithm>

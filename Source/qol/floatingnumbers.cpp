@@ -1,3 +1,10 @@
+/**
+ * @file qol/floatingnumbers.cpp
+ *
+ * Implementation of floating damage numbers.
+ */
+
+
 #include "floatingnumbers.h"
 
 #include <cstdint>

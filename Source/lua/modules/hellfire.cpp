@@ -1,3 +1,10 @@
+/**
+ * @file lua/modules/hellfire.cpp
+ *
+ * Implementation of hellfire.
+ */
+
+
 #include "lua/modules/hellfire.hpp"
 
 #include <sol/sol.hpp>

@@ -1,3 +1,10 @@
+/**
+ * @file game/levels/reencode_dun_cels.cpp
+ *
+ * Implementation of reencode dun cels.
+ */
+
+
 #include "game/levels/reencode_dun_cels.hpp"
 
 #include <cstddef>

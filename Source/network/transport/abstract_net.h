@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file network/transport/abstract_net.h
+ *
+ * Interface for abstract network interface.
+ */
+
+
 #include <cstdint>
 #include <exception>
 #include <memory>

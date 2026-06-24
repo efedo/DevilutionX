@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/paths.h
+ *
+ * Interface for file path management.
+ */
+
+
 #include <string>
 
 namespace devilution {

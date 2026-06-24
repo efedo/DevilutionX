@@ -1,3 +1,10 @@
+/**
+ * @file utils/string/str_case.cpp
+ *
+ * Implementation of case-insensitive string comparison.
+ */
+
+
 #include "utils/string/str_case.hpp"
 
 namespace devilution {

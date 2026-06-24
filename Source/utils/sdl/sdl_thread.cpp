@@ -1,3 +1,10 @@
+/**
+ * @file utils/sdl/sdl_thread.cpp
+ *
+ * Implementation of SDL thread wrapper.
+ */
+
+
 #include "utils/sdl/sdl_thread.h"
 
 namespace devilution {

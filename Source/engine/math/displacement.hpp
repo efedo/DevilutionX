@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file engine/math/displacement.hpp
+ *
+ * Interface for vector and displacement math.
+ */
+
+
 #include <cmath>
 #include <limits>
 

@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file controls/keymapper.hpp
+ *
+ * Interface for key mapping configuration.
+ */
+
+
 #include <cstdint>
 
 #ifdef USE_SDL3

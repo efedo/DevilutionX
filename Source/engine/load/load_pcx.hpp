@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file engine/load/load_pcx.hpp
+ *
+ * Interface for PCX image loading.
+ */
+
+
 #include <cstdint>
 #include <optional>
 

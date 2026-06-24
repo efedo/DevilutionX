@@ -1,3 +1,10 @@
+/**
+ * @file ui/menu/multi/selgame.cpp
+ *
+ * Implementation of game selection screen.
+ */
+
+
 #include "ui/menu/multi/selgame.h"
 
 #include <cstddef>

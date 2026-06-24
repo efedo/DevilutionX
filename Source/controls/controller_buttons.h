@@ -1,4 +1,11 @@
 #pragma once
+/**
+ * @file controls/controller_buttons.h
+ *
+ * Interface for controller button definitions.
+ */
+
+
 // Unifies joystick, gamepad, and keyboard controller APIs.
 
 #include <cstdint>

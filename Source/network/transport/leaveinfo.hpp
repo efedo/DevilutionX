@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file network/transport/leaveinfo.hpp
+ *
+ * Interface for leave game information.
+ */
+
+
 #include <cstdint>
 
 namespace devilution {

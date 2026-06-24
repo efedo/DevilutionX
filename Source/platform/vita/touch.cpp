@@ -1,3 +1,10 @@
+/**
+ * @file platform/vita/touch.cpp
+ *
+ * Implementation of touch.
+ */
+
+
 #include "platform/vita/touch.h"
 
 #include <cmath>

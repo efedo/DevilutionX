@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file ui/panel/spell_list.hpp
+ *
+ * Interface for spell list.
+ */
+
+
 #include <cstddef>
 #include <vector>
 

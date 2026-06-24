@@ -1,3 +1,10 @@
+/**
+ * @file network/storm/storm_net.cpp
+ *
+ * Implementation of Storm network API compatibility.
+ */
+
+
 #include "network/storm/storm_net.hpp"
 
 #include <algorithm>

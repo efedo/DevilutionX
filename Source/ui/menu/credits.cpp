@@ -1,3 +1,10 @@
+/**
+ * @file ui/menu/credits.cpp
+ *
+ * Implementation of credits screen.
+ */
+
+
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>

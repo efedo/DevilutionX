@@ -1,3 +1,10 @@
+/**
+ * @file data/mpq/mpq_sdl_rwops.cpp
+ *
+ * Implementation of MPQ SDL RWOps integration.
+ */
+
+
 #include "data/mpq/mpq_sdl_rwops.hpp"
 
 #include <cstdlib>

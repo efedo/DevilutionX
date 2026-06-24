@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file ui/panel/charpanel.hpp
+ *
+ * Interface for character panel.
+ */
+
+
 #include <string>
 
 #include <expected.hpp>

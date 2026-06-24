@@ -1,3 +1,10 @@
+/**
+ * @file lua/modules/monsters.cpp
+ *
+ * Implementation of monsters.
+ */
+
+
 #include "lua/modules/monsters.hpp"
 
 #include <string_view>

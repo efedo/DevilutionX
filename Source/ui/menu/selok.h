@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file ui/menu/selok.h
+ *
+ * Interface for OK selection dialog.
+ */
+
+
 namespace devilution {
 
 void UiSelOkDialog(const char *title, const char *body, bool background);

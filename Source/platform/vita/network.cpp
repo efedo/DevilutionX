@@ -1,3 +1,10 @@
+/**
+ * @file platform/vita/network.cpp
+ *
+ * Implementation of network.
+ */
+
+
 #include "platform/vita/network.h"
 
 #include <cstdio>

@@ -1,3 +1,10 @@
+/**
+ * @file lua/modules/dev/search.cpp
+ *
+ * Implementation of search.
+ */
+
+
 #ifdef _DEBUG
 #include "lua/modules/dev/quests.hpp"
 

@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file engine/load/load_file.hpp
+ *
+ * Interface for generic file loading templates.
+ */
+
+
 #include <array>
 #include <cstddef>
 #include <cstdint>

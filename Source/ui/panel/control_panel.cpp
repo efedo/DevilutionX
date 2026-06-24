@@ -1,3 +1,10 @@
+/**
+ * @file ui/panel/control_panel.cpp
+ *
+ * Implementation of game control panel.
+ */
+
+
 #include "control_panel.hpp"
 #include "control.hpp"
 #include "control_chat.hpp"

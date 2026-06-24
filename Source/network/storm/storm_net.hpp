@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file network/storm/storm_net.hpp
+ *
+ * Interface for Storm network API compatibility.
+ */
+
+
 #include <cstddef>
 #include <cstdint>
 #include <optional>

@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/sdl/sdl2_to_1_2_backports.h
+ *
+ * Interface for SDL 2.0 to 1.2 backport compatibility.
+ */
+
+
 #include <cerrno>
 #include <cmath>
 #include <cstddef>

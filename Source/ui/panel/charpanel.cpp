@@ -1,3 +1,10 @@
+/**
+ * @file ui/panel/charpanel.cpp
+ *
+ * Implementation of character panel.
+ */
+
+
 #include "ui/panel/charpanel.hpp"
 
 #include <cstdint>

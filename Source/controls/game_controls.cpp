@@ -1,3 +1,10 @@
+/**
+ * @file controls/game_controls.cpp
+ *
+ * Implementation of game control bindings.
+ */
+
+
 #include "controls/game_controls.h"
 
 #include <cstdint>

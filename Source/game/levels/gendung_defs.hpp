@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file game/levels/gendung_defs.hpp
+ *
+ * Interface for gendung defs.
+ */
+
+
 #include <cstdint>
 
 #include "engine/math/rectangle.hpp"

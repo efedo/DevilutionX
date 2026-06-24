@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/endian/endian_write.hpp
+ *
+ * Interface for little-endian writing.
+ */
+
+
 #include <cstdint>
 #include <cstring>
 

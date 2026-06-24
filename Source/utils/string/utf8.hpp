@@ -1,3 +1,10 @@
+/**
+ * @file utils/string/utf8.hpp
+ *
+ * Interface for UTF-8 string utilities.
+ */
+
+
 #pragma once
 
 #include <cstddef>

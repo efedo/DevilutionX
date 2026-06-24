@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file lua/modules/i18n.hpp
+ *
+ * Interface for i18n.
+ */
+
+
 #include <sol/sol.hpp>
 
 namespace devilution {

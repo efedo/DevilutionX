@@ -1,3 +1,10 @@
+/**
+ * @file engine/vision.cpp
+ *
+ * Implementation of field-of-view and vision calculations.
+ */
+
+
 #include "engine/vision.hpp"
 
 #include <cstdint>

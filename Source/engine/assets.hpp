@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file engine/assets.hpp
+ *
+ * Interface for asset loading and management.
+ */
+
+
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>

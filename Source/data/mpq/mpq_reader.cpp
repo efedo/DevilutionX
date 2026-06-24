@@ -1,3 +1,10 @@
+/**
+ * @file data/mpq/mpq_reader.cpp
+ *
+ * Implementation of MPQ archive reading.
+ */
+
+
 #include "data/mpq/mpq_reader.hpp"
 
 #include <cstring>

@@ -1,3 +1,10 @@
+/**
+ * @file utils/display.cpp
+ *
+ * Implementation of display and window management.
+ */
+
+
 #include "utils/display.h"
 
 #include <algorithm>

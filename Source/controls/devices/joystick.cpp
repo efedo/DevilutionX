@@ -1,3 +1,10 @@
+/**
+ * @file controls/devices/joystick.cpp
+ *
+ * Implementation of joystick device.
+ */
+
+
 #include "controls/devices/joystick.h"
 
 #include <cstddef>

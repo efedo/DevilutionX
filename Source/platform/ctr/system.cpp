@@ -1,3 +1,10 @@
+/**
+ * @file platform/ctr/system.cpp
+ *
+ * Implementation of system.
+ */
+
+
 #include <3ds.h>
 #include <cstdio>
 #include <cstdlib>

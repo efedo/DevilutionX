@@ -1,3 +1,10 @@
+/**
+ * @file ui/quick_messages.hpp
+ *
+ * Interface for quick message handling.
+ */
+
+
 #pragma once
 
 #include <array>

@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file controls/modifier_hints.h
+ *
+ * Interface for modifier key hints.
+ */
+
+
 #include "engine/gfx/surface.hpp"
 
 namespace devilution {

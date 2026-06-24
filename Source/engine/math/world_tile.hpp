@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file engine/math/world_tile.hpp
+ *
+ * Interface for world tile type definitions.
+ */
+
+
 #include <cstdint>
 
 #include "engine/math/point.hpp"

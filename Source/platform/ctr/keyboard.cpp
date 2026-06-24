@@ -1,3 +1,10 @@
+/**
+ * @file platform/ctr/keyboard.cpp
+ *
+ * Implementation of keyboard.
+ */
+
+
 #include <cstdlib>
 #include <cstring>
 

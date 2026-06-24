@@ -1,3 +1,10 @@
+/**
+ * @file ui/panel/partypanel.cpp
+ *
+ * Implementation of party panel.
+ */
+
+
 #include "ui/panel/partypanel.hpp"
 
 #include <expected.hpp>

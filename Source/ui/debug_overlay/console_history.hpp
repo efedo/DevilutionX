@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file ui/debug_overlay/console_history.hpp
+ *
+ * Interface for console command history.
+ */
+
+
 #include <string>
 #include <string_view>
 #include <vector>

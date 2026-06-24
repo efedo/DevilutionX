@@ -1,3 +1,10 @@
+/**
+ * @file lua/modules/render.cpp
+ *
+ * Implementation of render.
+ */
+
+
 #include "lua/modules/render.hpp"
 
 #include <sol/sol.hpp>

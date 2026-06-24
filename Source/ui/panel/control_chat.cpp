@@ -1,3 +1,10 @@
+/**
+ * @file ui/panel/control_chat.cpp
+ *
+ * Implementation of chat control.
+ */
+
+
 #include "control_chat.hpp"
 #include "control.hpp"
 #include "control_panel.hpp"

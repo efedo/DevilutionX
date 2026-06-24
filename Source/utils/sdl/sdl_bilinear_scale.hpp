@@ -1,3 +1,10 @@
+/**
+ * @file utils/sdl/sdl_bilinear_scale.hpp
+ *
+ * Interface for SDL bilinear scaling.
+ */
+
+
 #pragma once
 
 #include <cstdint>

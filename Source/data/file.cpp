@@ -1,3 +1,10 @@
+/**
+ * @file data/file.cpp
+ *
+ * Implementation of game data file handling.
+ */
+
+
 #include "file.hpp"
 
 #include <bitset>

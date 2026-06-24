@@ -1,3 +1,10 @@
+/**
+ * @file utils/file/logged_fstream.cpp
+ *
+ * Implementation of logging file stream.
+ */
+
+
 #include "utils/file/logged_fstream.hpp"
 
 namespace devilution {

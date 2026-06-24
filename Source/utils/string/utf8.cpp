@@ -1,3 +1,10 @@
+/**
+ * @file utils/string/utf8.cpp
+ *
+ * Implementation of UTF-8 string utilities.
+ */
+
+
 #include "utils/string/utf8.hpp"
 
 #include <cstddef>

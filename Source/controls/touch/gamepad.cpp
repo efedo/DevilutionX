@@ -1,3 +1,10 @@
+/**
+ * @file controls/touch/gamepad.cpp
+ *
+ * Implementation of gamepad.
+ */
+
+
 #include <cmath>
 
 #ifdef USE_SDL3

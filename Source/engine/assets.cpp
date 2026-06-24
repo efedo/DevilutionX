@@ -1,3 +1,10 @@
+/**
+ * @file engine/assets.cpp
+ *
+ * Implementation of asset loading and management.
+ */
+
+
 #include "engine/assets.hpp"
 
 #include <algorithm>

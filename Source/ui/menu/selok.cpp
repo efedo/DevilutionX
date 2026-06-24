@@ -1,3 +1,10 @@
+/**
+ * @file ui/menu/selok.cpp
+ *
+ * Implementation of OK selection dialog.
+ */
+
+
 #include "ui/menu/selok.h"
 
 #include <cstddef>

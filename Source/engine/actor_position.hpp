@@ -1,3 +1,10 @@
+/**
+ * @file engine/actor_position.hpp
+ *
+ * Interface for actor position and movement.
+ */
+
+
 #pragma once
 
 #include <cstdint>

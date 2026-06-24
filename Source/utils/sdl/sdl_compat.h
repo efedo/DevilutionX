@@ -1,3 +1,10 @@
+/**
+ * @file utils/sdl/sdl_compat.h
+ *
+ * Interface for sdl compat.
+ */
+
+
 // Compatibility wrappers for SDL 1 & 2.
 #pragma once
 

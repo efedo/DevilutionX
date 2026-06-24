@@ -1,3 +1,10 @@
+/**
+ * @file platform/android/android.cpp
+ *
+ * Implementation of android.
+ */
+
+
 #include "application/init.hpp"
 #include "data/mpq/mpq_reader.hpp"
 

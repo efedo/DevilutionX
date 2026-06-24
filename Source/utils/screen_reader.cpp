@@ -1,3 +1,10 @@
+/**
+ * @file utils/screen_reader.cpp
+ *
+ * Implementation of screen reader accessibility.
+ */
+
+
 #include "utils/screen_reader.hpp"
 
 #include <string>

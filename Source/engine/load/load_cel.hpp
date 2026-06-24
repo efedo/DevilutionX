@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file engine/load/load_cel.hpp
+ *
+ * Interface for CEL sprite loading.
+ */
+
+
 #include <cstdint>
 #include <string>
 

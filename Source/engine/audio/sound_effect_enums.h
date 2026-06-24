@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file engine/audio/sound_effect_enums.h
+ *
+ * Interface for sound effect type enumerations.
+ */
+
+
 #include <cstdint>
 
 #include <magic_enum/magic_enum.hpp>

@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file controls/devices/game_controller.h
+ *
+ * Interface for game controller device.
+ */
+
+
 #include <vector>
 
 #ifdef USE_SDL3

@@ -1,3 +1,10 @@
+/**
+ * @file ui/menu/credits_lines.h
+ *
+ * Interface for credits text data.
+ */
+
+
 #include <cstddef>
 
 namespace devilution {

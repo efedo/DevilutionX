@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file lua/modules/audio.hpp
+ *
+ * Interface for audio.
+ */
+
+
 #include <sol/sol.hpp>
 
 namespace devilution {

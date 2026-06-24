@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file ui/panel/mainpanel.hpp
+ *
+ * Interface for main game panel.
+ */
+
+
 #include <string>
 
 #include <expected.hpp>

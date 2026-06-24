@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file network/transport/base_protocol.h
+ *
+ * Interface for base protocol definitions.
+ */
+
+
 #include <memory>
 #include <set>
 #include <string>

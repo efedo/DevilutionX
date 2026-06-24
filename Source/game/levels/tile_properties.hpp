@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file game/levels/tile_properties.hpp
+ *
+ * Interface for tile properties.
+ */
+
+
 #include "engine/math/point.hpp"
 
 namespace devilution {

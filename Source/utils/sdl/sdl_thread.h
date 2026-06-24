@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/sdl/sdl_thread.h
+ *
+ * Interface for SDL thread wrapper.
+ */
+
+
 #include <memory>
 
 #ifdef USE_SDL3

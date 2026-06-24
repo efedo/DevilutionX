@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file utils/stubs.h
+ *
+ * Interface for platform stub functions.
+ */
+
+
 #include "utils/log.hpp"
 
 #define UNIMPLEMENTED()                                                                        \

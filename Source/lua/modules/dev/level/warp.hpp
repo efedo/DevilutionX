@@ -1,4 +1,11 @@
 #pragma once
+/**
+ * @file lua/modules/dev/level/warp.hpp
+ *
+ * Interface for warp.
+ */
+
+
 #ifdef _DEBUG
 #include <sol/sol.hpp>
 

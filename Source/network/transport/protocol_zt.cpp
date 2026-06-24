@@ -1,3 +1,10 @@
+/**
+ * @file network/transport/protocol_zt.cpp
+ *
+ * Implementation of ZeroTier protocol implementation.
+ */
+
+
 #include "network/transport/protocol_zt.h"
 
 #include <optional>

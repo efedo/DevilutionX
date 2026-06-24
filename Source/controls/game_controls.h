@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file controls/game_controls.h
+ *
+ * Interface for game control bindings.
+ */
+
+
 #include <cstdint>
 
 #ifdef USE_SDL3

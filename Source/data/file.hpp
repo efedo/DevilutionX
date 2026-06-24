@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file data/file.hpp
+ *
+ * Interface for game data file handling.
+ */
+
+
 #include <cstddef>
 #include <limits>
 #include <memory>
