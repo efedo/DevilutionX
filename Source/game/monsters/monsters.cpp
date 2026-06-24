@@ -39,7 +39,7 @@
 #include <fmt/core.h>
 
 #include "ui/automap.h"
-#include "panel/control.hpp"
+#include "ui/panel/control.hpp"
 #include "engine/crawl.hpp"
 #include "engine/cursor.h"
 #include "game/monsters/dead.hpp"

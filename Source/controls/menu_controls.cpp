@@ -8,7 +8,7 @@
 #include <SDL.h>
 #endif
 
-#include "menus/diabloui.h"
+#include "ui/menu/diabloui.h"
 #include "controls/axis_direction.h"
 #include "controls/control_mode.hpp"
 #include "controls/controller.h"

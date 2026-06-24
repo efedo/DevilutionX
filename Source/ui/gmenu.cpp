@@ -18,9 +18,9 @@
 #include <SDL.h>
 #endif
 
-#include "menus/ui_flags.hpp"
+#include "ui/menu/ui_flags.hpp"
 #include "application/appfat.h"
-#include "panel/control.hpp"
+#include "ui/panel/control.hpp"
 #include "controls/axis_direction.h"
 #include "controls/controller_motion.h"
 #include "engine/gfx/clx_sprite.hpp"

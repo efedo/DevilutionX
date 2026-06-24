@@ -33,9 +33,9 @@
 #include <hal/video.h>
 #endif
 
-#include "menus/diabloui.h"
+#include "ui/menu/diabloui.h"
 #include "config.h"
-#include "panel/control.hpp"
+#include "ui/panel/control.hpp"
 #include "controls/controller.h"
 #ifndef USE_SDL1
 #include "controls/devices/game_controller.h"

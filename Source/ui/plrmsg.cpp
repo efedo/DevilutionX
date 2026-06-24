@@ -17,7 +17,7 @@
 
 #include <fmt/format.h>
 
-#include "panel/control.hpp"
+#include "ui/panel/control.hpp"
 #include "engine/render/primitive_render.hpp"
 #include "engine/render/text_render.hpp"
 #include "game/players/inv.hpp"

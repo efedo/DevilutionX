@@ -21,7 +21,7 @@
 #include <config.h>
 #include <fmt/format.h>
 
-#include "menus/diabloui.h"
+#include "ui/menu/diabloui.h"
 #include "application/diablo.h"
 #include "engine/demomode.h"
 #include "engine/math/point.hpp"

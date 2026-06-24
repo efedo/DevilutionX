@@ -19,7 +19,7 @@
 #endif
 #endif
 
-#include "menus/diabloui.h"
+#include "ui/menu/diabloui.h"
 
 #include "application/appfat.h"
 #include "engine/cursor.h"

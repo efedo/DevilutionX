@@ -14,7 +14,7 @@
 #include <expected.hpp>
 #include <fmt/core.h>
 
-#include "menus/ui_flags.hpp"
+#include "ui/menu/ui_flags.hpp"
 #include "ui/automap.h"
 #include "engine/cursor.h"
 #ifdef _DEBUG

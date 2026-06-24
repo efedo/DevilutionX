@@ -17,7 +17,7 @@
 #include <ankerl/unordered_dense.h>
 #include <fmt/core.h>
 
-#include "menus/ui_flags.hpp"
+#include "ui/menu/ui_flags.hpp"
 #include "engine/gfx/clx_sprite.hpp"
 #include "engine/load/load_cel.hpp"
 #include "engine/load/load_clx.hpp"

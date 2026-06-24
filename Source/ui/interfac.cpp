@@ -23,7 +23,7 @@
 
 #include <expected.hpp>
 
-#include "panel/control.hpp"
+#include "ui/panel/control.hpp"
 #include "controls/input.h"
 #include "engine/gfx/clx_sprite.hpp"
 #include "engine/gfx/dx.h"

@@ -10,7 +10,7 @@
 
 #include <fmt/format.h>
 
-#include "panel/control.hpp"
+#include "ui/panel/control.hpp"
 #include "engine/load/load_file.hpp"
 #include "engine/gfx/palette.h"
 #include "engine/render/automap_render.hpp"

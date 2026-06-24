@@ -12,8 +12,8 @@
 
 #include <fmt/format.h>
 
-#include "menus/text_input.hpp"
-#include "panel/control.hpp"
+#include "ui/menu/text_input.hpp"
+#include "ui/panel/control.hpp"
 #include "controls/plrctrls.h"
 #include "engine/cursor.h"
 #include "engine/gfx/clx_sprite.hpp"

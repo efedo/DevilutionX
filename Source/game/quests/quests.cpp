@@ -9,8 +9,8 @@
 
 #include <fmt/format.h>
 
-#include "menus/ui_flags.hpp"
-#include "panel/control.hpp"
+#include "ui/menu/ui_flags.hpp"
+#include "ui/panel/control.hpp"
 #include "engine/cursor.h"
 #include "data/file.hpp"
 #include "data/record_reader.hpp"
@@ -29,7 +29,7 @@
 #include "game/monsters/monster_pool.hpp"
 #include "game/objects/object_pool.hpp"
 #include "persistence/options.h"
-#include "panel/ui_panels.hpp"
+#include "ui/panel/ui_panels.hpp"
 #include "game/stores/stores.hpp"
 #include "tables/townerdat.hpp"
 #include "game/towners/towners.hpp"

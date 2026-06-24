@@ -19,7 +19,7 @@
 
 #include "controls/control_mode.hpp"
 #include "controls/plrctrls.h"
-#include "debug_overlay/imgui_overlay.hpp"
+#include "ui/debug_overlay/imgui_overlay.hpp"
 #include "engine/render/primitive_render.hpp"
 #include "application/headless_mode.hpp"
 #include "application/init.hpp"

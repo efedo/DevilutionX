@@ -15,12 +15,12 @@
 #include <SDL.h>
 #endif
 
-#include "menus/ui_flags.hpp"
+#include "ui/menu/ui_flags.hpp"
 #include "engine/gfx/clx_sprite.hpp"
 #include "engine/render/clx_render.hpp"
 #include "engine/render/primitive_render.hpp"
 #include "engine/render/text_render.hpp"
-#include "panel/info_box.hpp"
+#include "ui/panel/info_box.hpp"
 #include "utils/algorithm/container.hpp"
 #include "utils/language.h"
 #include "utils/string/str_split.hpp"

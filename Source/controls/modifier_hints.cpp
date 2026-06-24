@@ -3,8 +3,8 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "menus/ui_flags.hpp"
-#include "panel/control.hpp"
+#include "ui/menu/ui_flags.hpp"
+#include "ui/panel/control.hpp"
 #include "controls/controller_motion.h"
 #include "controls/game_controls.h"
 #include "controls/plrctrls.h"
@@ -13,8 +13,8 @@
 #include "engine/render/clx_render.hpp"
 #include "engine/render/text_render.hpp"
 #include "persistence/options.h"
-#include "panel/spell_book.hpp"
-#include "panel/spell_icons.hpp"
+#include "ui/panel/spell_book.hpp"
+#include "ui/panel/spell_icons.hpp"
 #include "utils/language.h"
 
 namespace devilution {

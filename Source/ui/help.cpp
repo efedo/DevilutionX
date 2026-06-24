@@ -8,7 +8,7 @@
 #include <string_view>
 #include <vector>
 
-#include "menus/ui_flags.hpp"
+#include "ui/menu/ui_flags.hpp"
 #include "engine/render/clx_render.hpp"
 #include "engine/render/text_render.hpp"
 #include "application/game_mode.hpp"

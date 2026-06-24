@@ -13,8 +13,8 @@
 #include <utility>
 #include <vector>
 
-#include "menus/ui_flags.hpp"
-#include "panel/control.hpp"
+#include "ui/menu/ui_flags.hpp"
+#include "ui/panel/control.hpp"
 #include "engine/gfx/clx_sprite.hpp"
 #include "engine/gfx/surface.hpp"
 #include "application/game_mode.hpp"

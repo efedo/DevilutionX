@@ -9,7 +9,7 @@
 
 #include <fmt/format.h>
 
-#include "panel/control.hpp"
+#include "ui/panel/control.hpp"
 #include "engine/cursor.h"
 #include "engine/gfx/clx_sprite.hpp"
 #include "engine/load/load_clx.hpp"

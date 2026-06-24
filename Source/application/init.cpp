@@ -18,7 +18,7 @@
 
 #include <config.h>
 
-#include "menus/diabloui.h"
+#include "ui/menu/diabloui.h"
 #include "engine/assets.hpp"
 #include "engine/gfx/backbuffer_state.hpp"
 #include "engine/gfx/dx.h"

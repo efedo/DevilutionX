@@ -7,7 +7,7 @@
 #include <SDL.h>
 #endif
 
-#include "panel/control.hpp"
+#include "ui/panel/control.hpp"
 #include "controls/plrctrls.h"
 #include "engine/cursor.h"
 #include "application/diablo.h"
@@ -16,8 +16,8 @@
 #include "application/game_mode.hpp"
 #include "ui/gmenu.h"
 #include "game/players/inv.hpp"
-#include "panel/spell_book.hpp"
-#include "panel/spell_list.hpp"
+#include "ui/panel/spell_book.hpp"
+#include "ui/panel/spell_list.hpp"
 #include "qol/stash.h"
 #include "game/stores/stores.hpp"
 #include "utils/is_of.hpp"

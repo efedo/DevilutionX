@@ -10,7 +10,7 @@
 
 #include <expected.hpp>
 
-#include "menus/diabloui.h"
+#include "ui/menu/diabloui.h"
 #include "game/players/players.hpp"
 
 #ifdef UNPACKED_SAVES

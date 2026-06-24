@@ -10,8 +10,8 @@
 #include <string_view>
 #include <vector>
 
-#include "menus/ui_flags.hpp"
-#include "panel/control.hpp"
+#include "ui/menu/ui_flags.hpp"
+#include "ui/panel/control.hpp"
 #include "engine/gfx/clx_sprite.hpp"
 #include "engine/gfx/dx.h"
 #include "engine/load/load_cel.hpp"

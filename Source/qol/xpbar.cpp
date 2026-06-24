@@ -10,7 +10,7 @@
 
 #include <fmt/core.h>
 
-#include "panel/control.hpp"
+#include "ui/panel/control.hpp"
 #include "engine/gfx/clx_sprite.hpp"
 #include "engine/load/load_clx.hpp"
 #include "engine/math/point.hpp"

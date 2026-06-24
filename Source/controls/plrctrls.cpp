@@ -18,7 +18,7 @@
 #endif
 
 #include "ui/automap.h"
-#include "panel/control.hpp"
+#include "ui/panel/control.hpp"
 #include "controls/controller_motion.h"
 #ifndef USE_SDL1
 #include "controls/devices/game_controller.h"
@@ -43,9 +43,9 @@
 #include "ui/minitext.h"
 #include "game/missiles/missiles.hpp"
 #include "game/monsters/monster_pool.hpp"
-#include "panel/spell_icons.hpp"
-#include "panel/spell_list.hpp"
-#include "panel/ui_panels.hpp"
+#include "ui/panel/spell_icons.hpp"
+#include "ui/panel/spell_list.hpp"
+#include "ui/panel/ui_panels.hpp"
 #include "qol/chatlog.h"
 #include "qol/stash.h"
 #include "qol/visual_store.h"

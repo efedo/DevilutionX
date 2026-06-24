@@ -25,10 +25,10 @@
 #include "support/encrypt.h"
 #endif
 
-#include "menus/diabloui.h"
+#include "ui/menu/diabloui.h"
 #include "ui/automap.h"
 #include "config.h"
-#include "panel/control.hpp"
+#include "ui/panel/control.hpp"
 #include "game/monsters/dead.hpp"
 #include "engine/gfx/backbuffer_state.hpp"
 #include "engine/random.hpp"

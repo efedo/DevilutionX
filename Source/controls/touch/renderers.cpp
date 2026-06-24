@@ -6,7 +6,7 @@
 #include <SDL.h>
 #endif
 
-#include "panel/control.hpp"
+#include "ui/panel/control.hpp"
 #include "engine/cursor.h"
 #include "application/diablo.h"
 #include "game/quests/doom.hpp"
@@ -18,7 +18,7 @@
 #include "game/players/inv.hpp"
 #include "game/levels/gendung.h"
 #include "ui/minitext.h"
-#include "panel/ui_panels.hpp"
+#include "ui/panel/ui_panels.hpp"
 #include "qol/stash.h"
 #include "game/stores/stores.hpp"
 #include "game/towners/towners.hpp"

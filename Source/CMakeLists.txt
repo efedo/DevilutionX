@@ -9,7 +9,7 @@ set(libdevilutionx_SRCS
   engine/cursor.cpp
   game/monsters/dead.cpp
   application/debug.cpp
-  debug_overlay/imgui_overlay.cpp
+  ui/debug_overlay/imgui_overlay.cpp
   application/diablo.cpp
   ui/diablo_msg.cpp
   game/quests/doom.cpp
@@ -35,12 +35,12 @@ set(libdevilutionx_SRCS
   game/towners/towners.cpp
   engine/track.cpp
 
-  panel/control_chat.cpp
-  panel/control_chat_commands.cpp
-  panel/control_flasks.cpp
-  panel/control_gold.cpp
-  panel/control_infobox.cpp
-  panel/control_panel.cpp
+  ui/panel/control_chat.cpp
+  ui/panel/control_chat_commands.cpp
+  ui/panel/control_flasks.cpp
+  ui/panel/control_gold.cpp
+  ui/panel/control_infobox.cpp
+  ui/panel/control_panel.cpp
 
   controls/axis_direction.cpp
   controls/controller_motion.cpp
@@ -53,24 +53,24 @@ set(libdevilutionx_SRCS
   controls/modifier_hints.cpp
   controls/plrctrls.cpp
 
-  menus/button.cpp
-  menus/credits.cpp
-  menus/credits_lines.cpp
-  menus/diabloui.cpp
-  menus/dialogs.cpp
-  menus/hero/selhero.cpp
-  menus/mainmenu.cpp
-  menus/multi/selconn.cpp
-  menus/multi/selgame.cpp
-  menus/progress.cpp
-  menus/scrollbar.cpp
-  menus/selok.cpp
-  menus/selstart.cpp
-  menus/selyesno.cpp
-  menus/settingsmenu.cpp
-  menus/support_lines.cpp
-  menus/title.cpp
-  menus/text_input.cpp
+  ui/menu/button.cpp
+  ui/menu/credits.cpp
+  ui/menu/credits_lines.cpp
+  ui/menu/diabloui.cpp
+  ui/menu/dialogs.cpp
+  ui/menu/hero/selhero.cpp
+  ui/menu/mainmenu.cpp
+  ui/menu/multi/selconn.cpp
+  ui/menu/multi/selgame.cpp
+  ui/menu/progress.cpp
+  ui/menu/scrollbar.cpp
+  ui/menu/selok.cpp
+  ui/menu/selstart.cpp
+  ui/menu/selyesno.cpp
+  ui/menu/settingsmenu.cpp
+  ui/menu/support_lines.cpp
+  ui/menu/title.cpp
+  ui/menu/text_input.cpp
 
   net_transport/abstract_net.cpp
   net_transport/base.cpp
@@ -135,14 +135,14 @@ set(libdevilutionx_SRCS
 
   validation/monster_validation.cpp
 
-  panel/charpanel.cpp
-  panel/console.cpp
-  panel/info_box.cpp
-  panel/mainpanel.cpp
-  panel/partypanel.cpp
-  panel/spell_book.cpp
-  panel/spell_icons.cpp
-  panel/spell_list.cpp
+  ui/panel/charpanel.cpp
+  ui/panel/console.cpp
+  ui/panel/info_box.cpp
+  ui/panel/mainpanel.cpp
+  ui/panel/partypanel.cpp
+  ui/panel/spell_book.cpp
+  ui/panel/spell_icons.cpp
+  ui/panel/spell_list.cpp
 
   platform/locale.cpp
 
@@ -258,11 +258,11 @@ target_link_dependencies(libdevilutionx_controller_buttons
 )
 
 add_devilutionx_object_library(libdevilutionx_debug_console_history
-  debug_overlay/console_history.cpp
+  ui/debug_overlay/console_history.cpp
 )
 
 add_devilutionx_object_library(libdevilutionx_debug_overlay_state
-  debug_overlay/overlay_state.cpp
+  ui/debug_overlay/overlay_state.cpp
 )
 
 add_devilutionx_object_library(libdevilutionx_control_mode

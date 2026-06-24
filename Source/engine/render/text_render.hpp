@@ -14,7 +14,7 @@
 #include <variant>
 #include <vector>
 
-#include "menus/ui_flags.hpp"
+#include "ui/menu/ui_flags.hpp"
 #include "engine/gfx/clx_sprite.hpp"
 #include "engine/gfx/palette.h"
 #include "engine/math/point.hpp"

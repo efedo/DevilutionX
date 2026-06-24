@@ -20,7 +20,7 @@
 
 #include <fmt/format.h>
 
-#include "menus/ui_flags.hpp"
+#include "ui/menu/ui_flags.hpp"
 #include "controls/control_mode.hpp"
 #include "controls/plrctrls.h"
 #include "engine/cursor.h"

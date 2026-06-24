@@ -12,7 +12,7 @@
 #include "engine/gfx/surface.hpp"
 #include "game/levels/gendung.h"
 #include "game/monsters/monsters.hpp"
-#include "panel/info_box.hpp"
+#include "ui/panel/info_box.hpp"
 #include "tables/objdat.h"
 #include "tables/textdat.h"
 #include "utils/attributes.h"

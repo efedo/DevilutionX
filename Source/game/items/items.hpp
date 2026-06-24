@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <optional>
 
-#include "menus/ui_flags.hpp"
+#include "ui/menu/ui_flags.hpp"
 #include "engine/cursor.h"
 #include "engine/animationinfo.h"
 #include "engine/math/point.hpp"
