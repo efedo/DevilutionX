@@ -1,10 +1,10 @@
 /**
- * @file players/validation.cpp
+ * @file validation/player_validation.cpp
  *
  * Implementation of functions for validation of player data.
  */
 
-#include "players/validation.hpp"
+#include "validation/player_validation.hpp"
 
 #include <string_view>
 

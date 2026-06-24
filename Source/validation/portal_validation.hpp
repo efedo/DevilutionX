@@ -1,5 +1,5 @@
 /**
- * @file game/portals/validation.hpp
+ * @file validation/portal_validation.hpp
  *
  * Interface of functions for validation of portal data.
  */

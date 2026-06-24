@@ -1,10 +1,10 @@
 /**
- * @file game/quests/validation.cpp
+ * @file validation/quest_validation.cpp
  *
  * Implementation of functions for validation of quest data.
  */
 
-#include "game/quests/validation.hpp"
+#include "validation/quest_validation.hpp"
 
 #include <cstdint>
 

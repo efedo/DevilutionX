@@ -1,5 +1,5 @@
 /**
- * @file monsters/validation.hpp
+ * @file validation/monster_validation.hpp
  *
  * Interface of functions for validation of monster data.
  */

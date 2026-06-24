@@ -93,7 +93,7 @@ set(libdevilutionx_SRCS
   engine/render/automap_render.cpp
   engine/render/scrollrt.cpp
 
-  items/validation.cpp
+  validation/item_validation.cpp
 
   game/levels/level.cpp
   game/levels/reencode_dun_cels.cpp
@@ -133,7 +133,7 @@ set(libdevilutionx_SRCS
   lua/modules/towners.cpp
   lua/repl.cpp
 
-  monsters/validation.cpp
+  validation/monster_validation.cpp
 
   panel/charpanel.cpp
   panel/console.cpp
@@ -146,9 +146,9 @@ set(libdevilutionx_SRCS
 
   platform/locale.cpp
 
-  players/validation.cpp
+  validation/player_validation.cpp
 
-  game/portals/validation.cpp
+  validation/portal_validation.cpp
   game/objects/object_manager.cpp
 
   qol/autopickup.cpp
@@ -160,7 +160,7 @@ set(libdevilutionx_SRCS
   qol/visual_store.cpp
   qol/xpbar.cpp
 
-  game/quests/validation.cpp
+  validation/quest_validation.cpp
 
   storm/storm_net.cpp
   storm/storm_svid.cpp

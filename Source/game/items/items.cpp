@@ -53,7 +53,7 @@
 #include "application/headless_mode.hpp"
 #include "game/players/inv.hpp"
 #include "game/players/inv_iterators.hpp"
-#include "items/validation.h"
+#include "validation/item_validation.h"
 #include "game/levels/gendung.h"
 #include "game/levels/gendung_defs.hpp"
 #include "game/levels/tile_properties.hpp"

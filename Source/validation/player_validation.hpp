@@ -1,5 +1,5 @@
 /**
- * @file players/validation.hpp
+ * @file validation/player_validation.hpp
  *
  * Interface of functions for validation of player data.
  */

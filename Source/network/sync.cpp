@@ -13,7 +13,7 @@
 #include "game/items/item_pool.hpp"
 #include "game/monsters/monsters.hpp"
 #include "game/monsters/monster_pool.hpp"
-#include "monsters/validation.hpp"
+#include "validation/monster_validation.hpp"
 #include "game/players/players.hpp"
 #include "utils/endian_swap.hpp"
 #include "utils/is_of.hpp"
