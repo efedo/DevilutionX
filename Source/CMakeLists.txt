@@ -881,12 +881,6 @@ if(NOT USE_SDL1)
     controls/touch/renderers.cpp)
 endif()
 
-if(DISCORD_INTEGRATION)
-  list(APPEND libdevilutionx_SRCS
-    discord/discord.cpp
-  )
-endif()
-
 if(SCREEN_READER_INTEGRATION)
   list(APPEND libdevilutionx_SRCS
     utils/screen_reader.cpp
@@ -1001,11 +995,6 @@ file(GENERATE OUTPUT ${CONFIG_PATH} CONTENT
 #define PROJECT_VERSION_MINOR ${PROJECT_VERSION_MINOR}
 #define PROJECT_VERSION_PATCH ${PROJECT_VERSION_PATCH}
 ")
-
-if(DISCORD_INTEGRATION)
-  target_compile_definitions(libdevilutionx PRIVATE DISCORD)
-  target_link_libraries(libdevilutionx PRIVATE discord discord_game_sdk)
-endif()
 
 if(NOT USE_SDL1)
   genex_for_option(DEBUG)

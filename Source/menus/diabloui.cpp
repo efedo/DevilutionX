@@ -34,7 +34,7 @@
 #include "controls/input.h"
 #include "controls/menu_controls.h"
 #include "application/diablo.h"
-#include "discord/discord.h"
+
 #include "engine/audio/effects.h"
 #include "engine/gfx/clx_sprite.hpp"
 #include "engine/gfx/dx.h"
@@ -861,7 +861,6 @@ void UiPollAndRender(std::optional<tl::function_ref<bool(SDL_Event &)>> eventHan
 	ctr_vkbdFlush();
 #endif
 
-	discord_manager::UpdateMenu();
 }
 
 namespace {

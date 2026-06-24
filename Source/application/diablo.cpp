@@ -42,7 +42,7 @@
 #include "controls/remap_keyboard.h"
 #include "application/diablo.h"
 #include "ui/diablo_msg.hpp"
-#include "discord/discord.h"
+
 #include "game/quests/doom.hpp"
 #include "support/encrypt.h"
 #include "engine/gfx/backbuffer_state.hpp"
@@ -892,7 +892,6 @@ void RunGameLoop(interface_mode uMsg)
 	gbGameLoopStartup = true;
 	nthread_ignore_mutex(false);
 
-	discord_manager::StartGame();
 	lua::GameStart();
 #ifdef GPERF_HEAP_FIRST_GAME_ITERATION
 	unsigned run_game_iteration = 0;
@@ -928,8 +927,6 @@ void RunGameLoop(interface_mode uMsg)
 		const bool runGameLoop = demo::IsRunning() ? demo::GetRunGameLoop(drawGame, processInput) : nthread_has_500ms_passed(&drawGame);
 		if (demo::IsRecording())
 			demo::RecordGameLoopResult(runGameLoop);
-
-		discord_manager::UpdateGame();
 
 		if (!runGameLoop) {
 			if (processInput)

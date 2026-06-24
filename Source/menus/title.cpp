@@ -15,7 +15,7 @@
 #include "menus/ui_item.h"
 #include "controls/input.h"
 #include "controls/menu_controls.h"
-#include "discord/discord.h"
+
 #include "engine/gfx/clx_sprite.hpp"
 #include "engine/load/load_clx.hpp"
 #include "engine/load/load_pcx.hpp"
@@ -81,8 +81,6 @@ void UiTitleDialog()
 	while (!endMenu && SDL_GetTicks() < timeOut) {
 		UiRenderItems(vecTitleScreen);
 		UiFadeIn();
-
-		discord_manager::UpdateMenu();
 
 		while (PollEvent(&event)) {
 			if (c_any_of(GetMenuActions(event), [](MenuAction menuAction) { return menuAction != MenuAction_NONE; })) {
