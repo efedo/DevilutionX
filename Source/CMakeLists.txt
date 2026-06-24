@@ -72,12 +72,12 @@ set(libdevilutionx_SRCS
   menus/title.cpp
   menus/text_input.cpp
 
-  dvlnet/abstract_net.cpp
-  dvlnet/base.cpp
-  dvlnet/cdwrap.cpp
-  dvlnet/frame_queue.cpp
-  dvlnet/loopback.cpp
-  dvlnet/packet.cpp
+  net_transport/abstract_net.cpp
+  net_transport/base.cpp
+  net_transport/cdwrap.cpp
+  net_transport/frame_queue.cpp
+  net_transport/loopback.cpp
+  net_transport/packet.cpp
 
   engine/actor_position.cpp
   engine/animationinfo.cpp
@@ -862,14 +862,14 @@ endif()
 if(NOT NONET)
   if(NOT DISABLE_TCP)
     list(APPEND libdevilutionx_SRCS
-      dvlnet/tcp_client.cpp
-      dvlnet/tcp_server.cpp)
+      net_transport/tcp_client.cpp
+      net_transport/tcp_server.cpp)
   endif()
   if(NOT DISABLE_ZERO_TIER)
     list(APPEND libdevilutionx_SRCS
-      dvlnet/protocol_zt.cpp
-      dvlnet/zerotier_native.cpp
-      dvlnet/zerotier_lwip.cpp)
+      net_transport/protocol_zt.cpp
+      net_transport/zerotier_native.cpp
+      net_transport/zerotier_lwip.cpp)
   endif()
 endif()
 

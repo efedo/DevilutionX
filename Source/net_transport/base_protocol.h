@@ -13,8 +13,8 @@
 
 #include <ankerl/unordered_dense.h>
 
-#include "dvlnet/base.h"
-#include "dvlnet/packet.h"
+#include "net_transport/base.h"
+#include "net_transport/packet.h"
 #include "game/players/players.hpp"
 #include "utils/algorithm/container.hpp"
 #include "utils/is_of.hpp"

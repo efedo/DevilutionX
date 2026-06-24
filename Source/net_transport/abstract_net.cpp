@@ -1,18 +1,18 @@
-#include "dvlnet/abstract_net.h"
+#include "net_transport/abstract_net.h"
 
-#include "dvlnet/loopback.h"
+#include "net_transport/loopback.h"
 #include "utils/stubs.h"
 
 #ifndef NONET
-#include "dvlnet/cdwrap.h"
+#include "net_transport/cdwrap.h"
 
 #ifndef DISABLE_ZERO_TIER
-#include "dvlnet/base_protocol.h"
-#include "dvlnet/protocol_zt.h"
+#include "net_transport/base_protocol.h"
+#include "net_transport/protocol_zt.h"
 #endif
 
 #ifndef DISABLE_TCP
-#include "dvlnet/tcp_client.h"
+#include "net_transport/tcp_client.h"
 #endif
 #endif
 

@@ -1,9 +1,9 @@
-#include "dvlnet/frame_queue.h"
+#include "net_transport/frame_queue.h"
 
 #include <cstring>
 
 #include "application/appfat.h"
-#include "dvlnet/packet.h"
+#include "net_transport/packet.h"
 #include "utils/attributes.h"
 #include "utils/endian/endian_read.hpp"
 #include "utils/endian/endian_write.hpp"

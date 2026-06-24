@@ -21,9 +21,9 @@
 #include <asio/ts/net.hpp>
 #include <asio_handle_exception.hpp>
 
-#include "dvlnet/abstract_net.h"
-#include "dvlnet/frame_queue.h"
-#include "dvlnet/packet.h"
+#include "net_transport/abstract_net.h"
+#include "net_transport/frame_queue.h"
+#include "net_transport/packet.h"
 #include "network/multi.h"
 
 namespace devilution::net {

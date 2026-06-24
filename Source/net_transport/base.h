@@ -8,8 +8,8 @@
 
 #include <ankerl/unordered_dense.h>
 
-#include "dvlnet/abstract_net.h"
-#include "dvlnet/packet.h"
+#include "net_transport/abstract_net.h"
+#include "net_transport/packet.h"
 #include "network/multi.h"
 #include "storm/storm_net.hpp"
 

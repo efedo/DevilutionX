@@ -1,4 +1,4 @@
-#include "dvlnet/tcp_server.h"
+#include "net_transport/tcp_server.h"
 
 #include <chrono>
 #include <functional>
@@ -7,7 +7,7 @@
 
 #include <expected.hpp>
 
-#include "dvlnet/base.h"
+#include "net_transport/base.h"
 #include "game/players/players.hpp"
 #include "utils/log.hpp"
 

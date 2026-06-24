@@ -4,7 +4,7 @@
 #include <queue>
 #include <string>
 
-#include "dvlnet/abstract_net.h"
+#include "net_transport/abstract_net.h"
 
 namespace devilution::net {
 

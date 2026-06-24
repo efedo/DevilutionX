@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-#include "dvlnet/leaveinfo.hpp"
+#include "net_transport/leaveinfo.hpp"
 #include "network/msg.h"
 #include "utils/attributes.h"
 

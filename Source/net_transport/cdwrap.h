@@ -10,7 +10,7 @@
 #include <ankerl/unordered_dense.h>
 #include <function_ref.hpp>
 
-#include "dvlnet/abstract_net.h"
+#include "net_transport/abstract_net.h"
 #include "storm/storm_net.hpp"
 
 namespace devilution::net {

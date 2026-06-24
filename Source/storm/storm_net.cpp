@@ -12,7 +12,7 @@
 #include "utils/sdl/sdl_mutex.h"
 #endif
 
-#include "dvlnet/abstract_net.h"
+#include "net_transport/abstract_net.h"
 #include "engine/demomode.h"
 #include "application/headless_mode.hpp"
 #include "ui/menu.h"

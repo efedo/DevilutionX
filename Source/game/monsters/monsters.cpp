@@ -44,7 +44,7 @@
 #include "engine/cursor.h"
 #include "game/monsters/dead.hpp"
 #include "application/diablo.h"
-#include "dvlnet/leaveinfo.hpp"
+#include "net_transport/leaveinfo.hpp"
 #include "engine/audio/effects.h"
 #include "engine/animationinfo.h"
 #include "engine/gfx/backbuffer_state.hpp"

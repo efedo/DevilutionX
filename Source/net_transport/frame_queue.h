@@ -7,7 +7,7 @@
 
 #include <expected.hpp>
 
-#include "dvlnet/packet.h"
+#include "net_transport/packet.h"
 
 namespace devilution {
 namespace net {

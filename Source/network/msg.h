@@ -7,7 +7,7 @@
 
 #include <cstdint>
 
-#include "dvlnet/leaveinfo.hpp"
+#include "net_transport/leaveinfo.hpp"
 #include "engine/math/point.hpp"
 #include "game/items/items.hpp"
 #include "game/monsters/monsters.hpp"

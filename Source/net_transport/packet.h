@@ -14,8 +14,8 @@
 #endif
 
 #include "application/appfat.h"
-#include "dvlnet/abstract_net.h"
-#include "dvlnet/leaveinfo.hpp"
+#include "net_transport/abstract_net.h"
+#include "net_transport/leaveinfo.hpp"
 #include "utils/attributes.h"
 #include "utils/endian/endian_read.hpp"
 #include "utils/endian/endian_write.hpp"

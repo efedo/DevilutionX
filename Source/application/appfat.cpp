@@ -22,7 +22,7 @@
 #include <fmt/format.h>
 
 #include "application/diablo.h"
-#include "dvlnet/leaveinfo.hpp"
+#include "net_transport/leaveinfo.hpp"
 #include "network/multi.h"
 #include "storm/storm_net.hpp"
 #include "utils/language.h"
