@@ -63,6 +63,7 @@ std::size_t selhero_SaveCount = 0;
 _uiheroinfo selhero_heros[MAX_CHARACTERS];
 _uiheroinfo selhero_heroInfo;
 char textStats[6][4];
+const char *textStatsPtr[6] = { textStats[0], textStats[1], textStats[2], textStats[3], textStats[4], textStats[5] };
 const char *title = "";
 _selhero_selections selhero_result;
 bool selhero_navigateYesNo;
@@ -522,7 +523,7 @@ void selhero_Init()
 	const int statHeight = 21;
 
 	vecSelHeroDialog.push_back(std::make_unique<UiArtText>(_("Level:").data(), MakeSdlRect(labelX, uiPosition.y + 323, labelWidth, statHeight), labelFlags));
-	vecSelHeroDialog.push_back(std::make_unique<UiArtText>(textStats[0], MakeSdlRect(valueX, uiPosition.y + 323, valueWidth, statHeight), valueFlags));
+	vecSelHeroDialog.push_back(std::make_unique<UiArtText>(&textStatsPtr[0], MakeSdlRect(valueX, uiPosition.y + 323, valueWidth, statHeight), valueFlags));
 
 	const char *statLabels[] {
 		_("Strength:").data(), _("Magic:").data(), _("Dexterity:").data(), _("Vitality:").data(),
@@ -533,7 +534,7 @@ void selhero_Init()
 	int statY = uiPosition.y + 358;
 	for (size_t i = 0; i < sizeof(statLabels) / sizeof(statLabels[0]); ++i) {
 		vecSelHeroDialog.push_back(std::make_unique<UiArtText>(statLabels[i], MakeSdlRect(labelX, statY, labelWidth, statHeight), labelFlags));
-		vecSelHeroDialog.push_back(std::make_unique<UiArtText>(textStats[i + 1], MakeSdlRect(valueX, statY, valueWidth, statHeight), valueFlags));
+		vecSelHeroDialog.push_back(std::make_unique<UiArtText>(&textStatsPtr[i + 1], MakeSdlRect(valueX, statY, valueWidth, statHeight), valueFlags));
 		statY += statHeight;
 	}
 }
