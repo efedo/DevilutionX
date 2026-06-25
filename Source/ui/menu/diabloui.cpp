@@ -223,12 +223,12 @@ void UiInitList(void (*fnFocus)(size_t value), void (*fnSelect)(size_t value), v
 #elif defined(__vita__)
 			vita_start_text_input(pItemUIEdit->m_hint, pItemUIEdit->m_value, pItemUIEdit->m_max_length);
 #elif defined(__3DS__)
-			ctr_vkbdInput(pItemUIEdit->m_hint, pItemUIEdit->m_value, pItemUIEdit->m_value, pItemUIEdit->m_max_length);
+			ctr_vkbdInput(pItemUIEdit->m_hint, pItemUIEdit->m_value, pItemUIEdit->m_value.data(), pItemUIEdit->m_max_length);
 #else
 			SDLC_StartTextInput(ghMainWnd);
 #endif
 			UiTextInputState.emplace(TextInputState::Options {
-			    .value = pItemUIEdit->m_value,
+			    .value = pItemUIEdit->m_value.data(),
 			    .cursor = &pItemUIEdit->m_cursor,
 			    .maxLength = pItemUIEdit->m_max_length,
 			});
@@ -583,6 +583,12 @@ void UiFocusNavigationSelect()
 	if (UiTextInputState.has_value()) {
 		if (!allowEmptyTextInput && UiTextInputState->empty()) {
 			return;
+		}
+		for (UiItemBase *item : gUiItems) {
+			if (item->IsType(UiType::Edit)) {
+				static_cast<UiEdit *>(item)->ApplyEdit();
+				break;
+			}
 		}
 #ifndef __SWITCH__
 		SDLC_StopTextInput(ghMainWnd);

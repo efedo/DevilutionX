@@ -43,9 +43,9 @@ std::vector<std::string> MonsterSpritePaths;
 
 } // namespace
 
-const char *MonsterData::spritePath() const
+std::string_view MonsterData::spritePath() const
 {
-	return MonsterSpritePaths[static_cast<size_t>(spriteId)].c_str();
+	return MonsterSpritePaths[static_cast<size_t>(spriteId)];
 }
 
 /** Contains the data related to each monster ID. */

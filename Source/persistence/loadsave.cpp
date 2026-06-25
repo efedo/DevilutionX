@@ -119,7 +119,7 @@ class LoadHelper {
 	}
 
 public:
-	LoadHelper(std::optional<SaveReader> archive, const char *szFileName)
+	LoadHelper(std::optional<SaveReader> archive, std::string_view szFileName)
 	{
 		if (archive)
 			m_buffer_ = ReadArchive(*archive, szFileName, &m_size_);
@@ -252,8 +252,8 @@ public:
 	~SaveHelper()
 	{
 		const auto encodedLen = codec_get_encoded_len(m_cur_);
-		const char *const password = pfile_get_password();
-		codec_encode(m_buffer_.get(), m_cur_, encodedLen, password);
+		std::string_view password = pfile_get_password();
+		codec_encode(m_buffer_.get(), m_cur_, encodedLen, password.data());
 		m_mpqWriter.WriteFile(m_szFileName_, m_buffer_.get(), encodedLen);
 	}
 };

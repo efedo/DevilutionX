@@ -4,7 +4,7 @@
 
 namespace devilution {
 
-extern void ErrDlg(const char* title, std::string_view error, std::string_view logFilePath, int logLineNr);
+extern void ErrDlg(std::string_view title, std::string_view error, std::string_view logFilePath, int logLineNr);
 
 } // namespace devilution
 

@@ -75,7 +75,7 @@ Item TempItem;
 
 std::vector<std::pair<std::string, std::vector<TownerDialogOption>>> ExtraTownerOptions;
 
-const char *TownerNameForTalkID(TalkID s)
+std::optional<std::string_view> TownerNameForTalkID(TalkID s)
 {
 	switch (s) {
 	case TalkID::Smith: return "griswold";
@@ -86,7 +86,7 @@ const char *TownerNameForTalkID(TalkID s)
 	case TalkID::Tavern: return "ogden";
 	case TalkID::Drunk: return "farnham";
 	case TalkID::Barmaid: return "gillian";
-	default: return nullptr;
+	default: return std::nullopt;
 	}
 }
 
@@ -2299,8 +2299,8 @@ void StartStore(TalkID s)
 	ReleaseStoreBtn();
 
 	// Fire StoreOpened Lua event for main store entries
-	if (const char *name = TownerNameForTalkID(s); name != nullptr)
-		lua::StoreOpened(name);
+	if (std::optional<std::string_view> name = TownerNameForTalkID(s); name.has_value())
+		lua::StoreOpened(*name);
 
 	switch (s) {
 	case TalkID::Smith:
@@ -2388,8 +2388,8 @@ void StartStore(TalkID s)
 	}
 
 	std::fill(std::begin(CurrentExtraOptionIndices), std::end(CurrentExtraOptionIndices), std::nullopt);
-	if (const char *extraTownerName = TownerNameForTalkID(s); extraTownerName != nullptr) {
-		if (auto *extraOpts = FindExtraTownerOptions(extraTownerName); extraOpts != nullptr) {
+	if (std::optional<std::string_view> extraTownerName = TownerNameForTalkID(s); extraTownerName.has_value()) {
+		if (auto *extraOpts = FindExtraTownerOptions(*extraTownerName); extraOpts != nullptr) {
 			// Find the last selectable line (the "leave"/"say goodbye" option).
 			int lastSelectableLine = -1;
 			for (int i = NumStoreLines - 1; i >= 0; --i) {
@@ -2412,7 +2412,7 @@ void StartStore(TalkID s)
 			}
 			if (optIdx < extraOpts->size()) {
 				LogWarn("Towner \"{}\" dialog: {} extra option(s) could not be placed (no empty lines)",
-				    extraTownerName, extraOpts->size() - optIdx);
+				    *extraTownerName, extraOpts->size() - optIdx);
 			}
 		}
 	}
@@ -2684,8 +2684,8 @@ void StoreEnter()
 
 	if (CurrentTextLine >= 0 && CurrentTextLine < NumStoreLines && CurrentExtraOptionIndices[CurrentTextLine].has_value()) {
 		size_t optIdx = *CurrentExtraOptionIndices[CurrentTextLine];
-		if (const char *townerName = TownerNameForTalkID(ActiveStore); townerName != nullptr) {
-			if (auto *extraOpts = FindExtraTownerOptions(townerName); extraOpts != nullptr && optIdx < extraOpts->size()) {
+		if (std::optional<std::string_view> townerName = TownerNameForTalkID(ActiveStore); townerName.has_value()) {
+			if (auto *extraOpts = FindExtraTownerOptions(*townerName); extraOpts != nullptr && optIdx < extraOpts->size()) {
 				ActiveStore = TalkID::None;
 				(*extraOpts)[optIdx].onSelect();
 				// If onSelect() set ActiveStore (e.g. to open a sub-dialog), preserve it.

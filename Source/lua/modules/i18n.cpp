@@ -23,9 +23,9 @@ sol::table LuaI18nModule(sol::state_view &lua)
 	LuaSetDocFn(table, "language_code", "()",
 	    "Returns the current language code", GetLanguageCode);
 	LuaSetDocFn(table, "translate", "(text: string)",
-	    "Translates the given string", [](const char *key) { return LanguageTranslate(key); });
+	    "Translates the given string", [](std::string_view key) { return LanguageTranslate(key); });
 	LuaSetDocFn(table, "plural_translate", "(singular: string, plural: string, count: integer)",
-	    "Returns a singular or plural translation for the given keys and count", [](const char *singular, std::string_view plural, int count) {
+	    "Returns a singular or plural translation for the given keys and count", [](std::string_view singular, std::string_view plural, int count) {
 		    return fmt::format(fmt::runtime(LanguagePluralTranslate(singular, plural, count)), count);
 	    });
 	LuaSetDocFn(table, "particular_translate", "(context: string, text: string)",

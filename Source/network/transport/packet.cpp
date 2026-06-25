@@ -63,7 +63,7 @@ cookie_t packet_out::GenerateCookie()
 
 #endif
 
-const char *packet_type_to_string(uint8_t packetType)
+std::optional<std::string_view> packet_type_to_string(uint8_t packetType)
 {
 	switch (packetType) {
 	case PT_MESSAGE:
@@ -87,7 +87,7 @@ const char *packet_type_to_string(uint8_t packetType)
 	case PT_ECHO_REPLY:
 		return "PT_ECHO_REPLY";
 	default:
-		return nullptr;
+		return std::nullopt;
 	}
 }
 
@@ -100,9 +100,9 @@ PacketError PacketTypeError(std::initializer_list<packet_type> expectedTypes, st
 {
 	std::string message = "Expected packet of type ";
 	const auto appendPacketType = [&](std::uint8_t t) {
-		const char *typeStr = packet_type_to_string(t);
-		if (typeStr != nullptr)
-			message.append(typeStr);
+		std::optional<std::string_view> typeStr = packet_type_to_string(t);
+		if (typeStr.has_value())
+			message.append(*typeStr);
 		else
 			StrAppend(message, t);
 	};

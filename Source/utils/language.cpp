@@ -301,7 +301,7 @@ std::string_view LanguageParticularTranslate(std::string_view context, std::stri
 	key += Glue;
 	key.append(message);
 
-	auto it = translation[0].find(key.c_str());
+	auto it = translation[0].find(key);
 	if (it == translation[0].end()) {
 		return message;
 	}
@@ -309,7 +309,7 @@ std::string_view LanguageParticularTranslate(std::string_view context, std::stri
 	return GetTranslation(it->second);
 }
 
-std::string_view LanguagePluralTranslate(const char *singular, std::string_view plural, int count)
+std::string_view LanguagePluralTranslate(std::string_view singular, std::string_view plural, int count)
 {
 	const int n = GetLocalPluralId(count);
 
@@ -323,7 +323,7 @@ std::string_view LanguagePluralTranslate(const char *singular, std::string_view 
 	return GetTranslation(it->second);
 }
 
-std::string_view LanguageTranslate(const char *key)
+std::string_view LanguageTranslate(std::string_view key)
 {
 	auto it = translation[0].find(key);
 	if (it == translation[0].end()) {

@@ -8,6 +8,7 @@
 #include <array>
 #include <cstdint>
 #include <span>
+#include <string_view>
 
 #ifdef USE_SDL3
 #include <SDL3/SDL_pixels.h>
@@ -78,12 +79,12 @@ void palette_init();
 /**
  * @brief Loads `logical_palette` from path.
  */
-void LoadPalette(const char *path);
+void LoadPalette(std::string_view path);
 
 /**
  * @brief Loads `logical_palette` from path, and generates the blending lookup table
  */
-void LoadPaletteAndInitBlending(const char *path);
+void LoadPaletteAndInitBlending(std::string_view path);
 
 /**
  * @brief Sets a single `logical_palette` color and updates the corresponding `system_color`.

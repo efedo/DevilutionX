@@ -74,13 +74,13 @@ void app_fatal(std::string_view str)
 }
 
 #ifdef _DEBUG
-void assert_fail(int nLineNo, const char *pszFile, const char *pszFail)
+void assert_fail(int nLineNo, std::string_view pszFile, std::string_view pszFail)
 {
 	app_fatal(StrCat("assertion failed (", pszFile, ":", nLineNo, ")\n", pszFail));
 }
 #endif
 
-void ErrDlg(const char *title, std::string_view error, std::string_view logFilePath, int logLineNr)
+void ErrDlg(std::string_view title, std::string_view error, std::string_view logFilePath, int logLineNr)
 {
 	DisplayFatalErrorAndExit(
 	    title,

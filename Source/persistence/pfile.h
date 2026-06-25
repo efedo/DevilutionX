@@ -7,6 +7,7 @@
 
 #include <cstdint>
 #include <string>
+#include <string_view>
 
 #include <expected.hpp>
 
@@ -38,9 +39,9 @@ struct SaveReader {
 		return dir_;
 	}
 
-	std::unique_ptr<std::byte[]> ReadFile(const char *filename, std::size_t &fileSize, int32_t &error);
+	std::unique_ptr<std::byte[]> ReadFile(std::string_view filename, std::size_t &fileSize, int32_t &error);
 
-	bool HasFile(const char *path)
+	bool HasFile(std::string_view path)
 	{
 		return ::devilution::FileExists((dir_ + path).c_str());
 	}
@@ -55,19 +56,19 @@ struct SaveWriter {
 	{
 	}
 
-	bool WriteFile(const char *filename, const std::byte *data, size_t size);
+	bool WriteFile(std::string_view filename, const std::byte *data, size_t size);
 
-	bool HasFile(const char *path)
+	bool HasFile(std::string_view path)
 	{
 		return ::devilution::FileExists((dir_ + path).c_str());
 	}
 
-	void RenameFile(const char *from, const char *to)
+	void RenameFile(std::string_view from, std::string_view to)
 	{
 		::devilution::RenameFile((dir_ + from).c_str(), (dir_ + to).c_str());
 	}
 
-	void RemoveHashEntry(const char *path)
+	void RemoveHashEntry(std::string_view path)
 	{
 		RemoveFile((dir_ + path).c_str());
 	}
@@ -98,8 +99,8 @@ struct HeroCompareResult {
 
 std::optional<SaveReader> OpenSaveArchive(uint32_t saveNum);
 std::optional<SaveReader> OpenStashArchive();
-const char *pfile_get_password();
-std::unique_ptr<std::byte[]> ReadArchive(SaveReader &archive, const char *pszName, size_t *pdwLen = nullptr);
+std::string_view pfile_get_password();
+std::unique_ptr<std::byte[]> ReadArchive(SaveReader &archive, std::string_view pszName, size_t *pdwLen = nullptr);
 void pfile_write_hero(bool writeGameData = false);
 
 #ifndef DISABLE_DEMOMODE
@@ -127,7 +128,7 @@ void pfile_read_player_from_save(uint32_t saveNum, Player &player);
 void pfile_save_level();
 tl::expected<void, std::string> pfile_convert_levels();
 void pfile_remove_temp_files();
-std::unique_ptr<std::byte[]> pfile_read(const char *pszName, size_t *pdwLen);
+std::unique_ptr<std::byte[]> pfile_read(std::string_view pszName, size_t *pdwLen);
 void pfile_update(bool forceSave);
 
 } // namespace devilution

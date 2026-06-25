@@ -172,9 +172,8 @@ void palette_init()
 	LoadBrightness();
 }
 
-void LoadPalette(const char *path)
+void LoadPalette(std::string_view path)
 {
-	assert(path != nullptr);
 	if (HeadlessMode) return;
 
 	LogVerbose("Loading palette from {}", path);
@@ -185,9 +184,8 @@ void LoadPalette(const char *path)
 	}
 }
 
-void LoadPaletteAndInitBlending(const char *path)
+void LoadPaletteAndInitBlending(std::string_view path)
 {
-	assert(path != nullptr);
 	if (HeadlessMode) return;
 	LoadPalette(path);
 	if (levelType() == DTYPE_CAVES || levelType() == DTYPE_CRYPT) {

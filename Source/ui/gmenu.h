@@ -6,6 +6,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 
 #include "utils/attributes.h"
 
@@ -24,7 +25,7 @@ namespace devilution {
 
 struct TMenuItem {
 	uint32_t dwFlags;
-	const char *pszStr;
+	std::string pszStr;
 	void (*fnMenu)(bool);
 
 	[[nodiscard]] bool enabled() const

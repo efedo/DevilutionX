@@ -156,7 +156,7 @@ void EncodeHero(SaveWriter &saveWriter, const PlayerPack *pack)
 	const std::unique_ptr<std::byte[]> packed { new std::byte[packedLen] };
 
 	memcpy(packed.get(), pack, sizeof(*pack));
-	codec_encode(packed.get(), sizeof(*pack), packedLen, pfile_get_password());
+	codec_encode(packed.get(), sizeof(*pack), packedLen, pfile_get_password().data());
 	saveWriter.WriteFile("hero", packed.get(), packedLen);
 }
 
@@ -472,9 +472,9 @@ HeroCompareResult CompareSaves(const std::string &actualSavePath, const std::str
 	std::string message;
 	for (const auto &compareTarget : possibleFileToCheck) {
 		size_t fileSizeActual = 0;
-		auto fileDataActual = ReadArchive(actualArchive, compareTarget.fileName.c_str(), &fileSizeActual);
+		auto fileDataActual = ReadArchive(actualArchive, compareTarget.fileName, &fileSizeActual);
 		size_t fileSizeReference = 0;
-		auto fileDataReference = ReadArchive(referenceArchive, compareTarget.fileName.c_str(), &fileSizeReference);
+		auto fileDataReference = ReadArchive(referenceArchive, compareTarget.fileName, &fileSizeReference);
 		if (fileDataActual.get() == nullptr && fileDataReference.get() == nullptr) {
 			continue;
 		}
@@ -536,7 +536,7 @@ void RemoveAllInvalidItems(Player &player)
 } // namespace
 
 #ifdef UNPACKED_SAVES
-std::unique_ptr<std::byte[]> SaveReader::ReadFile(const char *filename, std::size_t &fileSize, int32_t &error)
+std::unique_ptr<std::byte[]> SaveReader::ReadFile(std::string_view filename, std::size_t &fileSize, int32_t &error)
 {
 	std::unique_ptr<std::byte[]> result;
 	error = 0;
@@ -562,7 +562,7 @@ std::unique_ptr<std::byte[]> SaveReader::ReadFile(const char *filename, std::siz
 	return result;
 }
 
-bool SaveWriter::WriteFile(const char *filename, const std::byte *data, size_t size)
+bool SaveWriter::WriteFile(std::string_view filename, const std::byte *data, size_t size)
 {
 	const std::string path = dir_ + filename;
 	FILE *file = OpenFile(path.c_str(), "wb");
@@ -597,7 +597,7 @@ std::optional<SaveReader> OpenStashArchive()
 	return CreateSaveReader(GetStashSavePath());
 }
 
-std::unique_ptr<std::byte[]> ReadArchive(SaveReader &archive, const char *pszName, size_t *pdwLen)
+std::unique_ptr<std::byte[]> ReadArchive(SaveReader &archive, std::string_view pszName, size_t *pdwLen)
 {
 	int32_t error;
 	std::size_t length;
@@ -606,7 +606,7 @@ std::unique_ptr<std::byte[]> ReadArchive(SaveReader &archive, const char *pszNam
 	if (error != 0)
 		return nullptr;
 
-	const std::size_t decodedLength = codec_decode(result.get(), length, pfile_get_password());
+	const std::size_t decodedLength = codec_decode(result.get(), length, pfile_get_password().data());
 	if (decodedLength == 0)
 		return nullptr;
 
@@ -616,7 +616,7 @@ std::unique_ptr<std::byte[]> ReadArchive(SaveReader &archive, const char *pszNam
 	return result;
 }
 
-const char *pfile_get_password()
+std::string_view pfile_get_password()
 {
 	if (gbIsSpawn)
 		return gbIsMultiplayer ? PASSWORD_SPAWN_MULTI : PASSWORD_SPAWN_SINGLE;

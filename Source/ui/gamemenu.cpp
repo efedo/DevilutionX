@@ -54,7 +54,7 @@ TMenuItem sgSingleMenu[] = {
 	{ GMENU_ENABLED, N_("Load Game"),         &gamemenu_load_game },
 	{ GMENU_ENABLED, N_("Exit to Main Menu"), &GamemenuNewGame    },
 	{ GMENU_ENABLED, N_("Quit Game"),         &gamemenu_quit_game },
-	{ GMENU_ENABLED, nullptr,                 nullptr             },
+	{ GMENU_ENABLED, "",                      nullptr             },
 	// clang-format on
 };
 /** Contains the game menu items of the multi player menu. */
@@ -64,18 +64,18 @@ TMenuItem sgMultiMenu[] = {
 	{ GMENU_ENABLED, N_("Options"),           &GamemenuOptions    },
 	{ GMENU_ENABLED, N_("Exit to Main Menu"), &GamemenuNewGame    },
 	{ GMENU_ENABLED, N_("Quit Game"),         &gamemenu_quit_game },
-	{ GMENU_ENABLED, nullptr,                 nullptr             },
+	{ GMENU_ENABLED, "",                      nullptr             },
 	// clang-format on
 };
 TMenuItem sgOptionsMenu[] = {
 	// clang-format off
 	// dwFlags,                     pszStr,              fnMenu
-	{ GMENU_ENABLED | GMENU_SLIDER, nullptr,             &GamemenuMusicVolume  },
-	{ GMENU_ENABLED | GMENU_SLIDER, nullptr,             &GamemenuSoundVolume  },
+	{ GMENU_ENABLED | GMENU_SLIDER, "",                  &GamemenuMusicVolume  },
+	{ GMENU_ENABLED | GMENU_SLIDER, "",                  &GamemenuSoundVolume  },
 	{ GMENU_ENABLED | GMENU_SLIDER, N_("Gamma"),         &GamemenuBrightness   },
 	{ GMENU_ENABLED | GMENU_SLIDER, N_("Speed"),         &GamemenuSpeed        },
 	{ GMENU_ENABLED               , N_("Previous Menu"), &GamemenuPrevious     },
-	{ GMENU_ENABLED               , nullptr,             nullptr               },
+	{ GMENU_ENABLED               , "",                  nullptr               },
 	// clang-format on
 };
 /** Specifies the menu names for music enabled and disabled. */
@@ -160,19 +160,19 @@ void GamemenuGetSpeed()
 	if (gbIsMultiplayer) {
 		sgOptionsMenu[3].removeFlags(GMENU_ENABLED | GMENU_SLIDER);
 		if (sgGameInitInfo.nTickRate >= 50)
-			sgOptionsMenu[3].pszStr = _("Speed: Fastest").data();
+			sgOptionsMenu[3].pszStr = _("Speed: Fastest");
 		else if (sgGameInitInfo.nTickRate >= 40)
-			sgOptionsMenu[3].pszStr = _("Speed: Faster").data();
+			sgOptionsMenu[3].pszStr = _("Speed: Faster");
 		else if (sgGameInitInfo.nTickRate >= 30)
-			sgOptionsMenu[3].pszStr = _("Speed: Fast").data();
+			sgOptionsMenu[3].pszStr = _("Speed: Fast");
 		else if (sgGameInitInfo.nTickRate == 20)
-			sgOptionsMenu[3].pszStr = _("Speed: Normal").data();
+			sgOptionsMenu[3].pszStr = _("Speed: Normal");
 		return;
 	}
 
 	sgOptionsMenu[3].addFlags(GMENU_ENABLED | GMENU_SLIDER);
 
-	sgOptionsMenu[3].pszStr = _("Speed").data();
+	sgOptionsMenu[3].pszStr = _("Speed");
 	gmenu_slider_steps(&sgOptionsMenu[3], 46);
 	gmenu_slider_set(&sgOptionsMenu[3], 20, 50, sgGameInitInfo.nTickRate);
 }

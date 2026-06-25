@@ -52,7 +52,7 @@ void StreamPlay(TSFX *pSFX, int lVolume, int lPan)
 		if (lVolume > VOLUME_MAX)
 			lVolume = VOLUME_MAX;
 		if (pSFX->pSnd == nullptr)
-			pSFX->pSnd = sound_file_load(pSFX->pszName.c_str(), AllowStreaming);
+			pSFX->pSnd = sound_file_load(pSFX->pszName, AllowStreaming);
 		if (pSFX->pSnd->DSB.IsLoaded())
 			pSFX->pSnd->DSB.PlayWithVolumeAndPan(lVolume, sound_get_or_set_sound_volume(1), lPan);
 		sgpStreamSFX = pSFX;
@@ -91,7 +91,7 @@ void PlaySfxPriv(TSFX *pSFX, bool loc, Point position)
 	}
 
 	if (pSFX->pSnd == nullptr)
-		pSFX->pSnd = sound_file_load(pSFX->pszName.c_str());
+		pSFX->pSnd = sound_file_load(pSFX->pszName);
 
 	if (pSFX->pSnd == nullptr || !pSFX->pSnd->DSB.IsLoaded())
 		return;
@@ -177,7 +177,7 @@ void PrivSoundInit(uint8_t bLoadMask)
 			continue;
 		}
 
-		sfx.pSnd = sound_file_load(sfx.pszName.c_str());
+		sfx.pSnd = sound_file_load(sfx.pszName);
 	}
 }
 
@@ -324,7 +324,7 @@ int GetSFXLength(SfxID nSFX)
 {
 	TSFX &sfx = sgSFX[static_cast<int16_t>(nSFX)];
 	if (sfx.pSnd == nullptr)
-		sfx.pSnd = sound_file_load(sfx.pszName.c_str(),
+		sfx.pSnd = sound_file_load(sfx.pszName,
 		    /*stream=*/AllowStreaming && (sfx.bFlags & sfx_STREAM) != 0);
 	return sfx.pSnd->DSB.GetLength();
 }

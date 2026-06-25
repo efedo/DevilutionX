@@ -56,19 +56,19 @@ namespace {
 
 SoundSample music;
 
-std::string GetMp3Path(const char *path)
+std::string GetMp3Path(std::string_view path)
 {
-	std::string mp3Path = path;
+	std::string mp3Path(path);
 	const std::string::size_type dot = mp3Path.find_last_of('.');
 	mp3Path.replace(dot + 1, mp3Path.size() - (dot + 1), "mp3");
 	return mp3Path;
 }
 
-tl::expected<void, std::string> LoadAudioFile(const char *path, bool stream, SoundSample &result)
+tl::expected<void, std::string> LoadAudioFile(std::string_view path, bool stream, SoundSample &result)
 {
 	bool isMp3 = true;
 	std::string foundPath = GetMp3Path(path);
-	AssetRef ref = FindAsset(foundPath.c_str());
+	AssetRef ref = FindAsset(foundPath);
 	if (!ref.ok()) {
 		ref = FindAsset(path);
 		foundPath = path;
@@ -224,7 +224,7 @@ void snd_play_snd(TSnd *pSnd, int lVolume, int lPan, int userVolume)
 	pSnd->start_tc = tc;
 }
 
-tl::expected<std::unique_ptr<TSnd>, std::string> SoundFileLoadWithStatus(const char *path, bool stream)
+tl::expected<std::unique_ptr<TSnd>, std::string> SoundFileLoadWithStatus(std::string_view path, bool stream)
 {
 	auto snd = std::make_unique<TSnd>();
 	snd->start_tc = SDL_GetTicks() - 80 - 1;
@@ -234,7 +234,7 @@ tl::expected<std::unique_ptr<TSnd>, std::string> SoundFileLoadWithStatus(const c
 	return snd;
 }
 
-std::unique_ptr<TSnd> sound_file_load(const char *path, bool stream)
+std::unique_ptr<TSnd> sound_file_load(std::string_view path, bool stream)
 {
 	tl::expected<std::unique_ptr<TSnd>, std::string> result = SoundFileLoadWithStatus(path, stream);
 	if (!result.has_value()) app_fatal(result.error());

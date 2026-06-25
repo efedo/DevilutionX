@@ -128,11 +128,11 @@ use_enum_as_flags(OptionEntryFlags);
 
 class OptionEntryBase {
 public:
-	OptionEntryBase(std::string_view key, OptionEntryFlags flags, const char *name, const char *description)
+	OptionEntryBase(std::string_view key, OptionEntryFlags flags, std::string name, std::string description)
 	    : flags(flags)
 	    , key(key)
-	    , name(name)
-	    , description(description)
+	    , name(std::move(name))
+	    , description(std::move(description))
 	{
 	}
 	[[nodiscard]] virtual std::string_view GetName() const;
@@ -152,8 +152,8 @@ public:
 	std::string_view key;
 
 protected:
-	const char *name;
-	const char *description;
+	std::string name;
+	std::string description;
 	void NotifyValueChanged();
 
 private:
@@ -162,7 +162,7 @@ private:
 
 class OptionEntryBoolean : public OptionEntryBase {
 public:
-	OptionEntryBoolean(std::string_view key, OptionEntryFlags flags, const char *name, const char *description, bool defaultValue)
+	OptionEntryBoolean(std::string_view key, OptionEntryFlags flags, std::string name, std::string description, bool defaultValue)
 	    : OptionEntryBase(key, flags, name, description)
 	    , defaultValue(defaultValue)
 	    , value(defaultValue)
@@ -195,7 +195,7 @@ public:
 	[[nodiscard]] std::string_view GetValueDescription() const override;
 
 protected:
-	OptionEntryListBase(std::string_view key, OptionEntryFlags flags, const char *name, const char *description)
+	OptionEntryListBase(std::string_view key, OptionEntryFlags flags, std::string name, std::string description)
 	    : OptionEntryBase(key, flags, name, description)
 	{
 	}
@@ -212,7 +212,7 @@ public:
 	void SetActiveListIndex(size_t index) override;
 
 protected:
-	OptionEntryEnumBase(std::string_view key, OptionEntryFlags flags, const char *name, const char *description, int defaultValue)
+	OptionEntryEnumBase(std::string_view key, OptionEntryFlags flags, std::string name, std::string description, int defaultValue)
 	    : OptionEntryListBase(key, flags, name, description)
 	    , defaultValue(defaultValue)
 	    , value(defaultValue)
@@ -237,7 +237,7 @@ private:
 template <typename T>
 class OptionEntryEnum : public OptionEntryEnumBase {
 public:
-	OptionEntryEnum(std::string_view key, OptionEntryFlags flags, const char *name, const char *description, T defaultValue, std::initializer_list<std::pair<T, std::string_view>> entries)
+	OptionEntryEnum(std::string_view key, OptionEntryFlags flags, std::string name, std::string description, T defaultValue, std::initializer_list<std::pair<T, std::string_view>> entries)
 	    : OptionEntryEnumBase(key, flags, name, description, static_cast<int>(defaultValue))
 	{
 		for (auto &&[entryValue, entryName] : entries) {
@@ -265,7 +265,7 @@ public:
 	void SetActiveListIndex(size_t index) override;
 
 protected:
-	OptionEntryIntBase(std::string_view key, OptionEntryFlags flags, const char *name, const char *description, int defaultValue)
+	OptionEntryIntBase(std::string_view key, OptionEntryFlags flags, std::string name, std::string description, int defaultValue)
 	    : OptionEntryListBase(key, flags, name, description)
 	    , defaultValue(defaultValue)
 	    , value(defaultValue)
@@ -290,15 +290,15 @@ private:
 template <typename T>
 class OptionEntryInt : public OptionEntryIntBase {
 public:
-	OptionEntryInt(std::string_view key, OptionEntryFlags flags, const char *name, const char *description, T defaultValue, std::initializer_list<T> entries)
-	    : OptionEntryIntBase(key, flags, name, description, static_cast<int>(defaultValue))
+	OptionEntryInt(std::string_view key, OptionEntryFlags flags, std::string name, std::string description, T defaultValue, std::initializer_list<T> entries)
+	    : OptionEntryIntBase(key, flags, std::move(name), std::move(description), static_cast<int>(defaultValue))
 	{
 		for (auto entry : entries) {
 			AddEntry(static_cast<int>(entry));
 		}
 	}
-	OptionEntryInt(std::string_view key, OptionEntryFlags flags, const char *name, const char *description, T defaultValue)
-	    : OptionEntryInt(key, flags, name, description, defaultValue, { defaultValue })
+	OptionEntryInt(std::string_view key, OptionEntryFlags flags, std::string name, std::string description, T defaultValue)
+	    : OptionEntryInt(key, flags, std::move(name), std::move(description), defaultValue, { defaultValue })
 	{
 	}
 	[[nodiscard]] T operator*() const
@@ -428,10 +428,10 @@ private:
 };
 
 struct OptionCategoryBase {
-	OptionCategoryBase(std::string_view key, const char *name, const char *description)
+	OptionCategoryBase(std::string_view key, std::string name, std::string description)
 	    : key(key)
-	    , name(name)
-	    , description(description)
+	    , name(std::move(name))
+	    , description(std::move(description))
 	{
 	}
 
@@ -443,8 +443,8 @@ struct OptionCategoryBase {
 
 protected:
 	std::string_view key;
-	const char *name;
-	const char *description;
+	std::string name;
+	std::string description;
 };
 
 struct GameModeOptions : OptionCategoryBase {
@@ -714,7 +714,7 @@ struct KeymapperOptions : OptionCategoryBase {
 		// The implicit copy constructor would copy that reference instead of referencing the copy.
 		Action(const Action &) = delete;
 
-		Action(std::string_view key, const char *name, const char *description, uint32_t defaultKey, std::function<void()> actionPressed, std::function<void()> actionReleased, std::function<bool()> enable, unsigned index);
+		Action(std::string_view key, std::string name, std::string description, uint32_t defaultKey, std::function<void()> actionPressed, std::function<void()> actionReleased, std::function<bool()> enable, unsigned index);
 
 		[[nodiscard]] std::string_view GetName() const override;
 		[[nodiscard]] OptionEntryType GetType() const override
@@ -749,7 +749,7 @@ struct KeymapperOptions : OptionCategoryBase {
 	std::vector<OptionEntryBase *> GetEntries() override;
 
 	void AddAction(
-	    std::string_view key, const char *name, const char *description, uint32_t defaultKey,
+	    std::string_view key, std::string name, std::string description, uint32_t defaultKey,
 	    std::function<void()> actionPressed,
 	    std::function<void()> actionReleased = nullptr,
 	    std::function<bool()> enable = nullptr,
@@ -776,7 +776,7 @@ struct PadmapperOptions : OptionCategoryBase {
 	 */
 	class Action final : public OptionEntryBase {
 	public:
-		Action(std::string_view key, const char *name, const char *description, ControllerButtonCombo defaultInput, std::function<void()> actionPressed, std::function<void()> actionReleased, std::function<bool()> enable, unsigned index);
+		Action(std::string_view key, std::string name, std::string description, ControllerButtonCombo defaultInput, std::function<void()> actionPressed, std::function<void()> actionReleased, std::function<bool()> enable, unsigned index);
 
 		// OptionEntryBase::key may be referencing Action::dynamicKey.
 		// The implicit copy constructor would copy that reference instead of referencing the copy.
@@ -822,7 +822,7 @@ struct PadmapperOptions : OptionCategoryBase {
 	std::vector<OptionEntryBase *> GetEntries() override;
 
 	void AddAction(
-	    std::string_view key, const char *name, const char *description, ControllerButtonCombo defaultInput,
+	    std::string_view key, std::string name, std::string description, ControllerButtonCombo defaultInput,
 	    std::function<void()> actionPressed,
 	    std::function<void()> actionReleased = nullptr,
 	    std::function<bool()> enable = nullptr,

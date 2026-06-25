@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <cstring>
 #include <memory>
+#include <optional>
 #include <string>
 #include <type_traits>
 
@@ -47,8 +48,8 @@ enum packet_type : uint8_t {
 	// clang-format on
 };
 
-// Returns NULL for an invalid packet type.
-const char *packet_type_to_string(uint8_t packetType);
+// Returns std::nullopt for an invalid packet type.
+std::optional<std::string_view> packet_type_to_string(uint8_t packetType);
 
 typedef uint8_t plr_t;
 typedef uint8_t seq_t;

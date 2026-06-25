@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <cstring>
 #include <memory>
+#include <string_view>
 
 #include <expected.hpp>
 
@@ -25,7 +26,7 @@
 namespace devilution {
 
 template <typename T>
-tl::expected<void, std::string> LoadFileInMemWithStatus(const char *path, T *data)
+tl::expected<void, std::string> LoadFileInMemWithStatus(std::string_view path, T *data)
 {
 	size_t size;
 	AssetHandle handle = OpenAsset(path, size);
@@ -43,14 +44,14 @@ tl::expected<void, std::string> LoadFileInMemWithStatus(const char *path, T *dat
 }
 
 template <typename T>
-void LoadFileInMem(const char *path, T *data)
+void LoadFileInMem(std::string_view path, T *data)
 {
 	const tl::expected<void, std::string> result = LoadFileInMemWithStatus<T>(path, data);
 	if (!result.has_value()) app_fatal(result.error());
 }
 
 template <typename T>
-tl::expected<void, std::string> LoadFileInMemWithStatus(const char *path, T *data, std::size_t count)
+tl::expected<void, std::string> LoadFileInMemWithStatus(std::string_view path, T *data, std::size_t count)
 {
 	AssetHandle handle = OpenAsset(path);
 	if (!handle.ok()) {
@@ -64,33 +65,33 @@ tl::expected<void, std::string> LoadFileInMemWithStatus(const char *path, T *dat
 }
 
 template <typename T>
-void LoadFileInMem(const char *path, T *data, std::size_t count)
+void LoadFileInMem(std::string_view path, T *data, std::size_t count)
 {
 	tl::expected<void, std::string> result = LoadFileInMemWithStatus<T>(path, data, count);
 	if (!result.has_value()) app_fatal(result.error());
 }
 
 template <typename T>
-bool LoadOptionalFileInMem(const char *path, T *data, std::size_t count)
+bool LoadOptionalFileInMem(std::string_view path, T *data, std::size_t count)
 {
 	AssetHandle handle = OpenAsset(path);
 	return handle.ok() && handle.read(data, count * sizeof(T));
 }
 
 template <typename T, std::size_t N>
-tl::expected<void, std::string> LoadFileInMemWithStatus(const char *path, std::array<T, N> &data)
+tl::expected<void, std::string> LoadFileInMemWithStatus(std::string_view path, std::array<T, N> &data)
 {
 	return LoadFileInMemWithStatus(path, data.data(), N);
 }
 
 template <typename T, std::size_t N>
-void LoadFileInMem(const char *path, std::array<T, N> &data)
+void LoadFileInMem(std::string_view path, std::array<T, N> &data)
 {
 	LoadFileInMem(path, data.data(), N);
 }
 
 template <typename T = std::byte>
-tl::expected<std::unique_ptr<T[]>, std::string> LoadFileInMemWithStatus(const char *path, std::size_t *numRead = nullptr)
+tl::expected<std::unique_ptr<T[]>, std::string> LoadFileInMemWithStatus(std::string_view path, std::size_t *numRead = nullptr)
 {
 	size_t size;
 	AssetHandle handle = OpenAsset(path, size);
@@ -119,7 +120,7 @@ tl::expected<std::unique_ptr<T[]>, std::string> LoadFileInMemWithStatus(const ch
  * @return Buffer with content of file
  */
 template <typename T = std::byte>
-std::unique_ptr<T[]> LoadFileInMem(const char *path, std::size_t *numRead = nullptr)
+std::unique_ptr<T[]> LoadFileInMem(std::string_view path, std::size_t *numRead = nullptr)
 {
 	tl::expected<std::unique_ptr<T[]>, std::string> result = LoadFileInMemWithStatus<T>(path, numRead);
 	if (!result.has_value()) app_fatal(result.error());

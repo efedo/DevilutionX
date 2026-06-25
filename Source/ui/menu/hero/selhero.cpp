@@ -84,7 +84,7 @@ void SelheroNameEsc();
 void SelheroClassSelectorFocus(size_t value);
 void SelheroClassSelectorSelect(size_t value);
 void SelheroClassSelectorEsc();
-const char *SelheroGenerateName(HeroClass heroClass);
+std::string_view SelheroGenerateName(HeroClass heroClass);
 
 void SelheroUiFocusNavigationYesNo()
 {
@@ -309,8 +309,11 @@ void SelheroClassSelectorSelect(size_t value)
 
 	title = selhero_isMultiPlayer ? _("New Multi Player Hero").data() : _("New Single Player Hero").data();
 	memset(selhero_heroInfo.name, '\0', sizeof(selhero_heroInfo.name));
-	if (ShouldPrefillHeroName())
-		strcpy(selhero_heroInfo.name, SelheroGenerateName(selhero_heroInfo.heroclass));
+	if (ShouldPrefillHeroName()) {
+		std::string_view generatedName = SelheroGenerateName(selhero_heroInfo.heroclass);
+		std::copy_n(generatedName.data(), std::min(generatedName.size(), sizeof(selhero_heroInfo.name) - 1), selhero_heroInfo.name);
+		selhero_heroInfo.name[sizeof(selhero_heroInfo.name) - 1] = '\0';
+	}
 	vecSelDlgItems.clear();
 	const SDL_Rect rect1 = { (Sint16)(uiPosition.x + 242), (Sint16)(uiPosition.y + 211), 365, 33 };
 	vecSelDlgItems.push_back(std::make_unique<UiArtText>(_("Enter Name").data(), rect1, UiFlags::AlignCenter | UiFlags::FontSize30 | UiFlags::ColorUiSilver, 3));
@@ -399,7 +402,7 @@ void SelheroLoadSelect(size_t value)
 	selhero_result = SELHERO_NEW_DUNGEON;
 }
 
-const char *SelheroGenerateName(HeroClass heroClass)
+std::string_view SelheroGenerateName(HeroClass heroClass)
 {
 	static const char *const Names[6][10] = {
 		{

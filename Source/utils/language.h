@@ -28,18 +28,14 @@ void LanguageInitialize();
  *
  * @return guaranteed to be null-terminated.
  */
-std::string_view LanguageTranslate(const char *key);
-inline std::string_view LanguageTranslate(const std::string &key)
-{
-	return LanguageTranslate(key.c_str());
-}
+std::string_view LanguageTranslate(std::string_view key);
 
 /**
  * @brief Returns a singular or plural translation for the given keys and count.
  *
  * @return guaranteed to be null-terminated if `plural` is.
  */
-std::string_view LanguagePluralTranslate(const char *singular, std::string_view plural, int count);
+std::string_view LanguagePluralTranslate(std::string_view singular, std::string_view plural, int count);
 
 /**
  * @brief Returns the translation for the given key and context identifier.

@@ -1160,8 +1160,8 @@ std::vector<OptionEntryBase *> KeymapperOptions::GetEntries()
 	return entries;
 }
 
-KeymapperOptions::Action::Action(std::string_view key, const char *name, const char *description, uint32_t defaultKey, std::function<void()> actionPressed, std::function<void()> actionReleased, std::function<bool()> enable, unsigned index)
-    : OptionEntryBase(key, OptionEntryFlags::None, name, description)
+KeymapperOptions::Action::Action(std::string_view key, std::string name, std::string description, uint32_t defaultKey, std::function<void()> actionPressed, std::function<void()> actionReleased, std::function<bool()> enable, unsigned index)
+    : OptionEntryBase(key, OptionEntryFlags::None, std::move(name), std::move(description))
     , actionPressed(std::move(actionPressed))
     , actionReleased(std::move(actionReleased))
     , defaultKey(defaultKey)
@@ -1263,9 +1263,9 @@ bool KeymapperOptions::Action::SetValue(int value)
 	return true;
 }
 
-void KeymapperOptions::AddAction(std::string_view key, const char *name, const char *description, uint32_t defaultKey, std::function<void()> actionPressed, std::function<void()> actionReleased, std::function<bool()> enable, unsigned index)
+void KeymapperOptions::AddAction(std::string_view key, std::string name, std::string description, uint32_t defaultKey, std::function<void()> actionPressed, std::function<void()> actionReleased, std::function<bool()> enable, unsigned index)
 {
-	actions.emplace_front(key, name, description, defaultKey, std::move(actionPressed), std::move(actionReleased), std::move(enable), index);
+	actions.emplace_front(key, std::move(name), std::move(description), defaultKey, std::move(actionPressed), std::move(actionReleased), std::move(enable), index);
 }
 
 void KeymapperOptions::CommitActions()
@@ -1338,8 +1338,8 @@ std::vector<OptionEntryBase *> PadmapperOptions::GetEntries()
 	return entries;
 }
 
-PadmapperOptions::Action::Action(std::string_view key, const char *name, const char *description, ControllerButtonCombo defaultInput, std::function<void()> actionPressed, std::function<void()> actionReleased, std::function<bool()> enable, unsigned index)
-    : OptionEntryBase(key, OptionEntryFlags::None, name, description)
+PadmapperOptions::Action::Action(std::string_view key, std::string name, std::string description, ControllerButtonCombo defaultInput, std::function<void()> actionPressed, std::function<void()> actionReleased, std::function<bool()> enable, unsigned index)
+    : OptionEntryBase(key, OptionEntryFlags::None, std::move(name), std::move(description))
     , actionPressed(std::move(actionPressed))
     , actionReleased(std::move(actionReleased))
     , defaultInput(defaultInput)
@@ -1486,11 +1486,11 @@ bool PadmapperOptions::Action::SetValue(ControllerButtonCombo value)
 	return true;
 }
 
-void PadmapperOptions::AddAction(std::string_view key, const char *name, const char *description, ControllerButtonCombo defaultInput, std::function<void()> actionPressed, std::function<void()> actionReleased, std::function<bool()> enable, unsigned index)
+void PadmapperOptions::AddAction(std::string_view key, std::string name, std::string description, ControllerButtonCombo defaultInput, std::function<void()> actionPressed, std::function<void()> actionReleased, std::function<bool()> enable, unsigned index)
 {
 	if (committed)
 		return;
-	actions.emplace_front(key, name, description, defaultInput, std::move(actionPressed), std::move(actionReleased), std::move(enable), index);
+	actions.emplace_front(key, std::move(name), std::move(description), defaultInput, std::move(actionPressed), std::move(actionReleased), std::move(enable), index);
 }
 
 void PadmapperOptions::CommitActions()
@@ -1630,7 +1630,7 @@ std::forward_list<ModOptions::ModEntry> &ModOptions::GetModEntries()
 
 ModOptions::ModEntry::ModEntry(std::string_view name)
     : name(name)
-    , enabled(this->name, OptionEntryFlags::RecreateUI, this->name.c_str(), "", false)
+    , enabled(this->name, OptionEntryFlags::RecreateUI, this->name, "", false)
 {
 }
 

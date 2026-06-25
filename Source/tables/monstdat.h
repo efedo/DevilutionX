@@ -144,11 +144,11 @@ struct MonsterData {
 	uint16_t treasure = 0;
 	uint16_t exp = 0;
 
-	[[nodiscard]] const char *spritePath() const;
+	[[nodiscard]] std::string_view spritePath() const;
 
-	[[nodiscard]] const char *soundPath() const
+	[[nodiscard]] std::string_view soundPath() const
 	{
-		return !soundSuffix.empty() ? soundSuffix.c_str() : spritePath();
+		return !soundSuffix.empty() ? std::string_view(soundSuffix) : spritePath();
 	}
 
 	[[nodiscard]] bool hasAnim(size_t index) const

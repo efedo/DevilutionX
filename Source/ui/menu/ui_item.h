@@ -9,6 +9,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <string>
 #include <vector>
 
@@ -190,9 +191,9 @@ public:
 
 	[[nodiscard]] std::string_view GetText() const
 	{
-		if (text_ != nullptr)
-			return text_;
-		return *textPointer_;
+		if (textPointer_ != nullptr)
+			return *textPointer_;
+		return text_;
 	}
 
 	[[nodiscard]] int GetSpacing() const
@@ -206,7 +207,7 @@ public:
 	}
 
 private:
-	const char *text_ = nullptr;
+	std::string text_;
 	const char **textPointer_ = nullptr;
 	int spacing_;
 	int lineHeight_;
@@ -267,18 +268,30 @@ private:
 
 class UiEdit : public UiItemBase {
 public:
-	UiEdit(std::string_view hint, char *value, std::size_t maxLength, bool allowEmpty, SDL_Rect rect, UiFlags flags = UiFlags::None)
+	UiEdit(std::string_view hint, char *destBuffer, std::size_t maxLength, bool allowEmpty, SDL_Rect rect, UiFlags flags = UiFlags::None)
 	    : UiItemBase(UiType::Edit, rect, flags)
 	    , m_hint(hint)
-	    , m_value(value)
+	    , m_value(destBuffer != nullptr ? std::string(destBuffer) : std::string())
+	    , m_destBuffer(destBuffer)
 	    , m_max_length(maxLength)
 	    , m_allowEmpty(allowEmpty)
 	{
+		m_value.resize(m_max_length);
+	}
+
+	void ApplyEdit()
+	{
+		if (m_destBuffer == nullptr)
+			return;
+		std::size_t len = std::min(m_value.size(), m_max_length - 1);
+		std::memcpy(m_destBuffer, m_value.data(), len);
+		m_destBuffer[len] = '\0';
 	}
 
 	// private:
 	std::string_view m_hint;
-	char *m_value;
+	std::string m_value;
+	char *m_destBuffer;
 	std::size_t m_max_length;
 	TextInputCursorState m_cursor;
 	bool m_allowEmpty;

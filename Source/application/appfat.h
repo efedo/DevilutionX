@@ -41,12 +41,12 @@ namespace devilution {
  * @param pszFile File name where the assertion is located
  * @param pszFail Fail message
  */
-[[noreturn]] void assert_fail(int nLineNo, const char *pszFile, const char *pszFail);
+[[noreturn]] void assert_fail(int nLineNo, std::string_view pszFile, std::string_view pszFail);
 #endif
 /**
  * @brief Terminates the game and displays an error dialog box based on the given dialog_id.
  */
-[[noreturn]] void ErrDlg(const char *title, std::string_view error, std::string_view logFilePath, int logLineNr);
+[[noreturn]] void ErrDlg(std::string_view title, std::string_view error, std::string_view logFilePath, int logLineNr);
 
 /**
  * @brief Terminates the game with an insert CD error dialog.
