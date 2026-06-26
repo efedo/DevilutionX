@@ -163,7 +163,7 @@ private:
 class OptionEntryBoolean : public OptionEntryBase {
 public:
 	OptionEntryBoolean(std::string_view key, OptionEntryFlags flags, std::string name, std::string description, bool defaultValue)
-	    : OptionEntryBase(key, flags, name, description)
+	    : OptionEntryBase(key, flags, std::move(name), std::move(description))
 	    , defaultValue(defaultValue)
 	    , value(defaultValue)
 	{
@@ -196,7 +196,7 @@ public:
 
 protected:
 	OptionEntryListBase(std::string_view key, OptionEntryFlags flags, std::string name, std::string description)
-	    : OptionEntryBase(key, flags, name, description)
+	    : OptionEntryBase(key, flags, std::move(name), std::move(description))
 	{
 	}
 };
@@ -213,7 +213,7 @@ public:
 
 protected:
 	OptionEntryEnumBase(std::string_view key, OptionEntryFlags flags, std::string name, std::string description, int defaultValue)
-	    : OptionEntryListBase(key, flags, name, description)
+	    : OptionEntryListBase(key, flags, std::move(name), std::move(description))
 	    , defaultValue(defaultValue)
 	    , value(defaultValue)
 	{
@@ -238,7 +238,7 @@ template <typename T>
 class OptionEntryEnum : public OptionEntryEnumBase {
 public:
 	OptionEntryEnum(std::string_view key, OptionEntryFlags flags, std::string name, std::string description, T defaultValue, std::initializer_list<std::pair<T, std::string_view>> entries)
-	    : OptionEntryEnumBase(key, flags, name, description, static_cast<int>(defaultValue))
+	    : OptionEntryEnumBase(key, flags, std::move(name), std::move(description), static_cast<int>(defaultValue))
 	{
 		for (auto &&[entryValue, entryName] : entries) {
 			AddEntry(static_cast<int>(entryValue), entryName);
@@ -266,7 +266,7 @@ public:
 
 protected:
 	OptionEntryIntBase(std::string_view key, OptionEntryFlags flags, std::string name, std::string description, int defaultValue)
-	    : OptionEntryListBase(key, flags, name, description)
+	    : OptionEntryListBase(key, flags, std::move(name), std::move(description))
 	    , defaultValue(defaultValue)
 	    , value(defaultValue)
 	{
