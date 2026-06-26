@@ -8,7 +8,7 @@
 #include <algorithm>
 
 #include "game/players/inv_iterators.hpp"
-#include "game/levels/gendung.h"
+#include "game/levels/dungeon_common.h"
 #include "persistence/options.h"
 #include "game/players/players.hpp"
 #include "utils/algorithm/container.hpp"

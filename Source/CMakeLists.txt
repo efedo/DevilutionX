@@ -93,7 +93,7 @@ set(libdevilutionx_SRCS
   engine/render/automap_render.cpp
   engine/render/scrollrt.cpp
 
-  items/validation.cpp
+  game/items/validation.cpp
 
   game/levels/level.cpp
   game/levels/reencode_dun_cels.cpp
@@ -133,7 +133,7 @@ set(libdevilutionx_SRCS
   lua/modules/towners.cpp
   lua/repl.cpp
 
-  monsters/validation.cpp
+  game/monsters/validation.cpp
 
   ui/panel/charpanel.cpp
   ui/panel/console.cpp
@@ -146,7 +146,7 @@ set(libdevilutionx_SRCS
 
   platform/locale.cpp
 
-  players/validation.cpp
+  game/players/validation.cpp
 
   game/portals/validation.cpp
   game/objects/object_manager.cpp
@@ -377,15 +377,15 @@ target_link_dependencies(libdevilutionx_game_mode PRIVATE
   libdevilutionx_options
 )
 
-add_devilutionx_object_library(libdevilutionx_gendung
+add_devilutionx_object_library(libdevilutionx_dungeon_common
   game/levels/crypt.cpp
   game/levels/drlg_l1.cpp
   game/levels/drlg_l2.cpp
   game/levels/drlg_l3.cpp
   game/levels/drlg_l4.cpp
-  game/levels/gendung.cpp
+  game/levels/dungeon_common.cpp
 )
-target_link_dependencies(libdevilutionx_gendung PUBLIC
+target_link_dependencies(libdevilutionx_dungeon_common PUBLIC
   DevilutionX::SDL
   fmt::fmt
   tl
@@ -685,7 +685,7 @@ add_devilutionx_object_library(libdevilutionx_quests
 )
 target_link_dependencies(libdevilutionx_quests PUBLIC
   libdevilutionx_surface
-  libdevilutionx_gendung
+  libdevilutionx_dungeon_common
 )
 
 add_devilutionx_object_library(libdevilutionx_random
@@ -937,7 +937,7 @@ target_link_dependencies(libdevilutionx PUBLIC
   libdevilutionx_file_util
   libdevilutionx_format_int
   libdevilutionx_game_mode
-  libdevilutionx_gendung
+  libdevilutionx_dungeon_common
   libdevilutionx_headless_mode
   libdevilutionx_ini
   libdevilutionx_init

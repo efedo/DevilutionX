@@ -10,7 +10,7 @@
 #include "engine/math/direction.hpp"
 #include "engine/path.h"
 #include "engine/math/point.hpp"
-#include "gendung.h"
+#include "dungeon_common.h"
 #include "game/objects/objects.hpp"
 
 namespace devilution {

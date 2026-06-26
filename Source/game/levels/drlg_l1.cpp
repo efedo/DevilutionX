@@ -14,7 +14,7 @@
 #include "engine/random.hpp"
 #include "engine/math/rectangle.hpp"
 #include "game/levels/crypt.h"
-#include "game/levels/gendung.h"
+#include "game/levels/dungeon_common.h"
 #include "game/players/players.hpp"
 #include "game/quests/quests.hpp"
 #include "utils/container/bitset2d.hpp"

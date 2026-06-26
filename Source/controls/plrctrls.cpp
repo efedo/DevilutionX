@@ -43,7 +43,7 @@
 #include "engine/hwcursor.hpp"
 #include "game/players/inv.hpp"
 #include "game/items/items.hpp"
-#include "game/levels/gendung.h"
+#include "game/levels/dungeon_common.h"
 #include "game/levels/tile_properties.hpp"
 #include "game/levels/town.h"
 #include "game/levels/trigs.h"

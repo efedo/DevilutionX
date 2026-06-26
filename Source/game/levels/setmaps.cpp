@@ -18,7 +18,7 @@
 #include "game/levels/drlg_l2.h"
 #include "game/levels/drlg_l3.h"
 #include "game/levels/drlg_l4.h"
-#include "game/levels/gendung.h"
+#include "game/levels/dungeon_common.h"
 #include "game/levels/trigs.h"
 #include "network/protocol/msg.h"
 #include "game/objects/objects.hpp"

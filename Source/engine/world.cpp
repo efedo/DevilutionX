@@ -9,7 +9,7 @@
 #include <memory>
 #include <stdexcept>
 
-#include "game/levels/gendung_defs.hpp"
+#include "game/levels/dungeon_common_defs.hpp"
 
 namespace devilution {
 

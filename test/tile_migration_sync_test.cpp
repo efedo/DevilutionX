@@ -3,7 +3,7 @@
 #include <type_traits>
 #include <vector>
 
-#include "game/levels/gendung.h"
+#include "game/levels/dungeon_common.h"
 #include "game/levels/level.hpp"
 #include "game/levels/town.h"
 #include "game/objects/objects.hpp"
@@ -14,7 +14,7 @@
     || defined(setlevel) || defined(setlvlnum) || defined(setlvltype) || defined(ViewPosition) \
     || defined(MicroTileLen) || defined(TransVal) || defined(TransList) || defined(DPieceMicros) \
     || defined(themeCount) || defined(themeLoc) || defined(tiles) || defined(tileAt)
-#error "Legacy gendung macro shims must not be defined"
+#error "Legacy dungeon_common macro shims must not be defined"
 #endif
 
 namespace devilution {

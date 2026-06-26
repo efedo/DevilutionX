@@ -20,7 +20,7 @@
 #include "engine/render/text_render.hpp"
 #include "engine/math/world_tile.hpp"
 #include "application/game_mode.hpp"
-#include "game/levels/gendung.h"
+#include "game/levels/dungeon_common.h"
 #include "game/levels/town.h"
 #include "game/levels/trigs.h"
 #include "ui/minitext.h"

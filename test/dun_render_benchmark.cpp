@@ -14,7 +14,7 @@
 #include "engine/render/dun_render.hpp"
 #include "engine/surface.hpp"
 #include "game/levels/dun_tile.hpp"
-#include "game/levels/gendung.h"
+#include "game/levels/dungeon_common.h"
 #include "engine/lighting.h"
 #include "persistence/options.h"
 #include "utils/log.hpp"

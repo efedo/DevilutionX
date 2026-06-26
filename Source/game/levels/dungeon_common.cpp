@@ -1,11 +1,11 @@
 /**
- * @file game/levels/gendung.cpp
+ * @file game/levels/dungeon_common.cpp
  *
- * Implementation of gendung.
+ * Implementation of dungeon_common.
  */
 
 
-#include "game/levels/gendung.h"
+#include "game/levels/dungeon_common.h"
 
 #include <cstddef>
 #include <cstdint>

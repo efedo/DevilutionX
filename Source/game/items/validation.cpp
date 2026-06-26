@@ -1,10 +1,10 @@
 /**
- * @file items/validation.cpp
+ * @file game/items/validation.cpp
  *
  * Implementation of functions for validation of player and item data.
  */
 
-#include "items/validation.h"
+#include "game/items/validation.h"
 
 #include <cstdint>
 

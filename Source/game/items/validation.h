@@ -1,5 +1,5 @@
 /**
- * @file items/validation.h
+ * @file game/items/validation.h
  *
  * Interface of functions for validation of player and item data.
  */

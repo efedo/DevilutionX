@@ -9,7 +9,7 @@
 
 #include "engine/load/load_file.hpp"
 #include "engine/random.hpp"
-#include "game/levels/gendung.h"
+#include "game/levels/dungeon_common.h"
 #include "game/monsters/monsters.hpp"
 #include "network/protocol/multi.h"
 #include "game/players/players.hpp"

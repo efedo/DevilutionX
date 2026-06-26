@@ -8,12 +8,12 @@
 
 #include <limits>
 
-#include "game/levels/gendung.h"
+#include "game/levels/dungeon_common.h"
 #include "engine/lighting.h"
 #include "game/items/item_pool.hpp"
 #include "game/monsters/monsters.hpp"
 #include "game/monsters/monster_pool.hpp"
-#include "monsters/validation.hpp"
+#include "game/monsters/validation.hpp"
 #include "game/players/players.hpp"
 #include "utils/endian/endian_swap.hpp"
 #include "utils/is_of.hpp"

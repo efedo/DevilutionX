@@ -10,7 +10,7 @@
 #include "engine/math/displacement.hpp"
 #include "engine/math/point.hpp"
 #include "engine/gfx/surface.hpp"
-#include "game/levels/gendung.h"
+#include "game/levels/dungeon_common.h"
 #include "utils/attributes.h"
 
 namespace devilution {

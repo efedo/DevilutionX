@@ -27,7 +27,7 @@
 #include <unordered_map>
 
 #include "game/levels/level.hpp"
-#include "game/levels/gendung_defs.hpp"
+#include "game/levels/dungeon_common_defs.hpp"
 #include "utils/attributes.h"
 
 namespace devilution {

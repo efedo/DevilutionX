@@ -16,8 +16,8 @@
 #include <gtest/gtest.h>
 
 #include "game/levels/dun_tile.hpp"
-#include "game/levels/gendung.h"
-#include "game/levels/gendung_defs.hpp"
+#include "game/levels/dungeon_common.h"
+#include "game/levels/dungeon_common_defs.hpp"
 #include "game/levels/level.hpp"
 
 namespace devilution {

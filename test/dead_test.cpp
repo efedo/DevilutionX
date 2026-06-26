@@ -2,7 +2,7 @@
 
 #include "game/monsters/dead.hpp"
 #include "engine/render/primitive_render.hpp"
-#include "game/levels/gendung.h"
+#include "game/levels/dungeon_common.h"
 
 using namespace devilution;
 

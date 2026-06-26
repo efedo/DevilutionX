@@ -1,9 +1,9 @@
 #pragma once
 
 /**
- * @file game/levels/gendung_defs.hpp
+ * @file game/levels/dungeon_common_defs.hpp
  *
- * Interface for gendung defs.
+ * Interface for dungeon_common defs.
  */
 
 

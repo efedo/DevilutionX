@@ -8,7 +8,7 @@
 #include <cstdint>
 
 #include "engine/math/world_tile.hpp"
-#include "game/levels/gendung.h"
+#include "game/levels/dungeon_common.h"
 
 namespace devilution {
 

@@ -14,7 +14,7 @@
 
 #include "engine/lighting_defs.hpp"
 #include "engine/math/point.hpp"
-#include "game/levels/gendung_defs.hpp"
+#include "game/levels/dungeon_common_defs.hpp"
 
 namespace devilution {
 

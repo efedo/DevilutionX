@@ -13,7 +13,7 @@
 #include "engine/load/load_file.hpp"
 #include "engine/math/points_in_rectangle_range.hpp"
 #include "engine/random.hpp"
-#include "game/levels/gendung.h"
+#include "game/levels/dungeon_common.h"
 #include "game/levels/setmaps.h"
 #include "engine/lighting.h"
 #include "game/monsters/monsters.hpp"

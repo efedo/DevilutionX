@@ -4,7 +4,7 @@
 #include <gtest/gtest.h>
 
 #include "game/levels/dun_tile.hpp"
-#include "game/levels/gendung.h"
+#include "game/levels/dungeon_common.h"
 #include "game/objects/objects.hpp"
 #include "tables/objdat.h"
 
@@ -30,7 +30,7 @@ TEST(TilePropertiesTest, Solid)
 TEST(TilePropertiesTest, Walkable)
 {
 	tileAt(Point { 5, 5 }).setPiece(0);
-	tileProperties()[0] = TileProperties::Solid; // Doing this manually to save running through the code in gendung.cpp
+	tileProperties()[0] = TileProperties::Solid; // Doing this manually to save running through the code in dungeon_common.cpp
 	EXPECT_FALSE(IsTileWalkable({ 5, 5 })) << "Tile which is marked as solid should be considered blocked";
 	EXPECT_FALSE(IsTileWalkable({ 5, 5 }, true)) << "Solid non-door tiles remain unwalkable when ignoring doors";
 

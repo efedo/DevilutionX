@@ -15,7 +15,7 @@
 #include "engine/load/load_file.hpp"
 #include "engine/random.hpp"
 #include "engine/math/size.hpp"
-#include "game/levels/gendung.h"
+#include "game/levels/dungeon_common.h"
 #include "game/levels/setmaps.h"
 #include "game/players/players.hpp"
 #include "game/quests/quests.hpp"

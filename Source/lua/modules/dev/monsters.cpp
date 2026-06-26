@@ -14,7 +14,7 @@
 #include <sol/sol.hpp>
 
 #include "engine/crawl.hpp"
-#include "game/levels/gendung.h"
+#include "game/levels/dungeon_common.h"
 #include "game/levels/tile_properties.hpp"
 #include "engine/lighting.h"
 #include "lua/metadoc.hpp"

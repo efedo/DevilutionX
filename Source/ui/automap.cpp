@@ -15,7 +15,7 @@
 #include "engine/gfx/palette.h"
 #include "engine/render/automap_render.hpp"
 #include "engine/render/primitive_render.hpp"
-#include "game/levels/gendung.h"
+#include "game/levels/dungeon_common.h"
 #include "game/levels/setmaps.h"
 #include "persistence/options.h"
 #include "game/players/players.hpp"

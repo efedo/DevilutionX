@@ -9,7 +9,7 @@
 
 #include "engine/random.hpp"
 #include "application/game_mode.hpp"
-#include "items/validation.h"
+#include "game/items/validation.h"
 #include "persistence/loadsave.h"
 #include "ui/plrmsg.h"
 #include "game/stores/stores.hpp"

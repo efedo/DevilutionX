@@ -7,7 +7,7 @@
 
 #include "engine/math/point.hpp"
 #include "ui/interfac.h"
-#include "game/levels/gendung.h"
+#include "game/levels/dungeon_common.h"
 
 namespace devilution {
 

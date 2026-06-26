@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "engine/cursor.h"
-#include "game/levels/gendung.h"
+#include "game/levels/dungeon_common.h"
 #include "utils/attributes.h"
 #include "utils/enum_traits.h"
 

@@ -21,7 +21,7 @@
 #include "engine/math/rectangle.hpp"
 #include "engine/math/world_tile.hpp"
 #include "game/levels/dun_tile.hpp"
-#include "game/levels/gendung_defs.hpp"
+#include "game/levels/dungeon_common_defs.hpp"
 #include "game/levels/tile.hpp"
 #include "utils/container/bitset2d.hpp"
 

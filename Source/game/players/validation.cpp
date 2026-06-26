@@ -1,15 +1,15 @@
 /**
- * @file players/validation.cpp
+ * @file game/players/validation.cpp
  *
  * Implementation of functions for validation of player data.
  */
 
-#include "players/validation.hpp"
+#include "game/players/validation.hpp"
 
 #include <string_view>
 
 #include "application/diablo.h"
-#include "game/levels/gendung.h"
+#include "game/levels/dungeon_common.h"
 #include "game/players/players.hpp"
 #include "tables/playerdat.hpp"
 

@@ -67,7 +67,7 @@
 #include "game/levels/drlg_l2.h"
 #include "game/levels/drlg_l3.h"
 #include "game/levels/drlg_l4.h"
-#include "game/levels/gendung.h"
+#include "game/levels/dungeon_common.h"
 #include "game/levels/setmaps.h"
 #include "game/levels/themes.h"
 #include "game/levels/town.h"

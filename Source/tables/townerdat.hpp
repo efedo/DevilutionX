@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "engine/math/direction.hpp"
-#include "game/levels/gendung.h"
+#include "game/levels/dungeon_common.h"
 #include "tables/objdat.h"
 #include "tables/textdat.h"
 #include "game/towners/towners.hpp"

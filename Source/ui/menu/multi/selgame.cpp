@@ -36,7 +36,7 @@
 #include "application/diablo.h"
 #include "engine/math/point.hpp"
 #include "engine/render/text_render.hpp"
-#include "game/levels/gendung.h"
+#include "game/levels/dungeon_common.h"
 #include "ui/menu.h"
 #include "network/protocol/multi.h"
 #include "persistence/options.h"

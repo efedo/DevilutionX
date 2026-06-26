@@ -14,7 +14,7 @@
 
 #include "engine/assets.hpp"
 #include "engine/random.hpp"
-#include "game/levels/gendung.h"
+#include "game/levels/dungeon_common.h"
 #include "game/levels/level.hpp"
 #include "game/objects/object_pool.hpp"
 #include "game/objects/objects.hpp"

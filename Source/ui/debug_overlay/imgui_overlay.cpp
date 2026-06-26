@@ -38,7 +38,7 @@
 #include "engine/gfx/surface.hpp"
 #include "application/game_mode.hpp"
 #include "game/items/items.hpp"
-#include "game/levels/gendung.h"
+#include "game/levels/dungeon_common.h"
 #include "game/levels/tile_properties.hpp"
 #include "engine/lighting.h"
 #include "game/monsters/monsters.hpp"

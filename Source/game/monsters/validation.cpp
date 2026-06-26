@@ -1,10 +1,10 @@
 /**
- * @file monsters/validation.cpp
+ * @file game/monsters/validation.cpp
  *
  * Implementation of functions for validation of monster data.
  */
 
-#include "monsters/validation.hpp"
+#include "game/monsters/validation.hpp"
 
 #include <cstddef>
 

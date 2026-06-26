@@ -47,7 +47,7 @@
 #include "application/init.hpp"
 #include "game/players/inv.hpp"
 #include "game/levels/dun_tile.hpp"
-#include "game/levels/gendung.h"
+#include "game/levels/dungeon_common.h"
 #include "game/levels/tile_properties.hpp"
 #include "engine/lighting.h"
 #include "lua/lua_event.hpp"

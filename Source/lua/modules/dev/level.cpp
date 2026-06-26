@@ -16,7 +16,7 @@
 #include <sol/sol.hpp>
 
 #include "application/diablo.h"
-#include "game/levels/gendung.h"
+#include "game/levels/dungeon_common.h"
 #include "lua/metadoc.hpp"
 #include "lua/modules/dev/level/map.hpp"
 #include "lua/modules/dev/level/warp.hpp"
