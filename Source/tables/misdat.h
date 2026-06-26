@@ -96,22 +96,11 @@ enum class MissileGraphicID : uint8_t {
 	None,
 };
 
-/**
- * @brief Specifies what if and how movement distribution is applied
- */
+// Specifies what if and how movement distribution is applied
 enum class MissileMovementDistribution : uint8_t {
-	/**
-	 * @brief No movement distribution is calculated. Normally this means the missile doesn't move at all.
-	 */
-	Disabled,
-	/**
-	 * @brief The missile moves and if it hits an enemy it stops (for example firebolt)
-	 */
-	Blockable,
-	/**
-	 * @brief The missile moves and even it hits an enemy it keeps moving (for example flame wave)
-	 */
-	Unblockable,
+	Disabled, // No movement distribution is calculated. Normally this means the missile doesn't move at all.
+	Blockable, // The missile moves and if it hits an enemy it stops (for example firebolt)
+	Unblockable, // The missile moves and even if it hits an enemy it keeps moving (for example flame wave)
 };
 
 struct Missile;
@@ -171,14 +160,8 @@ struct MissileData {
 	AddFn addFn;
 	ProcessFn processFn;
 
-	/**
-	 * @brief Sound emitted when cast.
-	 */
-	SfxID castSound;
-	/**
-	 * @brief Sound emitted on impact.
-	 */
-	SfxID hitSound;
+	SfxID castSound; // Sound emitted when cast.
+	SfxID hitSound; // Sound emitted on impact.
 	MissileGraphicID graphic;
 	MissileDataFlags flags;
 	MissileMovementDistribution movementDistribution;
@@ -227,12 +210,7 @@ struct MissileFileData {
 		sprites = std::nullopt;
 	}
 
-	/**
-	 * @brief Returns the sprite list for a given direction.
-	 *
-	 * @param direction One of the 16 directions. Valid range: [0, 15].
-	 * @return OptionalClxSpriteList
-	 */
+	// Returns the sprite list for a given direction.
 	[[nodiscard]] OptionalClxSpriteList spritesForDirection(Direction16 direction) const
 	{
 		if (!sprites)
