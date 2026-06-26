@@ -45,7 +45,7 @@
 #include "lua/modules/system.hpp"
 #include "lua/modules/towners.hpp"
 #include "persistence/options.h"
-#include "ui/plrmsg.h"
+#include "ui/player_messages.h"
 #include "game/stores/stores.hpp"
 #include "utils/console.h"
 #include "utils/log.hpp"

@@ -28,7 +28,7 @@
 #include "ui/panel/spell_book.hpp"
 #include "ui/panel/spell_icons.hpp"
 #include "ui/panel/spell_list.hpp"
-#include "persistence/pfile.h"
+#include "persistence/save_file.h"
 #include "qol/stash.h"
 #include "qol/visual_store.h"
 #include "game/stores/stores.hpp"

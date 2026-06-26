@@ -5,7 +5,7 @@
  */
 #pragma once
 
-#include "ui/interfac.h"
+#include "ui/load_screens.h"
 #include "game/levels/dungeon_common.h"
 
 namespace devilution {

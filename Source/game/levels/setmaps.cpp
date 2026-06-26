@@ -19,7 +19,7 @@
 #include "game/levels/drlg_l3.h"
 #include "game/levels/drlg_l4.h"
 #include "game/levels/dungeon_common.h"
-#include "game/levels/trigs.h"
+#include "game/levels/triggers.h"
 #include "network/protocol/msg.h"
 #include "game/objects/objects.hpp"
 #include "game/quests/quests.hpp"

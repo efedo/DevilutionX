@@ -1,9 +1,9 @@
 /**
- * @file scrollrt.cpp
+ * @file engine/render/world_renderer.cpp
  *
  * Implementation of functionality for rendering the dungeons, monsters and calling other render routines.
  */
-#include "engine/render/scrollrt.h"
+#include "engine/render/world_renderer.h"
 
 #include <cmath>
 #include <cstddef>
@@ -22,7 +22,7 @@
 #include "ui/menu/ui_flags.hpp"
 #include "ui/automap.h"
 #include "controls/control_mode.hpp"
-#include "controls/plrctrls.h"
+#include "controls/player_controls.h"
 #include "engine/cursor.h"
 #include "game/monsters/dead.hpp"
 #include "ui/debug_overlay/imgui_overlay.hpp"
@@ -45,7 +45,7 @@
 #include "ui/help.h"
 #include "engine/hwcursor.hpp"
 #include "application/init.hpp"
-#include "game/players/inv.hpp"
+#include "game/players/inventory.hpp"
 #include "game/levels/dun_tile.hpp"
 #include "game/levels/dungeon_common.h"
 #include "game/levels/tile_properties.hpp"
@@ -53,13 +53,13 @@
 #include "lua/lua_event.hpp"
 #include "ui/minitext.h"
 #include "game/missiles/missiles.hpp"
-#include "network/protocol/nthread.h"
+#include "network/protocol/network_ticks.h"
 #include "persistence/options.h"
 #include "ui/panel/charpanel.hpp"
 #include "ui/panel/console.hpp"
 #include "ui/panel/partypanel.hpp"
 #include "ui/panel/spell_list.hpp"
-#include "ui/plrmsg.h"
+#include "ui/player_messages.h"
 #include "qol/chatlog.h"
 #include "qol/floatingnumbers.h"
 #include "qol/itemlabels.h"

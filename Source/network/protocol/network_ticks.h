@@ -1,5 +1,5 @@
 /**
- * @file nthread.h
+ * @file network/protocol/network_ticks.h
  *
  * Interface of functions for managing game ticks.
  */

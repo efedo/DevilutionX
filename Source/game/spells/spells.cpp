@@ -16,7 +16,7 @@
 #include "engine/math/world_tile.hpp"
 #include "application/game_mode.hpp"
 #include "ui/gamemenu.h"
-#include "game/players/inv.hpp"
+#include "game/players/inventory.hpp"
 #include "game/missiles/missiles.hpp"
 
 namespace devilution {

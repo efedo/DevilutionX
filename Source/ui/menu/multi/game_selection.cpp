@@ -1,11 +1,11 @@
 /**
- * @file ui/menu/multi/selgame.cpp
+ * @file ui/menu/multi/game_selection.cpp
  *
  * Implementation of game selection screen.
  */
 
 
-#include "ui/menu/multi/selgame.h"
+#include "ui/menu/multi/game_selection.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -27,9 +27,9 @@
 #include <fmt/core.h>
 
 #include "ui/menu/diabloui.h"
-#include "ui/menu/hero/selhero.h"
+#include "ui/menu/hero/hero_selection.h"
 #include "ui/menu/scrollbar.h"
-#include "ui/menu/selok.h"
+#include "ui/menu/ok_dialog.h"
 #include "ui/menu/ui_flags.hpp"
 #include "ui/menu/ui_item.h"
 #include "config.h"

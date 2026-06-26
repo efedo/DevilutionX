@@ -22,7 +22,7 @@
 #include "engine/path.h"
 #include "engine/math/point.hpp"
 #include "application/game_mode.hpp"
-#include "ui/interfac.h"
+#include "ui/load_screens.h"
 #include "game/items/items.hpp"
 #include "game/items/validation.h"
 #include "game/levels/dun_tile.hpp"

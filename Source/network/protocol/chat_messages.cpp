@@ -1,9 +1,9 @@
 /**
- * @file network/protocol/tmsg.cpp
+ * @file network/protocol/chat_messages.cpp
  *
  * Implementation of functionality transmitting chat messages.
  */
-#include "network/protocol/tmsg.h"
+#include "network/protocol/chat_messages.h"
 
 #include <cstdint>
 #include <list>

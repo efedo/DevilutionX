@@ -10,7 +10,7 @@
 
 #include "ui/diablo_msg.hpp"
 #include "engine/gfx/backbuffer_state.hpp"
-#include "game/players/inv.hpp"
+#include "game/players/inventory.hpp"
 #include "game/levels/setmaps.h"
 #include "network/storm/storm_net.hpp"
 #include "utils/algorithm/container.hpp"

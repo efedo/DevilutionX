@@ -15,7 +15,7 @@
 #include "engine/gfx/backbuffer_state.hpp"
 #include "engine/math/point.hpp"
 #include "engine/random.hpp"
-#include "game/players/inv.hpp"
+#include "game/players/inventory.hpp"
 #include "game/items/items.hpp"
 #include "lua/metadoc.hpp"
 #include "game/players/players.hpp"

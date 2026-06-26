@@ -9,8 +9,8 @@
 #include "control_panel.hpp"
 
 #include "engine/render/primitive_render.hpp"
-#include "game/players/inv.hpp"
-#include "game/levels/trigs.h"
+#include "game/players/inventory.hpp"
+#include "game/levels/triggers.h"
 #include "ui/panel/partypanel.hpp"
 #include "qol/stash.h"
 #include "qol/visual_store.h"

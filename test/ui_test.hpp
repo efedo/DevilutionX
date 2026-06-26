@@ -18,7 +18,7 @@
 #include "controls/control_mode.hpp"
 #include "engine/cursor.h"
 #include "engine/assets.hpp"
-#include "game/players/inv.hpp"
+#include "game/players/inventory.hpp"
 #include "game/items/items.hpp"
 #include "ui/minitext.h"
 #include "persistence/options.h"

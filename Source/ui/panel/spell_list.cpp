@@ -13,7 +13,7 @@
 
 #include "ui/panel/control.hpp"
 #include "controls/control_mode.hpp"
-#include "controls/plrctrls.h"
+#include "controls/player_controls.h"
 #include "engine/gfx/backbuffer_state.hpp"
 #include "engine/gfx/palette.h"
 #include "engine/render/primitive_render.hpp"

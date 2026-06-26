@@ -1,11 +1,11 @@
 /**
- * @file controls/plrctrls.cpp
+ * @file controls/player_controls.cpp
  *
  * Implementation of player controls.
  */
 
 
-#include "controls/plrctrls.h"
+#include "controls/player_controls.h"
 
 #include <algorithm>
 #include <cmath>
@@ -41,12 +41,12 @@
 #include "ui/gmenu.h"
 #include "ui/help.h"
 #include "engine/hwcursor.hpp"
-#include "game/players/inv.hpp"
+#include "game/players/inventory.hpp"
 #include "game/items/items.hpp"
 #include "game/levels/dungeon_common.h"
 #include "game/levels/tile_properties.hpp"
 #include "game/levels/town.h"
-#include "game/levels/trigs.h"
+#include "game/levels/triggers.h"
 #include "ui/minitext.h"
 #include "game/missiles/missiles.hpp"
 #include "game/monsters/monster_pool.hpp"

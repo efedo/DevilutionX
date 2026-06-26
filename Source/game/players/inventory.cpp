@@ -1,9 +1,9 @@
 /**
- * @file game/players/inv.cpp
+ * @file game/players/inventory.cpp
  *
  * Implementation of player inventory.
  */
-#include "game/players/inv.hpp"
+#include "game/players/inventory.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -22,7 +22,7 @@
 
 #include "ui/menu/ui_flags.hpp"
 #include "controls/control_mode.hpp"
-#include "controls/plrctrls.h"
+#include "controls/player_controls.h"
 #include "engine/cursor.h"
 #include "engine/gfx/backbuffer_state.hpp"
 #include "engine/gfx/clx_sprite.hpp"
@@ -39,7 +39,7 @@
 #include "persistence/options.h"
 #include "game/items/item_pool.hpp"
 #include "game/players/players.hpp"
-#include "ui/plrmsg.h"
+#include "ui/player_messages.h"
 #include "qol/stash.h"
 #include "qol/visual_store.h"
 #include "game/stores/stores.hpp"

@@ -1,5 +1,5 @@
 /**
- * @file interfac.h
+ * @file ui/load_screens.h
  *
  * Interface of load screens.
  */

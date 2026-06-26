@@ -1,5 +1,5 @@
 /**
- * @file plrmsg.h
+ * @file ui/player_messages.h
  *
  * Interface of functionality for printing the ingame chat messages.
  */

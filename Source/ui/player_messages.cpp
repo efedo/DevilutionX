@@ -1,9 +1,9 @@
 /**
- * @file ui/plrmsg.cpp
+ * @file ui/player_messages.cpp
  *
  * Implementation of functionality for printing the ingame chat messages.
  */
-#include "ui/plrmsg.h"
+#include "ui/player_messages.h"
 
 #include <algorithm>
 #include <array>
@@ -20,7 +20,7 @@
 #include "ui/panel/control.hpp"
 #include "engine/render/primitive_render.hpp"
 #include "engine/render/text_render.hpp"
-#include "game/players/inv.hpp"
+#include "game/players/inventory.hpp"
 #include "qol/chatlog.h"
 #include "qol/stash.h"
 #include "utils/algorithm/container.hpp"

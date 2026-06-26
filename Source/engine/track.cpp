@@ -7,7 +7,7 @@
 
 #include "controls/control_mode.hpp"
 #include "controls/game_controls.h"
-#include "controls/plrctrls.h"
+#include "controls/player_controls.h"
 #include "engine/cursor.h"
 #include "engine/math/point.hpp"
 #include "game/players/players.hpp"

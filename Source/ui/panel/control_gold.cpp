@@ -10,7 +10,7 @@
 
 #include "ui/menu/text_input.hpp"
 #include "engine/render/clx_render.hpp"
-#include "game/players/inv.hpp"
+#include "game/players/inventory.hpp"
 #include "utils/display.h"
 #include "utils/string/format_int.hpp"
 #include "utils/log.hpp"

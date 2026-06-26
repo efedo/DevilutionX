@@ -7,7 +7,7 @@
 
 #include <cstdint>
 
-#include "game/players/inv.hpp"
+#include "game/players/inventory.hpp"
 #include "game/items/items.hpp"
 #include "network/protocol/msg.h"
 #include "game/players/players.hpp"

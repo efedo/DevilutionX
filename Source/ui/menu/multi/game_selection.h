@@ -1,7 +1,7 @@
 #pragma once
 
 /**
- * @file ui/menu/multi/selgame.h
+ * @file ui/menu/multi/game_selection.h
  *
  * Interface for game selection screen.
  */

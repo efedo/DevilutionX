@@ -1,7 +1,7 @@
 #pragma once
 
 /**
- * @file ui/menu/selstart.h
+ * @file ui/menu/startup_selection.h
  *
  * Interface for start game selection.
  */

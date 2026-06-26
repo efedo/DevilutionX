@@ -15,7 +15,7 @@
 #endif
 
 #include "controls/control_mode.hpp"
-#include "controls/plrctrls.h"
+#include "controls/player_controls.h"
 #include "application/diablo.h"
 #include "engine/audio/effects.h"
 #include "engine/gfx/backbuffer_state.hpp"

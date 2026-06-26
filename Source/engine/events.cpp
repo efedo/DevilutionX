@@ -24,7 +24,7 @@
 #include "controls/padmapper.hpp"
 #include "engine/demomode.h"
 #include "engine/render/primitive_render.hpp"
-#include "ui/interfac.h"
+#include "ui/load_screens.h"
 #include "ui/movie.h"
 #include "persistence/options.h"
 #include "ui/panel/console.hpp"

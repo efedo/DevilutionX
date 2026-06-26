@@ -21,7 +21,7 @@
 
 #include "ui/menu/text_input.hpp"
 #include "ui/panel/control.hpp"
-#include "controls/plrctrls.h"
+#include "controls/player_controls.h"
 #include "engine/cursor.h"
 #include "engine/gfx/clx_sprite.hpp"
 #include "engine/load/load_clx.hpp"
@@ -31,7 +31,7 @@
 #include "engine/math/size.hpp"
 #include "application/headless_mode.hpp"
 #include "engine/hwcursor.hpp"
-#include "game/players/inv.hpp"
+#include "game/players/inventory.hpp"
 #include "ui/minitext.h"
 #include "game/stores/stores.hpp"
 #include "utils/display.h"

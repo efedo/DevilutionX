@@ -27,7 +27,7 @@
 #include "engine/math/points_in_rectangle_range.hpp"
 #include "engine/random.hpp"
 #include "application/headless_mode.hpp"
-#include "game/players/inv.hpp"
+#include "game/players/inventory.hpp"
 #include "game/players/inv_iterators.hpp"
 #include "game/levels/crypt.h"
 #include "game/levels/drlg_l4.h"

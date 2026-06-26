@@ -1,7 +1,7 @@
 #pragma once
 
 /**
- * @file ui/menu/hero/selhero.h
+ * @file ui/menu/hero/hero_selection.h
  *
  * Interface for hero selection screen.
  */

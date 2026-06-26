@@ -1,11 +1,11 @@
 /**
- * @file ui/menu/selstart.cpp
+ * @file ui/menu/startup_selection.cpp
  *
  * Implementation of start game selection.
  */
 
 
-#include "selstart.h"
+#include "startup_selection.h"
 
 #include <cstddef>
 #include <memory>

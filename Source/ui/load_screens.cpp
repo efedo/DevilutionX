@@ -1,10 +1,10 @@
 /**
- * @file ui/interfac.cpp
+ * @file ui/load_screens.cpp
  *
  * Implementation of load screens.
  */
 
-#include "ui/interfac.h"
+#include "ui/load_screens.h"
 #include <cstdint>
 #include <optional>
 #include <string>
@@ -39,8 +39,8 @@
 #include "engine/hwcursor.hpp"
 #include "persistence/loadsave.h"
 #include "network/protocol/multi.h"
-#include "persistence/pfile.h"
-#include "ui/plrmsg.h"
+#include "persistence/save_file.h"
+#include "ui/player_messages.h"
 #include "utils/log.hpp"
 #include "utils/sdl/sdl_compat.h"
 #include "utils/sdl/sdl_geometry.h"

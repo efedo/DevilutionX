@@ -18,7 +18,7 @@
 #endif
 
 #include "controls/control_mode.hpp"
-#include "controls/plrctrls.h"
+#include "controls/player_controls.h"
 #include "ui/debug_overlay/imgui_overlay.hpp"
 #include "engine/render/primitive_render.hpp"
 #include "application/headless_mode.hpp"

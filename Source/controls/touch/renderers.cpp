@@ -22,7 +22,7 @@
 #include "engine/render/primitive_render.hpp"
 #include "application/game_mode.hpp"
 #include "application/init.hpp"
-#include "game/players/inv.hpp"
+#include "game/players/inventory.hpp"
 #include "game/levels/dungeon_common.h"
 #include "ui/minitext.h"
 #include "ui/panel/ui_panels.hpp"

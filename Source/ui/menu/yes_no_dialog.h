@@ -1,7 +1,7 @@
 #pragma once
 
 /**
- * @file ui/menu/selyesno.h
+ * @file ui/menu/yes_no_dialog.h
  *
  * Interface for yes/no confirmation dialog.
  */

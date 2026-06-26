@@ -1,6 +1,6 @@
 #pragma once
 /**
- * @file controls/plrctrls.h
+ * @file controls/player_controls.h
  *
  * Interface for player controls.
  */

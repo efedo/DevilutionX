@@ -1,7 +1,7 @@
 #pragma once
 
 /**
- * @file ui/menu/selok.h
+ * @file ui/menu/ok_dialog.h
  *
  * Interface for OK selection dialog.
  */

@@ -27,7 +27,7 @@
 #include "application/headless_mode.hpp"
 #include "engine/hwcursor.hpp"
 #include "persistence/options.h"
-#include "persistence/pfile.h"
+#include "persistence/save_file.h"
 #include "utils/file/file_util.h"
 #include "utils/language.h"
 #include "utils/log.hpp"

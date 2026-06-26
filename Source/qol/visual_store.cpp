@@ -10,7 +10,7 @@
 #include <span>
 
 #include "ui/panel/control.hpp"
-#include "controls/plrctrls.h"
+#include "controls/player_controls.h"
 #include "engine/cursor.h"
 #include "engine/gfx/clx_sprite.hpp"
 #include "engine/load/load_clx.hpp"
@@ -21,7 +21,7 @@
 #include "engine/math/size.hpp"
 #include "application/game_mode.hpp"
 #include "application/headless_mode.hpp"
-#include "game/players/inv.hpp"
+#include "game/players/inventory.hpp"
 #include "game/items/items.hpp"
 #include "ui/minitext.h"
 #include "persistence/options.h"

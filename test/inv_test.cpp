@@ -2,7 +2,7 @@
 
 #include "engine/cursor.h"
 #include "engine/assets.hpp"
-#include "game/players/inv.hpp"
+#include "game/players/inventory.hpp"
 #include "game/players/players.hpp"
 #include "storm/storm_net.hpp"
 

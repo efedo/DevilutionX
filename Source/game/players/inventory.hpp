@@ -1,5 +1,5 @@
 /**
- * @file inv.hpp
+ * @file game/players/inventory.hpp
  *
  * Interface of player inventory.
  */

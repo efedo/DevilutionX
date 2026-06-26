@@ -15,7 +15,7 @@
 #include "application/init.hpp"
 #include "lua/lua_global.hpp"
 #include "persistence/options.h"
-#include "persistence/pfile.h"
+#include "persistence/save_file.h"
 #include "tables/monstdat.h"
 #include "tables/playerdat.hpp"
 #include "utils/display.h"

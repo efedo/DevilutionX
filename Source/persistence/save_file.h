@@ -1,5 +1,5 @@
 /**
- * @file pfile.h
+ * @file persistence/save_file.h
  *
  * Interface of the save game encoding functionality.
  */

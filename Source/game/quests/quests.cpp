@@ -22,7 +22,7 @@
 #include "application/game_mode.hpp"
 #include "game/levels/dungeon_common.h"
 #include "game/levels/town.h"
-#include "game/levels/trigs.h"
+#include "game/levels/triggers.h"
 #include "ui/minitext.h"
 #include "game/missiles/missiles.hpp"
 #include "game/monsters/monsters.hpp"

@@ -14,7 +14,7 @@
 #include "ui/panel/control.hpp"
 #include "controls/controller_motion.h"
 #include "controls/game_controls.h"
-#include "controls/plrctrls.h"
+#include "controls/player_controls.h"
 #include "engine/gfx/clx_sprite.hpp"
 #include "engine/load/load_clx.hpp"
 #include "engine/render/clx_render.hpp"

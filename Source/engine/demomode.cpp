@@ -25,15 +25,15 @@
 #endif
 
 #include "controls/control_mode.hpp"
-#include "controls/plrctrls.h"
+#include "controls/player_controls.h"
 #include "engine/events.hpp"
 #include "application/game_mode.hpp"
 #include "ui/gmenu.h"
 #include "application/headless_mode.hpp"
 #include "ui/menu.h"
-#include "network/protocol/nthread.h"
+#include "network/protocol/network_ticks.h"
 #include "persistence/options.h"
-#include "persistence/pfile.h"
+#include "persistence/save_file.h"
 #include "utils/console.h"
 #include "utils/display.h"
 #include "utils/endian/endian_stream.hpp"

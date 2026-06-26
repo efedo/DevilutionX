@@ -25,7 +25,7 @@
 #include "controls/devices/joystick.h"
 #include "controls/game_controls.h"
 #include "controls/padmapper.hpp"
-#include "controls/plrctrls.h"
+#include "controls/player_controls.h"
 #include "controls/touch/gamepad.h"
 #include "engine/demomode.h"
 #include "persistence/options.h"

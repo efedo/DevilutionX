@@ -15,7 +15,7 @@
 #include <sol/sol.hpp>
 
 #include "application/debug.h"
-#include "ui/interfac.h"
+#include "ui/load_screens.h"
 #include "game/levels/setmaps.h"
 #include "lua/metadoc.hpp"
 #include "game/players/players.hpp"

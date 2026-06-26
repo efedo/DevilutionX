@@ -1,11 +1,11 @@
 /**
- * @file ui/menu/hero/selhero.cpp
+ * @file ui/menu/hero/hero_selection.cpp
  *
  * Implementation of hero selection screen.
  */
 
 
-#include "ui/menu/hero/selhero.h"
+#include "ui/menu/hero/hero_selection.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -27,10 +27,10 @@
 
 #include "ui/menu/diabloui.h"
 #include "ui/menu/dialogs.h"
-#include "ui/menu/multi/selgame.h"
+#include "ui/menu/multi/game_selection.h"
 #include "ui/menu/scrollbar.h"
-#include "ui/menu/selok.h"
-#include "ui/menu/selyesno.h"
+#include "ui/menu/ok_dialog.h"
+#include "ui/menu/yes_no_dialog.h"
 #include "ui/menu/ui_flags.hpp"
 #include "ui/menu/ui_item.h"
 #include "controls/control_mode.hpp"
@@ -39,7 +39,7 @@
 #include "application/game_mode.hpp"
 #include "game/levels/dungeon_common.h"
 #include "persistence/options.h"
-#include "persistence/pfile.h"
+#include "persistence/save_file.h"
 #include "tables/playerdat.hpp"
 #include "utils/enum_traits.h"
 #include "utils/language.h"

@@ -16,7 +16,7 @@
 #include "engine/math/world_tile.hpp"
 #include "application/game_mode.hpp"
 #include "game/levels/drlg_l1.h"
-#include "game/levels/trigs.h"
+#include "game/levels/triggers.h"
 #include "network/protocol/multi.h"
 #include "game/players/players.hpp"
 #include "game/quests/quests.hpp"

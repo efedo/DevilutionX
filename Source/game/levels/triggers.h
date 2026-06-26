@@ -1,12 +1,12 @@
 /**
- * @file trigs.h
+ * @file game/levels/triggers.h
  *
  * Interface of functionality for triggering events when the player enters an area.
  */
 #pragma once
 
 #include "engine/math/point.hpp"
-#include "ui/interfac.h"
+#include "ui/load_screens.h"
 #include "game/levels/dungeon_common.h"
 
 namespace devilution {

@@ -25,7 +25,7 @@
 #include "ui_test.hpp"
 
 #include "engine/random.hpp"
-#include "game/players/inv.hpp"
+#include "game/players/inventory.hpp"
 #include "game/items/items.hpp"
 #include "persistence/options.h"
 #include "game/players/players.hpp"

@@ -18,7 +18,7 @@
 
 #include "ui/panel/control.hpp"
 #include "controls/control_mode.hpp"
-#include "controls/plrctrls.h"
+#include "controls/player_controls.h"
 #include "engine/cursor.h"
 #include "game/monsters/dead.hpp"
 #ifdef _DEBUG
@@ -38,7 +38,7 @@
 #include "ui/help.h"
 #include "game/players/inv_iterators.hpp"
 #include "game/levels/tile_properties.hpp"
-#include "game/levels/trigs.h"
+#include "game/levels/triggers.h"
 #include "engine/lighting.h"
 #include "persistence/loadsave.h"
 #include "lua/lua_event.hpp"
@@ -47,7 +47,7 @@
 #include "game/monsters/monsters.hpp"
 #include "game/monsters/monster_pool.hpp"
 #include "game/items/item_pool.hpp"
-#include "network/protocol/nthread.h"
+#include "network/protocol/network_ticks.h"
 #include "game/objects/objects.hpp"
 #include "game/objects/object_pool.hpp"
 #include "persistence/options.h"

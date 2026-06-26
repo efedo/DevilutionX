@@ -1,5 +1,5 @@
 /**
- * @file ui/menu/multi/selconn.cpp
+ * @file ui/menu/multi/connection_selection.cpp
  *
  * Implementation of connection type selection.
  */

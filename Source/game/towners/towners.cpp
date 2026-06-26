@@ -15,7 +15,7 @@
 #include "engine/load/load_file.hpp"
 #include "engine/random.hpp"
 #include "application/game_mode.hpp"
-#include "game/players/inv.hpp"
+#include "game/players/inventory.hpp"
 #include "ui/minitext.h"
 #include "game/stores/stores.hpp"
 #include "tables/textdat.h"

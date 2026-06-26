@@ -17,7 +17,7 @@
 #include "engine/actor_position.hpp"
 #include "engine/gfx/clx_sprite.hpp"
 #include "engine/math/displacement.hpp"
-#include "engine/render/scrollrt.h"
+#include "engine/render/world_renderer.h"
 #include "game/levels/dun_tile.hpp"
 
 namespace devilution {

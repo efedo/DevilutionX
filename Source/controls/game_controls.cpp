@@ -22,7 +22,7 @@
 #endif
 #include "controls/devices/joystick.h"
 #include "controls/padmapper.hpp"
-#include "controls/plrctrls.h"
+#include "controls/player_controls.h"
 #include "controls/touch/gamepad.h"
 #include "game/quests/doom.hpp"
 #include "ui/gamemenu.h"

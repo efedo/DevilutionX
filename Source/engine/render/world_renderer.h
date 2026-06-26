@@ -1,5 +1,5 @@
 /**
- * @file scrollrt.h
+ * @file engine/render/world_renderer.h
  *
  * Interface of functionality for rendering the dungeons, monsters and calling other render routines.
  */

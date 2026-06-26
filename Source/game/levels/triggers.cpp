@@ -1,9 +1,9 @@
 /**
- * @file trigs.cpp
+ * @file game/levels/triggers.cpp
  *
  * Implementation of functionality for triggering events when the player enters an area.
  */
-#include "game/levels/trigs.h"
+#include "game/levels/triggers.h"
 
 #include <cmath>
 #include <cstdint>
@@ -12,7 +12,7 @@
 
 #include "ui/panel/control.hpp"
 #include "controls/control_mode.hpp"
-#include "controls/plrctrls.h"
+#include "controls/player_controls.h"
 #include "engine/cursor.h"
 #include "ui/diablo_msg.hpp"
 #include "application/game_mode.hpp"

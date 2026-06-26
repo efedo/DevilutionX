@@ -31,7 +31,7 @@
 #include "controls/controller.h"
 #include "controls/controller_buttons.h"
 #include "controls/controller_motion.h"
-#include "controls/plrctrls.h"
+#include "controls/player_controls.h"
 #include "controls/remap_keyboard.h"
 #include "engine/assets.hpp"
 #include "engine/math/rectangle.hpp"

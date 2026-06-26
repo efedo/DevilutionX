@@ -17,21 +17,21 @@ set(libdevilutionx_SRCS
   ui/gmenu.cpp
   ui/help.cpp
   engine/hwcursor.cpp
-  ui/interfac.cpp
-  game/players/inv.cpp
+  ui/load_screens.cpp
+  game/players/inventory.cpp
   persistence/loadsave.cpp
   ui/menu.cpp
   ui/minitext.cpp
   game/missiles/missiles.cpp
   ui/movie.cpp
   network/protocol/msg.cpp
-  network/protocol/nthread.cpp
-  persistence/pfile.cpp
-  ui/plrmsg.cpp
+  network/protocol/network_ticks.cpp
+  persistence/save_file.cpp
+  ui/player_messages.cpp
   game/portals/portal.cpp
   application/restrict.cpp
   network/protocol/sync.cpp
-  network/protocol/tmsg.cpp
+  network/protocol/chat_messages.cpp
   game/towners/towners.cpp
   engine/track.cpp
 
@@ -51,22 +51,22 @@ set(libdevilutionx_SRCS
   controls/keymapper.cpp
   controls/menu_controls.cpp
   controls/modifier_hints.cpp
-  controls/plrctrls.cpp
+  controls/player_controls.cpp
 
   ui/menu/button.cpp
   ui/menu/credits.cpp
   ui/menu/credits_lines.cpp
   ui/menu/diabloui.cpp
   ui/menu/dialogs.cpp
-  ui/menu/hero/selhero.cpp
+  ui/menu/hero/hero_selection.cpp
   ui/menu/mainmenu.cpp
-  ui/menu/multi/selconn.cpp
-  ui/menu/multi/selgame.cpp
+  ui/menu/multi/connection_selection.cpp
+  ui/menu/multi/game_selection.cpp
   ui/menu/progress.cpp
   ui/menu/scrollbar.cpp
-  ui/menu/selok.cpp
-  ui/menu/selstart.cpp
-  ui/menu/selyesno.cpp
+  ui/menu/ok_dialog.cpp
+  ui/menu/startup_selection.cpp
+  ui/menu/yes_no_dialog.cpp
   ui/menu/settingsmenu.cpp
   ui/menu/support_lines.cpp
   ui/menu/title.cpp
@@ -91,7 +91,7 @@ set(libdevilutionx_SRCS
   engine/world.cpp
 
   engine/render/automap_render.cpp
-  engine/render/scrollrt.cpp
+  engine/render/world_renderer.cpp
 
   game/items/validation.cpp
 
@@ -101,7 +101,7 @@ set(libdevilutionx_SRCS
   game/levels/themes.cpp
   game/levels/tile_properties.cpp
   game/levels/town.cpp
-  game/levels/trigs.cpp
+  game/levels/triggers.cpp
 
   lua/autocomplete.cpp
   lua/lua_event.cpp

@@ -16,7 +16,7 @@
 #include <SDL.h>
 #endif
 
-#include "controls/plrctrls.h"
+#include "controls/player_controls.h"
 #include "controls/touch/gamepad.h"
 #include "engine/gfx/surface.hpp"
 #include "utils/image/png.h"

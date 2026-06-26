@@ -22,7 +22,7 @@
 #include "application/init.hpp"
 #include "ui/movie.h"
 #include "persistence/options.h"
-#include "persistence/pfile.h"
+#include "persistence/save_file.h"
 #include "network/storm/storm_net.hpp"
 #include "utils/language.h"
 

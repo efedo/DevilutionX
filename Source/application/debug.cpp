@@ -23,7 +23,7 @@
 #include "game/missiles/missiles.hpp"
 #include "game/monsters/monsters.hpp"
 #include "game/monsters/monster_pool.hpp"
-#include "ui/plrmsg.h"
+#include "ui/player_messages.h"
 #include "utils/string/str_case.hpp"
 #include "utils/string/str_cat.hpp"
 

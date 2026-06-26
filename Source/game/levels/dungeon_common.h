@@ -18,7 +18,7 @@
 #include "engine/gfx/clx_sprite.hpp"
 #include "engine/math/point.hpp"
 #include "engine/math/rectangle.hpp"
-#include "engine/render/scrollrt.h"
+#include "engine/render/world_renderer.h"
 #include "engine/world.hpp"
 #include "engine/math/world_tile.hpp"
 #include "game/levels/dun_tile.hpp"

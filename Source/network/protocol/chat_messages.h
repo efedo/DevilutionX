@@ -1,5 +1,5 @@
 /**
- * @file tmsg.h
+ * @file network/protocol/chat_messages.h
  *
  * Interface of functionality transmitting chat messages.
  */

@@ -51,7 +51,7 @@
 #include "function_ref.hpp"
 #include "application/game_mode.hpp"
 #include "application/headless_mode.hpp"
-#include "game/players/inv.hpp"
+#include "game/players/inventory.hpp"
 #include "game/players/inv_iterators.hpp"
 #include "game/items/validation.h"
 #include "game/levels/dungeon_common.h"

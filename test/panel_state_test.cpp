@@ -16,7 +16,7 @@
 #include "ui_test.hpp"
 
 #include "control/control.hpp"
-#include "game/players/inv.hpp"
+#include "game/players/inventory.hpp"
 #include "persistence/options.h"
 #include "panels/spell_list.hpp"
 #include "qol/stash.h"

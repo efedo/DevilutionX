@@ -20,7 +20,7 @@
 #include "engine/render/text_render.hpp"
 #include "ui/gamemenu.h"
 #include "ui/help.h"
-#include "game/players/inv.hpp"
+#include "game/players/inventory.hpp"
 #include "ui/minitext.h"
 #include "game/stores/stores.hpp"
 #include "utils/language.h"

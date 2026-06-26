@@ -2,7 +2,7 @@
 
 #include "control/control.hpp"
 #include "application/diablo.h"
-#include "engine/render/scrollrt.h"
+#include "engine/render/world_renderer.h"
 #include "persistence/options.h"
 #include "utils/ui_fwd.h"
 
