@@ -36,7 +36,7 @@
 #include <SmackerDecoder.h>
 
 #include "engine/assets.hpp"
-#include "engine/gfx/dx.h"
+#include "engine/gfx/graphics_pipeline.h"
 #include "engine/gfx/palette.h"
 #include "engine/audio/sound.h"
 #include "persistence/options.h"

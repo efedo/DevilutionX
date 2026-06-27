@@ -23,7 +23,7 @@
 #include "engine/render/clx_render.hpp"
 #include "engine/render/primitive_render.hpp"
 #include "engine/render/text_render.hpp"
-#include "engine/gfx/trn.hpp"
+#include "engine/gfx/translation_table.hpp"
 #include "application/game_mode.hpp"
 #include "lua/lua_event.hpp"
 #include "ui/minitext.h"

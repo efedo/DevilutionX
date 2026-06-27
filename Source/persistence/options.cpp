@@ -30,7 +30,7 @@
 #include <fmt/format.h>
 #include <function_ref.hpp>
 
-#include "application/appfat.h"
+#include "application/fatal_error.h"
 #include "controls/control_mode.hpp"
 #include "controls/controller_buttons.h"
 #include "engine/assets.hpp"

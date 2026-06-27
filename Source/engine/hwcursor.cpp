@@ -28,7 +28,7 @@
 
 #include "ui/menu/diabloui.h"
 
-#include "application/appfat.h"
+#include "application/fatal_error.h"
 #include "engine/cursor.h"
 #include "engine/gfx/clx_sprite.hpp"
 #include "engine/render/clx_render.hpp"

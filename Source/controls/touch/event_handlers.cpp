@@ -21,7 +21,7 @@
 #include "engine/render/primitive_render.hpp"
 #include "engine/render/world_renderer.h"
 #include "application/game_mode.hpp"
-#include "ui/gmenu.h"
+#include "ui/menu_framework.h"
 #include "game/players/inventory.hpp"
 #include "ui/panel/spell_book.hpp"
 #include "ui/panel/spell_list.hpp"

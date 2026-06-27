@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <cstdint>
 
-#include "application/appfat.h"
+#include "application/fatal_error.h"
 #include "network/protocol/network_ticks.h"
 #include "utils/log.hpp"
 

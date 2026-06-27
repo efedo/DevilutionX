@@ -20,7 +20,7 @@
 #include <SDL.h>
 #endif
 
-#include "application/appfat.h"
+#include "application/fatal_error.h"
 #include "application/game_mode.hpp"
 #include "utils/file/file_util.h"
 #include "utils/log.hpp"

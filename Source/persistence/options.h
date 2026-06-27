@@ -32,7 +32,7 @@
 #include <ankerl/unordered_dense.h>
 #include <function_ref.hpp>
 
-#include "application/appfat.h"
+#include "application/fatal_error.h"
 #include "controls/controller_buttons.h"
 #include "engine/math/size.hpp"
 #include "engine/audio/sound_defs.hpp"

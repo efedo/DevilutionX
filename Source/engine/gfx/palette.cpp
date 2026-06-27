@@ -20,7 +20,7 @@
 
 #include "engine/gfx/backbuffer_state.hpp"
 #include "engine/demomode.h"
-#include "engine/gfx/dx.h"
+#include "engine/gfx/graphics_pipeline.h"
 #include "engine/load/load_file.hpp"
 #include "engine/random.hpp"
 #include "application/headless_mode.hpp"

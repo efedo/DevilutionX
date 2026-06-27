@@ -12,7 +12,7 @@
 #include "ui/menu/ui_flags.hpp"
 #include "ui/panel/control.hpp"
 #include "engine/cursor.h"
-#include "data/file.hpp"
+#include "data/mpq_file.hpp"
 #include "data/record_reader.hpp"
 #include "engine/load/load_file.hpp"
 #include "engine/random.hpp"

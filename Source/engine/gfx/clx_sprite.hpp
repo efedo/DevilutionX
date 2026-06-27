@@ -29,7 +29,7 @@
 #include <iterator>
 #include <memory>
 
-#include "application/appfat.h"
+#include "application/fatal_error.h"
 #include "utils/endian/endian_read.hpp"
 #include "utils/container/intrusive_optional.hpp"
 

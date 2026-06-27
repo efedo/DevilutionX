@@ -16,7 +16,7 @@
 #include "chatlog.h"
 #include "ui/panel/control.hpp"
 #include "ui/diablo_msg.hpp"
-#include "game/quests/doom.hpp"
+#include "game/quests/doom_quest.hpp"
 #include "engine/render/text_render.hpp"
 #include "ui/gamemenu.h"
 #include "ui/help.h"

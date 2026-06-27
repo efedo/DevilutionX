@@ -18,7 +18,7 @@
 #include <SDL.h>
 #endif
 
-#include "application/appfat.h"
+#include "application/fatal_error.h"
 #include "utils/file/file_util.h"
 #include "utils/log.hpp"
 #include "utils/sdl/sdl_ptrs.h"

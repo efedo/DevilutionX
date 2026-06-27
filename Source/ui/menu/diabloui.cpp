@@ -35,7 +35,7 @@
 #include "ui/menu/text_input.hpp"
 #include "ui/menu/ui_flags.hpp"
 #include "ui/menu/ui_item.h"
-#include "application/appfat.h"
+#include "application/fatal_error.h"
 #include "controls/control_mode.hpp"
 #include "controls/controller.h"
 #include "controls/input.h"
@@ -44,7 +44,7 @@
 
 #include "engine/audio/effects.h"
 #include "engine/gfx/clx_sprite.hpp"
-#include "engine/gfx/dx.h"
+#include "engine/gfx/graphics_pipeline.h"
 #include "engine/load/load_pcx.hpp"
 #include "engine/gfx/palette.h"
 #include "engine/render/clx_render.hpp"

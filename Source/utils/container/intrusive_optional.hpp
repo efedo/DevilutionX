@@ -11,7 +11,7 @@
 #include <type_traits>
 #include <utility>
 
-#include "application/appfat.h"
+#include "application/fatal_error.h"
 
 /// An optional that uses a field of the stored class and some value to store nullopt.
 #define DEFINE_INTRUSIVE_OPTIONAL_IMPL(OPTIONAL_CLASS, VALUE_CLASS, FIELD, NULL_VALUE, CONSTEXPR) \

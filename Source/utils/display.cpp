@@ -52,7 +52,7 @@
 #include "controls/game_controls.h"
 #include "controls/touch/gamepad.h"
 #include "engine/gfx/backbuffer_state.hpp"
-#include "engine/gfx/dx.h"
+#include "engine/gfx/graphics_pipeline.h"
 #include "application/headless_mode.hpp"
 #include "persistence/options.h"
 #include "utils/log.hpp"

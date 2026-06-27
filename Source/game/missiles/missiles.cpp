@@ -18,13 +18,13 @@
 #include <type_traits>
 #include <utility>
 
-#include "application/appfat.h"
+#include "application/fatal_error.h"
 #include "ui/panel/control.hpp"
 #include "controls/control_mode.hpp"
 #include "controls/player_controls.h"
 #include "engine/crawl.hpp"
 #include "engine/cursor.h"
-#include "game/monsters/dead.hpp"
+#include "game/monsters/monster_corpses.hpp"
 #include "application/diablo.h"
 #include "engine/audio/effects.h"
 #include "engine/gfx/clx_sprite.hpp"

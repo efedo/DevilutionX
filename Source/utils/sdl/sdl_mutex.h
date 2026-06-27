@@ -17,7 +17,7 @@
 #include <SDL_version.h>
 #endif
 
-#include "application/appfat.h"
+#include "application/fatal_error.h"
 
 namespace devilution {
 

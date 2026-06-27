@@ -21,7 +21,7 @@
 #include "engine/math/point.hpp"
 #include "engine/render/clx_render.hpp"
 #include "engine/render/primitive_render.hpp"
-#include "ui/gmenu.h"
+#include "ui/menu_framework.h"
 #include "game/players/inventory.hpp"
 #include "persistence/options.h"
 #include "qol/stash.h"

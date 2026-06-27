@@ -22,7 +22,7 @@
 #endif
 #endif
 
-#include "application/appfat.h"
+#include "application/fatal_error.h"
 #include "utils/sdl/sdl_ptrs.h"
 
 #define NonNull(x) NullErrDlg(x, __FILE__, __LINE__)

@@ -17,7 +17,7 @@
 #include "engine/gfx/backbuffer_state.hpp"
 #include "engine/load/load_cel.hpp"
 #include "engine/render/clx_render.hpp"
-#include "engine/gfx/trn.hpp"
+#include "engine/gfx/translation_table.hpp"
 #include "ui/gamemenu.h"
 #include "application/headless_mode.hpp"
 #include "ui/minitext.h"

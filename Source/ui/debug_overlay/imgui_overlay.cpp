@@ -31,7 +31,7 @@
 #include "ui/debug_overlay/overlay_state.hpp"
 #include "application/diablo.h"
 #include "engine/gfx/backbuffer_state.hpp"
-#include "engine/gfx/dx.h"
+#include "engine/gfx/graphics_pipeline.h"
 #include "engine/gfx/palette.h"
 #include "engine/render/dun_render.hpp"
 #include "engine/render/light_render.hpp"

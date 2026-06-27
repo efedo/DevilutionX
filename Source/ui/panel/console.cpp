@@ -33,7 +33,7 @@
 #include "ui/debug_overlay/imgui_overlay.hpp"
 #include "engine/assets.hpp"
 #include "engine/math/displacement.hpp"
-#include "engine/gfx/dx.h"
+#include "engine/gfx/graphics_pipeline.h"
 #include "engine/gfx/palette.h"
 #include "engine/math/rectangle.hpp"
 #include "engine/render/primitive_render.hpp"

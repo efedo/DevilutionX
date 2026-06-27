@@ -9,7 +9,7 @@
 
 #include <cstdint>
 
-#include "application/appfat.h"
+#include "application/fatal_error.h"
 #include "utils/attributes.h"
 
 namespace devilution {

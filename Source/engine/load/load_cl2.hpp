@@ -15,7 +15,7 @@
 #include <expected.hpp>
 #include <function_ref.hpp>
 
-#include "application/appfat.h"
+#include "application/fatal_error.h"
 #include "engine/gfx/clx_sprite.hpp"
 #include "engine/load/load_file.hpp"
 #include "data/mpq/mpq_common.hpp"

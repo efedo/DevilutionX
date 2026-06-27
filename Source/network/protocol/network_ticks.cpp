@@ -18,7 +18,7 @@
 #include "engine/animationinfo.h"
 #include "engine/demomode.h"
 #include "application/game_mode.hpp"
-#include "ui/gmenu.h"
+#include "ui/menu_framework.h"
 #include "network/storm/storm_net.hpp"
 #include "utils/sdl/sdl_mutex.h"
 #include "utils/sdl/sdl_thread.h"

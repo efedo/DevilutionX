@@ -16,7 +16,7 @@
 
 #include <expected.hpp>
 
-#include "application/appfat.h"
+#include "application/fatal_error.h"
 #include "engine/assets.hpp"
 #include "application/headless_mode.hpp"
 #include "data/mpq/mpq_common.hpp"

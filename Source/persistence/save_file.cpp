@@ -19,7 +19,7 @@
 #include <SDL.h>
 #endif
 
-#include "support/codec.h"
+#include "crypto/codec.h"
 #include "engine/load/load_file.hpp"
 #include "engine/render/primitive_render.hpp"
 #include "application/game_mode.hpp"

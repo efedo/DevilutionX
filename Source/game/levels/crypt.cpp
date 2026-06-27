@@ -12,7 +12,7 @@
 #include "engine/load/load_file.hpp"
 #include "engine/math/point.hpp"
 #include "game/items/items.hpp"
-#include "game/levels/drlg_l1.h"
+#include "game/levels/level_l1.h"
 #include "engine/lighting.h"
 
 namespace devilution {

@@ -12,20 +12,20 @@ target_link_dependencies(test_main PUBLIC libdevilutionx_so GTest::gtest GTest::
 
 set(tests
   animationinfo_test
-  appfat_test
+  fatal_error_test
   automap_test
   cursor_test
   debug_console_history_test
   debug_overlay_state_test
-  dead_test
+  monster_corpses_test
   diablo_test
-  drlg_common_test
-  drlg_l1_test
-  drlg_l2_test
-  drlg_l3_test
-  drlg_l4_test
+  level_common_test
+  level_l1_test
+  level_l2_test
+  level_l3_test
+  level_l4_test
   effects_test
-  inv_test
+  inventory_test
   items_test
   math_test
   missiles_test
@@ -39,7 +39,7 @@ set(tests
   player_test
   portal_test
   quests_test
-  scrollrt_test
+  world_renderer_test
   stores_test
   spells_test
   tile_properties_test
@@ -55,12 +55,12 @@ set(tests
   inventory_ui_test
   spell_ui_test
   char_panel_test
-  game_menu_test
+  menu_framework_test
 )
 set(standalone_tests
   codec_test
   crawl_test
-  data_file_test
+  mpq_file_test
   file_util_test
   format_int_test
   ini_test
@@ -135,7 +135,7 @@ target_link_dependencies(clx_render_benchmark
 )
 target_link_dependencies(crawl_test PRIVATE libdevilutionx_crawl)
 target_link_dependencies(crawl_benchmark PRIVATE libdevilutionx_crawl)
-target_link_dependencies(data_file_test PRIVATE libdevilutionx_txtdata app_fatal_for_testing language_for_testing)
+target_link_dependencies(mpq_file_test PRIVATE libdevilutionx_txtdata app_fatal_for_testing language_for_testing)
 target_link_dependencies(debug_console_history_test PRIVATE libdevilutionx_debug_console_history)
 target_link_dependencies(debug_overlay_state_test PRIVATE libdevilutionx_debug_overlay_state)
 target_link_dependencies(dun_render_benchmark PRIVATE libdevilutionx_so)

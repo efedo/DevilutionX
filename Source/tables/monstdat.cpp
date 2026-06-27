@@ -18,9 +18,9 @@
 #include <fmt/core.h>
 #include <magic_enum/magic_enum.hpp>
 
-#include "application/appfat.h"
+#include "application/fatal_error.h"
 #include "engine/cursor.h"
-#include "data/file.hpp"
+#include "data/mpq_file.hpp"
 #include "data/iterators.hpp"
 #include "data/record_reader.hpp"
 #include "game/items/items.hpp"

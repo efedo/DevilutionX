@@ -14,7 +14,7 @@
 #include <ostream>
 #endif
 
-#include "application/appfat.h"
+#include "application/fatal_error.h"
 #include "engine/math/direction.hpp"
 #include "engine/math/size.hpp"
 #include "utils/attributes.h"

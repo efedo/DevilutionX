@@ -3,18 +3,18 @@ include(functions/devilutionx_library)
 include(functions/genex)
 
 set(libdevilutionx_SRCS
-  application/appfat.cpp
+  application/fatal_error.cpp
   ui/automap.cpp
   application/capture.cpp
   engine/cursor.cpp
-  game/monsters/dead.cpp
+  game/monsters/monster_corpses.cpp
   application/debug.cpp
   ui/debug_overlay/imgui_overlay.cpp
   application/diablo.cpp
   ui/diablo_msg.cpp
-  game/quests/doom.cpp
+  game/quests/doom_quest.cpp
   ui/gamemenu.cpp
-  ui/gmenu.cpp
+  ui/menu_framework.cpp
   ui/help.cpp
   engine/hwcursor.cpp
   ui/load_screens.cpp
@@ -83,11 +83,11 @@ set(libdevilutionx_SRCS
   engine/animationinfo.cpp
   engine/gfx/backbuffer_state.cpp
   engine/bestiary.cpp
-  engine/gfx/dx.cpp
-  engine/events.cpp
+  engine/gfx/graphics_pipeline.cpp
+  engine/sdl_events.cpp
   engine/gfx/palette.cpp
   engine/audio/sound_position.cpp
-  engine/gfx/trn.cpp
+  engine/gfx/translation_table.cpp
   engine/world.cpp
 
   engine/render/automap_render.cpp
@@ -242,8 +242,8 @@ target_link_dependencies(libdevilutionx_clx_render PUBLIC
 )
 
 add_devilutionx_object_library(libdevilutionx_codec
-  support/codec.cpp
-  support/sha.cpp
+  crypto/codec.cpp
+  crypto/sha.cpp
 )
 target_link_dependencies(libdevilutionx_codec PRIVATE
   DevilutionX::SDL
@@ -379,10 +379,10 @@ target_link_dependencies(libdevilutionx_game_mode PRIVATE
 
 add_devilutionx_object_library(libdevilutionx_dungeon_common
   game/levels/crypt.cpp
-  game/levels/drlg_l1.cpp
-  game/levels/drlg_l2.cpp
-  game/levels/drlg_l3.cpp
-  game/levels/drlg_l4.cpp
+  game/levels/level_l1.cpp
+  game/levels/level_l2.cpp
+  game/levels/level_l3.cpp
+  game/levels/level_l4.cpp
   game/levels/dungeon_common.cpp
 )
 target_link_dependencies(libdevilutionx_dungeon_common PUBLIC
@@ -652,7 +652,7 @@ target_link_dependencies(libdevilutionx_pathfinding PUBLIC
 
 if(SUPPORTS_MPQ OR NOT NONET)
   add_devilutionx_object_library(libdevilutionx_pkware_encrypt
-    support/encrypt.cpp
+    crypto/encrypt.cpp
   )
   target_link_dependencies(libdevilutionx_pkware_encrypt PUBLIC
     DevilutionX::SDL
@@ -734,7 +734,7 @@ target_link_dependencies(libdevilutionx_ticks PRIVATE
 )
 
 add_devilutionx_object_library(libdevilutionx_txtdata
-  data/file.cpp
+  data/mpq_file.cpp
   data/parser.cpp
   data/record_reader.cpp
   data/value_reader.cpp

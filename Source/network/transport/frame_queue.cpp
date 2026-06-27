@@ -9,7 +9,7 @@
 
 #include <cstring>
 
-#include "application/appfat.h"
+#include "application/fatal_error.h"
 #include "network/transport/packet.h"
 #include "utils/attributes.h"
 #include "utils/endian/endian_read.hpp"

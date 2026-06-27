@@ -21,7 +21,7 @@
 #include <sodium.h>
 #endif
 
-#include "application/appfat.h"
+#include "application/fatal_error.h"
 #include "network/transport/abstract_net.h"
 #include "network/transport/leaveinfo.hpp"
 #include "utils/attributes.h"

@@ -16,11 +16,11 @@
 #include <expected.hpp>
 
 #include "ui/automap.h"
-#include "support/codec.h"
+#include "crypto/codec.h"
 #include "ui/panel/control.hpp"
 #include "engine/cursor.h"
-#include "game/monsters/dead.hpp"
-#include "game/quests/doom.hpp"
+#include "game/monsters/monster_corpses.hpp"
+#include "game/quests/doom_quest.hpp"
 #include "engine/math/point.hpp"
 #include "engine/random.hpp"
 #include "engine/world.hpp"

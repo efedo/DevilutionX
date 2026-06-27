@@ -7,7 +7,7 @@
 #include "application/restrict.h"
 #include <string>
 
-#include "application/appfat.h"
+#include "application/fatal_error.h"
 #include "utils/file/file_util.h"
 #include "utils/paths.h"
 

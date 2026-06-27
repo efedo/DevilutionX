@@ -12,7 +12,7 @@
 #include <fmt/format.h>
 #include <sol/sol.hpp>
 
-#include "data/file.hpp"
+#include "data/mpq_file.hpp"
 #include "engine/math/point.hpp"
 #include "lua/metadoc.hpp"
 #include "game/monsters/monsters.hpp"

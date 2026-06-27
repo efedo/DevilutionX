@@ -10,7 +10,7 @@
 #include <array>
 #include <vector>
 
-#include "engine/gfx/dx.h"
+#include "engine/gfx/graphics_pipeline.h"
 #include "utils/enum_traits.h"
 
 namespace devilution {

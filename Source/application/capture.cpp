@@ -33,7 +33,7 @@
 #endif
 
 #include "engine/gfx/backbuffer_state.hpp"
-#include "engine/gfx/dx.h"
+#include "engine/gfx/graphics_pipeline.h"
 #include "engine/gfx/palette.h"
 #include "engine/render/world_renderer.h"
 #include "utils/file/file_util.h"

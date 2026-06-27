@@ -26,9 +26,9 @@
 
 #include "controls/control_mode.hpp"
 #include "controls/player_controls.h"
-#include "engine/events.hpp"
+#include "engine/sdl_events.hpp"
 #include "application/game_mode.hpp"
-#include "ui/gmenu.h"
+#include "ui/menu_framework.h"
 #include "application/headless_mode.hpp"
 #include "ui/menu.h"
 #include "network/protocol/network_ticks.h"

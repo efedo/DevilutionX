@@ -17,7 +17,7 @@
 
 #include <expected.hpp>
 
-#include "data/file.hpp"
+#include "data/mpq_file.hpp"
 #include "data/iterators.hpp"
 #include "data/record_reader.hpp"
 #include "engine/gfx/clx_sprite.hpp"

@@ -19,7 +19,7 @@
 #include <sol/sol.hpp>
 #include <sol/utility/to_string.hpp>
 
-#include "application/appfat.h"
+#include "application/fatal_error.h"
 #include "engine/assets.hpp"
 #include "lua/lua_global.hpp"
 #include "lua/metadoc.hpp"

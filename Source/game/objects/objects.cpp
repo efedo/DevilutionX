@@ -30,7 +30,7 @@
 #include "game/players/inventory.hpp"
 #include "game/players/inv_iterators.hpp"
 #include "game/levels/crypt.h"
-#include "game/levels/drlg_l4.h"
+#include "game/levels/level_l4.h"
 #include "game/levels/setmaps.h"
 #include "game/levels/themes.h"
 #include "game/levels/tile_properties.hpp"

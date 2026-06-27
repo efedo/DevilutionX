@@ -18,7 +18,7 @@
 
 #include <expected.hpp>
 
-#include "application/appfat.h"
+#include "application/fatal_error.h"
 #include "data/mpq/mpq_common.hpp"
 #include "utils/status_macros.hpp"
 #include "utils/string/str_cat.hpp"

@@ -23,7 +23,7 @@
 #include "controls/input.h"
 #include "controls/menu_controls.h"
 #include "engine/gfx/clx_sprite.hpp"
-#include "engine/gfx/dx.h"
+#include "engine/gfx/graphics_pipeline.h"
 #include "engine/load/load_pcx.hpp"
 #include "engine/math/point.hpp"
 #include "engine/render/clx_render.hpp"

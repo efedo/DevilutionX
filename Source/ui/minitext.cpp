@@ -13,7 +13,7 @@
 #include "ui/menu/ui_flags.hpp"
 #include "ui/panel/control.hpp"
 #include "engine/gfx/clx_sprite.hpp"
-#include "engine/gfx/dx.h"
+#include "engine/gfx/graphics_pipeline.h"
 #include "engine/load/load_cel.hpp"
 #include "engine/render/clx_render.hpp"
 #include "engine/render/primitive_render.hpp"

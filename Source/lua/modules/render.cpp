@@ -10,7 +10,7 @@
 #include <sol/sol.hpp>
 
 #include "ui/menu/ui_flags.hpp"
-#include "engine/gfx/dx.h"
+#include "engine/gfx/graphics_pipeline.h"
 #include "engine/render/text_render.hpp"
 #include "lua/metadoc.hpp"
 #include "utils/display.h"

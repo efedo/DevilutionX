@@ -19,7 +19,7 @@
 #include <SDL.h>
 #endif
 
-#include "application/appfat.h"
+#include "application/fatal_error.h"
 
 // Performs bilinear scaling using fixed-width integer math.
 

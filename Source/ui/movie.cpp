@@ -20,7 +20,7 @@
 #include "engine/audio/effects.h"
 #include "engine/gfx/backbuffer_state.hpp"
 #include "engine/demomode.h"
-#include "engine/events.hpp"
+#include "engine/sdl_events.hpp"
 #include "engine/audio/sound.h"
 #include "engine/hwcursor.hpp"
 #include "network/storm/storm_svid.h"

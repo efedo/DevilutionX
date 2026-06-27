@@ -34,7 +34,7 @@
 #include "controls/controller_buttons.h"
 #include "engine/cursor.h"
 #include "application/diablo.h"
-#include "game/quests/doom.hpp"
+#include "game/quests/doom_quest.hpp"
 #include "engine/audio/effects.h"
 #include "engine/animationinfo.h"
 #include "engine/gfx/backbuffer_state.hpp"

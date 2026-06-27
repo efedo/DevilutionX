@@ -20,7 +20,7 @@
 #include "controls/control_mode.hpp"
 #include "controls/player_controls.h"
 #include "engine/cursor.h"
-#include "game/monsters/dead.hpp"
+#include "game/monsters/monster_corpses.hpp"
 #ifdef _DEBUG
 #include "application/debug.h"
 #endif
@@ -30,7 +30,7 @@
 #include "engine/math/points_in_rectangle_range.hpp"
 #include "engine/random.hpp"
 #include "engine/render/clx_render.hpp"
-#include "engine/gfx/trn.hpp"
+#include "engine/gfx/translation_table.hpp"
 #include "engine/math/world_tile.hpp"
 #include "application/game_mode.hpp"
 #include "ui/gamemenu.h"

@@ -15,7 +15,7 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "application/appfat.h"
+#include "application/fatal_error.h"
 #include "engine/math/point.hpp"
 #include "engine/render/blit_impl.hpp"
 #include "game/levels/dun_tile.hpp"

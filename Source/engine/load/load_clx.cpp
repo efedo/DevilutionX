@@ -12,7 +12,7 @@
 
 #include <expected.hpp>
 
-#include "application/appfat.h"
+#include "application/fatal_error.h"
 #include "engine/assets.hpp"
 #include "engine/load/load_file.hpp"
 

@@ -17,7 +17,7 @@
 #include <fmt/format.h>
 #include <magic_enum/magic_enum_utility.hpp>
 
-#include "data/file.hpp"
+#include "data/mpq_file.hpp"
 #include "data/record_reader.hpp"
 #include "data/value_reader.hpp"
 #include "game/items/items.hpp"

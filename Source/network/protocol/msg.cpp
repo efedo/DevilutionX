@@ -22,14 +22,14 @@
 
 #if !defined(UNPACKED_MPQS) || !defined(UNPACKED_SAVES) || !defined(NONET)
 #define USE_PKWARE
-#include "support/encrypt.h"
+#include "crypto/encrypt.h"
 #endif
 
 #include "ui/menu/diabloui.h"
 #include "ui/automap.h"
 #include "config.h"
 #include "ui/panel/control.hpp"
-#include "game/monsters/dead.hpp"
+#include "game/monsters/monster_corpses.hpp"
 #include "engine/gfx/backbuffer_state.hpp"
 #include "engine/random.hpp"
 #include "engine/math/world_tile.hpp"

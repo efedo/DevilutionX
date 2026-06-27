@@ -14,7 +14,7 @@
 #include <expected.hpp>
 #include <function_ref.hpp>
 
-#include "data/file.hpp"
+#include "data/mpq_file.hpp"
 #include "data/iterators.hpp"
 
 namespace devilution {
