@@ -22,7 +22,7 @@
 
 #if !defined(UNPACKED_MPQS) || !defined(UNPACKED_SAVES) || !defined(NONET)
 #define USE_PKWARE
-#include "crypto/encrypt.h"
+#include "utils/crypto/encrypt.h"
 #endif
 
 #include "ui/menu/diabloui.h"

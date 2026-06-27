@@ -1,9 +1,9 @@
 /**
- * @file crypto/encrypt.cpp
+ * @file utils/crypto/encrypt.cpp
  *
  * Implementation of functions for compression and decompressing MPQ data.
  */
-#include "crypto/encrypt.h"
+#include "utils/crypto/encrypt.h"
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -11,7 +11,7 @@
 
 #include <mpqfs/mpqfs.h>
 
-#include "crypto/encrypt.h"
+#include "utils/crypto/encrypt.h"
 
 namespace devilution {
 

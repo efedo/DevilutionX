@@ -242,8 +242,8 @@ target_link_dependencies(libdevilutionx_clx_render PUBLIC
 )
 
 add_devilutionx_object_library(libdevilutionx_codec
-  crypto/codec.cpp
-  crypto/sha.cpp
+  utils/crypto/codec.cpp
+  utils/crypto/sha.cpp
 )
 target_link_dependencies(libdevilutionx_codec PRIVATE
   DevilutionX::SDL
@@ -652,7 +652,7 @@ target_link_dependencies(libdevilutionx_pathfinding PUBLIC
 
 if(SUPPORTS_MPQ OR NOT NONET)
   add_devilutionx_object_library(libdevilutionx_pkware_encrypt
-    crypto/encrypt.cpp
+    utils/crypto/encrypt.cpp
   )
   target_link_dependencies(libdevilutionx_pkware_encrypt PUBLIC
     DevilutionX::SDL

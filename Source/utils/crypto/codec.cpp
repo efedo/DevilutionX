@@ -1,18 +1,18 @@
 /**
- * @file crypto/codec.cpp
+ * @file utils/crypto/codec.cpp
  *
  * Implementation of data encoding and decoding.
  */
 
 
-#include "crypto/codec.h"
+#include "utils/crypto/codec.h"
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 
 #include "application/fatal_error.h"
-#include "crypto/sha.h"
+#include "utils/crypto/sha.h"
 #include "utils/endian/endian_read.hpp"
 #include "utils/endian/endian_swap.hpp"
 #include "utils/log.hpp"

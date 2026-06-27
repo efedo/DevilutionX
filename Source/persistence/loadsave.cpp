@@ -16,7 +16,7 @@
 #include <expected.hpp>
 
 #include "ui/automap.h"
-#include "crypto/codec.h"
+#include "utils/crypto/codec.h"
 #include "ui/panel/control.hpp"
 #include "engine/cursor.h"
 #include "game/monsters/monster_corpses.hpp"

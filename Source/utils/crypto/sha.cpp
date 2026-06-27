@@ -1,11 +1,11 @@
 /**
- * @file crypto/sha.cpp
+ * @file utils/crypto/sha.cpp
  *
  * Implementation of SHA hashing.
  */
 
 
-#include "crypto/sha.h"
+#include "utils/crypto/sha.h"
 
 #include <cstdint>
 #include <cstring>

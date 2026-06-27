@@ -44,7 +44,7 @@
 #include "ui/diablo_msg.hpp"
 
 #include "game/quests/doom_quest.hpp"
-#include "crypto/encrypt.h"
+#include "utils/crypto/encrypt.h"
 #include "engine/gfx/backbuffer_state.hpp"
 #include "engine/gfx/clx_sprite.hpp"
 #include "engine/demomode.h"
