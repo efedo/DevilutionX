@@ -21,7 +21,7 @@ namespace devilution {
 
 #define MAXQUESTS 24
 
-/** States of the mushroom quest */
+// States of the mushroom quest
 enum {
 	QS_INIT,
 	QS_TOMESPAWNED,
@@ -33,7 +33,7 @@ enum {
 	QS_BRAINGIVEN,
 };
 
-/** @brief States of the gharbad the week quest for multiplayer sync */
+// States of the gharbad the weak quest for multiplayer sync
 enum {
 	QS_GHARBAD_INIT,
 	QS_GHARBAD_FIRST_ITEM_READY,
@@ -43,7 +43,7 @@ enum {
 	QS_GHARBAD_ATTACKING,
 };
 
-/** @brief States of Zhar the Mad quest for multiplayer sync */
+// States of Zhar the Mad quest for multiplayer sync
 enum {
 	QS_ZHAR_INIT,
 	QS_ZHAR_ITEM_SPAWNED,
@@ -51,16 +51,15 @@ enum {
 	QS_ZHAR_ATTACKING,
 };
 
-/** @brief States of the Warlord of Blood quest */
+// States of the Warlord of Blood quest
 enum {
 	QS_WARLORD_INIT,
 	QS_WARLORD_STEELTOME_READ,
 	QS_WARLORD_TALKING,
-	/** @brief State only added for multiplayer quests. Doesn't affect vanilla compatibility. */
-	QS_WARLORD_ATTACKING,
+	QS_WARLORD_ATTACKING, // State only added for multiplayer quests. Doesn't affect vanilla compatibility.
 };
 
-/** @brief States of Lachdanan quest for multiplayer sync */
+// States of Lachdanan quest for multiplayer sync
 enum {
 	QS_VEIL_INIT,
 	QS_VEIL_EARLY_RETURN,
@@ -115,11 +114,9 @@ extern int ReturnLevel;
 
 void InitQuests();
 
-/**
- * @brief Deactivates quests from each quest pool at random to provide variety for single player games
- * @param seed The seed used to control which quests are deactivated
- * @param quests The available quest list, this function will make some of them inactive by the time it returns
- */
+// Deactivates quests from each quest pool at random to provide variety for single player games
+// seed: The seed used to control which quests are deactivated
+// quests: The available quest list, this function will make some of them inactive by the time it returns
 void InitialiseQuestPools(uint32_t seed, Quest quests[]);
 void CheckQuests();
 bool ForceQuests();

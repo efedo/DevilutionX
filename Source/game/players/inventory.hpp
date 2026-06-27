@@ -39,10 +39,7 @@ enum inv_item : int8_t {
 	// clang-format on
 };
 
-/**
- * identifiers for each of the inventory squares
- * @see InvRect
- */
+// identifiers for each of the inventory squares (see InvRect)
 enum inv_xy_slot : uint8_t {
 	// clang-format off
 	SLOTXY_HEAD           = 0,
@@ -87,17 +84,11 @@ extern DVL_API_FOR_TEST bool invflag;
 extern const Rectangle InvRect[NUM_XY_SLOTS];
 
 void InvDrawSlotBack(const Surface &out, Point targetPosition, Size size, item_quality itemQuality);
-/**
- * @brief Checks whether the given item can be placed on the belt. Takes item size as well as characteristics into account. Items
- * that cannot be placed on the belt have to be placed in the inventory instead.
- * @param item The item to be checked.
- * @return 'True' in case the item can be placed on the belt and 'False' otherwise.
- */
+// Checks whether the given item can be placed on the belt. Takes item size as well as characteristics into account. Items
+// that cannot be placed on the belt have to be placed in the inventory instead.
 bool CanBePlacedOnBelt(const Player &player, const Item &item);
 
-/**
- * @brief Function type which performs an operation on the given item.
- */
+// Function type which performs an operation on the given item.
 using ItemFunc = void (*)(Item &);
 
 void CloseInventory();
@@ -105,27 +96,15 @@ void CloseStash();
 void FreeInvGFX();
 void InitInv();
 
-/**
- * @brief Render the inventory panel to the given buffer.
- */
+// Render the inventory panel to the given buffer.
 void DrawInv(const Surface &out);
-
 void DrawInvBelt(const Surface &out);
 
-/**
- * @brief Removes equipment from the specified location on the player's body.
- * @param player The player from which equipment will be removed.
- * @param bodyLocation The location from which equipment will be removed.
- * @param hiPri Priority of the network message to sync player equipment.
- */
+// Removes equipment from the specified location on the player's body.
+// hiPri: Priority of the network message to sync player equipment.
 void RemoveEquipment(Player &player, inv_body_loc bodyLocation, bool hiPri);
 
-/**
- * @brief Checks whether or not auto-equipping behavior is enabled for the given player and item.
- * @param player The player to check.
- * @param item The item to check.
- * @return 'True' if auto-equipping behavior is enabled for the player and item and 'False' otherwise.
- */
+// Checks whether or not auto-equipping behavior is enabled for the given player and item.
 bool AutoEquipEnabled(const Player &player, const Item &item);
 
 /**
@@ -141,12 +120,7 @@ bool AutoEquipEnabled(const Player &player, const Item &item);
  */
 bool AutoEquip(Player &player, const Item &item, bool persistItem = true, bool sendNetworkMessage = false);
 
-/**
- * @brief Checks whether the given item can be placed on the specified player's inventory.
- * @param player The player whose inventory will be checked.
- * @param item The item to be checked.
- * @return 'True' in case the item can be placed on the player's inventory and 'False' otherwise.
- */
+// Checks whether the given item can be placed on the specified player's inventory.
 bool CanFitItemInInventory(const Player &player, const Item &item);
 
 /**
@@ -172,19 +146,13 @@ bool AutoPlaceItemInInventory(Player &player, const Item &item, bool sendNetwork
  */
 bool AutoPlaceItemInBelt(Player &player, const Item &item, bool persistItem = false, bool sendNetworkMessage = false);
 
-/**
- * @brief Sort player inventory.
- */
+// Sort player inventory.
 void ReorganizeInventory(Player &player);
 
-/**
- * @brief Calculate the maximum additional gold that may fit in the user's inventory
- */
+// Calculate the maximum additional gold that may fit in the user's inventory
 int RoomForGold();
 
-/**
- * @return The leftover amount that didn't fit, if any
- */
+// The leftover amount that didn't fit, if any
 int AddGoldToInventory(Player &player, int value);
 bool GoldAutoPlace(Player &player, Item &goldStack);
 void CheckInvSwap(Player &player, inv_body_loc bLoc);
@@ -194,9 +162,7 @@ void CheckInvRemove(Player &player, int invGridIndex);
 void TransferItemToStash(Player &player, int location);
 void CheckInvItem(bool isShiftHeld = false, bool isCtrlHeld = false);
 
-/**
- * Check for interactions with belt
- */
+// Check for interactions with belt
 void CheckInvScrn(bool isShiftHeld, bool isCtrlHeld);
 void InvGetItem(Player &player, int ii);
 
@@ -223,11 +189,7 @@ void AutoGetItem(Player &player, Item *itemPointer, int ii);
 int FindGetItem(uint32_t iseed, _item_indexes idx, uint16_t ci);
 void SyncGetItem(Point position, uint32_t iseed, _item_indexes idx, uint16_t ci);
 
-/**
- * @brief Checks if the tile has room for an item
- * @param position tile coordinates
- * @return True if the space is free of obstructions, false if blocked
- */
+// Checks if the tile has room for an item
 bool CanPut(Point position);
 
 int ClampDurability(const Item &item, int durability);
@@ -244,16 +206,10 @@ bool UseInvItem(int cii);
 void DoTelekinesis();
 int CalculateGold(Player &player);
 
-/**
- * @brief Gets the size, in inventory cells, of the given item.
- * @param item The item whose size is to be determined.
- * @return The size, in inventory cells, of the item.
- */
+// Gets the size, in inventory cells, of the given item.
 Size GetInventorySize(const Item &item);
 
-/**
- * @brief Checks whether the player has an inventory item matching the predicate.
- */
+// Checks whether the player has an inventory item matching the predicate.
 template <typename Predicate>
 bool HasInventoryItem(const Player &player, Predicate &&predicate)
 {
@@ -261,9 +217,7 @@ bool HasInventoryItem(const Player &player, Predicate &&predicate)
 	return c_find_if(items, std::forward<Predicate>(predicate)) != items.end();
 }
 
-/**
- * @brief Checks whether the player has a belt item matching the predicate.
- */
+// Checks whether the player has a belt item matching the predicate.
 template <typename Predicate>
 bool HasBeltItem(const Player &player, Predicate &&predicate)
 {
@@ -271,18 +225,14 @@ bool HasBeltItem(const Player &player, Predicate &&predicate)
 	return c_find_if(items, std::forward<Predicate>(predicate)) != items.end();
 }
 
-/**
- * @brief Checks whether the player has an inventory or a belt item matching the predicate.
- */
+// Checks whether the player has an inventory or a belt item matching the predicate.
 template <typename Predicate>
 bool HasInventoryOrBeltItem(const Player &player, Predicate &&predicate)
 {
 	return HasInventoryItem(player, predicate) || HasBeltItem(player, predicate);
 }
 
-/**
- * @brief Checks whether the player has an inventory item with the given ID (IDidx).
- */
+// Checks whether the player has an inventory item with the given ID (IDidx).
 inline bool HasInventoryItemWithId(const Player &player, _item_indexes id)
 {
 	return HasInventoryItem(player, [id](const Item &item) {
@@ -290,9 +240,7 @@ inline bool HasInventoryItemWithId(const Player &player, _item_indexes id)
 	});
 }
 
-/**
- * @brief Checks whether the player has a belt item with the given ID (IDidx).
- */
+// Checks whether the player has a belt item with the given ID (IDidx).
 inline bool HasBeltItemWithId(const Player &player, _item_indexes id)
 {
 	return HasBeltItem(player, [id](const Item &item) {
@@ -300,19 +248,14 @@ inline bool HasBeltItemWithId(const Player &player, _item_indexes id)
 	});
 }
 
-/**
- * @brief Checks whether the player has an inventory or a belt item with the given ID (IDidx).
- */
+// Checks whether the player has an inventory or a belt item with the given ID (IDidx).
 inline bool HasInventoryOrBeltItemWithId(const Player &player, _item_indexes id)
 {
 	return HasInventoryItemWithId(player, id) || HasBeltItemWithId(player, id);
 }
 
-/**
- * @brief Removes the first inventory item matching the predicate.
- *
- * @return Whether an item was found and removed.
- */
+// Removes the first inventory item matching the predicate.
+// return: Whether an item was found and removed.
 template <typename Predicate>
 bool RemoveInventoryItem(Player &player, Predicate &&predicate)
 {
@@ -324,11 +267,8 @@ bool RemoveInventoryItem(Player &player, Predicate &&predicate)
 	return true;
 }
 
-/**
- * @brief Removes the first belt item matching the predicate.
- *
- * @return Whether an item was found and removed.
- */
+// Removes the first belt item matching the predicate.
+// return: Whether an item was found and removed.
 template <typename Predicate>
 bool RemoveBeltItem(Player &player, Predicate &&predicate)
 {
@@ -340,22 +280,16 @@ bool RemoveBeltItem(Player &player, Predicate &&predicate)
 	return true;
 }
 
-/**
- * @brief Removes the first inventory or belt item matching the predicate.
- *
- * @return Whether an item was found and removed.
- */
+// Removes the first inventory or belt item matching the predicate.
+// return: Whether an item was found and removed.
 template <typename Predicate>
 bool RemoveInventoryOrBeltItem(Player &player, Predicate &&predicate)
 {
 	return RemoveInventoryItem(player, predicate) || RemoveBeltItem(player, predicate);
 }
 
-/**
- * @brief Removes the first inventory item with the given id (IDidx).
- *
- * @return Whether an item was found and removed.
- */
+// Removes the first inventory item with the given id (IDidx).
+// return: Whether an item was found and removed.
 inline bool RemoveInventoryItemById(Player &player, _item_indexes id)
 {
 	return RemoveInventoryItem(player, [id](const Item &item) {
@@ -363,11 +297,8 @@ inline bool RemoveInventoryItemById(Player &player, _item_indexes id)
 	});
 }
 
-/**
- * @brief Removes the first belt item with the given id (IDidx).
- *
- * @return Whether an item was found and removed.
- */
+// Removes the first belt item with the given id (IDidx).
+// return: Whether an item was found and removed.
 inline bool RemoveBeltItemById(Player &player, _item_indexes id)
 {
 	return RemoveBeltItem(player, [id](const Item &item) {
@@ -375,19 +306,14 @@ inline bool RemoveBeltItemById(Player &player, _item_indexes id)
 	});
 }
 
-/**
- * @brief Removes the first inventory or belt item with the given id (IDidx).
- *
- * @return Whether an item was found and removed.
- */
+// Removes the first inventory or belt item with the given id (IDidx).
+// return: Whether an item was found and removed.
 inline bool RemoveInventoryOrBeltItemById(Player &player, _item_indexes id)
 {
 	return RemoveInventoryItemById(player, id) || RemoveBeltItemById(player, id);
 }
 
-/**
- * @brief Removes the first inventory or belt scroll with the player's current spell.
- */
+// Removes the first inventory or belt scroll with the player's current spell.
 void ConsumeScroll(Player &player);
 
 /* data */

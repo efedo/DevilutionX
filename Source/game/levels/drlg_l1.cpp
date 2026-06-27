@@ -24,18 +24,13 @@ namespace devilution {
 
 namespace {
 
-/** Marks where walls may not be added to the level */
-Bitset2d<DMAXX, DMAXY> Chamber;
-/** Specifies whether to generate a horizontal or vertical layout. */
-bool VerticalLayout;
-/** Specifies whether to generate a room at position 1 in the Cathedral. */
-bool HasChamber1;
-/** Specifies whether to generate a room at position 2 in the Cathedral. */
-bool HasChamber2;
-/** Specifies whether to generate a room at position 3 in the Cathedral. */
-bool HasChamber3;
+Bitset2d<DMAXX, DMAXY> Chamber; // Marks where walls may not be added to the level
+bool VerticalLayout; // Specifies whether to generate a horizontal or vertical layout.
+bool HasChamber1; // Specifies whether to generate a room at position 1 in the Cathedral.
+bool HasChamber2; // Specifies whether to generate a room at position 2 in the Cathedral.
+bool HasChamber3; // Specifies whether to generate a room at position 3 in the Cathedral.
 
-/** Miniset: stairs up on a corner wall. */
+// Miniset: stairs up on a corner wall.
 const Miniset STAIRSUP {
 	{ 4, 4 },
 	{
@@ -51,7 +46,7 @@ const Miniset STAIRSUP {
 	    { 0, 0, 0, 0 },
 	}
 };
-/** Miniset: stairs down. */
+// Miniset: stairs down.
 const Miniset STAIRSDOWN {
 	{ 4, 3 },
 	{
@@ -65,7 +60,8 @@ const Miniset STAIRSDOWN {
 	    { 0, 0, 0, 0 },
 	}
 };
-/** Miniset: candlestick. */
+
+// Miniset: candlestick.
 const Miniset LAMPS {
 	{ 2, 2 },
 	{
@@ -77,7 +73,8 @@ const Miniset LAMPS {
 	    { 130, 128 },
 	}
 };
-/** Miniset: Poisoned Water Supply entrance. */
+
+// Miniset: Poisoned Water Supply entrance.
 const Miniset PWATERIN {
 	{ 6, 6 },
 	{
@@ -179,7 +176,7 @@ enum Tile : uint8_t {
 	// clang-format on
 };
 
-/** Contains shadows for 2x2 blocks of base tile IDs in the Cathedral. */
+// Contains shadows for 2x2 blocks of base tile IDs in the Cathedral.
 const ShadowStruct ShadowPatterns[37] = {
 	// clang-format off
 	// strig,     s1,    s2,    s3,    nv1,         nv2,     nv3
@@ -223,7 +220,7 @@ const ShadowStruct ShadowPatterns[37] = {
 	// clang-format on
 };
 
-/** Maps tile IDs to their corresponding base tile ID. */
+// Maps tile IDs to their corresponding base tile ID.
 const uint8_t BaseTypes[207] = {
 	0,
 	VWall, HWall, Corner, DWall, DArch, VWallEnd, HWallEnd, HArchEnd, VArchEnd,
@@ -251,7 +248,7 @@ const uint8_t BaseTypes[207] = {
 	0, 0, 0, 0, 0, 0, 0, 0
 };
 
-/** Maps tile IDs to their corresponding undecorated tile ID. */
+// Maps tile IDs to their corresponding undecorated tile ID.
 const uint8_t TileDecorations[207] = {
 	0,
 	VWall, HWall, Corner, DWall, DArch, VWallEnd, HWallEnd, HArchEnd, VArchEnd,

@@ -18,9 +18,7 @@
 
 namespace devilution {
 
-/**
- * @brief A range over non-empty items in a container.
- */
+// A range over non-empty items in a container.
 template <typename ItemT>
 class ItemsContainerRange {
 	static_assert(std::is_same_v<ItemT, Item> || std::is_same_v<ItemT, const Item>,
@@ -123,9 +121,7 @@ private:
 	std::size_t count_;
 };
 
-/**
- * @brief A range over non-empty items in a list of containers.
- */
+// A range over non-empty items in a list of containers.
 template <typename ItemT>
 class ItemsContainerListRange {
 	static_assert(std::is_same_v<ItemT, Item> || std::is_same_v<ItemT, const Item>,
@@ -194,9 +190,7 @@ public:
 	};
 };
 
-/**
- * @brief A range over equipped player items.
- */
+// A range over equipped player items.
 template <typename PlayerT>
 class EquippedPlayerItemsRange {
 	static_assert(std::is_same_v<PlayerT, Player> || std::is_same_v<PlayerT, const Player>,
@@ -229,9 +223,7 @@ private:
 	PlayerT *player_;
 };
 
-/**
- * @brief A range over non-equipped inventory player items.
- */
+// A range over non-equipped inventory player items.
 template <typename PlayerT>
 class InventoryPlayerItemsRange {
 	static_assert(std::is_same_v<PlayerT, Player> || std::is_same_v<PlayerT, const Player>,
@@ -264,9 +256,7 @@ private:
 	PlayerT *player_;
 };
 
-/**
- * @brief A range over belt player items.
- */
+// A range over belt player items.
 template <typename PlayerT>
 class BeltPlayerItemsRange {
 	static_assert(std::is_same_v<PlayerT, Player> || std::is_same_v<PlayerT, const Player>,
@@ -299,9 +289,7 @@ private:
 	PlayerT *player_;
 };
 
-/**
- * @brief A range over non-equipped player items in the following order: Inventory, Belt.
- */
+// A range over non-equipped player items in the following order: Inventory, Belt.
 template <typename PlayerT>
 class InventoryAndBeltPlayerItemsRange {
 	static_assert(std::is_same_v<PlayerT, Player> || std::is_same_v<PlayerT, const Player>,
@@ -335,9 +323,7 @@ private:
 	PlayerT *player_;
 };
 
-/**
- * @brief A range over non-empty player items in the following order: Equipped, Inventory, Belt.
- */
+// A range over non-empty player items in the following order: Equipped, Inventory, Belt.
 template <typename PlayerT>
 class PlayerItemsRange {
 	static_assert(std::is_same_v<PlayerT, Player> || std::is_same_v<PlayerT, const Player>,
