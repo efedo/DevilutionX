@@ -19,9 +19,7 @@
 
 namespace devilution {
 
-/**
- * @brief A value reader.
- */
+// A value reader.
 class ValueReader {
 public:
 	ValueReader(DataFile &dataFile, std::string_view filename);

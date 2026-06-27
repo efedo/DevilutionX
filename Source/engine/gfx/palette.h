@@ -40,9 +40,7 @@ namespace devilution {
 #define PAL16_RED 224
 #define PAL16_GRAY 240
 
-/**
- * @brief An RGB color without an alpha component.
- */
+// An RGB color without an alpha component.
 struct Color {
 	uint8_t rgb[3];
 
@@ -59,85 +57,56 @@ struct Color {
 	}
 };
 
-/**
- * @brief The palette before global brightness / fade effects.
- *
- * However, color cycling / swapping is applied to this palette.
- */
+// The palette before global brightness / fade effects.
+// However, color cycling / swapping is applied to this palette.
 extern std::array<SDL_Color, 256> logical_palette;
 
-/**
- * @brief This palette is the actual palette used for rendering.
- *
- * It is usually `logical_palette` with the global brightness setting
- * and fade-in/out applied.
- */
+// This palette is the actual palette used for rendering.
+// It is usually `logical_palette` with the global brightness setting
+// and fade-in/out applied.
 extern std::array<SDL_Color, 256> system_palette;
 
 void palette_init();
 
-/**
- * @brief Loads `logical_palette` from path.
- */
+// Loads `logical_palette` from path.
 void LoadPalette(std::string_view path);
 
-/**
- * @brief Loads `logical_palette` from path, and generates the blending lookup table
- */
+// Loads `logical_palette` from path, and generates the blending lookup table
 void LoadPaletteAndInitBlending(std::string_view path);
 
-/**
- * @brief Sets a single `logical_palette` color and updates the corresponding `system_color`.
- */
+// Sets a single `logical_palette` color and updates the corresponding `system_color`.
 void SetLogicalPaletteColor(unsigned colorIndex, const SDL_Color &color);
 
 void LoadRndLvlPal(dungeon_type l);
 void IncreaseBrightness();
 
-/**
- * @brief Updates the system palette by copying from `src` and applying the global brightness setting.
- *
- * `src` which is usually `logical_palette`.
- */
+// Updates the system palette by copying from `src` and applying the global brightness setting.
+// `src` which is usually `logical_palette`.
 void UpdateSystemPalette(std::span<const SDL_Color, 256> src);
 
-/**
- * @brief Fade screen from black
- * @param fr Steps per 50ms
- */
+// Fade screen from black
+// fr: Steps per 50ms
 void PaletteFadeIn(int fr, const std::array<SDL_Color, 256> &srcPalette = logical_palette);
 
-/**
- * @brief Fade screen to black
- * @param fr Steps per 50ms
- */
+// Fade screen to black
+// fr: Steps per 50ms
 void PaletteFadeOut(int fr, const std::array<SDL_Color, 256> &srcPalette = logical_palette);
 
-/**
- * @brief Applies global brightness setting to `src` and writes the result to `dst`.
- */
+// Applies global brightness setting to `src` and writes the result to `dst`.
 void ApplyGlobalBrightness(SDL_Color *dst, const SDL_Color *src);
 
-/**
- * @brief Applies a fade-to-black effect to `src` and writes the result to `dst`.
- *
- * @param fadeval 0 - completely black, 256 - no effect.
- */
+// Applies a fade-to-black effect to `src` and writes the result to `dst`.
+// fadeval: 0 - completely black, 256 - no effect.
 void ApplyFadeLevel(unsigned fadeval, SDL_Color *dst, const SDL_Color *src);
 
-/**
- * @brief Call this when `system_palette` is updated directly.
- *
- * You do not need to call this when updating the system palette via `UpdateSystemPalette`, `PaletteFadeIn/Out`, or `BlackPalette`.
- */
+// Call this when `system_palette` is updated directly.
+// You do not need to call this when updating the system palette via `UpdateSystemPalette`, `PaletteFadeIn/Out`, or `BlackPalette`.
 void SystemPaletteUpdated(int first = 0, int ncolor = 256);
 
 void DecreaseBrightness();
 int UpdateBrightness(int sliderValue);
 
-/**
- * @brief Sets `system_palette` to all-black and calls `SystemPaletteUpdated`.
- */
+// Sets `system_palette` to all-black and calls `SystemPaletteUpdated`.
 void BlackPalette();
 
 void palette_update_caves();

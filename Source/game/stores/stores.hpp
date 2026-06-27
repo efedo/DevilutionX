@@ -68,34 +68,25 @@ enum class TalkID : uint8_t {
 	Barmaid,
 };
 
-/** Currently active store */
-extern DVL_API_FOR_TEST TalkID ActiveStore;
+extern DVL_API_FOR_TEST TalkID ActiveStore; // Currently active store
+extern DVL_API_FOR_TEST int CurrentItemIndex; // Current index into PlayerItemIndexes/PlayerItems
+extern int8_t PlayerItemIndexes[48]; // Map of inventory items being presented in the store
+extern DVL_API_FOR_TEST Item PlayerItems[48]; // Copies of the players items as presented in the store
 
-/** Current index into PlayerItemIndexes/PlayerItems */
-extern DVL_API_FOR_TEST int CurrentItemIndex;
-/** Map of inventory items being presented in the store */
-extern int8_t PlayerItemIndexes[48];
-/** Copies of the players items as presented in the store */
-extern DVL_API_FOR_TEST Item PlayerItems[48];
-
-/** Items sold by Griswold */
-extern DVL_API_FOR_TEST StaticVector<Item, NumSmithBasicItemsHf> SmithItems;
-/** Number of premium items for sale by Griswold */
+// Items sold by Griswold
+extern DVL_API_FOR_TEST StaticVector<Item, NumSmithBasicItemsHf> SmithItems; 
 extern DVL_API_FOR_TEST int PremiumItemCount;
-/** Base level of current premium items sold by Griswold */
-extern DVL_API_FOR_TEST int PremiumItemLevel;
-/** Premium items sold by Griswold */
+extern DVL_API_FOR_TEST int PremiumItemLevel; // Base level of current premium items
 extern DVL_API_FOR_TEST StaticVector<Item, NumSmithItemsHf> PremiumItems;
 
-/** Items sold by Pepin */
+// Items sold by Pepin
 extern DVL_API_FOR_TEST StaticVector<Item, NumHealerItemsHf> HealerItems;
 
-/** Items sold by Adria */
+// Items sold by Adria
 extern DVL_API_FOR_TEST StaticVector<Item, NumWitchItemsHf> WitchItems;
 
-/** Current level of the item sold by Wirt */
+// Wirt item
 extern DVL_API_FOR_TEST int BoyItemLevel;
-/** Current item sold by Wirt */
 extern DVL_API_FOR_TEST Item BoyItem;
 
 /** Currently selected text line from TextLine */
@@ -148,20 +139,17 @@ void RegisterTownerDialogOption(std::string_view townerName,
     std::function<std::string()> getLabel,
     std::function<void()> onSelect);
 
-/**
- * @brief Clears all mod-registered towner dialog options.
- *
- * Must be called before the Lua state is destroyed, since registered callbacks
- * capture sol::function handles that reference the Lua state.
- */
+// Clears all mod-registered towner dialog options.
+// Must be called before the Lua state is destroyed, since registered callbacks
+// capture sol::function handles that reference the Lua state.
 void ClearTownerDialogOptions();
 
 void AddStoreHoldRepair(Item *itm, int8_t i);
 
-/** Clears premium items sold by Griswold and Wirt. */
+// Clears premium items sold by Griswold and Wirt.
 void InitStores();
 
-/** Spawns items sold by vendors, including premium items sold by Griswold and Wirt. */
+// Spawns items sold by vendors, including premium items sold by Griswold and Wirt.
 void SetupTownStores();
 
 void FreeStoreMem();
@@ -183,27 +171,16 @@ void CheckStoreBtn();
 void ReleaseStoreBtn();
 bool IsPlayerInStore();
 
-/**
- * @brief Places an item in the player's inventory, belt, or equipment.
- * @param item The item to place.
- * @param persistItem If true, actually place the item. If false, just check if it can be placed.
- * @return true if the item can be/was placed.
- */
+// @brief Places an item in the player's inventory, belt, or equipment.
+// persistItem: If true, actually place the item. If false, just check if it can be placed.
+// return: true if the item can be/was placed.
 bool StoreAutoPlace(Item &item, bool persistItem);
 bool PlayerCanAfford(int price);
 
-/**
- * @brief Check if Griswold will buy this item.
- * @param item The item to check.
- * @return true if the item can be sold to Griswold.
- */
+// Check if Griswold will buy this item.
 bool SmithWillBuy(const Item &item);
 
-/**
- * @brief Check if Adria will buy this item.
- * @param item The item to check.
- * @return true if the item can be sold to Adria.
- */
+// Check if Adria will buy this item.
 bool WitchWillBuy(const Item &item);
 
 } // namespace devilution

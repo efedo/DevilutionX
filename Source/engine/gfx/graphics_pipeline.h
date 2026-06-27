@@ -16,7 +16,7 @@
 
 namespace devilution {
 
-/** Whether we render directly to the screen surface, i.e. `PalSurface == GetOutputSurface()` */
+// Whether we render directly to the screen surface, i.e. `PalSurface == GetOutputSurface()`
 extern bool RenderDirectlyToOutputSurface;
 
 extern SDL_Surface *PalSurface;

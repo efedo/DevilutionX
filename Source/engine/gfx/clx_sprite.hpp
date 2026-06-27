@@ -37,9 +37,7 @@ namespace devilution {
 
 class OptionalClxSprite;
 
-/**
- * @brief A single CLX sprite.
- */
+// A single CLX sprite.
 class ClxSprite {
 public:
 	explicit constexpr ClxSprite(const uint8_t *data, uint32_t dataSize)
@@ -59,11 +57,8 @@ public:
 		return LoadLE16(&data_[4]);
 	}
 
-	/**
-	 * @brief The raw pixel data (CL2 frame data).
-	 *
-	 * Format: https://github.com/savagesteel/d1-file-formats/blob/master/PC-Mac/CL2.md#42-cl2-frame-data
-	 */
+	// The raw pixel data (CL2 frame data).
+	// Format: https://github.com/savagesteel/d1-file-formats/blob/master/PC-Mac/CL2.md#42-cl2-frame-data
 	[[nodiscard]] constexpr const uint8_t *pixelData() const
 	{
 		return &data_[LoadLE16(data_)];
@@ -98,9 +93,7 @@ class OwnedClxSpriteList;
 class OptionalClxSpriteList;
 class ClxSpriteListIterator;
 
-/**
- * @brief A list of `ClxSprite`s.
- */
+// A list of `ClxSprite`s.
 class ClxSpriteList {
 public:
 	explicit constexpr ClxSpriteList(const uint8_t *data)
@@ -215,9 +208,7 @@ class OwnedClxSpriteSheet;
 class OptionalClxSpriteSheet;
 class ClxSpriteSheetIterator;
 
-/**
- * @brief A sprite sheet is a list of `ClxSpriteList`s.
- */
+// A sprite sheet is a list of `ClxSpriteList`s.
 class ClxSpriteSheet {
 public:
 	explicit constexpr ClxSpriteSheet(const uint8_t *data, uint16_t numLists)
@@ -329,9 +320,7 @@ inline constexpr ClxSpriteSheetIterator ClxSpriteSheet::end() const
 class OptionalOwnedClxSpriteList;
 class OwnedClxSpriteListOrSheet;
 
-/**
- * @brief Implicitly convertible to `ClxSpriteList` and owns its data.
- */
+// Implicitly convertible to `ClxSpriteList` and owns its data.
 class OwnedClxSpriteList {
 public:
 	explicit OwnedClxSpriteList(std::unique_ptr<uint8_t[]> &&data)
@@ -387,9 +376,7 @@ inline OwnedClxSpriteList ClxSpriteList::clone() const
 	return OwnedClxSpriteList { std::move(data) };
 }
 
-/**
- * @brief Implicitly convertible to `ClxSpriteSheet` and owns its data.
- */
+// Implicitly convertible to `ClxSpriteSheet` and owns its data.
 class OwnedClxSpriteSheet {
 public:
 	OwnedClxSpriteSheet(std::unique_ptr<uint8_t[]> &&data, uint16_t numLists)
@@ -456,9 +443,7 @@ inline uint16_t GetNumListsFromClxListOrSheetBuffer(const uint8_t *data, size_t 
 	return 0;
 }
 
-/**
- * @brief A CLX sprite list or a sprite sheet (list of lists).
- */
+// A CLX sprite list or a sprite sheet (list of lists).
 class ClxSpriteListOrSheet {
 public:
 	constexpr ClxSpriteListOrSheet(const uint8_t *data, uint16_t numLists)
@@ -503,9 +488,7 @@ private:
 
 class OptionalOwnedClxSpriteListOrSheet;
 
-/**
- * @brief A CLX sprite list or a sprite sheet (list of lists).
- */
+// A CLX sprite list or a sprite sheet (list of lists).
 class OwnedClxSpriteListOrSheet {
 public:
 	static OwnedClxSpriteListOrSheet FromBuffer(std::unique_ptr<uint8_t[]> &&data, size_t size)
@@ -585,46 +568,34 @@ inline ClxSpriteListOrSheet::ClxSpriteListOrSheet(const OwnedClxSpriteListOrShee
 {
 }
 
-/**
- * @brief Equivalent to `std::optional<ClxSprite>` but smaller.
- */
+// Equivalent to `std::optional<ClxSprite>` but smaller.
 class OptionalClxSprite {
 	DEFINE_CONSTEXPR_INTRUSIVE_OPTIONAL(OptionalClxSprite, ClxSprite, data_, nullptr)
 };
 
-/**
- * @brief Equivalent to `std::optional<ClxSpriteList>` but smaller.
- */
+// Equivalent to `std::optional<ClxSpriteList>` but smaller.
 class OptionalClxSpriteList {
 	DEFINE_CONSTEXPR_INTRUSIVE_OPTIONAL(OptionalClxSpriteList, ClxSpriteList, data_, nullptr)
 };
 
-/**
- * @brief Equivalent to `std::optional<ClxSpriteSheet>` but smaller.
- */
+// Equivalent to `std::optional<ClxSpriteSheet>` but smaller.
 class OptionalClxSpriteSheet {
 	DEFINE_CONSTEXPR_INTRUSIVE_OPTIONAL(OptionalClxSpriteSheet, ClxSpriteSheet, data_, nullptr)
 };
 
-/**
- * @brief Equivalent to `std::optional<ClxSpriteListOrSheet>` but smaller.
- */
+// Equivalent to `std::optional<ClxSpriteListOrSheet>` but smaller.
 class OptionalClxSpriteListOrSheet {
 public:
 	DEFINE_INTRUSIVE_OPTIONAL(OptionalClxSpriteListOrSheet, ClxSpriteListOrSheet, data_, nullptr);
 };
 
-/**
- * @brief Equivalent to `std::optional<OwnedClxSpriteList>` but smaller.
- */
+// Equivalent to `std::optional<OwnedClxSpriteList>` but smaller.
 class OptionalOwnedClxSpriteList {
 public:
 	DEFINE_INTRUSIVE_OPTIONAL(OptionalOwnedClxSpriteList, OwnedClxSpriteList, data_, nullptr)
 };
 
-/**
- * @brief Equivalent to `std::optional<OwnedClxSpriteSheet>` but smaller.
- */
+// Equivalent to `std::optional<OwnedClxSpriteSheet>` but smaller.
 class OptionalOwnedClxSpriteSheet {
 public:
 	DEFINE_INTRUSIVE_OPTIONAL(OptionalOwnedClxSpriteSheet, OwnedClxSpriteSheet, data_, nullptr)

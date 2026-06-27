@@ -48,18 +48,18 @@ extern const std::unordered_map<_talker_id, const char *> TownerShortNames;     
 struct Towner : Actor {
 	OptionalOwnedClxSpriteList ownedAnim;
 	OptionalClxSpriteList anim;
-	std::span<const uint8_t> animOrder; /** Specifies the animation frame sequence. */
+	std::span<const uint8_t> animOrder; // Specifies the animation frame sequence.
 	void (*talk)(Player &player, Towner &towner);
 
 	std::string_view name;
 
 	Point position; // Tile position of NPC
-	_speech_id gossip; /** Randomly chosen topic for discussion (picked when loading into town) */
+	_speech_id gossip; // Randomly chosen topic for discussion (picked when loading into town)
 	uint16_t _tAnimWidth;
-	int16_t _tAnimDelay; /** Tick length of each frame in the current animation */
-	int16_t _tAnimCnt; /** Increases by one each game tick, counting how close we are to _pAnimDelay */
-	uint8_t _tAnimLen; /** Number of frames in current animation */
-	uint8_t _tAnimFrame; /** Current frame of animation. */
+	int16_t _tAnimDelay; // Tick length of each frame in the current animation
+	int16_t _tAnimCnt; // Increases by one each game tick, counting how close we are to _pAnimDelay
+	uint8_t _tAnimLen; // Number of frames in current animation
+	uint8_t _tAnimFrame; // Current frame of animation.
 	uint8_t _tAnimFrameCnt;
 	_talker_id _ttype;
 
@@ -75,25 +75,10 @@ struct Towner : Actor {
 
 extern std::vector<Towner> Towners;
 
-/**
- * @brief Returns the number of unique towner types found in TSV data.
- * This is dynamically determined from the loaded towner data.
- */
-size_t GetNumTownerTypes();
-
-/**
- * @brief Returns the number of towner instances (actual spawned towners).
- * This is dynamically determined from the loaded towner data.
- */
-size_t GetNumTowners();
-
+size_t GetNumTownerTypes(); // Number of unique towner types in TSV data
+size_t GetNumTowners(); // Number of spawned towner instances
 bool IsTownerPresent(_talker_id npc);
-/**
- * @brief Maps from a _talker_id value to a pointer to the Towner object, if they have been initialised
- * @param type enum constant identifying the towner
- * @return Pointer to the Towner or nullptr if they are not available
- */
-Towner *GetTowner(_talker_id type);
+Towner *GetTowner(_talker_id type); // null if not initialized
 
 void InitTowners();
 void FreeTownerGFX();

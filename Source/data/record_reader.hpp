@@ -19,9 +19,7 @@
 
 namespace devilution {
 
-/**
- * @brief A record reader that treats every error as fatal.
- */
+// A record reader that treats every error as fatal.
 class RecordReader {
 public:
 	RecordReader(DataFileRecord &record, std::string_view filename)

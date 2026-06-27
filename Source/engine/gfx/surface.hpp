@@ -31,9 +31,7 @@
 
 namespace devilution {
 
-/**
- * @brief 8-bit surface.
- */
+// 8-bit surface.
 struct Surface {
 	SDL_Surface *surface;
 	SDL_Rect region;
@@ -87,21 +85,17 @@ struct Surface {
 		return at(0, region.h);
 	}
 
-	/**
-	 * @brief Set the value of a single pixel if it is in bounds.
-	 * @param position Target buffer coordinate
-	 * @param col Color index from current palette
-	 */
+	// Set the value of a single pixel if it is in bounds.
+	// position: Target buffer coordinate
+	// col: Color index from current palette
 	void SetPixel(Point position, std::uint8_t col) const
 	{
 		if (InBounds(position))
 			(*this)[position] = col;
 	}
 
-	/**
-	 * @brief Line width of the raw underlying byte buffer.
-	 * May be wider than its logical width (for power-of-2 alignment).
-	 */
+	// Line width of the raw underlying byte buffer.
+	// May be wider than its logical width (for power-of-2 alignment).
 	[[nodiscard]] uint16_t pitch() const
 	{
 		return surface->pitch;
@@ -112,17 +106,13 @@ struct Surface {
 		return position.x >= 0 && position.y >= 0 && position.x < region.w && position.y < region.h;
 	}
 
-	/**
-	 * @brief Returns a subregion of the given buffer.
-	 */
+	// Returns a subregion of the given buffer.
 	Surface subregion(int x, int y, int w, int h) const
 	{
 		return Surface(surface, MakeSdlRect(region.x + x, region.y + y, w, h));
 	}
 
-	/**
-	 * @brief Returns a buffer that starts at `x` of width `w`.
-	 */
+	// Returns a buffer that starts at `x` of width `w`.
 	Surface subregionX(int x, int w) const
 	{
 		SDL_Rect subregion = region;
@@ -131,9 +121,7 @@ struct Surface {
 		return Surface(surface, subregion);
 	}
 
-	/**
-	 * @brief Returns a buffer that starts at `y` of height `h`.
-	 */
+	// Returns a buffer that starts at `y` of height `h`.
 	Surface subregionY(int y, int h) const
 	{
 		SDL_Rect subregion = region;
@@ -142,9 +130,7 @@ struct Surface {
 		return Surface(surface, subregion);
 	}
 
-	/**
-	 * @brief Clips srcRect and targetPosition to this output buffer.
-	 */
+	// Clips srcRect and targetPosition to this output buffer.
 	void Clip(SDL_Rect *srcRect, Point *targetPosition) const
 	{
 		if (targetPosition->x < 0) {
@@ -165,15 +151,11 @@ struct Surface {
 		}
 	}
 
-	/**
-	 * @brief Copies the `srcRect` portion of the given buffer to this buffer at `targetPosition`.
-	 */
+	// Copies the `srcRect` portion of the given buffer to this buffer at `targetPosition`.
 	void BlitFrom(const Surface &src, SDL_Rect srcRect, Point targetPosition) const;
 
-	/**
-	 * @brief Copies the `srcRect` portion of the given buffer to this buffer at `targetPosition`.
-	 * Source pixels with index 0 are not copied.
-	 */
+	// Copies the `srcRect` portion of the given buffer to this buffer at `targetPosition`.
+	// Source pixels with index 0 are not copied.
 	void BlitFromSkipColorIndexZero(const Surface &src, SDL_Rect srcRect, Point targetPosition) const;
 };
 

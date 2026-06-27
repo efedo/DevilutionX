@@ -35,37 +35,19 @@ namespace devilution {
  * through their own appropriately-typed fields.
  */
 struct Actor {
-    /**
-     * @brief Current animation state, used for sprite selection and frame advance.
-     */
-    AnimationInfo animInfo;
+    AnimationInfo animInfo; // Current animation state, used for sprite selection and frame advance.
+    Direction direction = Direction::South; // Direction the actor is currently facing.
+    int lightId = -1;  // Index into the global lights array, or -1 if this actor does not emit light.
 
-    /**
-     * @brief Direction the actor is currently facing.
-     */
-    Direction direction = Direction::South;
-
-    /**
-     * @brief Index into the global lights array, or -1 if this actor does not emit light.
-     */
-    int lightId = -1;
-
-    /**
-     * @brief Current hit points in fixed-point format (lower 6 bits are fractional).
-     * Use `hitPoints >> 6` to obtain the integer part.
-     */
+    // Current hit points in fixed-point format (lower 6 bits are fractional).
+    // Use `hitPoints >> 6` to obtain the integer part.
     int hitPoints = 0;
 
-    /**
-     * @brief Maximum hit points in fixed-point format (lower 6 bits are fractional).
-     */
+    // Maximum hit points in fixed-point format (lower 6 bits are fractional).
     int maxHitPoints = 0;
 
-    /**
-     * @brief Returns true when the actor's integer hit points are zero or below.
-     *
-     * Always returns false for towners (they have no life to lose).
-     */
+    // Returns true when the actor's integer hit points are zero or below.
+    // Always returns false for towners (they have no life to lose).
     [[nodiscard]] bool hasNoLife() const
     {
         return hitPoints >> 6 <= 0;

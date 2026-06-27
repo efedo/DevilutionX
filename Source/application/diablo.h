@@ -103,9 +103,7 @@ tl::expected<void, std::string> LoadGameLevel(bool firstflag, lvl_entry lvldir);
 bool IsDiabloAlive(bool playSFX);
 void PrintScreen(SDL_Keycode vkey);
 
-/**
- * @param bStartup Process additional ticks before returning
- */
+// bStartup: Process additional ticks before returning
 bool game_loop(bool bStartup);
 void diablo_color_cyc_logic();
 
@@ -115,9 +113,7 @@ void diablo_color_cyc_logic();
 extern bool DebugDisableNetworkTimeout;
 #endif
 
-/**
- * @brief Specifies what game logic step is currently executed
- */
+// Specifies what game logic step is currently executed
 extern GameLogicStep gGameLogicStep;
 
 #ifdef __UWP__
