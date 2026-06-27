@@ -27,7 +27,7 @@
 #include "game/monsters/monster_corpses.hpp"
 #include "ui/debug_overlay/imgui_overlay.hpp"
 #include "ui/diablo_msg.hpp"
-#include "game/quests/doom_quest.hpp"
+#include "game/quests/quest_stars.hpp"
 #include "engine/gfx/backbuffer_state.hpp"
 #include "engine/math/displacement.hpp"
 #include "engine/gfx/graphics_pipeline.h"

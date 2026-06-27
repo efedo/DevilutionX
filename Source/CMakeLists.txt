@@ -12,7 +12,7 @@ set(libdevilutionx_SRCS
   ui/debug_overlay/imgui_overlay.cpp
   application/diablo.cpp
   ui/diablo_msg.cpp
-  game/quests/doom_quest.cpp
+  game/quests/quest_stars.cpp
   ui/gamemenu.cpp
   ui/menu_framework.cpp
   ui/help.cpp

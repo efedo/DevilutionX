@@ -34,7 +34,7 @@
 #include "controls/game_controls.h"
 #include "controls/touch/gamepad.h"
 #include "engine/cursor.h"
-#include "game/quests/doom_quest.hpp"
+#include "game/quests/quest_stars.hpp"
 #include "engine/math/point.hpp"
 #include "engine/math/points_in_rectangle_range.hpp"
 #include "application/game_mode.hpp"

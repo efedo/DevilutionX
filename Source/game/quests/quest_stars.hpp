@@ -1,5 +1,5 @@
 /**
- * @file game/quests/doom_quest.hpp
+ * @file game/quests/quest_stars.hpp
  *
  * Interface of the map of the stars quest.
  */

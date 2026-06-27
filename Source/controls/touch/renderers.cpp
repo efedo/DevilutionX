@@ -16,7 +16,7 @@
 #include "ui/panel/control.hpp"
 #include "engine/cursor.h"
 #include "application/diablo.h"
-#include "game/quests/doom_quest.hpp"
+#include "game/quests/quest_stars.hpp"
 #include "engine/sdl_events.hpp"
 #include "engine/render/clx_render.hpp"
 #include "engine/render/primitive_render.hpp"

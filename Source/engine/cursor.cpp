@@ -24,7 +24,7 @@
 #include "ui/panel/control.hpp"
 #include "controls/control_mode.hpp"
 #include "controls/player_controls.h"
-#include "game/quests/doom_quest.hpp"
+#include "game/quests/quest_stars.hpp"
 #include "engine/gfx/backbuffer_state.hpp"
 #include "engine/demomode.h"
 #include "engine/math/point.hpp"

@@ -24,7 +24,7 @@
 #include "controls/padmapper.hpp"
 #include "controls/player_controls.h"
 #include "controls/touch/gamepad.h"
-#include "game/quests/doom_quest.hpp"
+#include "game/quests/quest_stars.hpp"
 #include "ui/gamemenu.h"
 #include "ui/menu_framework.h"
 #include "persistence/options.h"

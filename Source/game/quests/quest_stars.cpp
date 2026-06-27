@@ -1,9 +1,9 @@
 /**
- * @file game/quests/doom_quest.cpp
+ * @file game/quests/quest_stars.cpp
  *
  * Implementation of the map of the stars quest.
  */
-#include "game/quests/doom_quest.hpp"
+#include "game/quests/quest_stars.hpp"
 
 #include <optional>
 

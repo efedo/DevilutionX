@@ -20,7 +20,7 @@
 #include "ui/panel/control.hpp"
 #include "engine/cursor.h"
 #include "game/monsters/monster_corpses.hpp"
-#include "game/quests/doom_quest.hpp"
+#include "game/quests/quest_stars.hpp"
 #include "engine/math/point.hpp"
 #include "engine/random.hpp"
 #include "engine/world.hpp"
