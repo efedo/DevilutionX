@@ -17,10 +17,6 @@ struct ThemeStruct {
 	int8_t ttval;
 };
 
-extern int numthemes;
-extern bool armorFlag;
-extern bool weaponFlag;
-extern int zharlib;
 extern ThemeStruct themes[MAXTHEMES];
 
 void InitThemes();

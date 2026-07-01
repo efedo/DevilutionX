@@ -9,12 +9,6 @@
 
 namespace devilution {
 
-extern int UberRow;
-extern int UberCol;
-extern bool IsUberRoomOpened;
-extern bool IsUberLeverActivated;
-extern int UberDiabloMonsterIndex;
-
 extern const Miniset L5STAIRSUP;
 
 void InitCryptPieces();

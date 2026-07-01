@@ -2571,10 +2571,10 @@ size_t OnNakrul(const TCmd &cmd)
 {
 	if (gbBufferMsgs != 1) {
 		if (currentLevelNumber() == 24) {
-			PlaySfxLoc(SfxID::CryptDoorOpen, { UberRow, UberCol });
+			PlaySfxLoc(SfxID::CryptDoorOpen, { uberRow(), uberCol() });
 			SyncNakrulRoom();
 		}
-		IsUberRoomOpened = true;
+		isUberRoomOpened() = true;
 		Quests[Q_NAKRUL]._qactive = QUEST_DONE;
 		WeakenNaKrul();
 	}

@@ -754,7 +754,7 @@ void AddNakrulLever()
 			break;
 		}
 	}
-	AddObject(OBJ_L5LEVER, { UberRow + 3, UberCol - 1 });
+	AddObject(OBJ_L5LEVER, { uberRow() + 3, uberCol() - 1 });
 }
 
 void AddNakrulBook(int a1, Point position)
@@ -767,34 +767,34 @@ void AddNakrulGate()
 	AddNakrulLever();
 	switch (GenerateRnd(6)) {
 	case 0:
-		AddNakrulBook(6, { UberRow + 3, UberCol });
-		AddNakrulBook(7, { UberRow + 2, UberCol - 3 });
-		AddNakrulBook(8, { UberRow + 2, UberCol + 2 });
+		AddNakrulBook(6, { uberRow() + 3, uberCol() });
+		AddNakrulBook(7, { uberRow() + 2, uberCol() - 3 });
+		AddNakrulBook(8, { uberRow() + 2, uberCol() + 2 });
 		break;
 	case 1:
-		AddNakrulBook(6, { UberRow + 3, UberCol });
-		AddNakrulBook(8, { UberRow + 2, UberCol - 3 });
-		AddNakrulBook(7, { UberRow + 2, UberCol + 2 });
+		AddNakrulBook(6, { uberRow() + 3, uberCol() });
+		AddNakrulBook(8, { uberRow() + 2, uberCol() - 3 });
+		AddNakrulBook(7, { uberRow() + 2, uberCol() + 2 });
 		break;
 	case 2:
-		AddNakrulBook(7, { UberRow + 3, UberCol });
-		AddNakrulBook(6, { UberRow + 2, UberCol - 3 });
-		AddNakrulBook(8, { UberRow + 2, UberCol + 2 });
+		AddNakrulBook(7, { uberRow() + 3, uberCol() });
+		AddNakrulBook(6, { uberRow() + 2, uberCol() - 3 });
+		AddNakrulBook(8, { uberRow() + 2, uberCol() + 2 });
 		break;
 	case 3:
-		AddNakrulBook(7, { UberRow + 3, UberCol });
-		AddNakrulBook(8, { UberRow + 2, UberCol - 3 });
-		AddNakrulBook(6, { UberRow + 2, UberCol + 2 });
+		AddNakrulBook(7, { uberRow() + 3, uberCol() });
+		AddNakrulBook(8, { uberRow() + 2, uberCol() - 3 });
+		AddNakrulBook(6, { uberRow() + 2, uberCol() + 2 });
 		break;
 	case 4:
-		AddNakrulBook(8, { UberRow + 3, UberCol });
-		AddNakrulBook(7, { UberRow + 2, UberCol - 3 });
-		AddNakrulBook(6, { UberRow + 2, UberCol + 2 });
+		AddNakrulBook(8, { uberRow() + 3, uberCol() });
+		AddNakrulBook(7, { uberRow() + 2, uberCol() - 3 });
+		AddNakrulBook(6, { uberRow() + 2, uberCol() + 2 });
 		break;
 	case 5:
-		AddNakrulBook(8, { UberRow + 3, UberCol });
-		AddNakrulBook(6, { UberRow + 2, UberCol - 3 });
-		AddNakrulBook(7, { UberRow + 2, UberCol + 2 });
+		AddNakrulBook(8, { uberRow() + 3, uberCol() });
+		AddNakrulBook(6, { uberRow() + 2, uberCol() - 3 });
+		AddNakrulBook(7, { uberRow() + 2, uberCol() + 2 });
 		break;
 	}
 }
@@ -1339,7 +1339,7 @@ void AddLargeFountain(Object &fountain)
 
 void AddArmorStand(Object &armorStand)
 {
-	if (!armorFlag) {
+	if (!armorFlag()) {
 		armorStand._oAnimFlag = true;
 		armorStand.selectionRegion = SelectionRegion::None;
 	}
@@ -1394,7 +1394,7 @@ void AddStoryBook(Object &storyBook)
 
 void AddWeaponRack(Object &weaponRack)
 {
-	if (!weaponFlag) {
+	if (!weaponFlag()) {
 		weaponRack._oAnimFlag = true;
 		weaponRack.selectionRegion = SelectionRegion::None;
 	}
@@ -1800,7 +1800,7 @@ void UpdateLeverState(Object &object)
 
 	if (currentLevelNumber() == 24) {
 		SyncNakrulRoom();
-		IsUberLeverActivated = true;
+		isUberLeverActivated() = true;
 		return;
 	}
 
@@ -1821,7 +1821,7 @@ void OperateLever(Object &object, bool sendmsg)
 	UpdateLeverState(object);
 
 	if (currentLevelNumber() == 24) {
-		PlaySfxLoc(SfxID::CryptDoorOpen, { UberRow, UberCol });
+		PlaySfxLoc(SfxID::CryptDoorOpen, { uberRow(), uberCol() });
 		Quests[Q_NAKRUL]._qactive = QUEST_DONE;
 		NetSendCmdQuest(true, Quests[Q_NAKRUL]);
 	}
@@ -3368,7 +3368,7 @@ void OperateStoryBook(Object &storyBook)
 	PlaySfxLoc(SfxID::ItemScroll, storyBook.position);
 	auto msg = static_cast<_speech_id>(storyBook._oVar2);
 	if (storyBook._oVar8 != 0 && currentLevelNumber() == 24) {
-		if (!IsUberLeverActivated && Quests[Q_NAKRUL]._qactive != QUEST_DONE && OperateNakrulBook(storyBook._oVar8)) {
+		if (!isUberLeverActivated() && Quests[Q_NAKRUL]._qactive != QUEST_DONE && OperateNakrulBook(storyBook._oVar8)) {
 			NetSendCmd(false, CMD_NAKRUL);
 			return;
 		}
@@ -3838,7 +3838,7 @@ tl::expected<void, std::string> InitObjectGFX()
 			filesWidths[objectData.ofindex] = objectData.animWidth;
 		}
 		if (objectData.otheme != THEME_NONE) {
-			for (int j = 0; j < numthemes; j++) {
+			for (int j = 0; j < numThemes(); j++) {
 				if (themes[j].ttype == objectData.otheme) {
 					filesWidths[objectData.ofindex] = objectData.animWidth;
 				}
@@ -5030,10 +5030,10 @@ void GetObjectStr(const Object &object)
 
 void SyncNakrulRoom()
 {
-	ObjSetMicro({ UberRow, UberCol }, 297);
-	ObjSetMicro({ UberRow, UberCol - 1 }, 300);
-	ObjSetMicro({ UberRow, UberCol - 2 }, 299);
-	ObjSetMicro({ UberRow, UberCol + 1 }, 298);
+	ObjSetMicro({ uberRow(), uberCol() }, 297);
+	ObjSetMicro({ uberRow(), uberCol() - 1 }, 300);
+	ObjSetMicro({ uberRow(), uberCol() - 2 }, 299);
+	ObjSetMicro({ uberRow(), uberCol() + 1 }, 298);
 }
 
 } // namespace devilution

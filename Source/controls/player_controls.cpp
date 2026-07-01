@@ -470,7 +470,7 @@ void FindTrigger()
 	}
 
 	if (pcursmissile == nullptr) {
-		for (int i = 0; i < numtrigs; i++) {
+		for (int i = 0; i < numTriggers(); i++) {
 			const int tx = trigs[i].position.x;
 			int ty = trigs[i].position.y;
 			if (trigs[i]._tlvl == 13)

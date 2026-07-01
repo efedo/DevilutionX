@@ -168,6 +168,26 @@ public:
 	// -------------------------------------------------------------------------
 	int themeCount_ = 0;                    // Number of generated theme rooms.
 	THEME_LOC themeLoc_[MAXTHEMES] = {};    // Generated theme-room locations.
+	int numThemes_ = 0;                     // Number of placed theme instances.
+	bool armorFlag_ = false;                // Armor theme flag.
+	bool weaponFlag_ = false;               // Weapon theme flag.
+	int zharlib_ = 0;                       // Zhar library theme index.
+
+	// -------------------------------------------------------------------------
+	// Triggers
+	// -------------------------------------------------------------------------
+	bool trigFlag_ = false;                 // Whether a trigger is active.
+	int numTriggers_ = 0;                   // Number of active triggers.
+	int tWarpFrom_ = 0;                     // Town warp origin level.
+
+	// -------------------------------------------------------------------------
+	// Crypt (Uber room)
+	// -------------------------------------------------------------------------
+	int uberRow_ = 0;                       // Uber room row.
+	int uberCol_ = 0;                       // Uber room column.
+	bool isUberRoomOpened_ = false;         // Whether the uber room has been opened.
+	bool isUberLeverActivated_ = false;     // Whether the uber lever has been activated.
+	int uberDiabloMonsterIndex_ = 0;        // Index of the Uber Diablo monster.
 
 	// -------------------------------------------------------------------------
 	// Factory

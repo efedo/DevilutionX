@@ -1300,8 +1300,8 @@ void CreateL5Dungeon(uint32_t rseed, lvl_entry entry)
 {
 	SetRndSeed(rseed);
 
-	UberRow = 0;
-	UberCol = 0;
+	uberRow() = 0;
+	uberCol() = 0;
 
 	GenerateLevel(entry);
 

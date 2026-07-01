@@ -332,19 +332,19 @@ void CreateTown(lvl_entry entry)
 	} else if (entry == ENTRY_PREV) { // Cathedral
 		viewPosition() = { 25, 31 };
 	} else if (entry == ENTRY_TWARPUP) {
-		if (TWarpFrom == 5) {
+		if (tWarpFrom() == 5) {
 			viewPosition() = { 49, 22 };
 		}
-		if (TWarpFrom == 9) {
+		if (tWarpFrom() == 9) {
 			viewPosition() = { 18, 69 };
 		}
-		if (TWarpFrom == 13) {
+		if (tWarpFrom() == 13) {
 			viewPosition() = { 41, 81 };
 		}
-		if (TWarpFrom == 21) {
+		if (tWarpFrom() == 21) {
 			viewPosition() = { 36, 25 };
 		}
-		if (TWarpFrom == 17) {
+		if (tWarpFrom() == 17) {
 			viewPosition() = { 79, 62 };
 		}
 	}

@@ -704,7 +704,7 @@ void AddRune(Missile &missile, Point dst, MissileID missileID)
 
 bool CheckIfTrig(Point position)
 {
-	for (int i = 0; i < numtrigs; i++) {
+	for (int i = 0; i < numTriggers(); i++) {
 		if (trigs[i].position.WalkingDistance(position) < 2)
 			return true;
 	}
@@ -1513,7 +1513,7 @@ void AddWarp(Missile &missile, AddMissileParameter &parameter)
 	Player &player = Players[id];
 	Point tile = player.position.tile;
 
-	for (int i = 0; i < numtrigs && i < MAXTRIGGERS; i++) {
+	for (int i = 0; i < numTriggers() && i < MAXTRIGGERS; i++) {
 		TriggerStruct *trg = &trigs[i];
 		if (IsNoneOf(trg->_tmsg, WM_DIABTWARPUP, WM_DIABPREVLVL, WM_DIABNEXTLVL, WM_DIABRTNLVL))
 			continue;
@@ -1563,7 +1563,7 @@ void AddWarp(Missile &missile, AddMissileParameter &parameter)
 	missile.duration = 2;
 	std::optional<Point> teleportDestination = FindClosestValidPosition(
 	    [&player](Point target) {
-		    for (int i = 0; i < numtrigs; i++) {
+		    for (int i = 0; i < numTriggers(); i++) {
 			    if (trigs[i].position == target)
 				    return false;
 		    }

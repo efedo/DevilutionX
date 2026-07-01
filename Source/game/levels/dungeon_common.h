@@ -152,6 +152,66 @@ inline decltype(auto) themeLocations() // Generated theme-room areas.
 	return (currentLevel().themeLoc_);
 }
 
+inline decltype(auto) numThemes() // Number of placed theme instances.
+{
+	return (currentLevel().numThemes_);
+}
+
+inline decltype(auto) armorFlag() // Armor theme flag.
+{
+	return (currentLevel().armorFlag_);
+}
+
+inline decltype(auto) weaponFlag() // Weapon theme flag.
+{
+	return (currentLevel().weaponFlag_);
+}
+
+inline decltype(auto) zharlib() // Zhar library theme index.
+{
+	return (currentLevel().zharlib_);
+}
+
+inline decltype(auto) trigFlag() // Whether a trigger is active.
+{
+	return (currentLevel().trigFlag_);
+}
+
+inline decltype(auto) numTriggers() // Number of active triggers.
+{
+	return (currentLevel().numTriggers_);
+}
+
+inline decltype(auto) tWarpFrom() // Town warp origin level.
+{
+	return (currentLevel().tWarpFrom_);
+}
+
+inline decltype(auto) uberRow() // Uber room row.
+{
+	return (currentLevel().uberRow_);
+}
+
+inline decltype(auto) uberCol() // Uber room column.
+{
+	return (currentLevel().uberCol_);
+}
+
+inline decltype(auto) isUberRoomOpened() // Whether the uber room has been opened.
+{
+	return (currentLevel().isUberRoomOpened_);
+}
+
+inline decltype(auto) isUberLeverActivated() // Whether the uber lever has been activated.
+{
+	return (currentLevel().isUberLeverActivated_);
+}
+
+inline decltype(auto) uberDiabloMonsterIndex() // Index of the Uber Diablo monster.
+{
+	return (currentLevel().uberDiabloMonsterIndex_);
+}
+
 inline decltype(auto) tiles() // Runtime state for each world tile.
 {
 	return (currentLevel().tiles_);

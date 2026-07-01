@@ -3526,7 +3526,7 @@ void Player::syncInitialPosition()
 
 		const std::optional<Point> nearPosition = FindClosestValidPosition(
 		    [&player](Point testPosition) {
-			    for (int i = 0; i < numtrigs; i++) {
+			    for (int i = 0; i < numTriggers(); i++) {
 				    if (trigs[i].position == testPosition)
 					    return false;
 			    }

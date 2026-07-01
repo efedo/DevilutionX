@@ -25,10 +25,6 @@
 
 namespace devilution {
 
-int numthemes;
-bool armorFlag;
-bool weaponFlag;
-int zharlib;
 ThemeStruct themes[MAXTHEMES];
 
 namespace {
@@ -304,7 +300,7 @@ bool SpecialThemeFit(int i, theme_id t)
 
 bool CheckThemeRoom(int8_t tv)
 {
-	for (int i = 0; i < numtrigs; i++) {
+	for (int i = 0; i < numTriggers(); i++) {
 		if (tileAt(trigs[i].position).transVal() == tv)
 			return false;
 	}
@@ -584,7 +580,7 @@ void Theme_Library(int t)
 		}
 	}
 
-	if (Quests[Q_ZHAR].IsAvailable() && t == zharlib) {
+	if (Quests[Q_ZHAR].IsAvailable() && t == zharlib()) {
 		return;
 	}
 	PlaceThemeMonsts(t, monstrnd[levelType() - 1]);
@@ -675,7 +671,7 @@ void Theme_ArmorStand(int t)
 	constexpr unsigned armorrnd[4] = { 6, 8, 3, 8 };
 	const int monstrnd[4] = { 6, 7, 3, 9 };
 
-	if (armorFlag) {
+	if (armorFlag()) {
 		TFit_Obj3(themes[t].ttval);
 		AddObject(OBJ_ARMORSTAND, { themex, themey });
 	}
@@ -691,7 +687,7 @@ void Theme_ArmorStand(int t)
 		}
 	}
 	PlaceThemeMonsts(t, monstrnd[levelType() - 1]);
-	armorFlag = false;
+	armorFlag() = false;
 }
 
 /**
@@ -790,7 +786,7 @@ void Theme_WeaponRack(int t)
 	constexpr unsigned weaponrnd[4] = { 6, 8, 5, 8 };
 	const int monstrnd[4] = { 6, 7, 3, 9 };
 
-	if (weaponFlag) {
+	if (weaponFlag()) {
 		TFit_Obj3(regionId);
 		AddObject(OBJ_WEAPONRACK, { themex, themey });
 	}
@@ -806,7 +802,7 @@ void Theme_WeaponRack(int t)
 		}
 	}
 	PlaceThemeMonsts(t, monstrnd[levelType() - 1]);
-	weaponFlag = false;
+	weaponFlag() = false;
 }
 
 /**
@@ -824,16 +820,16 @@ void UpdateL4Trans()
 
 void InitThemes()
 {
-	zharlib = -1;
-	numthemes = 0;
-	armorFlag = true;
+	zharlib() = -1;
+	numThemes() = 0;
+	armorFlag() = true;
 	bFountainFlag = true;
 	cauldronFlag = true;
 	mFountainFlag = true;
 	pFountainFlag = true;
 	tFountainFlag = true;
 	treasureFlag = true;
-	weaponFlag = true;
+	weaponFlag() = true;
 
 	if (currentLevelNumber() == 16 || IsAnyOf(levelType(), DTYPE_NEST, DTYPE_CRYPT)) {
 		return;
@@ -843,15 +839,15 @@ void InitThemes()
 	constexpr theme_id ThemeGood[4] = { THEME_GOATSHRINE, THEME_SHRINE, THEME_SKELROOM, THEME_LIBRARY };
 
 	if (levelType() == DTYPE_CATHEDRAL) {
-		for (int8_t i = 0; numthemes < MAXTHEMES; i++) {
+		for (int8_t i = 0; numThemes() < MAXTHEMES; i++) {
 			if (CheckThemeRoom(i)) {
-				themes[numthemes].ttval = i;
+				themes[numThemes()].ttval = i;
 				theme_id j = ThemeGood[GenerateRnd(4)];
-				while (!SpecialThemeFit(numthemes, j)) {
+				while (!SpecialThemeFit(numThemes(), j)) {
 					j = (theme_id)GenerateRnd(17);
 				}
-				themes[numthemes].ttype = j;
-				numthemes++;
+				themes[numThemes()].ttype = j;
+				numThemes()++;
 			}
 			if (i > nextTransparencyValue())
 				break;
@@ -868,7 +864,7 @@ void InitThemes()
 			themes[j].ttval = themeLocations()[j].ttval;
 			if (SpecialThemeFit(j, THEME_LIBRARY)) {
 				themes[j].ttype = THEME_LIBRARY;
-				zharlib = j;
+				zharlib() = j;
 				break;
 			}
 		}
@@ -883,7 +879,7 @@ void InitThemes()
 			themes[i].ttype = j;
 		}
 	}
-	numthemes += themeCount();
+	numThemes() += themeCount();
 }
 
 void HoldThemeRooms()
@@ -897,7 +893,7 @@ void HoldThemeRooms()
 		return;
 	}
 
-	for (int i = 0; i < numthemes; i++) {
+	for (int i = 0; i < numThemes(); i++) {
 		const int8_t v = themes[i].ttval;
 		for (Tile &tile : tiles()) {
 			if (tile.transVal() == v)
@@ -912,7 +908,7 @@ void CreateThemeRooms()
 		return;
 	}
 
-	for (int i = 0; i < numthemes; i++) {
+	for (int i = 0; i < numThemes(); i++) {
 		themex = 0;
 		themey = 0;
 		switch (themes[i].ttype) {

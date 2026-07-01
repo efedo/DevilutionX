@@ -418,7 +418,7 @@ Point GetUniqueMonstPosition(UniqueMonsterType uniqindex)
 		return setPiece().position.megaToWorld() + Displacement { 6, 7 };
 	case UniqueMonsterType::Zhar:
 		for (int i = 0; i < themeCount(); i++) {
-			if (i == zharlib) {
+			if (i == zharlib()) {
 				return themeLocations()[i].room.position.megaToWorld() + Displacement { 4, 4 };
 			}
 		}
@@ -432,12 +432,12 @@ Point GetUniqueMonstPosition(UniqueMonsterType uniqindex)
 	case UniqueMonsterType::Butcher:
 		return setPiece().position.megaToWorld() + Displacement { 4, 4 };
 	case UniqueMonsterType::NaKrul:
-		if (UberRow == 0 || UberCol == 0) {
-			UberDiabloMonsterIndex = -1;
+		if (uberRow() == 0 || uberCol() == 0) {
+			uberDiabloMonsterIndex() = -1;
 			break;
 		}
-		UberDiabloMonsterIndex = static_cast<int>(ActiveMonsterCount);
-		return { UberRow - 2, UberCol };
+		uberDiabloMonsterIndex() = static_cast<int>(ActiveMonsterCount);
+		return { uberRow() - 2, uberCol() };
 	default:
 		break;
 	}
@@ -574,7 +574,7 @@ tl::expected<void, std::string> PlaceQuestMonsters()
 		if (Quests[Q_VEIL].IsAvailable()) {
 			RETURN_IF_ERROR(AddMonsterType(UniqueMonsterType::Lachdan, PLACE_SCATTER));
 		}
-		if (Quests[Q_ZHAR].IsAvailable() && zharlib == -1) {
+		if (Quests[Q_ZHAR].IsAvailable() && zharlib() == -1) {
 			Quests[Q_ZHAR]._qactive = QUEST_NOTAVAIL;
 		}
 
@@ -589,18 +589,18 @@ tl::expected<void, std::string> PlaceQuestMonsters()
 		}
 
 		if (currentLevelNumber() == 24) {
-			UberDiabloMonsterIndex = -1;
+			uberDiabloMonsterIndex() = -1;
 			const size_t typeIndex = GetMonsterTypeIndex(MT_NAKRUL);
 			if (typeIndex < LevelBestiary.size()) {
 				for (size_t i = 0; i < ActiveMonsterCount; i++) {
 					const Monster &monster = Monsters[i];
 					if (monster.isUnique() || monster.levelType == typeIndex) {
-						UberDiabloMonsterIndex = static_cast<int>(i);
+						uberDiabloMonsterIndex() = static_cast<int>(i);
 						break;
 					}
 				}
 			}
-			if (UberDiabloMonsterIndex == -1)
+			if (uberDiabloMonsterIndex() == -1)
 				RETURN_IF_ERROR(PlaceUniqueMonst(UniqueMonsterType::NaKrul, 0, 0));
 		}
 	} else if (setLevelNumber() == SL_SKELKING) {
@@ -935,12 +935,12 @@ void SpawnLoot(Monster &monster, bool sendmsg)
 			CreateAmulet(monster.position.tile, 13, sendmsg, false);
 		}
 	} else if (monster.type().type == MT_NAKRUL) {
-		SfxID nSFX = IsUberRoomOpened ? SfxID::NaKrul4 : SfxID::NaKrul5;
+		SfxID nSFX = isUberRoomOpened() ? SfxID::NaKrul4 : SfxID::NaKrul5;
 		if (sgGameInitInfo.bCowQuest != 0)
 			nSFX = SfxID::NaKrul6;
 		if (effect_is_playing(nSFX))
 			stream_stop();
-		UberDiabloMonsterIndex = -2;
+		uberDiabloMonsterIndex() = -2;
 		CreateMagicWeapon(monster.position.tile, ItemType::Sword, ICURS_GREAT_SWORD, sendmsg, false);
 		CreateMagicWeapon(monster.position.tile, ItemType::Staff, ICURS_WAR_STAFF, sendmsg, false);
 		CreateMagicWeapon(monster.position.tile, ItemType::Bow, ICURS_LONG_WAR_BOW, sendmsg, false);
@@ -3517,10 +3517,10 @@ tl::expected<void, std::string> InitAllMonsterGFX()
 
 void WeakenNaKrul()
 {
-	if (currentLevelNumber() != 24 || static_cast<size_t>(UberDiabloMonsterIndex) >= ActiveMonsterCount)
+	if (currentLevelNumber() != 24 || static_cast<size_t>(uberDiabloMonsterIndex()) >= ActiveMonsterCount)
 		return;
 
-	Monster &monster = Monsters[UberDiabloMonsterIndex];
+	Monster &monster = Monsters[uberDiabloMonsterIndex()];
 	monster.playEffect(MonsterSound::Death);
 	monster.armorClass -= 50;
 	const int hp = monster.maxHitPoints / 2;
@@ -3542,7 +3542,7 @@ tl::expected<void, std::string> InitMonsters()
 	if (!gbIsSpawn && !isSetLevel() && currentLevelNumber() == 16)
 		LoadDiabMonsts();
 
-	int nt = numtrigs;
+	int nt = numTriggers();
 	if (currentLevelNumber() == 15)
 		nt = 1;
 	for (int i = 0; i < nt; i++) {
@@ -4225,7 +4225,7 @@ void ProcessMonsters()
 				if (sgGameInitInfo.bCowQuest != 0) {
 					PlaySFX(SfxID::NaKrul6);
 				} else {
-					if (IsUberRoomOpened)
+					if (isUberRoomOpened())
 						PlaySFX(SfxID::NaKrul4);
 					else
 						PlaySFX(SfxID::NaKrul5);

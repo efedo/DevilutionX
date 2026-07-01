@@ -406,9 +406,9 @@ void CheckQuestKill(const Monster &monster, bool sendmsg)
 			for (WorldTileCoord j = 0; j < MAXDUNY; j++) {
 				for (WorldTileCoord i = 0; i < MAXDUNX; i++) {
 					if (tileAt(i, j).piece() == 369) {
-						trigs[numtrigs].position = { i, j };
-						trigs[numtrigs]._tmsg = WM_DIABNEXTLVL;
-						numtrigs++;
+						trigs[numTriggers()].position = { i, j };
+						trigs[numTriggers()]._tmsg = WM_DIABNEXTLVL;
+						numTriggers()++;
 					}
 				}
 			}

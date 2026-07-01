@@ -104,8 +104,8 @@ void LoadCustomMap(const char *path, Point viewPosition)
 void LoadArenaMap(const char *path, Point viewPosition, Point exitTrigger)
 {
 	LoadCustomMap(path, viewPosition);
-	trigflag = false;
-	numtrigs = 1;
+	trigFlag() = false;
+	numTriggers() = 1;
 	trigs[0].position = exitTrigger;
 	trigs[0]._tmsg = WM_DIABRTNLVL;
 }

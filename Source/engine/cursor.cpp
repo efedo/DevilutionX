@@ -626,7 +626,7 @@ void CheckTown()
 	for (auto &missile : Missiles) {
 		if (missile._mitype == MissileID::TownPortal) {
 			if (EntranceBoundaryContains(missile.position.tile, cursPosition)) {
-				trigflag = true;
+				trigFlag() = true;
 				InfoString = _("Town Portal");
 				AddInfoBoxString(fmt::format(fmt::runtime(_("from {:s}")), Players[missile._misource]._pName));
 				cursPosition = missile.position.tile;
@@ -640,7 +640,7 @@ void CheckRportal()
 	for (auto &missile : Missiles) {
 		if (missile._mitype == MissileID::RedPortal) {
 			if (EntranceBoundaryContains(missile.position.tile, cursPosition)) {
-				trigflag = true;
+				trigFlag() = true;
 				InfoString = _("Portal to");
 				AddInfoBoxString(!isSetLevel() ? _("The Unholy Altar") : _("level 15"));
 				cursPosition = missile.position.tile;
@@ -808,7 +808,7 @@ void ResetCursorInfo()
 	PlayerUnderCursor = nullptr;
 	ShowUniqueItemInfoBox = false;
 	MainPanelFlag = false;
-	trigflag = false;
+	trigFlag() = false;
 }
 
 bool CheckPlayerState(const Point currentTile, const Player &myPlayer)

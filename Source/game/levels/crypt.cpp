@@ -17,12 +17,6 @@
 
 namespace devilution {
 
-int UberRow;
-int UberCol;
-bool IsUberRoomOpened;
-bool IsUberLeverActivated;
-int UberDiabloMonsterIndex;
-
 /** Miniset: stairs up. */
 const Miniset L5STAIRSUP {
 	{ 4, 4 },
@@ -687,10 +681,10 @@ void SetCryptRoom()
 {
 	const Point position = SelectChamber();
 
-	UberRow = 2 * position.x + 6;
-	UberCol = 2 * position.y + 8;
-	IsUberRoomOpened = false;
-	IsUberLeverActivated = false;
+	uberRow() = 2 * position.x + 6;
+	uberCol() = 2 * position.y + 8;
+	isUberRoomOpened() = false;
+	isUberLeverActivated() = false;
 
 	auto dunData = LoadFileInMem<uint16_t>("nlevels\\l5data\\uberroom.dun");
 
@@ -809,8 +803,8 @@ void SetCryptSetPieceRoom()
 	for (int j = minimumDungeonPosition().y; j < maximumDungeonPosition().y; j++) {
 		for (int i = minimumDungeonPosition().x; i < maximumDungeonPosition().x; i++) {
 			if (tileAt(i, j).piece() == 289) {
-				UberRow = i;
-				UberCol = j;
+				uberRow() = i;
+				uberCol() = j;
 			}
 			if (tileAt(i, j).piece() == 316) {
 				CornerStone.position = { i, j };

@@ -19,10 +19,7 @@ struct TriggerStruct {
 	int _tlvl;
 };
 
-extern bool trigflag;
-extern int numtrigs;
 extern TriggerStruct trigs[MAXTRIGGERS];
-extern int TWarpFrom;
 
 void InitNoTriggers();
 bool IsWarpOpen(dungeon_type type);
