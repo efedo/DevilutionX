@@ -834,7 +834,7 @@ void PlaceCryptLights()
 		for (int i = 0; i < MAXDUNX; i++) {
 			for (const int lavaTile : lavaTiles) {
 				if (tileAt(i, j).piece() == lavaTile) {
-					DoLighting({ i, j }, 3, {});
+					CurrentLightManager.DoLighting({ i, j }, 3, {});
 					break;
 				}
 			}

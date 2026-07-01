@@ -226,7 +226,7 @@ void UpdateMissilePos(Missile &missile)
 	missile.position.offset = pixelsTravelled + tileOffset.worldToScreen();
 
 	const Displacement absoluteLightOffset = pixelsTravelled.screenToLight();
-	ChangeLightOffset(missile._mlid, absoluteLightOffset - tileOffset * 8);
+	CurrentLightManager.ChangeLightOffset(missile._mlid, absoluteLightOffset - tileOffset * 8);
 }
 
 /**
@@ -694,7 +694,7 @@ void AddRune(Missile &missile, Point dst, MissileID missileID)
 		if (runePosition) {
 			missile.position.tile = *runePosition;
 			missile.var1 = static_cast<int8_t>(missileID);
-			missile._mlid = AddLight(missile.position.tile, 8);
+			missile._mlid = CurrentLightManager.AddLight(missile.position.tile, 8);
 			return;
 		}
 	}
@@ -1339,7 +1339,7 @@ void AddBerserk(Missile &missile, AddMissileParameter &parameter)
 		monster.minDamageSpecial = (GenerateRnd(10) + 120) * monster.minDamageSpecial / 100 + slvl;
 		monster.maxDamageSpecial = (GenerateRnd(10) + 120) * monster.maxDamageSpecial / 100 + slvl;
 		const int lightRadius = levelType() == DTYPE_NEST ? 9 : 3;
-		monster.lightId = AddLight(monster.position.tile, lightRadius);
+		monster.lightId = CurrentLightManager.AddLight(monster.position.tile, lightRadius);
 		parameter.spellFizzled = false;
 	}
 }
@@ -1613,7 +1613,7 @@ void AddBigExplosion(Missile &missile, AddMissileParameter & /*parameter*/)
 		for (const Point position : PointsInRectangleColMajor(Rectangle { missile.position.tile, 1 }))
 			CheckMissileCol(missile, damageType, dmg, dmg, false, position, true);
 	}
-	missile._mlid = AddLight(missile.position.start, 8);
+	missile._mlid = CurrentLightManager.AddLight(missile.position.start, 8);
 	missile.setDefaultFrameGroup();
 	missile.duration = missile._miAnimLen - 1;
 }
@@ -1631,7 +1631,7 @@ void AddImmolation(Missile &missile, AddMissileParameter &parameter)
 	UpdateMissileVelocity(missile, dst, sp);
 	missile.setDirection(GetDirection16(missile.position.start, dst));
 	missile.duration = 256;
-	missile._mlid = AddLight(missile.position.start, 8);
+	missile._mlid = CurrentLightManager.AddLight(missile.position.start, 8);
 }
 
 void AddLightningBow(Missile &missile, AddMissileParameter &parameter)
@@ -1728,7 +1728,7 @@ void AddChargedBoltBow(Missile &missile, AddMissileParameter &parameter)
 		dst += parameter.midir;
 	}
 	missile._miAnimFrame = RandomIntBetween(1, 8);
-	missile._mlid = AddLight(missile.position.start, 5);
+	missile._mlid = CurrentLightManager.AddLight(missile.position.start, 5);
 	UpdateMissileVelocity(missile, dst, 8);
 	missile.var1 = 5;
 	missile.var2 = static_cast<int32_t>(parameter.midir);
@@ -1769,7 +1769,7 @@ void AddElementalArrow(Missile &missile, AddMissileParameter &parameter)
 	missile.duration = 256;
 	missile.var1 = missile.position.start.x;
 	missile.var2 = missile.position.start.y;
-	missile._mlid = AddLight(missile.position.start, 5);
+	missile._mlid = CurrentLightManager.AddLight(missile.position.start, 5);
 }
 
 void AddArrow(Missile &missile, AddMissileParameter &parameter)
@@ -1878,7 +1878,7 @@ void AddFirebolt(Missile &missile, AddMissileParameter &parameter)
 	missile.duration = 256;
 	missile.var1 = missile.position.start.x;
 	missile.var2 = missile.position.start.y;
-	missile._mlid = AddLight(missile.position.start, 8);
+	missile._mlid = CurrentLightManager.AddLight(missile.position.start, 8);
 	if (missile._midam == 0) {
 		switch (missile.sourceType()) {
 		case MissileSource::Player: {
@@ -1908,7 +1908,7 @@ void AddMagmaBall(Missile &missile, AddMissileParameter &parameter)
 		missile.duration = 1;
 	missile.var1 = missile.position.start.x;
 	missile.var2 = missile.position.start.y;
-	missile._mlid = AddLight(missile.position.start, 8);
+	missile._mlid = CurrentLightManager.AddLight(missile.position.start, 8);
 	if (missile._midam == 0) {
 		switch (missile.sourceType()) {
 		case MissileSource::Player:
@@ -1989,7 +1989,7 @@ void AddFireball(Missile &missile, AddMissileParameter &parameter)
 	missile.duration = 256;
 	missile.var1 = missile.position.start.x;
 	missile.var2 = missile.position.start.y;
-	missile._mlid = AddLight(missile.position.start, 8);
+	missile._mlid = CurrentLightManager.AddLight(missile.position.start, 8);
 }
 
 void AddLightningControl(Missile &missile, AddMissileParameter &parameter)
@@ -2017,7 +2017,7 @@ void AddLightning(Missile &missile, AddMissileParameter &parameter)
 	} else {
 		missile.duration = (missile._mispllvl / 2) + 6;
 	}
-	missile._mlid = AddLight(missile.position.tile, 4);
+	missile._mlid = CurrentLightManager.AddLight(missile.position.tile, 4);
 }
 
 void AddMissileExplosion(Missile &missile, AddMissileParameter &parameter)
@@ -2212,7 +2212,7 @@ void AddGuardian(Missile &missile, AddMissileParameter &parameter)
 	missile.position.tile = *spawnPosition;
 	missile.position.start = *spawnPosition;
 
-	missile._mlid = AddLight(missile.position.tile, 1);
+	missile._mlid = CurrentLightManager.AddLight(missile.position.tile, 1);
 	missile.duration = missile._mispllvl + (player.getCharacterLevel() / 2);
 
 	missile.duration = std::min(missile.duration, 30);
@@ -2281,7 +2281,7 @@ void AddGenericMagicMissile(Missile &missile, AddMissileParameter &parameter)
 	missile.duration = 256;
 	missile.var1 = missile.position.start.x;
 	missile.var2 = missile.position.start.y;
-	missile._mlid = AddLight(missile.position.start, 8);
+	missile._mlid = CurrentLightManager.AddLight(missile.position.start, 8);
 	if (missile._micaster != TARGET_MONSTERS && missile._misource > 0) {
 		const Monster &monster = Monsters[missile._misource];
 		if (monster.type().type == MT_SUCCUBUS)
@@ -2502,7 +2502,7 @@ void AddElemental(Missile &missile, AddMissileParameter &parameter)
 	missile.var2 = missile.position.start.y;
 	missile.var4 = dst.x;
 	missile.var5 = dst.y;
-	missile._mlid = AddLight(missile.position.start, 8);
+	missile._mlid = CurrentLightManager.AddLight(missile.position.start, 8);
 }
 
 void AddIdentify(Missile &missile, AddMissileParameter & /*parameter*/)
@@ -2667,7 +2667,7 @@ void AddInferno(Missile &missile, AddMissileParameter &parameter)
 	SyncPositionWithParent(missile, parameter);
 
 	missile.duration = missile.var2 + 20;
-	missile._mlid = AddLight(missile.position.start, 1);
+	missile._mlid = CurrentLightManager.AddLight(missile.position.start, 1);
 	if (missile._micaster == TARGET_MONSTERS) {
 		const int i = GenerateRnd(Players[missile._misource].getCharacterLevel()) + GenerateRnd(2);
 		missile._midam = 8 * i + 16 + ((8 * i + 16) / 2);
@@ -2699,7 +2699,7 @@ void AddChargedBolt(Missile &missile, AddMissileParameter &parameter)
 		dst += parameter.midir;
 	}
 	missile._miAnimFrame = RandomIntBetween(1, 8);
-	missile._mlid = AddLight(missile.position.start, 5);
+	missile._mlid = CurrentLightManager.AddLight(missile.position.start, 5);
 
 	UpdateMissileVelocity(missile, dst, 8);
 	missile.var1 = 5;
@@ -2725,7 +2725,7 @@ void AddHolyBolt(Missile &missile, AddMissileParameter &parameter)
 	missile.duration = 256;
 	missile.var1 = missile.position.start.x;
 	missile.var2 = missile.position.start.y;
-	missile._mlid = AddLight(missile.position.start, 8);
+	missile._mlid = CurrentLightManager.AddLight(missile.position.start, 8);
 	missile._midam = GenerateRnd(10) + player.getCharacterLevel() + 9;
 }
 
@@ -2770,7 +2770,7 @@ void AddBoneSpirit(Missile &missile, AddMissileParameter &parameter)
 	missile.var2 = missile.position.start.y;
 	missile.var4 = dst.x;
 	missile.var5 = dst.y;
-	missile._mlid = AddLight(missile.position.start, 8);
+	missile._mlid = CurrentLightManager.AddLight(missile.position.start, 8);
 }
 
 void AddRedPortal(Missile &missile, AddMissileParameter & /*parameter*/)
@@ -2852,7 +2852,7 @@ void ProcessElementalArrow(Missile &missile)
 {
 	missile.duration--;
 	if (missile._miAnimType == MissileGraphicID::ChargedBolt || missile._miAnimType == MissileGraphicID::MagmaBallExplosion) {
-		ChangeLight(missile._mlid, missile.position.tile, missile._miAnimFrame + 5);
+		CurrentLightManager.ChangeLight(missile._mlid, missile.position.tile, missile._miAnimFrame + 5);
 	} else {
 		int mind;
 		int maxd;
@@ -2921,13 +2921,13 @@ void ProcessElementalArrow(Missile &missile)
 			if (missile.position.tile != Point { missile.var1, missile.var2 }) {
 				missile.var1 = missile.position.tile.x;
 				missile.var2 = missile.position.tile.y;
-				ChangeLight(missile._mlid, missile.position.tile, 5);
+				CurrentLightManager.ChangeLight(missile._mlid, missile.position.tile, 5);
 			}
 		}
 	}
 	if (missile.duration == 0) {
 		missile._miDelFlag = true;
-		AddUnLight(missile._mlid);
+		CurrentLightManager.AddUnLight(missile._mlid);
 	}
 	PutMissile(missile);
 }
@@ -3002,14 +3002,14 @@ void ProcessGenericProjectile(Missile &missile)
 			break;
 		}
 		if (missile._mlid != NO_LIGHT)
-			AddUnLight(missile._mlid);
+			CurrentLightManager.AddUnLight(missile._mlid);
 		PutMissile(missile);
 	} else {
 		if (missile.position.tile != Point { missile.var1, missile.var2 }) {
 			missile.var1 = missile.position.tile.x;
 			missile.var2 = missile.position.tile.y;
 			if (missile._mlid != NO_LIGHT)
-				ChangeLight(missile._mlid, missile.position.tile, 8);
+				CurrentLightManager.ChangeLight(missile._mlid, missile.position.tile, 8);
 		}
 		PutMissile(missile);
 	}
@@ -3073,14 +3073,14 @@ void ProcessFireWall(Missile &missile)
 	CheckMissileCol(missile, GetMissileData(missile._mitype).damageType(), missile._midam, missile._midam, true, missile.position.tile, true, onlyHitWalking);
 	if (missile.duration == 0) {
 		missile._miDelFlag = true;
-		AddUnLight(missile._mlid);
+		CurrentLightManager.AddUnLight(missile._mlid);
 	}
 	constexpr int MaxExpLightIndex = ExpLightLen - 1;
 	if (missile.getFrameGroup<FireWallFrame>() == FireWallFrame::Start && missile.duration != 0 && missile.var2 <= MaxExpLightIndex * 2) {
 		if (missile.var2 == 0)
-			missile._mlid = AddLight(missile.position.tile, ExpLight[0]);
+			missile._mlid = CurrentLightManager.AddLight(missile.position.tile, ExpLight[0]);
 		const int expLightIndex = MaxExpLightIndex - std::abs(missile.var2 - MaxExpLightIndex);
-		ChangeLight(missile._mlid, missile.position.tile, ExpLight[expLightIndex]);
+		CurrentLightManager.ChangeLight(missile._mlid, missile.position.tile, ExpLight[expLightIndex]);
 		missile.var2++;
 	}
 	PutMissile(missile);
@@ -3093,7 +3093,7 @@ void ProcessFireball(Missile &missile)
 	if (missile._miAnimType == MissileGraphicID::BigExplosion) {
 		if (missile.duration == 0) {
 			missile._miDelFlag = true;
-			AddUnLight(missile._mlid);
+			CurrentLightManager.AddUnLight(missile._mlid);
 		}
 	} else {
 		int minDam = missile._midam;
@@ -3108,7 +3108,7 @@ void ProcessFireball(Missile &missile)
 		MoveMissileAndCheckMissileCol(missile, damageType, minDam, maxDam, true, false);
 		if (missile.duration == 0) {
 			const Point missilePosition = missile.position.tile;
-			ChangeLight(missile._mlid, missile.position.tile, missile._miAnimFrame);
+			CurrentLightManager.ChangeLight(missile._mlid, missile.position.tile, missile._miAnimFrame);
 
 			constexpr Direction Offsets[] = {
 				Direction::NoDirection,
@@ -3151,7 +3151,7 @@ void ProcessFireball(Missile &missile)
 		} else if (missile.position.tile != Point { missile.var1, missile.var2 }) {
 			missile.var1 = missile.position.tile.x;
 			missile.var2 = missile.position.tile.y;
-			ChangeLight(missile._mlid, missile.position.tile, 8);
+			CurrentLightManager.ChangeLight(missile._mlid, missile.position.tile, 8);
 		}
 	}
 
@@ -3193,7 +3193,7 @@ void ProcessRune(Missile &missile)
 		const Direction dir = GetDirection(position, targetPosition);
 
 		missile._miDelFlag = true;
-		AddUnLight(missile._mlid);
+		CurrentLightManager.AddUnLight(missile._mlid);
 
 		AddMissile(position, position, dir, static_cast<MissileID>(missile.var1), TARGET_BOTH, missile._misource, missile._midam, missile._mispllvl);
 	}
@@ -3221,7 +3221,7 @@ void ProcessBigExplosion(Missile &missile)
 	missile.duration--;
 	if (missile.duration <= 0) {
 		missile._miDelFlag = true;
-		AddUnLight(missile._mlid);
+		CurrentLightManager.AddUnLight(missile._mlid);
 	}
 	PutMissile(missile);
 }
@@ -3378,7 +3378,7 @@ void ProcessLightning(Missile &missile)
 		missile.duration = j;
 	if (missile.duration == 0) {
 		missile._miDelFlag = true;
-		AddUnLight(missile._mlid);
+		CurrentLightManager.AddUnLight(missile._mlid);
 	}
 	PutMissile(missile);
 }
@@ -3393,8 +3393,8 @@ void ProcessTownPortal(Missile &missile)
 		missile.setFrameGroup<PortalFrame>(PortalFrame::Idle);
 	if (levelType() != DTYPE_TOWN && missile.getFrameGroup<PortalFrame>() != PortalFrame::Idle && missile.duration != 0) {
 		if (missile.var2 == 0)
-			missile._mlid = AddLight(missile.position.tile, 1);
-		ChangeLight(missile._mlid, missile.position.tile, expLight[missile.var2]);
+			missile._mlid = CurrentLightManager.AddLight(missile.position.tile, 1);
+		CurrentLightManager.ChangeLight(missile._mlid, missile.position.tile, expLight[missile.var2]);
 		missile.var2++;
 	}
 
@@ -3410,7 +3410,7 @@ void ProcessTownPortal(Missile &missile)
 
 	if (missile.duration == 0) {
 		missile._miDelFlag = true;
-		AddUnLight(missile._mlid);
+		CurrentLightManager.AddUnLight(missile._mlid);
 	}
 	PutMissile(missile);
 }
@@ -3490,11 +3490,11 @@ void ProcessFlameWave(Missile &missile)
 		missile.duration = j;
 	if (missile.duration == 0) {
 		missile._miDelFlag = true;
-		AddUnLight(missile._mlid);
+		CurrentLightManager.AddUnLight(missile._mlid);
 	} else {
 		if (missile.var2 == 0)
-			missile._mlid = AddLight(missile.position.tile, ExpLight[0]);
-		ChangeLight(missile._mlid, missile.position.tile, ExpLight[missile.var2]);
+			missile._mlid = CurrentLightManager.AddLight(missile.position.tile, ExpLight[0]);
+		CurrentLightManager.ChangeLight(missile._mlid, missile.position.tile, ExpLight[missile.var2]);
 		if (missile.var2 < ExpLightLen - 1)
 			missile.var2++;
 	}
@@ -3564,12 +3564,12 @@ void ProcessGuardian(Missile &missile)
 	if (missile.var3 > 15) {
 		missile.var3 = 15;
 	} else if (missile.var3 > 0) {
-		ChangeLight(missile._mlid, position, missile.var3);
+		CurrentLightManager.ChangeLight(missile._mlid, position, missile.var3);
 	}
 
 	if (missile.duration == 0) {
 		missile._miDelFlag = true;
-		AddUnLight(missile._mlid);
+		CurrentLightManager.AddUnLight(missile._mlid);
 	}
 
 	PutMissile(missile);
@@ -3618,15 +3618,15 @@ void ProcessWeaponExplosion(Missile &missile)
 	}
 	CheckMissileCol(missile, damageType, mind, maxd, false, missile.position.tile, false);
 	if (missile.var1 == 0) {
-		missile._mlid = AddLight(missile.position.tile, 9);
+		missile._mlid = CurrentLightManager.AddLight(missile.position.tile, 9);
 	} else {
 		if (missile.duration != 0)
-			ChangeLight(missile._mlid, missile.position.tile, ExpLight[missile.var1]);
+			CurrentLightManager.ChangeLight(missile._mlid, missile.position.tile, ExpLight[missile.var1]);
 	}
 	missile.var1++;
 	if (missile.duration == 0) {
 		missile._miDelFlag = true;
-		AddUnLight(missile._mlid);
+		CurrentLightManager.AddUnLight(missile._mlid);
 	} else {
 		PutMissile(missile);
 	}
@@ -3639,12 +3639,12 @@ void ProcessMissileExplosion(Missile &missile)
 	missile.duration--;
 	if (missile.duration == 0) {
 		missile._miDelFlag = true;
-		AddUnLight(missile._mlid);
+		CurrentLightManager.AddUnLight(missile._mlid);
 	} else {
 		if (missile.var1 == 0)
-			missile._mlid = AddLight(missile.position.tile, 9);
+			missile._mlid = CurrentLightManager.AddLight(missile.position.tile, 9);
 		else
-			ChangeLight(missile._mlid, missile.position.tile, ExpLight[missile.var1]);
+			CurrentLightManager.ChangeLight(missile._mlid, missile.position.tile, ExpLight[missile.var1]);
 		missile.var1++;
 		PutMissile(missile);
 	}
@@ -3696,8 +3696,8 @@ void ProcessTeleport(Missile &missile)
 	missile.var1 = 1;
 	player.occupyTile(player.position.tile, false);
 	if (levelType() != DTYPE_TOWN) {
-		ChangeLightXY(player.lightId, player.position.tile);
-		ChangeVisionXY(player.getId(), player.position.tile);
+		CurrentLightManager.ChangeLightXY(player.lightId, player.position.tile);
+		CurrentLightManager.ChangeVisionXY(player.getId(), player.position.tile);
 	}
 	if (&player == MyPlayer) {
 		viewPosition() = player.position.tile;
@@ -3776,7 +3776,7 @@ void ProcessRhino(Missile &missile)
 	monster.position.tile = newPos;
 	monster.occupyTile(newPos, true);
 	if (monster.isUnique())
-		ChangeLightXY(missile._mlid, newPos);
+		CurrentLightManager.ChangeLightXY(missile._mlid, newPos);
 	MoveMissilePos(missile);
 	PutMissile(missile);
 }
@@ -3960,11 +3960,11 @@ void ProcessInferno(Missile &missile)
 		k = missile._miAnimFrame;
 		if (k > 11)
 			k = 24 - k;
-		ChangeLight(missile._mlid, missile.position.tile, k);
+		CurrentLightManager.ChangeLight(missile._mlid, missile.position.tile, k);
 	}
 	if (missile.duration == 0) {
 		missile._miDelFlag = true;
-		AddUnLight(missile._mlid);
+		CurrentLightManager.AddUnLight(missile._mlid);
 	}
 	if (missile.var2 <= 0)
 		PutMissile(missile);
@@ -4030,11 +4030,11 @@ void ProcessChargedBolt(Missile &missile)
 			missile.setAnimation(MissileGraphicID::Lightning);
 			missile.duration = missile._miAnimLen;
 		}
-		ChangeLight(missile._mlid, missile.position.tile, missile.var1);
+		CurrentLightManager.ChangeLight(missile._mlid, missile.position.tile, missile.var1);
 	}
 	if (missile.duration == 0) {
 		missile._miDelFlag = true;
-		AddUnLight(missile._mlid);
+		CurrentLightManager.AddUnLight(missile._mlid);
 	}
 	PutMissile(missile);
 }
@@ -4054,14 +4054,14 @@ void ProcessHolyBolt(Missile &missile)
 			if (missile.position.tile != Point { missile.var1, missile.var2 }) {
 				missile.var1 = missile.position.tile.x;
 				missile.var2 = missile.position.tile.y;
-				ChangeLight(missile._mlid, missile.position.tile, 8);
+				CurrentLightManager.ChangeLight(missile._mlid, missile.position.tile, 8);
 			}
 		}
 	} else {
-		ChangeLight(missile._mlid, missile.position.tile, missile._miAnimFrame + 7);
+		CurrentLightManager.ChangeLight(missile._mlid, missile.position.tile, missile._miAnimFrame + 7);
 		if (missile.duration == 0) {
 			missile._miDelFlag = true;
-			AddUnLight(missile._mlid);
+			CurrentLightManager.AddUnLight(missile._mlid);
 		}
 	}
 	PutMissile(missile);
@@ -4073,7 +4073,7 @@ void ProcessElemental(Missile &missile)
 	const int dam = missile._midam;
 	const Point missilePosition = missile.position.tile;
 	if (missile._miAnimType == MissileGraphicID::BigExplosion) {
-		ChangeLight(missile._mlid, missile.position.tile, missile._miAnimFrame);
+		CurrentLightManager.ChangeLight(missile._mlid, missile.position.tile, missile._miAnimFrame);
 
 		const Point startPoint = missile.var3 == 2 ? Point { missile.var4, missile.var5 } : Point(missile.position.start);
 		constexpr Direction Offsets[] = {
@@ -4094,7 +4094,7 @@ void ProcessElemental(Missile &missile)
 
 		if (missile.duration == 0) {
 			missile._miDelFlag = true;
-			AddUnLight(missile._mlid);
+			CurrentLightManager.AddUnLight(missile._mlid);
 		}
 	} else {
 		MoveMissileAndCheckMissileCol(missile, GetMissileData(missile._mitype).damageType(), dam, dam, false, false);
@@ -4117,7 +4117,7 @@ void ProcessElemental(Missile &missile)
 		if (missilePosition != Point { missile.var1, missile.var2 }) {
 			missile.var1 = missilePosition.x;
 			missile.var2 = missilePosition.y;
-			ChangeLight(missile._mlid, missilePosition, 8);
+			CurrentLightManager.ChangeLight(missile._mlid, missilePosition, 8);
 		}
 		if (missile.duration == 0) {
 			missile.setDefaultFrameGroup();
@@ -4134,10 +4134,10 @@ void ProcessBoneSpirit(Missile &missile)
 	missile.duration--;
 	const int dam = missile._midam;
 	if (missile.getDirection() == Direction::NoDirection) {
-		ChangeLight(missile._mlid, missile.position.tile, missile._miAnimFrame);
+		CurrentLightManager.ChangeLight(missile._mlid, missile.position.tile, missile._miAnimFrame);
 		if (missile.duration == 0) {
 			missile._miDelFlag = true;
-			AddUnLight(missile._mlid);
+			CurrentLightManager.AddUnLight(missile._mlid);
 		}
 		PutMissile(missile);
 	} else {
@@ -4162,7 +4162,7 @@ void ProcessBoneSpirit(Missile &missile)
 		if (c != Point { missile.var1, missile.var2 }) {
 			missile.var1 = c.x;
 			missile.var2 = c.y;
-			ChangeLight(missile._mlid, c, 8);
+			CurrentLightManager.ChangeLight(missile._mlid, c, 8);
 		}
 		if (missile.duration == 0) {
 			missile.setDirection(Direction::NoDirection);
@@ -4192,13 +4192,13 @@ void ProcessRedPortal(Missile &missile)
 
 	if (levelType() != DTYPE_TOWN && missile.getFrameGroup<RedPortalFrame>() != RedPortalFrame::Idle && missile.duration != 0) {
 		if (missile.var2 == 0)
-			missile._mlid = AddLight(missile.position.tile, 1);
-		ChangeLight(missile._mlid, missile.position.tile, expLight[missile.var2]);
+			missile._mlid = CurrentLightManager.AddLight(missile.position.tile, 1);
+		CurrentLightManager.ChangeLight(missile._mlid, missile.position.tile, expLight[missile.var2]);
 		missile.var2++;
 	}
 	if (missile.duration == 0) {
 		missile._miDelFlag = true;
-		AddUnLight(missile._mlid);
+		CurrentLightManager.AddUnLight(missile._mlid);
 	}
 	PutMissile(missile);
 }

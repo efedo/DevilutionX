@@ -43,8 +43,8 @@ std::string DebugCmdPath(std::optional<bool> on)
 
 std::string DebugCmdFullbright(std::optional<bool> on)
 {
-	ToggleLighting();
-	return StrCat("Fullbright: ", DisableLighting ? "On" : "Off");
+	CurrentLightManager.ToggleLighting();
+	return StrCat("Fullbright: ", CurrentLightManager.disableLighting_ ? "On" : "Off");
 }
 
 std::string DebugCmdShowTileData(std::optional<std::string_view> dataType)

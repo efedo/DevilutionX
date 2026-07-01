@@ -38,7 +38,7 @@ TEST_F(Phase4ALightingTest, DoUnLightRestoresPreLight)
 	EXPECT_EQ(tileAt(testPos).light(), 20);
 
 	// DoUnLight should restore light to preLight level
-	DoUnLight(testPos, 0);
+	CurrentLightManager.DoUnLight(testPos, 0);
 	EXPECT_EQ(tileAt(testPos).light(), 10);
 }
 
@@ -57,7 +57,7 @@ TEST_F(Phase4ALightingTest, DoLightingAppliesLight)
 	}
 
 	// Apply lighting
-	DoLighting(centerPos, 5, DisplacementOf<int8_t> { 0, 0 });
+	CurrentLightManager.DoLighting(centerPos, 5, DisplacementOf<int8_t> { 0, 0 });
 
 	// In this lighting system 0 = fully lit, 255 = darkest.
 	// After DoLighting the center tile must have been brightened (value < 255).
@@ -76,7 +76,7 @@ TEST_F(Phase4ALightingTest, FlagsPreservedThroughLighting)
 	tile.addFlags(DungeonFlag::Explored);
 
 	// Apply DoUnLight
-	DoUnLight(testPos, 0);
+	CurrentLightManager.DoUnLight(testPos, 0);
 
 	// Flags should be preserved
 	EXPECT_TRUE(tile.hasAnyFlag(DungeonFlag::Explored));
@@ -99,7 +99,7 @@ TEST_F(Phase4ALightingTest, MultiTileLighting)
 	}
 
 	// Apply DoUnLight
-	DoUnLight(centerPos, 3);
+	CurrentLightManager.DoUnLight(centerPos, 3);
 
 	// All tiles in radius should be back to preLight
 	for (int x = 45; x < 55; x++) {

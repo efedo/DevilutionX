@@ -198,7 +198,7 @@ void SyncMonster(bool isOwner, const TSyncMonster &monsterSync)
 		monster.occupyTile(position, false);
 		monster.position.tile = position;
 		if (monster.lightId != NO_LIGHT)
-			ChangeLightXY(monster.lightId, position);
+			CurrentLightManager.ChangeLightXY(monster.lightId, position);
 		monster.decodeEnemy(enemyId);
 		const Direction md = GetDirection(position, monster.enemyPosition);
 		monster.startStand(md);

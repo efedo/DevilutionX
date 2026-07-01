@@ -170,10 +170,10 @@ SDL_Texture *GetPiecePreviewTexture(PiecePaletteEntry &entry)
 	    previewSurface.begin(),
 	    lightmapBuffer,
 	    previewSurface.pitch(),
-	    LightTables,
-	    FullyLitLightTable,
-	    FullyDarkLightTable);
-	const uint8_t *const lightTable = FullyLitLightTable != nullptr ? FullyLitLightTable : LightTables[0].data();
+	    CurrentLightManager.lightTables_,
+	    CurrentLightManager.fullyLitLightTable_,
+	    CurrentLightManager.fullyDarkLightTable_);
+	const uint8_t *const lightTable = CurrentLightManager.fullyLitLightTable_ != nullptr ? CurrentLightManager.fullyLitLightTable_ : CurrentLightManager.lightTables_[0].data();
 
 	const MICROS &micros = levelMicros()[entry.piece];
 	const TileProperties pieceProperties = tileProperties()[entry.piece];

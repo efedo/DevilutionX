@@ -22,17 +22,17 @@ namespace devilution {
 
 uint8_t *GetInfravisionTRN()
 {
-	return InfravisionTable.data();
+	return CurrentLightManager.infravisionTable_.data();
 }
 
 uint8_t *GetStoneTRN()
 {
-	return StoneTable.data();
+	return CurrentLightManager.stoneTable_.data();
 }
 
 uint8_t *GetPauseTRN()
 {
-	return PauseTable.data();
+	return CurrentLightManager.pauseTable_.data();
 }
 
 std::optional<std::array<uint8_t, 256>> GetClassTRN(Player &player)

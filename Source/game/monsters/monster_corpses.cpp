@@ -37,12 +37,12 @@ void MoveLightToCorpse(Monster &monster)
 	for (int dx = 0; dx < MAXDUNX; dx++) {
 		for (int dy = 0; dy < MAXDUNY; dy++) {
 			if ((tileAt(Point { dx, dy }).corpseIndex()) == monster.corpseId) {
-				ChangeLightXY(monster.lightId, { dx, dy });
+				CurrentLightManager.ChangeLightXY(monster.lightId, { dx, dy });
 				return;
 			}
 		}
 	}
-	AddUnLight(monster.lightId);
+	CurrentLightManager.AddUnLight(monster.lightId);
 }
 } // namespace
 

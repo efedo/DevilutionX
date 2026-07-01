@@ -1504,7 +1504,7 @@ void UpdateMonsterLights()
 
 		if ((monster.flags & MFLAG_BERSERK) != 0) {
 			const int lightRadius = levelType() == DTYPE_NEST ? 9 : 3;
-			monster.lightId = AddLight(monster.position.tile, lightRadius);
+			monster.lightId = CurrentLightManager.AddLight(monster.position.tile, lightRadius);
 		}
 
 		if (monster.lightId != NO_LIGHT) {
@@ -1513,9 +1513,9 @@ void UpdateMonsterLights()
 				continue;
 			}
 
-			const Light &light = Lights[monster.lightId];
+			const Light &light = CurrentLightManager.lights_[monster.lightId];
 			if (monster.position.tile != light.position.tile) {
-				ChangeLightXY(monster.lightId, monster.position.tile);
+				CurrentLightManager.ChangeLightXY(monster.lightId, monster.position.tile);
 			}
 		}
 	}
@@ -1542,8 +1542,8 @@ void GameLogic()
 		ProcessMissiles();
 		gGameLogicStep = GameLogicStep::ProcessItems;
 		ProcessItems();
-		ProcessLightList();
-		ProcessVisionList();
+		CurrentLightManager.ProcessLightList();
+		CurrentLightManager.ProcessVisionList();
 	} else {
 		gGameLogicStep = GameLogicStep::ProcessTowners;
 		ProcessTowners();
@@ -3130,7 +3130,7 @@ tl::expected<void, std::string> LoadGameLevelDungeon(bool firstflag, lvl_entry l
 #ifdef _DEBUG
 		SetDebugLevelSeedInfos(mid1Seed, mid2Seed, mid3Seed, GetLCGEngineState());
 #endif
-		SavePreLighting();
+		CurrentLightManager.SavePreLighting();
 
 		IncProgress();
 
@@ -3171,9 +3171,9 @@ void LoadGameLevelLightVision()
 	if (levelType() != DTYPE_TOWN) {
 		for (Tile &tile : tiles().columnMajor())
 			tile.setLight(tile.preLight());
-		ChangeLightXY(Players[MyPlayerId].lightId, Players[MyPlayerId].position.tile); // forces player light refresh
-		ProcessLightList();
-		ProcessVisionList();
+		CurrentLightManager.ChangeLightXY(Players[MyPlayerId].lightId, Players[MyPlayerId].position.tile); // forces player light refresh
+		CurrentLightManager.ProcessLightList();
+		CurrentLightManager.ProcessVisionList();
 	}
 }
 
@@ -3266,7 +3266,7 @@ tl::expected<void, std::string> LoadGameLevelSetLevel(bool firstflag, lvl_entry 
 
 	if (firstflag || lvldir == ENTRY_LOAD || !myPlayer._pSLvlVisited[setLevelNumber()] || gbIsMultiplayer) {
 		InitItems();
-		SavePreLighting();
+		CurrentLightManager.SavePreLighting();
 	} else {
 		RETURN_IF_ERROR(LoadLevel());
 	}
@@ -3377,8 +3377,8 @@ tl::expected<void, std::string> LoadGameLevel(bool firstflag, lvl_entry lvldir)
 
 	IncProgress();
 
-	RETURN_IF_ERROR(LoadTrns());
-	MakeLightTable();
+	RETURN_IF_ERROR(CurrentLightManager.LoadTrns());
+	CurrentLightManager.MakeLightTable();
 	RETURN_IF_ERROR(LoadLevelSOLData());
 
 	IncProgress();
@@ -3406,7 +3406,7 @@ tl::expected<void, std::string> LoadGameLevel(bool firstflag, lvl_entry lvldir)
 	InitAutomap();
 
 	if (levelType() != DTYPE_TOWN && lvldir != ENTRY_LOAD) {
-		InitLighting();
+		CurrentLightManager.Init();
 	}
 
 	InitLevelMonsters();
@@ -3487,7 +3487,7 @@ void diablo_color_cyc_logic()
 			palette_update_caves();
 		}
 	} else if (levelType() == DTYPE_HELL) {
-		lighting_color_cycling();
+		CurrentLightManager.lighting_color_cycling();
 	} else if (levelType() == DTYPE_NEST) {
 		palette_update_hive();
 	} else if (levelType() == DTYPE_CRYPT) {

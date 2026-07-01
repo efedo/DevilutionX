@@ -41,7 +41,7 @@ void InitOnce()
 		levelType() = DTYPE_CATHEDRAL;
 		BmDunCelData = LoadFileInMem("levels\\l1data\\l1.cel");
 		SetDungeonMicros(BmDunCelData, BmMicroTileLen);
-		MakeLightTable();
+		CurrentLightManager.MakeLightTable();
 
 		SdlSurface = SDLWrap::CreateRGBSurfaceWithFormat(
 		    /*flags=*/0, /*width=*/640, /*height=*/480, /*depth=*/8, SDL_PIXELFORMAT_INDEX8);
@@ -71,7 +71,7 @@ void RunForTileMaskLight(benchmark::State &state, TileType tileType, MaskType ma
 {
 	const Surface out = Surface(SdlSurface.get());
 	std::array<std::array<uint8_t, LightTableSize>, NumLightingLevels> lightTables;
-	const Lightmap lightmap(/*outBuffer=*/nullptr, /*lightmapBuffer=*/ {}, /*pitch=*/1, lightTables, FullyLitLightTable, FullyDarkLightTable);
+	const Lightmap lightmap(/*outBuffer=*/nullptr, /*lightmapBuffer=*/ {}, /*pitch=*/1, lightTables, CurrentLightManager.fullyLitLightTable_, CurrentLightManager.fullyDarkLightTable_);
 	const std::span<const LevelCelBlock> tileBlocks = Tiles[tileType];
 	for (auto _ : state) {
 		for (const LevelCelBlock &levelCelBlock : tileBlocks) {
@@ -85,9 +85,9 @@ void RunForTileMaskLight(benchmark::State &state, TileType tileType, MaskType ma
 
 using GetLightTableFn = const uint8_t *();
 
-const uint8_t *FullyLit() { return LightTables[0].data(); }
-const uint8_t *FullyDark() { return LightTables.back().data(); }
-const uint8_t *PartiallyLit() { return LightTables[5].data(); }
+const uint8_t *FullyLit() { return CurrentLightManager.lightTables_[0].data(); }
+const uint8_t *FullyDark() { return CurrentLightManager.lightTables_.back().data(); }
+const uint8_t *PartiallyLit() { return CurrentLightManager.lightTables_[5].data(); }
 
 template <TileType TileT, MaskType MaskT, GetLightTableFn GetLightTableFnT>
 void Render(benchmark::State &state)

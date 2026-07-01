@@ -25,7 +25,7 @@ static void BM_DoUnLightOperation(benchmark::State &state)
 		tileAt(testPos).setLight(10);
 
 		// Restore light (DoUnLight pattern)
-		DoUnLight(testPos, 1);
+		CurrentLightManager.DoUnLight(testPos, 1);
 		benchmark::ClobberMemory();
 	}
 }
@@ -47,7 +47,7 @@ static void BM_DoLightingOperation(benchmark::State &state)
 
 	for (auto _ : state) {
 		// Apply lighting cone
-		DoLighting(testPos, 5, DisplacementOf<int8_t> { 0, 0 });
+		CurrentLightManager.DoLighting(testPos, 5, DisplacementOf<int8_t> { 0, 0 });
 		benchmark::ClobberMemory();
 	}
 }
@@ -70,7 +70,7 @@ static void BM_MultiTileDoUnLight(benchmark::State &state)
 		for (int cx = 45; cx < 55; cx += 3) {
 			for (int cy = 45; cy < 55; cy += 3) {
 				Point center { static_cast<WorldTileCoord>(cx), static_cast<WorldTileCoord>(cy) };
-				DoUnLight(center, 2);
+				CurrentLightManager.DoUnLight(center, 2);
 			}
 		}
 		benchmark::ClobberMemory();
@@ -162,7 +162,7 @@ static void BM_LightingAreaUpdate(benchmark::State &state)
 
 	for (auto _ : state) {
 		// Apply lighting in area
-		DoLighting(centerPos, radius, DisplacementOf<int8_t> { 0, 0 });
+		CurrentLightManager.DoLighting(centerPos, radius, DisplacementOf<int8_t> { 0, 0 });
 		benchmark::ClobberMemory();
 	}
 

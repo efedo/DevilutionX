@@ -2156,11 +2156,11 @@ void PlaceCaveLights()
 		for (int i = 0; i < MAXDUNX; i++) {
 			const uint16_t piece = tileAt(i, j).piece();
 			if (piece >= 55 && piece <= 146) {
-				DoLighting({ i, j }, 7, {});
+				CurrentLightManager.DoLighting({ i, j }, 7, {});
 			} else if (piece >= 153 && piece <= 160) {
-				DoLighting({ i, j }, 7, {});
+				CurrentLightManager.DoLighting({ i, j }, 7, {});
 			} else if (IsAnyOf(piece, 149, 151)) {
-				DoLighting({ i, j }, 7, {});
+				CurrentLightManager.DoLighting({ i, j }, 7, {});
 			}
 		}
 	}
@@ -2172,7 +2172,7 @@ void PlaceHiveLights()
 		for (int i = 0; i < MAXDUNX; i++) {
 			const uint16_t piece = tileAt(i, j).piece();
 			if (piece >= 381 && piece <= 456) {
-				DoLighting({ i, j }, 9, {});
+				CurrentLightManager.DoLighting({ i, j }, 9, {});
 			}
 		}
 	}

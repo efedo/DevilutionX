@@ -333,7 +333,7 @@ void InitGlobals()
 {
 	uint8_t defaultLight = levelType() == DTYPE_TOWN ? 0 : 15;
 #ifdef _DEBUG
-	if (DisableLighting)
+	if (CurrentLightManager.disableLighting_)
 		defaultLight = 0;
 #endif
 	for (Tile &tile : tiles()) {
@@ -544,7 +544,7 @@ void DRLG_InitTrans()
 {
 	for (Tile &tile : tiles())
 		tile.setTransVal(0);
-	visibleTransparencyRegions() = {}; // TODO duplicate reset in InitLighting()
+	visibleTransparencyRegions() = {}; // TODO duplicate reset in CurrentLightManager.Init()
 	nextTransparencyValue() = 1;
 }
 

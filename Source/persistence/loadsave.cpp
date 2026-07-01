@@ -806,7 +806,7 @@ void LoadMonsters(LoadHelper &file, ankerl::unordered_dense::set<unsigned> &remo
 		}
 
 		if (applyLight && monster.isUnique() && monster.lightId != NO_LIGHT)
-			Lights[monster.lightId].isInvalid = false;
+			CurrentLightManager.lights_[monster.lightId].isInvalid = false;
 
 		i++;
 	}
@@ -1929,7 +1929,7 @@ void SaveLevel(SaveWriter &saveWriter, LevelConversionData *levelConversionData)
 {
 	Player &myPlayer = *MyPlayer;
 
-	DoUnVision(myPlayer.position.tile, myPlayer._pLightRad); // fix for vision staying on the level
+	CurrentLightManager.DoUnVision(myPlayer.position.tile, myPlayer._pLightRad); // fix for vision staying on the level
 
 	if (levelType() == DTYPE_TOWN)
 		DungeonSeeds[0] = GenerateSeed();
@@ -2067,7 +2067,7 @@ tl::expected<void, std::string> LoadLevel(LevelConversionData *levelConversionDa
 		// No need to load dLight, we can recreate it accurately from LightList
 		for (Tile &tile : tiles().columnMajor())
 			tile.setLight(tile.preLight());
-		ChangeLightXY(Players[MyPlayerId].lightId, Players[MyPlayerId].position.tile); // forces player light refresh
+		CurrentLightManager.ChangeLightXY(Players[MyPlayerId].lightId, Players[MyPlayerId].position.tile); // forces player light refresh
 	} else {
 		for (Tile &tile : tiles().columnMajor())
 			tile.setLight(0);
@@ -2077,12 +2077,12 @@ tl::expected<void, std::string> LoadLevel(LevelConversionData *levelConversionDa
 		AutomapZoomReset();
 		ResyncQuests();
 		RedoMissileFlags();
-		UpdateLighting = true;
+		CurrentLightManager.updateLighting_ = true;
 	}
 
 	for (const Player &player : Players) {
 		if (player.plractive && player.isOnActiveLevel())
-			Lights[player.lightId].hasChanged = true;
+			CurrentLightManager.lights_[player.lightId].hasChanged = true;
 	}
 	return {};
 }
@@ -2559,19 +2559,19 @@ tl::expected<void, std::string> LoadGame(bool firstflag)
 		for (Object &object : ObjectPoolAdapter::ActiveObjectsRange())
 			SyncObjectAnim(object);
 
-		ActiveLightCount = file.NextBE<int32_t>();
+		CurrentLightManager.activeLightCount_ = file.NextBE<int32_t>();
 
-		for (uint8_t &lightId : ActiveLights)
+		for (uint8_t &lightId : CurrentLightManager.activeLights_)
 			lightId = file.NextLE<uint8_t>();
-		for (int i = 0; i < ActiveLightCount; i++)
-			LoadLighting(&file, &Lights[ActiveLights[i]]);
+		for (int i = 0; i < CurrentLightManager.activeLightCount_; i++)
+			LoadLighting(&file, &CurrentLightManager.lights_[CurrentLightManager.activeLights_[i]]);
 
 		file.Skip<int32_t>(); // VisionId
 		const int visionCount = file.NextBE<int32_t>();
 
 		for (int i = 0; i < visionCount; i++) {
-			LoadLighting(&file, &VisionList[i]);
-			VisionActive[i] = true;
+			LoadLighting(&file, &CurrentLightManager.visionList_[i]);
+			CurrentLightManager.visionActive_[i] = true;
 		}
 	}
 
@@ -2619,7 +2619,7 @@ tl::expected<void, std::string> LoadGame(bool firstflag)
 		// No need to load dLight, we can recreate it accurately from LightList
 		for (Tile &tile : tiles().columnMajor())
 			tile.setLight(tile.preLight());
-		ChangeLightXY(myPlayer.lightId, myPlayer.position.tile); // forces player light refresh
+		CurrentLightManager.ChangeLightXY(myPlayer.lightId, myPlayer.position.tile); // forces player light refresh
 	} else {
 		for (Tile &tile : tiles().columnMajor())
 			tile.setLight(0);
@@ -2640,8 +2640,8 @@ tl::expected<void, std::string> LoadGame(bool firstflag)
 
 	if (levelType() != DTYPE_TOWN) {
 		RedoPlayerVision();
-		ProcessVisionList();
-		ProcessLightList();
+		CurrentLightManager.ProcessVisionList();
+		CurrentLightManager.ProcessLightList();
 	}
 
 	// convert stray manashield missiles into pManaShield flag
@@ -2824,19 +2824,19 @@ void SaveGameData(SaveWriter &saveWriter)
 		for (Object &object : ObjectPoolAdapter::ActiveObjectsRange())
 			SaveObject(file, object);
 
-		file.WriteBE<int32_t>(ActiveLightCount);
+		file.WriteBE<int32_t>(CurrentLightManager.activeLightCount_);
 
-		for (const uint8_t lightId : ActiveLights)
+		for (const uint8_t lightId : CurrentLightManager.activeLights_)
 			file.WriteLE<uint8_t>(lightId);
-		for (int i = 0; i < ActiveLightCount; i++)
-			SaveLighting(&file, &Lights[ActiveLights[i]]);
+		for (int i = 0; i < CurrentLightManager.activeLightCount_; i++)
+			SaveLighting(&file, &CurrentLightManager.lights_[CurrentLightManager.activeLights_[i]]);
 
 		const auto visionCount = static_cast<int32_t>(Players.size());
 		file.WriteBE<int32_t>(visionCount + 1); // VisionId
 		file.WriteBE<int32_t>(visionCount);
 
 		for (const Player &player : Players)
-			SaveLighting(&file, &VisionList[player.getId()], true);
+			SaveLighting(&file, &CurrentLightManager.visionList_[player.getId()], true);
 	}
 
 	auto itemIndexes = SaveDroppedItems(file);

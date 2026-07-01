@@ -1499,7 +1499,7 @@ void DrawAutomapText(const Surface &out)
 	drawStringAndAdvanceLine(description);
 
 #ifdef _DEBUG
-	if (DebugGodMode || DebugInvisible || DisableLighting || DebugVision || DebugPath || DebugGrid || DebugScrollViewEnabled) {
+	if (DebugGodMode || DebugInvisible || CurrentLightManager.disableLighting_ || DebugVision || DebugPath || DebugGrid || DebugScrollViewEnabled) {
 		const TextRenderOptions disabled {
 			.flags = UiFlags::ColorBlack,
 		};
@@ -1513,7 +1513,7 @@ void DrawAutomapText(const Surface &out)
 		drawStringAndAdvanceLine("God Mode", DebugGodMode ? enabled : disabled);
 		drawStringAndAdvanceLine("Invisible", DebugInvisible ? enabled : disabled);
 		drawStringAndAdvanceLine("Display:");
-		drawStringAndAdvanceLine("Fullbright", DisableLighting ? enabled : disabled);
+		drawStringAndAdvanceLine("Fullbright", CurrentLightManager.disableLighting_ ? enabled : disabled);
 		drawStringAndAdvanceLine("Draw Vision", DebugVision ? enabled : disabled);
 		drawStringAndAdvanceLine("Draw Path", DebugPath ? enabled : disabled);
 		drawStringAndAdvanceLine("Draw Grid", DebugGrid ? enabled : disabled);

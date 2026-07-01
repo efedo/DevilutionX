@@ -293,7 +293,7 @@ bool ShouldShowCursor()
 inline void ClxDrawLight(const Surface &out, Point position, ClxSprite clx, int lightTableIndex)
 {
 	if (lightTableIndex != 0) {
-		ClxDrawTRN(out, position, clx, LightTables[lightTableIndex].data());
+		ClxDrawTRN(out, position, clx, CurrentLightManager.lightTables_[lightTableIndex].data());
 	} else {
 		ClxDraw(out, position, clx);
 	}
@@ -308,7 +308,7 @@ inline void ClxDrawLight(const Surface &out, Point position, ClxSprite clx, int 
 inline void ClxDrawLightBlended(const Surface &out, Point position, ClxSprite clx, int lightTableIndex)
 {
 	if (lightTableIndex != 0) {
-		ClxDrawBlendedTRN(out, position, clx, LightTables[lightTableIndex].data());
+		ClxDrawBlendedTRN(out, position, clx, CurrentLightManager.lightTables_[lightTableIndex].data());
 	} else {
 		ClxDrawBlended(out, position, clx);
 	}
@@ -595,7 +595,7 @@ void DrawCell(const Surface &out, const Lightmap lightmap, Point tilePosition, P
 	const uint16_t levelPieceId = tile.piece();
 	const MICROS *pMap = &levelMicros()[levelPieceId];
 
-	const uint8_t *tbl = LightTables[lightTableIndex].data();
+	const uint8_t *tbl = CurrentLightManager.lightTables_[lightTableIndex].data();
 	const uint8_t *foliageTbl = tbl;
 #ifdef _DEBUG
 	int walkpathIdx = -1;
@@ -732,7 +732,7 @@ void DrawFloorTile(const Surface &out, const Lightmap &lightmap, Point tilePosit
 	const int lightTableIndex = tile.light();
 	const uint16_t levelPieceId = tile.piece();
 
-	const uint8_t *tbl = LightTables[lightTableIndex].data();
+	const uint8_t *tbl = CurrentLightManager.lightTables_[lightTableIndex].data();
 #ifdef _DEBUG
 	if (DebugPath && MyPlayer->GetPositionPathIndex(tilePosition) != -1)
 		tbl = GetPauseTRN();
@@ -1357,7 +1357,7 @@ void DrawGame(const Surface &fullOut, Point position, Displacement offset)
 
 	Lightmap lightmap = Lightmap::build(perPixelLighting, position, Point {} + offset,
 	    gnScreenWidth, gnViewportHeight, rows, columns,
-	    out.at(0, 0), out.pitch(), LightTables, FullyLitLightTable, FullyDarkLightTable,
+	    out.at(0, 0), out.pitch(), CurrentLightManager.lightTables_, CurrentLightManager.fullyLitLightTable_, CurrentLightManager.fullyDarkLightTable_,
 	    tileLights, microTileLength());
 
 	DrawFloor(out, lightmap, position, Point {} + offset, rows, columns);

@@ -1259,10 +1259,10 @@ void AddObjectLight(Object &object)
 		return;
 	}
 
-	DoLighting(object.position, radius, {});
+	CurrentLightManager.DoLighting(object.position, radius, {});
 	if (LoadingMapObjects) {
-		DoUnLight(object.position, radius);
-		UpdateLighting = true;
+		CurrentLightManager.DoUnLight(object.position, radius);
+		CurrentLightManager.updateLighting_ = true;
 	}
 	object._oVar1 = -1;
 }
@@ -1443,7 +1443,7 @@ void AddMushPatch()
 bool IsLightVisible(Object &light, int lightRadius)
 {
 #ifdef _DEBUG
-	if (DisableLighting)
+	if (CurrentLightManager.disableLighting_)
 		return false;
 #endif
 
@@ -1470,11 +1470,11 @@ void UpdateObjectLight(Object &light, int lightRadius)
 
 	if (IsLightVisible(light, lightRadius)) {
 		if (light._oVar1 == 0)
-			light._olid = AddLight(light.position, lightRadius);
+			light._olid = CurrentLightManager.AddLight(light.position, lightRadius);
 		light._oVar1 = 1;
 	} else {
 		if (light._oVar1 == 1)
-			AddUnLight(light._olid);
+			CurrentLightManager.AddUnLight(light._olid);
 		light._oVar1 = 0;
 	}
 }
@@ -1568,7 +1568,7 @@ void ActivateTrapLine(int ttype, int tid)
 			trap._oVar4 = 1;
 			trap._oAnimFlag = true;
 			trap._oAnimDelay = 1;
-			trap._olid = AddLight(trap.position, 1);
+			trap._olid = CurrentLightManager.AddLight(trap.position, 1);
 		}
 	}
 }
@@ -1580,9 +1580,9 @@ void UpdateFlameTrap(Object &trap)
 			trap._oAnimFrame--;
 			if (trap._oAnimFrame == 1) {
 				trap._oVar4 = 0;
-				AddUnLight(trap._olid);
+				CurrentLightManager.AddUnLight(trap._olid);
 			} else if (trap._oAnimFrame <= 4) {
-				ChangeLightRadius(trap._olid, trap._oAnimFrame);
+				CurrentLightManager.ChangeLightRadius(trap._olid, trap._oAnimFrame);
 			}
 		}
 	} else if (trap._oVar4 == 0) {
@@ -1624,7 +1624,7 @@ void UpdateFlameTrap(Object &trap)
 		if (trap._oAnimFrame == trap._oAnimLen)
 			trap._oAnimFrame = 11;
 		if (trap._oAnimFrame <= 5)
-			ChangeLightRadius(trap._olid, trap._oAnimFrame);
+			CurrentLightManager.ChangeLightRadius(trap._olid, trap._oAnimFrame);
 	}
 }
 
@@ -4400,7 +4400,7 @@ void RedoPlayerVision()
 {
 	for (const Player &player : Players) {
 		if (player.plractive && player.isOnActiveLevel()) {
-			ChangeVisionXY(player.getId(), player.position.tile);
+			CurrentLightManager.ChangeVisionXY(player.getId(), player.position.tile);
 		}
 	}
 }

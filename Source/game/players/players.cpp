@@ -84,7 +84,7 @@ void UpdatePlayerLightOffset(Player &player)
 		return;
 
 	const WorldTileDisplacement offset = player.position.CalculateWalkingOffset(player.direction, player.animInfo);
-	ChangeLightOffset(player.lightId, offset.screenToLight());
+	CurrentLightManager.ChangeLightOffset(player.lightId, offset.screenToLight());
 }
 
 void WalkInDirection(Player &player, const DirectionSettings &walkParams)
@@ -428,8 +428,8 @@ bool DoWalk(Player &player)
 
 	// Update the coordinates for lighting and vision entries for the player
 	if (levelType() != DTYPE_TOWN) {
-		ChangeLightXY(player.lightId, player.position.tile);
-		ChangeVisionXY(player.getId(), player.position.tile);
+		CurrentLightManager.ChangeLightXY(player.lightId, player.position.tile);
+		CurrentLightManager.ChangeVisionXY(player.getId(), player.position.tile);
 	}
 
 	player.startStand(player.tempDirection);
@@ -438,7 +438,7 @@ bool DoWalk(Player &player)
 
 	// Reset the "sub-tile" position of the player's light entry to 0
 	if (levelType() != DTYPE_TOWN) {
-		ChangeLightOffset(player.lightId, { 0, 0 });
+		CurrentLightManager.ChangeLightOffset(player.lightId, { 0, 0 });
 	}
 
 	AutoPickup(player);
@@ -2778,10 +2778,10 @@ void InitPlayer(Player &player, bool firstTime)
 		player.destAction = ACTION_NONE;
 
 		if (&player == MyPlayer) {
-			player.lightId = AddLight(player.position.tile, player._pLightRad);
-			ChangeLightXY(player.lightId, player.position.tile); // fix for a bug where old light is still visible at the entrance after reentering level
+			player.lightId = CurrentLightManager.AddLight(player.position.tile, player._pLightRad);
+			CurrentLightManager.ChangeLightXY(player.lightId, player.position.tile); // fix for a bug where old light is still visible at the entrance after reentering level
 		}
-		ActivateVision(player.position.tile, player._pLightRad, player.getId());
+		CurrentLightManager.ActivateVision(player.position.tile, player._pLightRad, player.getId());
 	}
 
 	player._pAblSpells = GetSpellBitmask(GetPlayerStartingLoadoutForClass(player._pClass).skill);
@@ -2845,8 +2845,8 @@ void Player::fixLocation(Direction bDir)
 	if (&player == MyPlayer) {
 		viewPosition() = player.position.tile;
 	}
-	ChangeLightXY(player.lightId, player.position.tile);
-	ChangeVisionXY(player.getId(), player.position.tile);
+	CurrentLightManager.ChangeLightXY(player.lightId, player.position.tile);
+	CurrentLightManager.ChangeVisionXY(player.getId(), player.position.tile);
 }
 
 void Player::startStand(Direction dir)

@@ -57,7 +57,7 @@ void AddPortalMissile(const Player &player, Point position, bool sync)
 			missile->setFrameGroup<PortalFrame>(PortalFrame::Idle);
 
 		if (levelType() != DTYPE_TOWN)
-			missile->_mlid = AddLight(missile->position.tile, 15);
+			missile->_mlid = CurrentLightManager.AddLight(missile->position.tile, 15);
 	}
 }
 
@@ -119,7 +119,7 @@ void RemovePortalMissile(const Player &player)
 			tileAt(missile.position.tile).removeFlags(DungeonFlag::Missile);
 
 			if (Portals[id].level != 0)
-				AddUnLight(missile._mlid);
+				CurrentLightManager.AddUnLight(missile._mlid);
 
 			return true;
 		}

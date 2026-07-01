@@ -642,7 +642,7 @@ void DeleteMonster(size_t activeIndex)
 	const unsigned monsterId = ActiveMonsters[activeIndex];
 	const Monster &monster = Monsters[monsterId];
 	if ((monster.flags & MFLAG_BERSERK) != 0) {
-		AddUnLight(monster.lightId);
+		CurrentLightManager.AddUnLight(monster.lightId);
 	}
 
 	ActiveMonsterCount--;
@@ -901,8 +901,8 @@ void DiabloDeath(Monster &diablo, bool sendmsg)
 		monster.clearSquares();
 		monster.occupyTile(monster.position.tile, false);
 	}
-	AddLight(diablo.position.tile, 8);
-	DoVision(diablo.position.tile, 8, MAP_EXP_NONE, true);
+	CurrentLightManager.AddLight(diablo.position.tile, 8);
+	CurrentLightManager.DoVision(diablo.position.tile, 8, MAP_EXP_NONE, true);
 	int dist = diablo.position.tile.WalkingDistance(viewPosition());
 	dist = std::min(dist, 20);
 	diablo.var3 = viewPosition().x << 16;
@@ -986,7 +986,7 @@ void Teleport(Monster &monster)
 	monster.occupyTile(*position, false);
 	monster.position.old = *position;
 	monster.direction = GetMonsterDirection(monster);
-	ChangeLightXY(monster.lightId, *position);
+	CurrentLightManager.ChangeLightXY(monster.lightId, *position);
 }
 
 bool IsHardHit(Monster &target, unsigned dam)
@@ -1069,7 +1069,7 @@ void SyncLightPosition(Monster &monster)
 		return;
 
 	const WorldTileDisplacement offset = monster.isWalking() ? monster.position.CalculateWalkingOffset(monster.direction, monster.animInfo) : WorldTileDisplacement {};
-	ChangeLightOffset(monster.lightId, offset.screenToLight());
+	CurrentLightManager.ChangeLightOffset(monster.lightId, offset.screenToLight());
 }
 
 void MonsterIdle(Monster &monster)
@@ -1099,7 +1099,7 @@ bool MonsterWalk(Monster &monster)
 		monster.position.tile.y += monster.var2;
 		// dMonster is set here for backwards compatibility; without it, the monster would be invisible if loaded from a vanilla save.
 		monster.occupyTile(monster.position.tile, false);
-		ChangeLightXY(monster.lightId, monster.position.tile);
+		CurrentLightManager.ChangeLightXY(monster.lightId, monster.position.tile);
 		monster.startStand(monster.direction);
 	} else { // We didn't reach new tile so update monster's "sub-tile" position
 		if (monster.animInfo.tickCounterOfCurrentFrame == 0) {
@@ -3335,7 +3335,7 @@ tl::expected<void, std::string> PrepareUniqueMonst(Monster &monster, UniqueMonst
 	if (monsterType == UniqueMonsterType::HorkDemon)
 		monster.lightId = NO_LIGHT;
 	else
-		monster.lightId = AddLight(monster.position.tile, 3);
+		monster.lightId = CurrentLightManager.AddLight(monster.position.tile, 3);
 
 	if (UseMultiplayerQuests()) {
 		if (monster.ai == MonsterAIID::LazarusSuccubus)
@@ -3548,7 +3548,7 @@ tl::expected<void, std::string> InitMonsters()
 	for (int i = 0; i < nt; i++) {
 		for (int s = -2; s < 2; s++) {
 			for (int t = -2; t < 2; t++)
-				DoVision(trigs[i].position + Displacement { s, t }, 15, MAP_EXP_NONE, false);
+				CurrentLightManager.DoVision(trigs[i].position + Displacement { s, t }, 15, MAP_EXP_NONE, false);
 		}
 	}
 	if (!gbIsSpawn)
@@ -3593,7 +3593,7 @@ tl::expected<void, std::string> InitMonsters()
 	for (int i = 0; i < nt; i++) {
 		for (int s = -2; s < 2; s++) {
 			for (int t = -2; t < 2; t++)
-				DoUnVision(trigs[i].position + Displacement { s, t }, 15);
+				CurrentLightManager.DoUnVision(trigs[i].position + Displacement { s, t }, 15);
 		}
 	}
 
@@ -3898,7 +3898,7 @@ void Monster::getKnockback(WorldTilePosition attackerStartPos)
 	this->clearSquares();
 	this->position.old += dir;
 	StartMonsterGotHit(*this);
-	ChangeLightXY(this->lightId, this->position.tile);
+	CurrentLightManager.ChangeLightXY(this->lightId, this->position.tile);
 }
 
 void Monster::startHit(int dam)
@@ -3957,7 +3957,7 @@ void MonsterDeath(Monster &monster, Direction md, bool sendmsg)
 		NewMonsterAnim(monster, MonsterGraphic::Death, md, gGameLogicStep < GameLogicStep::ProcessMonsters ? AnimationDistributionFlags::ProcessAnimationPending : AnimationDistributionFlags::None);
 		monster.mode = MonsterMode::Death;
 	} else if (monster.isUnique()) {
-		AddUnLight(monster.lightId);
+		CurrentLightManager.AddUnLight(monster.lightId);
 	}
 	monster.goal = MonsterGoal::None;
 	monster.var1 = 0;

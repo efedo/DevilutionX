@@ -870,7 +870,7 @@ void DeltaLoadMonsters(const DLevel &deltaLevel)
 			monster.position.old = position;
 			monster.position.future = position;
 			if (monster.lightId != NO_LIGHT)
-				ChangeLightXY(monster.lightId, position);
+				CurrentLightManager.ChangeLightXY(monster.lightId, position);
 		}
 
 		monster.hitPoints = Swap32LE(deltaMonster.hitPoints);
@@ -2343,7 +2343,7 @@ size_t OnPlayerJoinLevel(const TCmdLocParam2 &message, Player &player)
 				tileAt(player.position.tile).addFlags(DungeonFlag::DeadPlayer);
 			}
 
-			ActivateVision(player.position.tile, player._pLightRad, player.getId());
+			CurrentLightManager.ActivateVision(player.position.tile, player._pLightRad, player.getId());
 		}
 	}
 

@@ -2694,8 +2694,8 @@ void CalcPlrLightRadius(Player &player, int lrad)
 
 	if (player._pLightRad != lrad) {
 		if (player.isOnActiveLevel()) {
-			ChangeLightRadius(player.lightId, lrad);
-			ChangeVisionRadius(player.getId(), lrad);
+			CurrentLightManager.ChangeLightRadius(player.lightId, lrad);
+			CurrentLightManager.ChangeVisionRadius(player.getId(), lrad);
 		}
 		player._pLightRad = lrad;
 	}
