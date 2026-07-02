@@ -169,7 +169,7 @@ void FreePartyPanel()
 void DrawPartyMemberInfoPanel(const Surface &out)
 {
 	// Don't draw based on these criteria
-	if (CharFlag || !gbIsMultiplayer || !MyPlayer->friendlyMode || IsPlayerInStore() || IsStashOpen) {
+	if (CharFlag || !gbIsMultiplayer || !MyPlayer->friendlyMode || CurrentStoreManager.IsPlayerInStore() || IsStashOpen) {
 		if (PortraitIdUnderCursor != -1)
 			PortraitIdUnderCursor = -1;
 

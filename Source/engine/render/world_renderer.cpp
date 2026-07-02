@@ -765,7 +765,7 @@ void DrawItem(const Surface &out, int8_t itemIndex, Point targetBufferPosition, 
 	const Item &item = Items[itemIndex];
 	const ClxSprite sprite = item.animInfo.currentSprite();
 	const Point position = targetBufferPosition + item.getRenderingOffset(sprite);
-	if (!IsPlayerInStore() && (itemIndex == pcursitem || AutoMapShowItems)) {
+	if (!CurrentStoreManager.IsPlayerInStore() && (itemIndex == pcursitem || AutoMapShowItems)) {
 		ClxDrawOutlineSkipColorZero(out, GetOutlineColor(item, false), position, sprite);
 	}
 	ClxDrawLight(out, position, sprite, lightTableIndex);
@@ -1486,8 +1486,8 @@ void DrawView(const Surface &out, Point startPosition)
 	DrawMonsterHealthBar(out);
 	DrawFloatingNumbers(out, startPosition, offset);
 
-	if (IsPlayerInStore() && !qtextflag)
-		DrawSText(out);
+	if (CurrentStoreManager.IsPlayerInStore() && !qtextflag)
+		CurrentStoreManager.DrawSText(out);
 	if (invflag) {
 		DrawInv(out);
 	} else if (SpellbookFlag) {

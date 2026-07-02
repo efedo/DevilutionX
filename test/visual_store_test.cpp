@@ -384,7 +384,7 @@ TEST_F(VisualStoreTest, PageCount_AtLeastOne)
 TEST_F(VisualStoreTest, SmithBuy_Success)
 {
 	PopulateVendors();
-	ASSERT_FALSE(SmithItems.empty());
+	ASSERT_FALSE(CurrentStoreManager.smithItems().empty());
 
 	StripPlayer();
 
@@ -393,10 +393,10 @@ TEST_F(VisualStoreTest, SmithBuy_Success)
 	const int itemIdx = FindFirstItemIndexOnPage();
 	ASSERT_GE(itemIdx, 0) << "Should find an item on page 0";
 
-	const int itemPrice = SmithItems[itemIdx]._iIvalue;
+	const int itemPrice = CurrentStoreManager.smithItems()[itemIdx]._iIvalue;
 	SetPlayerGold(itemPrice + 1000);
 	const int goldBefore = MyPlayer->_pGold;
-	const size_t vendorCountBefore = SmithItems.size();
+	const size_t vendorCountBefore = CurrentStoreManager.smithItems().size();
 
 	Point clickPos = FindFirstItemOnPage();
 	ASSERT_NE(clickPos.x, -1) << "Should find an item position on page 0";
@@ -405,14 +405,14 @@ TEST_F(VisualStoreTest, SmithBuy_Success)
 
 	EXPECT_EQ(MyPlayer->_pGold, goldBefore - itemPrice)
 	    << "Gold should decrease by item price";
-	EXPECT_EQ(SmithItems.size(), vendorCountBefore - 1)
+	EXPECT_EQ(CurrentStoreManager.smithItems().size(), vendorCountBefore - 1)
 	    << "Item should be removed from Smith's basic inventory";
 }
 
 TEST_F(VisualStoreTest, SmithBuy_CantAfford)
 {
 	PopulateVendors();
-	ASSERT_FALSE(SmithItems.empty());
+	ASSERT_FALSE(CurrentStoreManager.smithItems().empty());
 
 	StripPlayer();
 	SetPlayerGold(0);
@@ -420,7 +420,7 @@ TEST_F(VisualStoreTest, SmithBuy_CantAfford)
 
 	OpenVisualStore(VisualStoreVendor::Smith);
 
-	const size_t vendorCountBefore = SmithItems.size();
+	const size_t vendorCountBefore = CurrentStoreManager.smithItems().size();
 
 	Point clickPos = FindFirstItemOnPage();
 	ASSERT_NE(clickPos.x, -1);
@@ -429,14 +429,14 @@ TEST_F(VisualStoreTest, SmithBuy_CantAfford)
 
 	EXPECT_EQ(MyPlayer->_pGold, 0)
 	    << "Gold should not change when purchase fails";
-	EXPECT_EQ(SmithItems.size(), vendorCountBefore)
+	EXPECT_EQ(CurrentStoreManager.smithItems().size(), vendorCountBefore)
 	    << "Item should remain in vendor inventory";
 }
 
 TEST_F(VisualStoreTest, SmithBuy_NoRoom)
 {
 	PopulateVendors();
-	ASSERT_FALSE(SmithItems.empty());
+	ASSERT_FALSE(CurrentStoreManager.smithItems().empty());
 
 	// Fill the inventory completely with 1×1 items so there's no room.
 	for (int i = 0; i < InventoryGridCells; i++) {
@@ -452,7 +452,7 @@ TEST_F(VisualStoreTest, SmithBuy_NoRoom)
 
 	OpenVisualStore(VisualStoreVendor::Smith);
 
-	const size_t vendorCountBefore = SmithItems.size();
+	const size_t vendorCountBefore = CurrentStoreManager.smithItems().size();
 	const int goldBefore = MyPlayer->_pGold;
 
 	Point clickPos = FindFirstItemOnPage();
@@ -462,14 +462,14 @@ TEST_F(VisualStoreTest, SmithBuy_NoRoom)
 
 	EXPECT_EQ(MyPlayer->_pGold, goldBefore)
 	    << "Gold should not change when there's no room";
-	EXPECT_EQ(SmithItems.size(), vendorCountBefore)
+	EXPECT_EQ(CurrentStoreManager.smithItems().size(), vendorCountBefore)
 	    << "Item should remain in vendor inventory";
 }
 
 TEST_F(VisualStoreTest, WitchBuy_PinnedItemsRemain)
 {
 	PopulateVendors();
-	ASSERT_GT(WitchItems.size(), 3u) << "Witch needs non-pinned items";
+	ASSERT_GT(CurrentStoreManager.witchItems().size(), 3u) << "Witch needs non-pinned items";
 
 	StripPlayer();
 
@@ -498,16 +498,16 @@ TEST_F(VisualStoreTest, WitchBuy_PinnedItemsRemain)
 		GTEST_SKIP() << "No non-pinned Witch item found on page 0";
 	}
 
-	const int itemPrice = WitchItems[nonPinnedIdx]._iIvalue;
+	const int itemPrice = CurrentStoreManager.witchItems()[nonPinnedIdx]._iIvalue;
 	SetPlayerGold(itemPrice + 1000);
 
-	const size_t vendorCountBefore = WitchItems.size();
+	const size_t vendorCountBefore = CurrentStoreManager.witchItems().size();
 
 	CheckVisualStoreItem(nonPinnedPos, false, false);
 
-	EXPECT_EQ(WitchItems.size(), vendorCountBefore - 1)
+	EXPECT_EQ(CurrentStoreManager.witchItems().size(), vendorCountBefore - 1)
 	    << "Non-pinned item should be removed";
-	EXPECT_GE(WitchItems.size(), 3u)
+	EXPECT_GE(CurrentStoreManager.witchItems().size(), 3u)
 	    << "Pinned items (first 3) should remain";
 }
 
@@ -528,7 +528,7 @@ TEST_F(VisualStoreTest, SmithPremiumBuy_ReplacesSlot)
 	const int itemIdx = FindFirstItemIndexOnPage();
 	ASSERT_GE(itemIdx, 0);
 
-	const int itemPrice = PremiumItems[itemIdx]._iIvalue;
+	const int itemPrice = CurrentStoreManager.premiumItems()[itemIdx]._iIvalue;
 	SetPlayerGold(itemPrice + 1000);
 	const int goldBefore = MyPlayer->_pGold;
 
@@ -540,20 +540,20 @@ TEST_F(VisualStoreTest, SmithPremiumBuy_ReplacesSlot)
 	EXPECT_EQ(MyPlayer->_pGold, goldBefore - itemPrice)
 	    << "Gold should decrease by premium item price";
 	// Premium slots are replaced, not removed — size stays the same.
-	EXPECT_EQ(PremiumItems.size(), static_cast<size_t>(PremiumItems.size()))
+	EXPECT_EQ(CurrentStoreManager.premiumItems().size(), static_cast<size_t>(CurrentStoreManager.premiumItems().size()))
 	    << "Premium items list size should not change (slot is replaced)";
 }
 
 TEST_F(VisualStoreTest, BoyBuy_Success)
 {
 	PopulateVendors();
-	if (BoyItem.isEmpty()) {
+	if (CurrentStoreManager.boyItem().isEmpty()) {
 		GTEST_SKIP() << "Wirt has no item with this seed";
 	}
 
 	StripPlayer();
 
-	const int itemPrice = BoyItem._iIvalue;
+	const int itemPrice = CurrentStoreManager.boyItem()._iIvalue;
 	SetPlayerGold(itemPrice + 1000);
 	const int goldBefore = MyPlayer->_pGold;
 
@@ -566,7 +566,7 @@ TEST_F(VisualStoreTest, BoyBuy_Success)
 
 	EXPECT_EQ(MyPlayer->_pGold, goldBefore - itemPrice)
 	    << "Gold should decrease by item price";
-	EXPECT_TRUE(BoyItem.isEmpty())
+	EXPECT_TRUE(CurrentStoreManager.boyItem().isEmpty())
 	    << "Wirt's item should be cleared after purchase";
 }
 
@@ -861,27 +861,27 @@ TEST_F(VisualStoreTest, GetVisualStoreItems_MatchesVendorTab)
 	// Smith basic
 	OpenVisualStore(VisualStoreVendor::Smith);
 	std::span<Item> basicItems = GetVisualStoreItems();
-	EXPECT_EQ(basicItems.data(), SmithItems.data())
-	    << "Basic tab should reference SmithItems";
+	EXPECT_EQ(basicItems.data(), CurrentStoreManager.smithItems().data())
+	    << "Basic tab should reference CurrentStoreManager.smithItems()";
 
 	// Smith premium
 	SetVisualStoreTab(VisualStoreTab::Premium);
 	std::span<Item> premiumItems = GetVisualStoreItems();
-	EXPECT_EQ(premiumItems.data(), PremiumItems.data())
-	    << "Premium tab should reference PremiumItems";
+	EXPECT_EQ(premiumItems.data(), CurrentStoreManager.premiumItems().data())
+	    << "Premium tab should reference CurrentStoreManager.premiumItems()";
 
 	CloseVisualStore();
 
 	// Witch
 	OpenVisualStore(VisualStoreVendor::Witch);
 	std::span<Item> witchItems = GetVisualStoreItems();
-	EXPECT_EQ(witchItems.data(), WitchItems.data());
+	EXPECT_EQ(witchItems.data(), CurrentStoreManager.witchItems().data());
 	CloseVisualStore();
 
 	// Healer
 	OpenVisualStore(VisualStoreVendor::Healer);
 	std::span<Item> healerItems = GetVisualStoreItems();
-	EXPECT_EQ(healerItems.data(), HealerItems.data());
+	EXPECT_EQ(healerItems.data(), CurrentStoreManager.healerItems().data());
 	CloseVisualStore();
 }
 
@@ -924,7 +924,7 @@ TEST_F(VisualStoreTest, GridLayout_EmptyVendor)
 TEST_F(VisualStoreTest, BuyUsingStashGold)
 {
 	PopulateVendors();
-	ASSERT_FALSE(SmithItems.empty());
+	ASSERT_FALSE(CurrentStoreManager.smithItems().empty());
 
 	StripPlayer();
 
@@ -933,7 +933,7 @@ TEST_F(VisualStoreTest, BuyUsingStashGold)
 	const int itemIdx = FindFirstItemIndexOnPage();
 	ASSERT_GE(itemIdx, 0);
 
-	const int itemPrice = SmithItems[itemIdx]._iIvalue;
+	const int itemPrice = CurrentStoreManager.smithItems()[itemIdx]._iIvalue;
 	ASSERT_GT(itemPrice, 0);
 
 	// Give player only part of the price as inventory gold,
@@ -944,7 +944,7 @@ TEST_F(VisualStoreTest, BuyUsingStashGold)
 	Stash.gold = stashGold;
 
 	const int totalGoldBefore = MyPlayer->_pGold + Stash.gold;
-	const size_t vendorCountBefore = SmithItems.size();
+	const size_t vendorCountBefore = CurrentStoreManager.smithItems().size();
 
 	Point clickPos = FindFirstItemOnPage();
 	ASSERT_NE(clickPos.x, -1);
@@ -955,7 +955,7 @@ TEST_F(VisualStoreTest, BuyUsingStashGold)
 
 	EXPECT_EQ(totalGoldAfter, totalGoldBefore - itemPrice)
 	    << "Total gold (inventory + stash) should decrease by item price";
-	EXPECT_EQ(SmithItems.size(), vendorCountBefore - 1)
+	EXPECT_EQ(CurrentStoreManager.smithItems().size(), vendorCountBefore - 1)
 	    << "Item should be removed from vendor inventory";
 }
 

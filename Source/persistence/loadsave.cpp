@@ -978,7 +978,7 @@ void LoadItem(LoadHelper &file, Item &item)
 
 void LoadPremium(LoadHelper &file, int i)
 {
-	LoadAndValidateItemData(file, PremiumItems[i]);
+	LoadAndValidateItemData(file, CurrentStoreManager.premiumItems()[i]);
 }
 
 void LoadQuest(LoadHelper *file, int i)
@@ -2625,8 +2625,8 @@ tl::expected<void, std::string> LoadGame(bool firstflag)
 			tile.setLight(0);
 	}
 
-	PremiumItemCount = file.NextBE<int32_t>();
-	PremiumItemLevel = file.NextBE<int32_t>();
+	CurrentStoreManager.premiumItemCount() = file.NextBE<int32_t>();
+	CurrentStoreManager.premiumItemLevel() = file.NextBE<int32_t>();
 
 	for (int i = 0; i < giNumberOfSmithPremiumItems; i++)
 		LoadPremium(file, i);
@@ -2874,11 +2874,11 @@ void SaveGameData(SaveWriter &saveWriter)
 		}
 	}
 
-	file.WriteBE<int32_t>(PremiumItemCount);
-	file.WriteBE<int32_t>(PremiumItemLevel);
+	file.WriteBE<int32_t>(CurrentStoreManager.premiumItemCount());
+	file.WriteBE<int32_t>(CurrentStoreManager.premiumItemLevel());
 
 	for (int i = 0; i < giNumberOfSmithPremiumItems; i++)
-		SaveItem(file, PremiumItems[i]);
+		SaveItem(file, CurrentStoreManager.premiumItems()[i]);
 
 	file.WriteLE<uint8_t>(AutomapActive ? 1 : 0);
 	file.WriteBE<int32_t>(AutoMapScale);

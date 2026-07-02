@@ -476,7 +476,7 @@ bool UseStashItem(uint16_t c)
 		return true;
 	if (pcurs != CURSOR_HAND)
 		return true;
-	if (IsPlayerInStore())
+	if (CurrentStoreManager.IsPlayerInStore())
 		return true;
 
 	Item *item = &Stash.stashList[c];

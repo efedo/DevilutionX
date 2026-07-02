@@ -133,7 +133,7 @@ bool GetGameAction(const SDL_Event &event, ControllerButtonEvent ctrlEvent, Game
 					if (ControllerActionHeld == GameActionType_NONE) {
 						ControllerActionHeld = GameActionType_PRIMARY_ACTION;
 					}
-				} else if (sgpCurrentMenu != nullptr || IsPlayerInStore() || QuestLogIsOpen) {
+				} else if (sgpCurrentMenu != nullptr || CurrentStoreManager.IsPlayerInStore() || QuestLogIsOpen) {
 					*action = GameActionSendKey { SDLK_RETURN, false };
 				} else {
 					*action = GameActionSendKey { SDLK_SPACE, false };
@@ -170,12 +170,12 @@ bool GetGameAction(const SDL_Event &event, ControllerButtonEvent ctrlEvent, Game
 				return true;
 			}
 			if (VirtualGamepadState.healthButton.isHeld && VirtualGamepadState.healthButton.didStateChange) {
-				if (!QuestLogIsOpen && !SpellbookFlag && !IsPlayerInStore())
+				if (!QuestLogIsOpen && !SpellbookFlag && !CurrentStoreManager.IsPlayerInStore())
 					*action = GameAction(GameActionType_USE_HEALTH_POTION);
 				return true;
 			}
 			if (VirtualGamepadState.manaButton.isHeld && VirtualGamepadState.manaButton.didStateChange) {
-				if (!QuestLogIsOpen && !SpellbookFlag && !IsPlayerInStore())
+				if (!QuestLogIsOpen && !SpellbookFlag && !CurrentStoreManager.IsPlayerInStore())
 					*action = GameAction(GameActionType_USE_MANA_POTION);
 				return true;
 			}
@@ -205,7 +205,7 @@ bool GetGameAction(const SDL_Event &event, ControllerButtonEvent ctrlEvent, Game
 
 	SDL_Keycode translation = SDLK_UNKNOWN;
 
-	if (gmenu_is_active() || IsPlayerInStore())
+	if (gmenu_is_active() || CurrentStoreManager.IsPlayerInStore())
 		translation = TranslateControllerButtonToGameMenuKey(ctrlEvent.button);
 	else if (inGameMenu)
 		translation = TranslateControllerButtonToMenuKey(ctrlEvent.button);

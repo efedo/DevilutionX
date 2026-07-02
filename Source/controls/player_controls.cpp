@@ -79,7 +79,7 @@ quest_id pcursquest = Q_INVALID;
  */
 bool InGameMenu()
 {
-	return IsPlayerInStore()
+	return CurrentStoreManager.IsPlayerInStore()
 	    || HelpFlag
 	    || ChatLogFlag
 	    || ChatFlag
@@ -1791,9 +1791,9 @@ void StoreMove(AxisDirection moveDir)
 	static AxisDirectionRepeater repeater;
 	moveDir = repeater.Get(moveDir);
 	if (moveDir.y == AxisDirectionY_UP)
-		StoreUp();
+		CurrentStoreManager.StoreUp();
 	else if (moveDir.y == AxisDirectionY_DOWN)
-		StoreDown();
+		CurrentStoreManager.StoreDown();
 }
 
 using HandleLeftStickOrDPadFn = void (*)(devilution::AxisDirection);
@@ -1821,7 +1821,7 @@ HandleLeftStickOrDPadFn GetLeftStickOrDPadGameUIHandler()
 	if (SpellbookFlag) {
 		return &SpellBookMove;
 	}
-	if (IsPlayerInStore()) {
+	if (CurrentStoreManager.IsPlayerInStore()) {
 		return &StoreMove;
 	}
 	return nullptr;

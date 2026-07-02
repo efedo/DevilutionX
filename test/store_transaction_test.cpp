@@ -14,13 +14,13 @@
  * / recharge" entry points with the same game-state semantics.
  *
  * The store state machine works as follows:
- *   - StartStore(TalkID) sets up the text UI and sets ActiveStore at the end.
- *   - StoreEnter() dispatches on ActiveStore to the appropriate *Enter() fn.
- *   - *Enter() functions check CurrentTextLine to decide what action to take:
- *     - For item lists, item index = ScrollPos + ((CurrentTextLine - 5) / 4)
+ *   - CurrentStoreManager.StartStore(TalkID) sets up the text UI and sets CurrentStoreManager.activeStore() at the end.
+ *   - CurrentStoreManager.StoreEnter() dispatches on CurrentStoreManager.activeStore() to the appropriate *Enter() fn.
+ *   - *Enter() functions check CurrentStoreManager.currentTextLine() to decide what action to take:
+ *     - For item lists, item index = CurrentStoreManager.scrollPos() + ((CurrentStoreManager.currentTextLine() - 5) / 4)
  *       where 5 is PreviousScrollPos (set by ScrollVendorStore).
  *     - For confirmations, line 18 = Yes, line 20 = No.
- *   - On buy: checks afford → checks room → copies to TempItem → Confirm.
+ *   - On buy: checks afford → checks room → copies to CurrentStoreManager.tempItem() → Confirm.
  *   - ConfirmEnter dispatches to the actual transaction function on Yes.
  */
 
@@ -51,7 +51,7 @@ namespace {
 //
 // These abstract over the text-line / scroll-position encoding so that
 // tests read as "select item 0, confirm yes" rather than
-// "set CurrentTextLine=5, ScrollPos=0, call StoreEnter, ...".
+// "set CurrentStoreManager.currentTextLine()=5, CurrentStoreManager.scrollPos()=0, call StoreEnter, ...".
 // ---------------------------------------------------------------------------
 
 /**
@@ -61,7 +61,7 @@ namespace {
  */
 void OpenVendor(TalkID vendor)
 {
-	StartStore(vendor);
+	CurrentStoreManager.StartStore(vendor);
 }
 
 /**
@@ -76,8 +76,8 @@ void OpenVendor(TalkID vendor)
  */
 void SelectMenuLine(int line)
 {
-	CurrentTextLine = line;
-	StoreEnter();
+	CurrentStoreManager.currentTextLine() = line;
+	CurrentStoreManager.StoreEnter();
 }
 
 /**
@@ -86,35 +86,35 @@ void SelectMenuLine(int line)
  *
  * The store text layout puts items starting at line 5 (PreviousScrollPos),
  * with each item taking 4 lines.  So item N is at line 5 + N*4 when
- * ScrollPos is 0.
+ * CurrentStoreManager.scrollPos() is 0.
  */
 void SelectItemAtIndex(int itemIndex)
 {
-	ScrollPos = 0;
-	CurrentTextLine = 5 + itemIndex * 4;
-	StoreEnter();
+	CurrentStoreManager.scrollPos() = 0;
+	CurrentStoreManager.currentTextLine() = 5 + itemIndex * 4;
+	CurrentStoreManager.StoreEnter();
 }
 
 /**
  * @brief Confirm a pending transaction (press "Yes" in the Confirm dialog).
  *
- * Precondition: ActiveStore == TalkID::Confirm.
+ * Precondition: CurrentStoreManager.activeStore() == TalkID::Confirm.
  */
 void ConfirmYes()
 {
-	CurrentTextLine = 18;
-	StoreEnter();
+	CurrentStoreManager.currentTextLine() = 18;
+	CurrentStoreManager.StoreEnter();
 }
 
 /**
  * @brief Decline a pending transaction (press "No" in the Confirm dialog).
  *
- * Precondition: ActiveStore == TalkID::Confirm.
+ * Precondition: CurrentStoreManager.activeStore() == TalkID::Confirm.
  */
 void ConfirmNo()
 {
-	CurrentTextLine = 20;
-	StoreEnter();
+	CurrentStoreManager.currentTextLine() = 20;
+	CurrentStoreManager.StoreEnter();
 }
 
 // ---------------------------------------------------------------------------
@@ -200,23 +200,23 @@ protected:
 TEST_F(StoreTransactionTest, PlayerCanAfford_SufficientGold)
 {
 	SetPlayerGold(10000);
-	EXPECT_TRUE(PlayerCanAfford(5000));
-	EXPECT_TRUE(PlayerCanAfford(10000));
+	EXPECT_TRUE(CurrentStoreManager.PlayerCanAfford(5000));
+	EXPECT_TRUE(CurrentStoreManager.PlayerCanAfford(10000));
 }
 
 TEST_F(StoreTransactionTest, PlayerCanAfford_InsufficientGold)
 {
 	SetPlayerGold(1000);
-	EXPECT_FALSE(PlayerCanAfford(5000));
+	EXPECT_FALSE(CurrentStoreManager.PlayerCanAfford(5000));
 }
 
 TEST_F(StoreTransactionTest, PlayerCanAfford_IncludesStashGold)
 {
 	SetPlayerGold(2000);
 	Stash.gold = 3000;
-	EXPECT_TRUE(PlayerCanAfford(5000));
-	EXPECT_TRUE(PlayerCanAfford(4999));
-	EXPECT_FALSE(PlayerCanAfford(5001));
+	EXPECT_TRUE(CurrentStoreManager.PlayerCanAfford(5000));
+	EXPECT_TRUE(CurrentStoreManager.PlayerCanAfford(4999));
+	EXPECT_FALSE(CurrentStoreManager.PlayerCanAfford(5001));
 }
 
 TEST_F(StoreTransactionTest, TakePlrsMoney_DeductsFromInventory)
@@ -224,7 +224,7 @@ TEST_F(StoreTransactionTest, TakePlrsMoney_DeductsFromInventory)
 	SetPlayerGold(10000);
 	int goldBefore = MyPlayer->_pGold;
 
-	TakePlrsMoney(3000);
+	CurrentStoreManager.TakePlrsMoney(3000);
 
 	EXPECT_EQ(MyPlayer->_pGold, goldBefore - 3000);
 }
@@ -234,7 +234,7 @@ TEST_F(StoreTransactionTest, TakePlrsMoney_OverflowsToStash)
 	SetPlayerGold(2000);
 	Stash.gold = 5000;
 
-	TakePlrsMoney(4000);
+	CurrentStoreManager.TakePlrsMoney(4000);
 
 	// 2000 from inventory + 2000 from stash
 	EXPECT_EQ(MyPlayer->_pGold, 0);
@@ -251,10 +251,10 @@ TEST_F(StoreTransactionTest, StoreAutoPlace_EmptyInventory)
 	InitializeItem(item, IDI_HEAL);
 
 	// Dry-run: should succeed.
-	EXPECT_TRUE(StoreAutoPlace(item, false));
+	EXPECT_TRUE(CurrentStoreManager.StoreAutoPlace(item, false));
 
 	// Persist: item should appear in player's inventory/belt/equipment.
-	EXPECT_TRUE(StoreAutoPlace(item, true));
+	EXPECT_TRUE(CurrentStoreManager.StoreAutoPlace(item, true));
 }
 
 TEST_F(StoreTransactionTest, SmithWillBuy_AcceptsMeleeWeapon)
@@ -262,14 +262,14 @@ TEST_F(StoreTransactionTest, SmithWillBuy_AcceptsMeleeWeapon)
 	Item sword {};
 	InitializeItem(sword, IDI_BARDSWORD);
 	sword._iIdentified = true;
-	EXPECT_TRUE(SmithWillBuy(sword));
+	EXPECT_TRUE(CurrentStoreManager.SmithWillBuy(sword));
 }
 
 TEST_F(StoreTransactionTest, SmithWillBuy_RejectsMiscItems)
 {
 	Item scroll {};
 	InitializeItem(scroll, IDI_HEAL);
-	EXPECT_FALSE(SmithWillBuy(scroll));
+	EXPECT_FALSE(CurrentStoreManager.SmithWillBuy(scroll));
 }
 
 TEST_F(StoreTransactionTest, WitchWillBuy_AcceptsStaff)
@@ -278,7 +278,7 @@ TEST_F(StoreTransactionTest, WitchWillBuy_AcceptsStaff)
 	Item staff {};
 	InitializeItem(staff, IDI_SHORTSTAFF);
 	staff._iIdentified = true;
-	EXPECT_TRUE(WitchWillBuy(staff));
+	EXPECT_TRUE(CurrentStoreManager.WitchWillBuy(staff));
 }
 
 TEST_F(StoreTransactionTest, WitchWillBuy_RejectsSword)
@@ -286,7 +286,7 @@ TEST_F(StoreTransactionTest, WitchWillBuy_RejectsSword)
 	Item sword {};
 	InitializeItem(sword, IDI_BARDSWORD);
 	sword._iIdentified = true;
-	EXPECT_FALSE(WitchWillBuy(sword));
+	EXPECT_FALSE(CurrentStoreManager.WitchWillBuy(sword));
 }
 
 // ===========================================================================
@@ -298,11 +298,11 @@ TEST_F(StoreTransactionTest, WitchWillBuy_RejectsSword)
 TEST_F(StoreTransactionTest, SmithBuy_Success)
 {
 	PopulateVendors();
-	ASSERT_FALSE(SmithItems.empty());
+	ASSERT_FALSE(CurrentStoreManager.smithItems().empty());
 
 	// Record state before the transaction.
-	const int itemPrice = SmithItems[0]._iIvalue;
-	const size_t vendorCountBefore = SmithItems.size();
+	const int itemPrice = CurrentStoreManager.smithItems()[0]._iIvalue;
+	const size_t vendorCountBefore = CurrentStoreManager.smithItems().size();
 	StripPlayer();
 	SetPlayerGold(itemPrice + 1000);
 
@@ -310,10 +310,10 @@ TEST_F(StoreTransactionTest, SmithBuy_Success)
 
 	// Drive the state machine: open Smith → browse items → select first → confirm.
 	OpenVendor(TalkID::SmithBuy);
-	ASSERT_EQ(ActiveStore, TalkID::SmithBuy);
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::SmithBuy);
 
 	SelectItemAtIndex(0);
-	ASSERT_EQ(ActiveStore, TalkID::Confirm)
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::Confirm)
 	    << "Selecting an affordable item should go to Confirm";
 
 	ConfirmYes();
@@ -321,34 +321,34 @@ TEST_F(StoreTransactionTest, SmithBuy_Success)
 	// Assertions on game state.
 	EXPECT_EQ(MyPlayer->_pGold, goldBefore - itemPrice)
 	    << "Player gold should decrease by item price";
-	EXPECT_EQ(SmithItems.size(), vendorCountBefore - 1)
+	EXPECT_EQ(CurrentStoreManager.smithItems().size(), vendorCountBefore - 1)
 	    << "Purchased item should be removed from vendor inventory";
 }
 
 TEST_F(StoreTransactionTest, SmithBuy_CantAfford)
 {
 	PopulateVendors();
-	ASSERT_FALSE(SmithItems.empty());
+	ASSERT_FALSE(CurrentStoreManager.smithItems().empty());
 
 	SetPlayerGold(0);
 	Stash.gold = 0;
 
 	OpenVendor(TalkID::SmithBuy);
-	ASSERT_EQ(ActiveStore, TalkID::SmithBuy);
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::SmithBuy);
 
-	const size_t vendorCountBefore = SmithItems.size();
+	const size_t vendorCountBefore = CurrentStoreManager.smithItems().size();
 
 	SelectItemAtIndex(0);
-	EXPECT_EQ(ActiveStore, TalkID::NoMoney)
+	EXPECT_EQ(CurrentStoreManager.activeStore(), TalkID::NoMoney)
 	    << "Should transition to NoMoney when player can't afford item";
-	EXPECT_EQ(SmithItems.size(), vendorCountBefore)
+	EXPECT_EQ(CurrentStoreManager.smithItems().size(), vendorCountBefore)
 	    << "Vendor inventory should be unchanged";
 }
 
 TEST_F(StoreTransactionTest, SmithBuy_NoRoom)
 {
 	PopulateVendors();
-	ASSERT_FALSE(SmithItems.empty());
+	ASSERT_FALSE(CurrentStoreManager.smithItems().empty());
 
 	// Give the player enough gold but fill the inventory completely.
 	SetPlayerGold(100000);
@@ -368,38 +368,38 @@ TEST_F(StoreTransactionTest, SmithBuy_NoRoom)
 	}
 
 	OpenVendor(TalkID::SmithBuy);
-	ASSERT_EQ(ActiveStore, TalkID::SmithBuy);
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::SmithBuy);
 
-	const size_t vendorCountBefore = SmithItems.size();
+	const size_t vendorCountBefore = CurrentStoreManager.smithItems().size();
 
 	SelectItemAtIndex(0);
-	EXPECT_EQ(ActiveStore, TalkID::NoRoom)
+	EXPECT_EQ(CurrentStoreManager.activeStore(), TalkID::NoRoom)
 	    << "Should transition to NoRoom when inventory is full";
-	EXPECT_EQ(SmithItems.size(), vendorCountBefore)
+	EXPECT_EQ(CurrentStoreManager.smithItems().size(), vendorCountBefore)
 	    << "Vendor inventory should be unchanged";
 }
 
 TEST_F(StoreTransactionTest, SmithBuy_ConfirmNo_NoChange)
 {
 	PopulateVendors();
-	ASSERT_FALSE(SmithItems.empty());
+	ASSERT_FALSE(CurrentStoreManager.smithItems().empty());
 
-	const int itemPrice = SmithItems[0]._iIvalue;
+	const int itemPrice = CurrentStoreManager.smithItems()[0]._iIvalue;
 	StripPlayer();
 	SetPlayerGold(itemPrice + 1000);
 
 	const int goldBefore = MyPlayer->_pGold;
-	const size_t vendorCountBefore = SmithItems.size();
+	const size_t vendorCountBefore = CurrentStoreManager.smithItems().size();
 
 	OpenVendor(TalkID::SmithBuy);
 	SelectItemAtIndex(0);
-	ASSERT_EQ(ActiveStore, TalkID::Confirm);
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::Confirm);
 
 	ConfirmNo();
 
 	EXPECT_EQ(MyPlayer->_pGold, goldBefore)
 	    << "Declining should not change gold";
-	EXPECT_EQ(SmithItems.size(), vendorCountBefore)
+	EXPECT_EQ(CurrentStoreManager.smithItems().size(), vendorCountBefore)
 	    << "Declining should not remove item from vendor";
 }
 
@@ -419,13 +419,13 @@ TEST_F(StoreTransactionTest, SmithSell_Success)
 
 	// Open the sell sub-store directly (Smith menu line 16 → SmithSell).
 	OpenVendor(TalkID::SmithSell);
-	ASSERT_EQ(ActiveStore, TalkID::SmithSell);
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::SmithSell);
 
 	// The sell list should contain our sword.
-	ASSERT_GT(CurrentItemIndex, 0) << "Smith should see at least one sellable item";
+	ASSERT_GT(CurrentStoreManager.currentItemIndex(), 0) << "Smith should see at least one sellable item";
 
 	SelectItemAtIndex(0);
-	ASSERT_EQ(ActiveStore, TalkID::Confirm);
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::Confirm);
 
 	ConfirmYes();
 
@@ -451,17 +451,17 @@ TEST_F(StoreTransactionTest, SmithRepair_RestoresDurability)
 
 	// Open the repair sub-store directly.
 	OpenVendor(TalkID::SmithRepair);
-	ASSERT_EQ(ActiveStore, TalkID::SmithRepair);
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::SmithRepair);
 
 	// The repair list should contain our damaged sword.
-	ASSERT_GT(CurrentItemIndex, 0) << "Smith should see the damaged item";
+	ASSERT_GT(CurrentStoreManager.currentItemIndex(), 0) << "Smith should see the damaged item";
 
 	// Record the repair cost.
-	const int repairCost = PlayerItems[0]._iIvalue;
+	const int repairCost = CurrentStoreManager.playerItems()[0]._iIvalue;
 	ASSERT_GT(repairCost, 0);
 
 	SelectItemAtIndex(0);
-	ASSERT_EQ(ActiveStore, TalkID::Confirm);
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::Confirm);
 
 	ConfirmYes();
 
@@ -483,11 +483,11 @@ TEST_F(StoreTransactionTest, SmithRepair_CantAfford)
 	Stash.gold = 0;
 
 	OpenVendor(TalkID::SmithRepair);
-	ASSERT_EQ(ActiveStore, TalkID::SmithRepair);
-	ASSERT_GT(CurrentItemIndex, 0);
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::SmithRepair);
+	ASSERT_GT(CurrentStoreManager.currentItemIndex(), 0);
 
 	SelectItemAtIndex(0);
-	EXPECT_EQ(ActiveStore, TalkID::NoMoney)
+	EXPECT_EQ(CurrentStoreManager.activeStore(), TalkID::NoMoney)
 	    << "Should transition to NoMoney when can't afford repair";
 	EXPECT_EQ(MyPlayer->InvBody[INVLOC_HAND_RIGHT]._iDurability, originalDur)
 	    << "Durability should be unchanged";
@@ -506,7 +506,7 @@ TEST_F(StoreTransactionTest, Healer_FreeHealOnTalk)
 
 	// Just opening the healer menu heals the player for free.
 	OpenVendor(TalkID::Healer);
-	ASSERT_EQ(ActiveStore, TalkID::Healer);
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::Healer);
 
 	EXPECT_EQ(MyPlayer->life.current, MyPlayer->life.maximum)
 	    << "Player should be fully healed just by talking to Pepin";
@@ -519,11 +519,11 @@ TEST_F(StoreTransactionTest, Healer_FreeHealOnTalk)
 TEST_F(StoreTransactionTest, HealerBuy_Success)
 {
 	PopulateVendors();
-	ASSERT_FALSE(HealerItems.empty());
+	ASSERT_FALSE(CurrentStoreManager.healerItems().empty());
 
 	StripPlayer();
 
-	const int itemPrice = HealerItems[0]._iIvalue;
+	const int itemPrice = CurrentStoreManager.healerItems()[0]._iIvalue;
 	SetPlayerGold(itemPrice + 1000);
 	const int goldBefore = MyPlayer->_pGold;
 
@@ -532,13 +532,13 @@ TEST_F(StoreTransactionTest, HealerBuy_Success)
 	// This ensures StartHealerBuy() is called, which sets PreviousScrollPos
 	// correctly via ScrollVendorStore.
 	OpenVendor(TalkID::Healer);
-	ASSERT_EQ(ActiveStore, TalkID::Healer);
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::Healer);
 
 	SelectMenuLine(14);
-	ASSERT_EQ(ActiveStore, TalkID::HealerBuy);
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::HealerBuy);
 
 	SelectItemAtIndex(0);
-	ASSERT_EQ(ActiveStore, TalkID::Confirm);
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::Confirm);
 
 	ConfirmYes();
 
@@ -552,13 +552,13 @@ TEST_F(StoreTransactionTest, BoyBuy_Success)
 {
 	PopulateVendors();
 	// Wirt must have an item.
-	if (BoyItem.isEmpty()) {
+	if (CurrentStoreManager.boyItem().isEmpty()) {
 		GTEST_SKIP() << "Wirt has no item with this seed — skipping";
 	}
 
 	// Wirt charges a 50g viewing fee, then the item price with markup.
-	int price = BoyItem._iIvalue;
-	price += BoyItem._iIvalue / 2; // Diablo 50% markup
+	int price = CurrentStoreManager.boyItem()._iIvalue;
+	price += CurrentStoreManager.boyItem()._iIvalue / 2; // Diablo 50% markup
 
 	StripPlayer();
 	SetPlayerGold(price + 100);
@@ -567,33 +567,33 @@ TEST_F(StoreTransactionTest, BoyBuy_Success)
 
 	// Open Wirt's menu.
 	OpenVendor(TalkID::Boy);
-	ASSERT_EQ(ActiveStore, TalkID::Boy);
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::Boy);
 
 	// Pay the viewing fee (line 18 when Wirt has an item).
 	SelectMenuLine(18);
 	// This should deduct 50g and transition to BoyBuy.
-	ASSERT_EQ(ActiveStore, TalkID::BoyBuy)
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::BoyBuy)
 	    << "After paying viewing fee, should see Wirt's item";
 	EXPECT_EQ(MyPlayer->_pGold, goldBefore - 50)
 	    << "50 gold viewing fee should be deducted";
 
 	// Select the item (it's at line 10 for Boy).
-	CurrentTextLine = 10;
-	StoreEnter();
-	ASSERT_EQ(ActiveStore, TalkID::Confirm);
+	CurrentStoreManager.currentTextLine() = 10;
+	CurrentStoreManager.StoreEnter();
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::Confirm);
 
 	ConfirmYes();
 
 	EXPECT_EQ(MyPlayer->_pGold, goldBefore - 50 - price)
 	    << "Gold should decrease by viewing fee + item price";
-	EXPECT_TRUE(BoyItem.isEmpty())
+	EXPECT_TRUE(CurrentStoreManager.boyItem().isEmpty())
 	    << "Wirt's item should be cleared after purchase";
 }
 
 TEST_F(StoreTransactionTest, BoyBuy_CantAffordViewingFee)
 {
 	PopulateVendors();
-	if (BoyItem.isEmpty()) {
+	if (CurrentStoreManager.boyItem().isEmpty()) {
 		GTEST_SKIP() << "Wirt has no item with this seed — skipping";
 	}
 
@@ -601,10 +601,10 @@ TEST_F(StoreTransactionTest, BoyBuy_CantAffordViewingFee)
 	Stash.gold = 0;
 
 	OpenVendor(TalkID::Boy);
-	ASSERT_EQ(ActiveStore, TalkID::Boy);
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::Boy);
 
 	SelectMenuLine(18);
-	EXPECT_EQ(ActiveStore, TalkID::NoMoney)
+	EXPECT_EQ(CurrentStoreManager.activeStore(), TalkID::NoMoney)
 	    << "Should get NoMoney when can't afford viewing fee";
 }
 
@@ -625,19 +625,19 @@ TEST_F(StoreTransactionTest, StorytellerIdentify_Success)
 
 	// Open identify.
 	OpenVendor(TalkID::StorytellerIdentify);
-	ASSERT_EQ(ActiveStore, TalkID::StorytellerIdentify);
-	ASSERT_GT(CurrentItemIndex, 0) << "Cain should see the unidentified item";
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::StorytellerIdentify);
+	ASSERT_GT(CurrentStoreManager.currentItemIndex(), 0) << "Cain should see the unidentified item";
 
 	// The identify cost is always 100 gold.
-	EXPECT_EQ(PlayerItems[0]._iIvalue, 100);
+	EXPECT_EQ(CurrentStoreManager.playerItems()[0]._iIvalue, 100);
 
 	SelectItemAtIndex(0);
-	ASSERT_EQ(ActiveStore, TalkID::Confirm);
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::Confirm);
 
 	ConfirmYes();
 
 	// After ConfirmEnter for identify, it transitions to IdentifyShow.
-	EXPECT_EQ(ActiveStore, TalkID::StorytellerIdentifyShow)
+	EXPECT_EQ(CurrentStoreManager.activeStore(), TalkID::StorytellerIdentifyShow)
 	    << "Should show the identified item";
 
 	// The actual item in the player's inventory should now be identified.
@@ -658,11 +658,11 @@ TEST_F(StoreTransactionTest, StorytellerIdentify_CantAfford)
 	ASSERT_GE(invIdx, 0);
 
 	OpenVendor(TalkID::StorytellerIdentify);
-	ASSERT_EQ(ActiveStore, TalkID::StorytellerIdentify);
-	ASSERT_GT(CurrentItemIndex, 0);
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::StorytellerIdentify);
+	ASSERT_GT(CurrentStoreManager.currentItemIndex(), 0);
 
 	SelectItemAtIndex(0);
-	EXPECT_EQ(ActiveStore, TalkID::NoMoney)
+	EXPECT_EQ(CurrentStoreManager.activeStore(), TalkID::NoMoney)
 	    << "Should get NoMoney when can't afford identification";
 	EXPECT_FALSE(MyPlayer->InvList[invIdx]._iIdentified)
 	    << "Item should remain unidentified";
@@ -673,25 +673,25 @@ TEST_F(StoreTransactionTest, StorytellerIdentify_CantAfford)
 TEST_F(StoreTransactionTest, WitchBuy_PinnedItemsRemainAfterPurchase)
 {
 	PopulateVendors();
-	ASSERT_GE(WitchItems.size(), static_cast<size_t>(NumWitchPinnedItems));
+	ASSERT_GE(CurrentStoreManager.witchItems().size(), static_cast<size_t>(NumWitchPinnedItems));
 
 	// Buy the first pinned item (e.g., mana potion).
-	const int itemPrice = WitchItems[0]._iIvalue;
+	const int itemPrice = CurrentStoreManager.witchItems()[0]._iIvalue;
 	StripPlayer();
 	SetPlayerGold(itemPrice + 1000);
 
-	const size_t vendorCountBefore = WitchItems.size();
+	const size_t vendorCountBefore = CurrentStoreManager.witchItems().size();
 
 	OpenVendor(TalkID::WitchBuy);
-	ASSERT_EQ(ActiveStore, TalkID::WitchBuy);
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::WitchBuy);
 
 	SelectItemAtIndex(0);
-	ASSERT_EQ(ActiveStore, TalkID::Confirm);
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::Confirm);
 
 	ConfirmYes();
 
 	// Pinned items (first NumWitchPinnedItems) should NOT be removed.
-	EXPECT_EQ(WitchItems.size(), vendorCountBefore)
+	EXPECT_EQ(CurrentStoreManager.witchItems().size(), vendorCountBefore)
 	    << "Pinned witch items should remain after purchase (infinite stock)";
 }
 
@@ -700,26 +700,26 @@ TEST_F(StoreTransactionTest, WitchBuy_NonPinnedItemRemoved)
 	PopulateVendors();
 
 	// Skip past the pinned items. We need at least one non-pinned item.
-	if (WitchItems.size() <= static_cast<size_t>(NumWitchPinnedItems)) {
+	if (CurrentStoreManager.witchItems().size() <= static_cast<size_t>(NumWitchPinnedItems)) {
 		GTEST_SKIP() << "Not enough non-pinned witch items";
 	}
 
 	const int idx = NumWitchPinnedItems; // First non-pinned item.
-	const int itemPrice = WitchItems[idx]._iIvalue;
+	const int itemPrice = CurrentStoreManager.witchItems()[idx]._iIvalue;
 	StripPlayer();
 	SetPlayerGold(itemPrice + 1000);
 
-	const size_t vendorCountBefore = WitchItems.size();
+	const size_t vendorCountBefore = CurrentStoreManager.witchItems().size();
 
 	OpenVendor(TalkID::WitchBuy);
-	ASSERT_EQ(ActiveStore, TalkID::WitchBuy);
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::WitchBuy);
 
 	SelectItemAtIndex(idx);
-	ASSERT_EQ(ActiveStore, TalkID::Confirm);
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::Confirm);
 
 	ConfirmYes();
 
-	EXPECT_EQ(WitchItems.size(), vendorCountBefore - 1)
+	EXPECT_EQ(CurrentStoreManager.witchItems().size(), vendorCountBefore - 1)
 	    << "Non-pinned witch item should be removed after purchase";
 }
 
@@ -740,14 +740,14 @@ TEST_F(StoreTransactionTest, RepairCost_MagicItem_ScalesWithDurabilityLoss)
 		item._iDurability = dur;
 		item._ivalue = 2000;
 		item._iIvalue = 19000;
-		CurrentItemIndex = 0;
+		CurrentStoreManager.currentItemIndex() = 0;
 		AddStoreHoldRepair(&item, 0);
 
-		if (CurrentItemIndex > 0) {
+		if (CurrentStoreManager.currentItemIndex() > 0) {
 			const int due = item._iMaxDur - dur;
 			const int expectedCost = 30 * 19000 * due / (item._iMaxDur * 100 * 2);
 			if (expectedCost > 0) {
-				EXPECT_EQ(PlayerItems[0]._iIvalue, expectedCost)
+				EXPECT_EQ(CurrentStoreManager.playerItems()[0]._iIvalue, expectedCost)
 				    << "Repair cost mismatch at durability " << dur;
 			}
 		}
@@ -765,11 +765,11 @@ TEST_F(StoreTransactionTest, RepairCost_NormalItem_MinimumOneGold)
 	item._iIvalue = 10;
 	item._iDurability = 19; // Only 1 durability lost.
 
-	CurrentItemIndex = 0;
+	CurrentStoreManager.currentItemIndex() = 0;
 	AddStoreHoldRepair(&item, 0);
 
-	ASSERT_EQ(CurrentItemIndex, 1);
-	EXPECT_GE(PlayerItems[0]._iIvalue, 1)
+	ASSERT_EQ(CurrentStoreManager.currentItemIndex(), 1);
+	EXPECT_GE(CurrentStoreManager.playerItems()[0]._iIvalue, 1)
 	    << "Repair cost should be at least 1 gold for normal items";
 }
 
@@ -778,9 +778,9 @@ TEST_F(StoreTransactionTest, RepairCost_NormalItem_MinimumOneGold)
 TEST_F(StoreTransactionTest, BuyUsingStashGold)
 {
 	PopulateVendors();
-	ASSERT_FALSE(SmithItems.empty());
+	ASSERT_FALSE(CurrentStoreManager.smithItems().empty());
 
-	const int itemPrice = SmithItems[0]._iIvalue;
+	const int itemPrice = CurrentStoreManager.smithItems()[0]._iIvalue;
 	ASSERT_GT(itemPrice, 0);
 
 	// Give the player less gold than the price in inventory, make up
@@ -791,11 +791,11 @@ TEST_F(StoreTransactionTest, BuyUsingStashGold)
 	SetPlayerGold(inventoryGold);
 	Stash.gold = stashGold;
 
-	ASSERT_TRUE(PlayerCanAfford(itemPrice));
+	ASSERT_TRUE(CurrentStoreManager.PlayerCanAfford(itemPrice));
 
 	OpenVendor(TalkID::SmithBuy);
 	SelectItemAtIndex(0);
-	ASSERT_EQ(ActiveStore, TalkID::Confirm);
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::Confirm);
 	ConfirmYes();
 
 	// Total gold (inventory + stash) should have decreased by itemPrice.
@@ -810,17 +810,17 @@ TEST_F(StoreTransactionTest, BuyUsingStashGold)
 TEST_F(StoreTransactionTest, SmithBuy_MultipleItemsPurchased)
 {
 	PopulateVendors();
-	ASSERT_GE(SmithItems.size(), 3u);
+	ASSERT_GE(CurrentStoreManager.smithItems().size(), 3u);
 
-	const size_t initialCount = SmithItems.size();
+	const size_t initialCount = CurrentStoreManager.smithItems().size();
 	int totalSpent = 0;
 
 	// Buy three items in succession. Strip and re-fund between purchases
 	// because purchased items occupy inventory slots and gold piles also
 	// occupy slots — we need room for both the gold and the next item.
 	for (int purchase = 0; purchase < 3; purchase++) {
-		ASSERT_FALSE(SmithItems.empty());
-		const int price = SmithItems[0]._iIvalue;
+		ASSERT_FALSE(CurrentStoreManager.smithItems().empty());
+		const int price = CurrentStoreManager.smithItems()[0]._iIvalue;
 
 		StripPlayer();
 		SetPlayerGold(price + 1000);
@@ -828,7 +828,7 @@ TEST_F(StoreTransactionTest, SmithBuy_MultipleItemsPurchased)
 
 		OpenVendor(TalkID::SmithBuy);
 		SelectItemAtIndex(0);
-		ASSERT_EQ(ActiveStore, TalkID::Confirm)
+		ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::Confirm)
 		    << "Purchase " << purchase << " should reach Confirm";
 		ConfirmYes();
 
@@ -837,7 +837,7 @@ TEST_F(StoreTransactionTest, SmithBuy_MultipleItemsPurchased)
 		totalSpent += price;
 	}
 
-	EXPECT_EQ(SmithItems.size(), initialCount - 3)
+	EXPECT_EQ(CurrentStoreManager.smithItems().size(), initialCount - 3)
 	    << "Three items should have been removed from Smith's inventory";
 }
 
@@ -846,15 +846,15 @@ TEST_F(StoreTransactionTest, SmithBuy_MultipleItemsPurchased)
 TEST_F(StoreTransactionTest, StoreESC_ClosesStore)
 {
 	OpenVendor(TalkID::Smith);
-	ASSERT_EQ(ActiveStore, TalkID::Smith);
-	ASSERT_TRUE(IsPlayerInStore());
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::Smith);
+	ASSERT_TRUE(CurrentStoreManager.IsPlayerInStore());
 
 	// Select "Leave" (line 20 for Smith without visual store, or the last option).
 	SelectMenuLine(20);
 
-	EXPECT_EQ(ActiveStore, TalkID::None)
-	    << "Leaving the store should set ActiveStore to None";
-	EXPECT_FALSE(IsPlayerInStore());
+	EXPECT_EQ(CurrentStoreManager.activeStore(), TalkID::None)
+	    << "Leaving the store should set CurrentStoreManager.activeStore() to None";
+	EXPECT_FALSE(CurrentStoreManager.IsPlayerInStore());
 }
 
 // ---- Confirm dialog returns to correct sub-store --------------------------
@@ -862,19 +862,19 @@ TEST_F(StoreTransactionTest, StoreESC_ClosesStore)
 TEST_F(StoreTransactionTest, ConfirmNo_ReturnsToItemList)
 {
 	PopulateVendors();
-	ASSERT_FALSE(SmithItems.empty());
+	ASSERT_FALSE(CurrentStoreManager.smithItems().empty());
 
-	const int itemPrice = SmithItems[0]._iIvalue;
+	const int itemPrice = CurrentStoreManager.smithItems()[0]._iIvalue;
 	StripPlayer();
 	SetPlayerGold(itemPrice + 1000);
 
 	OpenVendor(TalkID::SmithBuy);
 	SelectItemAtIndex(0);
-	ASSERT_EQ(ActiveStore, TalkID::Confirm);
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::Confirm);
 
 	ConfirmNo();
 
-	EXPECT_EQ(ActiveStore, TalkID::SmithBuy)
+	EXPECT_EQ(CurrentStoreManager.activeStore(), TalkID::SmithBuy)
 	    << "Declining should return to the buy list";
 }
 
@@ -883,19 +883,19 @@ TEST_F(StoreTransactionTest, ConfirmNo_ReturnsToItemList)
 TEST_F(StoreTransactionTest, NoMoney_ReturnsToItemListOnEnter)
 {
 	PopulateVendors();
-	ASSERT_FALSE(SmithItems.empty());
+	ASSERT_FALSE(CurrentStoreManager.smithItems().empty());
 
 	SetPlayerGold(0);
 	Stash.gold = 0;
 
 	OpenVendor(TalkID::SmithBuy);
 	SelectItemAtIndex(0);
-	ASSERT_EQ(ActiveStore, TalkID::NoMoney);
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::NoMoney);
 
 	// Pressing enter on NoMoney should return to the original item list.
-	StoreEnter();
+	CurrentStoreManager.StoreEnter();
 
-	EXPECT_EQ(ActiveStore, TalkID::SmithBuy)
+	EXPECT_EQ(CurrentStoreManager.activeStore(), TalkID::SmithBuy)
 	    << "Entering on NoMoney should return to the buy list";
 }
 
@@ -904,25 +904,25 @@ TEST_F(StoreTransactionTest, NoMoney_ReturnsToItemListOnEnter)
 TEST_F(StoreTransactionTest, SmithPremiumBuy_ReplacesSlot)
 {
 	PopulateVendors();
-	ASSERT_FALSE(PremiumItems.empty());
+	ASSERT_FALSE(CurrentStoreManager.premiumItems().empty());
 
-	const int itemPrice = PremiumItems[0]._iIvalue;
+	const int itemPrice = CurrentStoreManager.premiumItems()[0]._iIvalue;
 	StripPlayer();
 	SetPlayerGold(itemPrice + 5000);
 
-	const size_t premiumCountBefore = PremiumItems.size();
+	const size_t premiumCountBefore = CurrentStoreManager.premiumItems().size();
 	const int goldBefore = MyPlayer->_pGold;
 
 	OpenVendor(TalkID::SmithPremiumBuy);
-	ASSERT_EQ(ActiveStore, TalkID::SmithPremiumBuy);
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::SmithPremiumBuy);
 
 	SelectItemAtIndex(0);
-	ASSERT_EQ(ActiveStore, TalkID::Confirm);
+	ASSERT_EQ(CurrentStoreManager.activeStore(), TalkID::Confirm);
 
 	ConfirmYes();
 
 	// Premium items are _replaced_, not removed. Count should stay the same.
-	EXPECT_EQ(PremiumItems.size(), premiumCountBefore)
+	EXPECT_EQ(CurrentStoreManager.premiumItems().size(), premiumCountBefore)
 	    << "Premium item slot should be replaced, not removed";
 	EXPECT_EQ(MyPlayer->_pGold, goldBefore - itemPrice)
 	    << "Gold should decrease by premium item price";

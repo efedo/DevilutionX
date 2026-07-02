@@ -250,7 +250,7 @@ void LuaReloadActiveMods()
 	CurrentLuaState->events = RunScript(/*env=*/std::nullopt, "devilutionx.events", /*optional=*/false);
 	CurrentLuaState->commonPackages["devilutionx.events"] = CurrentLuaState->events;
 
-	ClearTownerDialogOptions();
+	CurrentStoreManager.ClearTownerDialogOptions();
 
 	gbIsHellfire = false;
 	UnloadModArchives();
@@ -343,7 +343,7 @@ void LuaShutdown()
 #endif
 	// Must clear before destroying the Lua state: registered callbacks
 	// capture sol::function handles that reference CurrentLuaState.
-	ClearTownerDialogOptions();
+	CurrentStoreManager.ClearTownerDialogOptions();
 	CurrentLuaState = std::nullopt;
 }
 

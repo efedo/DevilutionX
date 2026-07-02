@@ -209,7 +209,7 @@ void FreeGame()
 	FreeGMenu();
 	FreeQuestText();
 	FreeInfoBoxGfx();
-	FreeStoreMem();
+	CurrentStoreManager.FreeStoreMem();
 
 	for (Player &player : Players)
 		player.resetGraphics();
@@ -366,8 +366,8 @@ void LeftMouseDown(uint16_t modState)
 		return;
 	}
 
-	if (IsPlayerInStore()) {
-		CheckStoreBtn();
+	if (CurrentStoreManager.IsPlayerInStore()) {
+		CurrentStoreManager.CheckStoreBtn();
 		return;
 	}
 
@@ -438,8 +438,8 @@ void LeftMouseUp(uint16_t modState)
 	}
 	if (LevelButtonDown)
 		CheckLevelButtonUp();
-	if (IsPlayerInStore())
-		ReleaseStoreBtn();
+	if (CurrentStoreManager.IsPlayerInStore())
+		CurrentStoreManager.ReleaseStoreBtn();
 }
 
 void RightMouseDown(bool isShiftHeld)
@@ -460,7 +460,7 @@ void RightMouseDown(bool isShiftHeld)
 		doom_close();
 		return;
 	}
-	if (IsPlayerInStore())
+	if (CurrentStoreManager.IsPlayerInStore())
 		return;
 	if (SpellSelectFlag) {
 		SetSpell();
@@ -612,8 +612,8 @@ void PressKey(SDL_Keycode vkey, uint16_t modState)
 		if ((modState & SDL_KMOD_ALT) != 0) {
 			options.Graphics.fullscreen.SetValue(!IsFullScreen());
 			if (!demo::IsRunning()) SaveOptions();
-		} else if (IsPlayerInStore()) {
-			StoreEnter();
+		} else if (CurrentStoreManager.IsPlayerInStore()) {
+			CurrentStoreManager.StoreEnter();
 		} else if (QuestLogIsOpen) {
 			QuestlogEnter();
 		} else {
@@ -621,8 +621,8 @@ void PressKey(SDL_Keycode vkey, uint16_t modState)
 		}
 		return;
 	case SDLK_UP:
-		if (IsPlayerInStore()) {
-			StoreUp();
+		if (CurrentStoreManager.IsPlayerInStore()) {
+			CurrentStoreManager.StoreUp();
 		} else if (QuestLogIsOpen) {
 			QuestlogUp();
 		} else if (HelpFlag) {
@@ -636,8 +636,8 @@ void PressKey(SDL_Keycode vkey, uint16_t modState)
 		}
 		return;
 	case SDLK_DOWN:
-		if (IsPlayerInStore()) {
-			StoreDown();
+		if (CurrentStoreManager.IsPlayerInStore()) {
+			CurrentStoreManager.StoreDown();
 		} else if (QuestLogIsOpen) {
 			QuestlogDown();
 		} else if (HelpFlag) {
@@ -651,15 +651,15 @@ void PressKey(SDL_Keycode vkey, uint16_t modState)
 		}
 		return;
 	case SDLK_PAGEUP:
-		if (IsPlayerInStore()) {
-			StorePrior();
+		if (CurrentStoreManager.IsPlayerInStore()) {
+			CurrentStoreManager.StorePrior();
 		} else if (ChatLogFlag) {
 			ChatLogScrollTop();
 		}
 		return;
 	case SDLK_PAGEDOWN:
-		if (IsPlayerInStore()) {
-			StoreNext();
+		if (CurrentStoreManager.IsPlayerInStore()) {
+			CurrentStoreManager.StoreNext();
 		} else if (ChatLogFlag) {
 			ChatLogScrollBottom();
 		}
@@ -679,12 +679,12 @@ void PressKey(SDL_Keycode vkey, uint16_t modState)
 
 void HandleMouseButtonDown(Uint8 button, uint16_t modState)
 {
-	if (IsPlayerInStore() && (button == SDL_BUTTON_X1
+	if (CurrentStoreManager.IsPlayerInStore() && (button == SDL_BUTTON_X1
 #if !SDL_VERSION_ATLEAST(2, 0, 0)
 	        || button == 8
 #endif
 	        )) {
-		StoreESC();
+		CurrentStoreManager.StoreESC();
 		return;
 	}
 
@@ -807,8 +807,8 @@ void GameEventHandler(const SDL_Event &event, uint16_t modState)
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	case SDL_EVENT_MOUSE_WHEEL:
 		if (SDLC_EventWheelIntY(event) > 0) { // Up
-			if (IsPlayerInStore()) {
-				StoreUp();
+			if (CurrentStoreManager.IsPlayerInStore()) {
+				CurrentStoreManager.StoreUp();
 			} else if (QuestLogIsOpen) {
 				QuestlogUp();
 			} else if (HelpFlag) {
@@ -825,8 +825,8 @@ void GameEventHandler(const SDL_Event &event, uint16_t modState)
 				KeymapperPress(MouseScrollUpButton);
 			}
 		} else if (SDLC_EventWheelIntY(event) < 0) { // down
-			if (IsPlayerInStore()) {
-				StoreDown();
+			if (CurrentStoreManager.IsPlayerInStore()) {
+				CurrentStoreManager.StoreDown();
 			} else if (QuestLogIsOpen) {
 				QuestlogDown();
 			} else if (HelpFlag) {
@@ -1620,7 +1620,7 @@ void HelpKeyPressed()
 {
 	if (HelpFlag) {
 		HelpFlag = false;
-	} else if (IsPlayerInStore()) {
+	} else if (CurrentStoreManager.IsPlayerInStore()) {
 		InfoString = StringOrView {};
 		AddInfoBoxString(_("No help available")); /// BUGFIX: message isn't displayed
 		AddInfoBoxString(_("while in stores"));
@@ -1644,7 +1644,7 @@ void HelpKeyPressed()
 
 void InventoryKeyPressed()
 {
-	if (IsPlayerInStore())
+	if (CurrentStoreManager.IsPlayerInStore())
 		return;
 	invflag = !invflag;
 	if (!IsLeftPanelOpen() && CanPanelsCoverView()) {
@@ -1666,7 +1666,7 @@ void InventoryKeyPressed()
 
 void CharacterSheetKeyPressed()
 {
-	if (IsPlayerInStore())
+	if (CurrentStoreManager.IsPlayerInStore())
 		return;
 	if (!IsRightPanelOpen() && CanPanelsCoverView()) {
 		if (CharFlag) { // We are closing the character sheet
@@ -1689,7 +1689,7 @@ void PartyPanelSideToggleKeyPressed()
 
 void QuestLogKeyPressed()
 {
-	if (IsPlayerInStore())
+	if (CurrentStoreManager.IsPlayerInStore())
 		return;
 	if (!QuestLogIsOpen) {
 		StartQuestlog();
@@ -1715,7 +1715,7 @@ void QuestLogKeyPressed()
 
 void DisplaySpellsKeyPressed()
 {
-	if (IsPlayerInStore())
+	if (CurrentStoreManager.IsPlayerInStore())
 		return;
 	CloseCharPanel();
 	QuestLogIsOpen = false;
@@ -1731,7 +1731,7 @@ void DisplaySpellsKeyPressed()
 
 void SpellBookKeyPressed()
 {
-	if (IsPlayerInStore())
+	if (CurrentStoreManager.IsPlayerInStore())
 		return;
 	SpellbookFlag = !SpellbookFlag;
 	if (!IsLeftPanelOpen() && CanPanelsCoverView()) {
@@ -1909,7 +1909,7 @@ void InitKeymapActions()
 	    SDLK_F3,
 	    [] { gamemenu_load_game(false); },
 	    nullptr,
-	    [&]() { return !gbIsMultiplayer && gbValidSaveFile && !IsPlayerInStore() && IsGameRunning(); });
+	    [&]() { return !gbIsMultiplayer && gbValidSaveFile && !CurrentStoreManager.IsPlayerInStore() && IsGameRunning(); });
 #ifndef NOEXIT
 	options.Keymapper.AddAction(
 	    "QuitGame",
@@ -2511,7 +2511,7 @@ void InitPadmapActions()
 	    ControllerButton_NONE,
 	    [] { gamemenu_load_game(false); },
 	    nullptr,
-	    [&]() { return !gbIsMultiplayer && gbValidSaveFile && !IsPlayerInStore() && IsGameRunning(); });
+	    [&]() { return !gbIsMultiplayer && gbValidSaveFile && !CurrentStoreManager.IsPlayerInStore() && IsGameRunning(); });
 	options.Padmapper.AddAction(
 	    "ItemHighlighting",
 	    N_("Item highlighting"),
@@ -2974,8 +2974,8 @@ bool PressEscKey()
 		rv = true;
 	}
 
-	if (IsPlayerInStore()) {
-		StoreESC();
+	if (CurrentStoreManager.IsPlayerInStore()) {
+		CurrentStoreManager.StoreESC();
 		rv = true;
 	}
 
@@ -3085,16 +3085,16 @@ void LoadGameLevelFirstFlagEntry()
 		InitInfoBoxGfx();
 		InitHelp();
 	}
-	InitStores();
+	CurrentStoreManager.InitStores();
 	InitAutomapOnce();
 }
 
 void LoadGameLevelStores()
 {
 	if (levelType() == DTYPE_TOWN) {
-		SetupTownStores();
+		CurrentStoreManager.SetupTownStores();
 	} else {
-		FreeStoreMem();
+		CurrentStoreManager.FreeStoreMem();
 	}
 }
 

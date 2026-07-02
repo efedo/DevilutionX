@@ -115,7 +115,7 @@ protected:
 		SNetInitializeProvider(SELCONN_LOOPBACK, nullptr);
 
 		// Clear store state.
-		InitStores();
+		CurrentStoreManager.InitStores();
 
 		// Make sure quest-text overlay is off.
 		qtextflag = false;
@@ -124,7 +124,7 @@ protected:
 	void TearDown() override
 	{
 		CloseAllPanels();
-		ActiveStore = TalkID::None;
+		CurrentStoreManager.activeStore() = TalkID::None;
 		FreeCursor();
 	}
 
@@ -146,7 +146,7 @@ protected:
 		if (IsVisualStoreOpen) {
 			IsVisualStoreOpen = false;
 		}
-		ActiveStore = TalkID::None;
+		CurrentStoreManager.activeStore() = TalkID::None;
 	}
 
 	/**

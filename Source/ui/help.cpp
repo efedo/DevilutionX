@@ -190,7 +190,7 @@ void InitHelp()
 
 void DrawHelp(const Surface &out)
 {
-	DrawSTextHelp();
+	CurrentStoreManager.DrawSTextHelp();
 	DrawQTextBack(out);
 
 	const int lineHeight = LineHeight();
@@ -211,7 +211,7 @@ void DrawHelp(const Surface &out)
 	    { .flags = UiFlags::ColorWhitegold | UiFlags::AlignCenter });
 
 	const int titleBottom = sy + HeaderHeight();
-	DrawSLine(out, titleBottom);
+	CurrentStoreManager.DrawSLine(out, titleBottom);
 
 	const int numLines = NumVisibleLines();
 	const int contentY = titleBottom + DividerLineMarginY() + ContentPaddingY();

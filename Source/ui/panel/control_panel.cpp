@@ -231,7 +231,7 @@ bool IsLevelUpButtonVisible()
 	if (ControlMode == ControlTypes::VirtualGamepad) {
 		return false;
 	}
-	if (IsPlayerInStore() || IsStashOpen || IsVisualStoreOpen) {
+	if (CurrentStoreManager.IsPlayerInStore() || IsStashOpen || IsVisualStoreOpen) {
 		return false;
 	}
 	if (QuestLogIsOpen && GetLeftPanel().contains(GetMainPanel().position + Displacement { 0, -74 })) {

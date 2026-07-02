@@ -41,7 +41,7 @@ namespace {
 /// Mirror of InventoryKeyPressed() (Source/diablo.cpp).
 void DoInventoryKeyPress()
 {
-	if (IsPlayerInStore())
+	if (CurrentStoreManager.IsPlayerInStore())
 		return;
 	invflag = !invflag;
 	SpellbookFlag = false;
@@ -53,7 +53,7 @@ void DoInventoryKeyPress()
 /// Mirror of SpellBookKeyPressed() (Source/diablo.cpp).
 void DoSpellBookKeyPress()
 {
-	if (IsPlayerInStore())
+	if (CurrentStoreManager.IsPlayerInStore())
 		return;
 	SpellbookFlag = !SpellbookFlag;
 	CloseInventory(); // closes stash, visual store, and sets invflag=false
@@ -62,7 +62,7 @@ void DoSpellBookKeyPress()
 /// Mirror of CharacterSheetKeyPressed() (Source/diablo.cpp).
 void DoCharacterSheetKeyPress()
 {
-	if (IsPlayerInStore())
+	if (CurrentStoreManager.IsPlayerInStore())
 		return;
 	ToggleCharPanel(); // OpenCharPanel closes quest log, stash, visual store
 }
@@ -70,7 +70,7 @@ void DoCharacterSheetKeyPress()
 /// Mirror of QuestLogKeyPressed() (Source/diablo.cpp).
 void DoQuestLogKeyPress()
 {
-	if (IsPlayerInStore())
+	if (CurrentStoreManager.IsPlayerInStore())
 		return;
 	if (!QuestLogIsOpen) {
 		StartQuestlog();
@@ -86,7 +86,7 @@ void DoQuestLogKeyPress()
 /// Mirror of DisplaySpellsKeyPressed() (Source/diablo.cpp).
 void DoDisplaySpellsKeyPress()
 {
-	if (IsPlayerInStore())
+	if (CurrentStoreManager.IsPlayerInStore())
 		return;
 	CloseCharPanel();
 	QuestLogIsOpen = false;
@@ -402,8 +402,8 @@ TEST_F(PanelStateTest, OpeningCharSheetClosesStash)
 
 TEST_F(PanelStateTest, InventoryBlockedWhileInStore)
 {
-	ActiveStore = TalkID::Smith;
-	ASSERT_TRUE(IsPlayerInStore());
+	CurrentStoreManager.activeStore() = TalkID::Smith;
+	ASSERT_TRUE(CurrentStoreManager.IsPlayerInStore());
 
 	DoInventoryKeyPress();
 	EXPECT_FALSE(invflag) << "Inventory toggle must be blocked while in store";
@@ -411,8 +411,8 @@ TEST_F(PanelStateTest, InventoryBlockedWhileInStore)
 
 TEST_F(PanelStateTest, SpellBookBlockedWhileInStore)
 {
-	ActiveStore = TalkID::Witch;
-	ASSERT_TRUE(IsPlayerInStore());
+	CurrentStoreManager.activeStore() = TalkID::Witch;
+	ASSERT_TRUE(CurrentStoreManager.IsPlayerInStore());
 
 	DoSpellBookKeyPress();
 	EXPECT_FALSE(SpellbookFlag) << "Spellbook toggle must be blocked while in store";
@@ -420,8 +420,8 @@ TEST_F(PanelStateTest, SpellBookBlockedWhileInStore)
 
 TEST_F(PanelStateTest, CharSheetBlockedWhileInStore)
 {
-	ActiveStore = TalkID::Healer;
-	ASSERT_TRUE(IsPlayerInStore());
+	CurrentStoreManager.activeStore() = TalkID::Healer;
+	ASSERT_TRUE(CurrentStoreManager.IsPlayerInStore());
 
 	DoCharacterSheetKeyPress();
 	EXPECT_FALSE(CharFlag) << "Char sheet toggle must be blocked while in store";
@@ -429,8 +429,8 @@ TEST_F(PanelStateTest, CharSheetBlockedWhileInStore)
 
 TEST_F(PanelStateTest, QuestLogBlockedWhileInStore)
 {
-	ActiveStore = TalkID::Storyteller;
-	ASSERT_TRUE(IsPlayerInStore());
+	CurrentStoreManager.activeStore() = TalkID::Storyteller;
+	ASSERT_TRUE(CurrentStoreManager.IsPlayerInStore());
 
 	DoQuestLogKeyPress();
 	EXPECT_FALSE(QuestLogIsOpen) << "Quest log toggle must be blocked while in store";
@@ -438,8 +438,8 @@ TEST_F(PanelStateTest, QuestLogBlockedWhileInStore)
 
 TEST_F(PanelStateTest, DisplaySpellsBlockedWhileInStore)
 {
-	ActiveStore = TalkID::Smith;
-	ASSERT_TRUE(IsPlayerInStore());
+	CurrentStoreManager.activeStore() = TalkID::Smith;
+	ASSERT_TRUE(CurrentStoreManager.IsPlayerInStore());
 
 	DoDisplaySpellsKeyPress();
 	// The key observation is that nothing should change — no panels opened.
@@ -498,8 +498,8 @@ TEST_F(PanelStateTest, FullPanelWorkflow)
 
 TEST_F(PanelStateTest, StorePreventsAllToggles)
 {
-	ActiveStore = TalkID::SmithBuy;
-	ASSERT_TRUE(IsPlayerInStore());
+	CurrentStoreManager.activeStore() = TalkID::SmithBuy;
+	ASSERT_TRUE(CurrentStoreManager.IsPlayerInStore());
 
 	DoInventoryKeyPress();
 	DoSpellBookKeyPress();
@@ -517,13 +517,13 @@ TEST_F(PanelStateTest, StorePreventsAllToggles)
 TEST_F(PanelStateTest, PanelsWorkAfterStoreCloses)
 {
 	// Open store, try to open panels (should be blocked), then close store.
-	ActiveStore = TalkID::Smith;
+	CurrentStoreManager.activeStore() = TalkID::Smith;
 	DoInventoryKeyPress();
 	EXPECT_FALSE(invflag);
 
 	// Close the store.
-	ActiveStore = TalkID::None;
-	ASSERT_FALSE(IsPlayerInStore());
+	CurrentStoreManager.activeStore() = TalkID::None;
+	ASSERT_FALSE(CurrentStoreManager.IsPlayerInStore());
 
 	// Now panels should work again.
 	DoInventoryKeyPress();
@@ -608,15 +608,15 @@ TEST_F(PanelStateTest, MultipleStoreTypesAllBlockPanels)
 
 	for (TalkID store : stores) {
 		CloseAllPanels();
-		ActiveStore = store;
-		ASSERT_TRUE(IsPlayerInStore())
+		CurrentStoreManager.activeStore() = store;
+		ASSERT_TRUE(CurrentStoreManager.IsPlayerInStore())
 		    << "TalkID value " << static_cast<int>(store) << " should count as in-store";
 
 		DoInventoryKeyPress();
 		EXPECT_FALSE(invflag)
 		    << "Inventory should be blocked for TalkID " << static_cast<int>(store);
 
-		ActiveStore = TalkID::None;
+		CurrentStoreManager.activeStore() = TalkID::None;
 	}
 }
 

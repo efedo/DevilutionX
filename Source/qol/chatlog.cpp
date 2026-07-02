@@ -96,7 +96,7 @@ void ToggleChatLog()
 	if (ChatLogFlag) {
 		ChatLogFlag = false;
 	} else {
-		ActiveStore = TalkID::None;
+		CurrentStoreManager.activeStore() = TalkID::None;
 		CloseInventory();
 		CloseCharPanel();
 		SpellbookFlag = false;
@@ -154,7 +154,7 @@ void AddMessageToChatLog(std::string_view message, Player *player, UiFlags flags
 
 void DrawChatLog(const Surface &out)
 {
-	DrawSTextHelp();
+	CurrentStoreManager.DrawSTextHelp();
 	DrawQTextBack(out);
 
 	if (SkipLines == 0) {
@@ -181,7 +181,7 @@ void DrawChatLog(const Surface &out)
 	}
 
 	const int titleBottom = sy + HeaderHeight();
-	DrawSLine(out, titleBottom);
+	CurrentStoreManager.DrawSLine(out, titleBottom);
 
 	const int numLines = NumVisibleLines();
 	const int contentY = titleBottom + DividerLineMarginY() + ContentPaddingY();

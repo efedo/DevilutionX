@@ -73,21 +73,21 @@ std::span<Item> GetVendorItems(VisualStoreVendor vendor, VisualStoreTab tab)
 	switch (vendor) {
 	case VisualStoreVendor::Smith: {
 		if (tab == VisualStoreTab::Premium) {
-			return { PremiumItems.data(), static_cast<size_t>(PremiumItems.size()) };
+			return { CurrentStoreManager.premiumItems().data(), static_cast<size_t>(CurrentStoreManager.premiumItems().size()) };
 		}
-		return { SmithItems.data(), static_cast<size_t>(SmithItems.size()) };
+		return { CurrentStoreManager.smithItems().data(), static_cast<size_t>(CurrentStoreManager.smithItems().size()) };
 	}
 	case VisualStoreVendor::Witch: {
-		return { WitchItems.data(), static_cast<size_t>(WitchItems.size()) };
+		return { CurrentStoreManager.witchItems().data(), static_cast<size_t>(CurrentStoreManager.witchItems().size()) };
 	}
 	case VisualStoreVendor::Healer: {
-		return { HealerItems.data(), static_cast<size_t>(HealerItems.size()) };
+		return { CurrentStoreManager.healerItems().data(), static_cast<size_t>(CurrentStoreManager.healerItems().size()) };
 	}
 	case VisualStoreVendor::Boy: {
-		if (BoyItem.isEmpty()) {
+		if (CurrentStoreManager.boyItem().isEmpty()) {
 			return {};
 		}
-		return { &BoyItem, 1 };
+		return { &CurrentStoreManager.boyItem(), 1 };
 	}
 	}
 	return {};
@@ -328,13 +328,13 @@ void VisualStoreRepairAll()
 	if (totalCost == 0)
 		return;
 
-	if (!PlayerCanAfford(totalCost)) {
+	if (!CurrentStoreManager.PlayerCanAfford(totalCost)) {
 
 		return;
 	}
 
 	// Execute repairs
-	TakePlrsMoney(totalCost);
+	CurrentStoreManager.TakePlrsMoney(totalCost);
 
 	for (auto &item : myPlayer.InvBody) {
 		if (!item.isEmpty() && item._iMaxDur != DUR_INDESTRUCTIBLE)
@@ -376,12 +376,12 @@ void VisualStoreRepairItem(int invIndex)
 	if (cost <= 0)
 		return;
 
-	if (!PlayerCanAfford(cost)) {
+	if (!CurrentStoreManager.PlayerCanAfford(cost)) {
 
 		return;
 	}
 
-	TakePlrsMoney(cost);
+	CurrentStoreManager.TakePlrsMoney(cost);
 	item->_iDurability = item->_iMaxDur;
 	PlaySFX(SfxID::ItemGold);
 	CalcPlrInv(myPlayer, true);
@@ -604,7 +604,7 @@ int16_t CheckVisualStoreHLight(Point mousePosition)
 
 			if (cell.contains(mousePosition)) {
 				const int price = item._iIvalue;
-				const bool canAfford = PlayerCanAfford(price);
+				const bool canAfford = CurrentStoreManager.PlayerCanAfford(price);
 
 				InfoString = item.getName();
 				FloatingInfoString = item.getName();
@@ -650,14 +650,14 @@ void CheckVisualStoreItem(Point mousePosition, bool isCtrlHeld, bool isShiftHeld
 	}
 
 	// Check if player has room for the item
-	if (!StoreAutoPlace(item, false)) {
+	if (!CurrentStoreManager.StoreAutoPlace(item, false)) {
 		// InitDiabloMsg(EMSG_INVENTORY_FULL);
 		return;
 	}
 
 	// Execute the purchase
-	TakePlrsMoney(price);
-	StoreAutoPlace(item, true);
+	CurrentStoreManager.TakePlrsMoney(price);
+	CurrentStoreManager.StoreAutoPlace(item, true);
 	PlaySFX(ItemInvSnds[ItemCAnimTbl[item._iCurs]]);
 
 	// Remove item from store (vendor-specific handling)
@@ -665,30 +665,30 @@ void CheckVisualStoreItem(Point mousePosition, bool isCtrlHeld, bool isShiftHeld
 	case VisualStoreVendor::Smith: {
 		if (VisualStore.activeTab == VisualStoreTab::Premium) {
 			// Premium items get replaced
-			PremiumItems[itemIndex].clear();
+			CurrentStoreManager.premiumItems()[itemIndex].clear();
 			SpawnPremium(*MyPlayer);
 		} else {
 			// Basic items are removed
-			SmithItems.erase(SmithItems.begin() + itemIndex);
+			CurrentStoreManager.smithItems().erase(CurrentStoreManager.smithItems().begin() + itemIndex);
 		}
 		break;
 	}
 	case VisualStoreVendor::Witch: {
 		// First 3 items are pinned, don't remove them
 		if (itemIndex >= 3) {
-			WitchItems.erase(WitchItems.begin() + itemIndex);
+			CurrentStoreManager.witchItems().erase(CurrentStoreManager.witchItems().begin() + itemIndex);
 		}
 		break;
 	}
 	case VisualStoreVendor::Healer: {
 		// First 2-3 items are pinned
 		if (itemIndex >= (gbIsMultiplayer ? 3 : 2)) {
-			HealerItems.erase(HealerItems.begin() + itemIndex);
+			CurrentStoreManager.healerItems().erase(CurrentStoreManager.healerItems().begin() + itemIndex);
 		}
 		break;
 	}
 	case VisualStoreVendor::Boy: {
-		BoyItem.clear();
+		CurrentStoreManager.boyItem().clear();
 		break;
 	}
 	}
@@ -731,10 +731,10 @@ bool CanSellToCurrentVendor(const Item &item)
 
 	switch (VisualStore.vendor) {
 	case VisualStoreVendor::Smith: {
-		return SmithWillBuy(item);
+		return CurrentStoreManager.SmithWillBuy(item);
 	}
 	case VisualStoreVendor::Witch: {
-		return WitchWillBuy(item);
+		return CurrentStoreManager.WitchWillBuy(item);
 	}
 	case VisualStoreVendor::Healer:
 	case VisualStoreVendor::Boy: {

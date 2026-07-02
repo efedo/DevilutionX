@@ -448,7 +448,7 @@ VirtualGamepadButtonType PrimaryActionButtonRenderer::GetButtonType()
 
 VirtualGamepadButtonType PrimaryActionButtonRenderer::GetTownButtonType()
 {
-	if (IsPlayerInStore() || pcursmonst != -1)
+	if (CurrentStoreManager.IsPlayerInStore() || pcursmonst != -1)
 		return GetTalkButtonType(virtualPadButton->isHeld);
 	return GetBlankButtonType(virtualPadButton->isHeld);
 }

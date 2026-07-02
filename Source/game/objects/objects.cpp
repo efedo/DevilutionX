@@ -2853,7 +2853,7 @@ void OperateShrineMendicant(Player &player)
 
 	const int gold = player._pGold / 2;
 	player.addExperience(gold);
-	TakePlrsMoney(gold);
+	CurrentStoreManager.TakePlrsMoney(gold);
 
 	RedrawEverything();
 
@@ -2968,7 +2968,7 @@ void OperateShrineMurphys(DiabloGenerator &rng, Player &player)
 		}
 	}
 	if (!broke) {
-		TakePlrsMoney(player._pGold / 3);
+		CurrentStoreManager.TakePlrsMoney(player._pGold / 3);
 	}
 
 	InitDiabloMsg(EMSG_SHRINE_MURPHYS);

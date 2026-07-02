@@ -106,7 +106,7 @@ void ResetItemlabelHighlighted()
 
 bool IsHighlightingLabelsEnabled()
 {
-	return !IsPlayerInStore() && highlightKeyPressed != *GetOptions().Gameplay.showItemLabels;
+	return !CurrentStoreManager.IsPlayerInStore() && highlightKeyPressed != *GetOptions().Gameplay.showItemLabels;
 }
 
 void AddItemToLabelQueue(int id, Point position)
@@ -201,7 +201,7 @@ void DrawItemNameLabels(const Surface &out)
 			if (!gmenu_is_active()
 			    && PauseMode == 0
 			    && !MyPlayerIsDead
-			    && !IsPlayerInStore()
+			    && !CurrentStoreManager.IsPlayerInStore()
 			    && IsMouseOverGameArea()
 			    && LastPlayerAction == PlayerActionType::None) {
 				isLabelHighlighted = true;
@@ -209,7 +209,7 @@ void DrawItemNameLabels(const Surface &out)
 				pcursitem = label.id;
 			}
 		}
-		if (pcursitem == label.id && !IsPlayerInStore())
+		if (pcursitem == label.id && !CurrentStoreManager.IsPlayerInStore())
 			FillRect(clippedOut, label.pos.x, label.pos.y, label.width, labelHeight, PAL8_BLUE + 6);
 		else
 			DrawHalfTransparentRectTo(clippedOut, label.pos.x, label.pos.y, label.width, labelHeight);

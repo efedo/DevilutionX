@@ -110,10 +110,10 @@ bool HandleGameMenuInteraction(const SDL_Event &event)
 
 bool HandleStoreInteraction(const SDL_Event &event)
 {
-	if (!IsPlayerInStore())
+	if (!CurrentStoreManager.IsPlayerInStore())
 		return false;
 	if (IsFingerDown(event))
-		CheckStoreBtn();
+		CurrentStoreManager.CheckStoreBtn();
 	return true;
 }
 

@@ -65,7 +65,7 @@ void RepeatPlayerAction()
 	if (sgbMouseDown == CLICK_NONE && ControllerActionHeld == GameActionType_NONE)
 		return;
 
-	if (IsPlayerInStore())
+	if (CurrentStoreManager.IsPlayerInStore())
 		return;
 
 	if (LastPlayerAction == PlayerActionType::None)
