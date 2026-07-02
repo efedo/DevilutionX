@@ -22,7 +22,9 @@ Each module was evaluated on:
 
 **Current state:** Massive jump-table of ~55 `Add*` and ~35 `Process*` functions dispatched via function pointer arrays. The `Missile` struct stores weakly-typed `var1`-`var7` fields. Each missile type (arrow, firebolt, fireball, lightning, guardian, teleport, etc.) has its own `Add*` and `Process*` function.
 
-**Refactoring target:** Polymorphic missile class hierarchy with `virtual add()`, `process()`, and `collision()` methods.
+**Completed (2025-06):** Replaced raw `var1`-`var7` fields with a typed anonymous union providing named struct accessors per missile family (projectile, guardian, portal, rune, wall, chain lightning, inferno, nova, firewall, lightning, golem). Backward-compatible: `var1`-`var7` remain accessible directly.
+
+**Future target:** Polymorphic missile class hierarchy with `virtual add()`, `process()`, and `collision()` methods.
 
 **Benefits:**
 - Eliminates the giant function pointer dispatch tables
@@ -53,13 +55,11 @@ Each module was evaluated on:
 - `crypt.h`: `UberRow`, `UberCol`, `IsUberRoomOpened`, etc. are module-level globals
 - `dungeon_common.h`: ~20 inline accessor functions to `Level` member variables
 
-**Refactoring target:**
-- Move theme/trigger/crypt globals into `Level` class or dedicated `ThemeManager`/`TriggerManager` classes
-- Replace inline accessors in `dungeon_common.h` with direct `Level` member access
+**Completed (2025-06):** Moved all 12 scalar globals (numthemes, armorFlag, weaponFlag, zharlib, trigflag, numtrigs, TWarpFrom, UberRow, UberCol, IsUberRoomOpened, IsUberLeverActivated, UberDiabloMonsterIndex) into `Level` class with inline accessor functions in `dungeon_common.h`. Removed extern declarations from `themes.h`, `triggers.h`, `crypt.h`. Arrays `themes[]` and `trigs[]` remain as namespace globals due to circular include constraints.
 
 **Benefits:**
 - Each `Level` instance carries its own state (important for future multi-level support)
-- Eliminates module-level global arrays
+- Eliminates module-level global arrays (partial - arrays remain)
 - Clear ownership of data
 
 ---

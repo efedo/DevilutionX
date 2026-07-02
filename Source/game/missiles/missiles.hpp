@@ -111,13 +111,22 @@ public:
 	int _midist; // Used for arrows to measure distance travelled (increases by 1 each game tick). Higher value is a penalty for accuracy calculation when hitting enemy
 	int _mlid;
 	int _mirnd;
-	int var1;
-	int var2;
-	int var3;
-	int var4;
-	int var5;
-	int var6;
-	int var7;
+	union {
+		struct { int var1, var2, var3, var4, var5, var6, var7; }; // Backward compat (offsets 0-24)
+		int raw[7];                                  // Raw array access (offsets 0-24)
+		struct { int monsterId, state, frameCounter; } guardian; // var1-var3
+		struct { int x, y, level; } portal;          // var1-var3: town portal destination
+		struct { int runeType, fromX, fromY; } rune; // var1-var3: rune parameters
+		struct { int direction, monsterIdx, state; } wall; // var1-var3: wall control
+		struct { int range, monsterIdx, damage; } inferno; // var1-var3: inferno
+		struct { int centerX, centerY, totalCount; } nova; // var1-var3: nova/immolation
+		struct { int srcX, srcY, wallDir; } fireWall; // var1-var3: firewall
+		struct { int srcMonsterId, maxHits; } golem;  // var1-var2: golem
+		struct { int id; } simple;                    // var1: single-id usage
+		struct { int srcX, srcY, pad1, destX, destY; } projectile; // var1-var5: projectile target
+		struct { int monsterId, jumps, pad1, destX, destY; } chain; // var1-var5: chain lightning
+		struct { int monsterId, pad1, pad2, destX, destY; } lightning; // var1, var4-var5
+	};
 	bool limitReached;
 	int16_t lastCollisionTargetHash; // For moving missiles lastCollisionTargetHash contains the last entity
 									 // (player or monster) that was checked in CheckMissileCol (needed to
@@ -285,12 +294,6 @@ void AddTeleport(Missile &missile, AddMissileParameter &parameter);
 void AddNovaBall(Missile &missile, AddMissileParameter &parameter);
 void AddFireWall(Missile &missile, AddMissileParameter &parameter);
 
-/**
- * var1: X coordinate of the missile-light
- * var2: Y coordinate of the missile-light
- * var4: X coordinate of the missile-light
- * var5: Y coordinate of the missile-light
- */
 void AddFireball(Missile &missile, AddMissileParameter &parameter);
 void AddLightningControl(Missile &missile, AddMissileParameter &parameter);
 void AddLightning(Missile &missile, AddMissileParameter &parameter);

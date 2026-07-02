@@ -733,7 +733,7 @@ bool GuardianTryFireAt(Missile &missile, Point target)
 	const Direction dir = GetDirection(position, target);
 	AddMissile(position, target, dir, MissileID::Firebolt, TARGET_MONSTERS, missile._misource, missile._midam, missile.sourcePlayer()->GetSpellLevel(SpellID::Guardian), &missile);
 	missile.setFrameGroup<GuardianFrame>(GuardianFrame::Attack);
-	missile.var2 = 3;
+	missile.guardian.state = 3;
 
 	return true;
 }
@@ -2219,8 +2219,8 @@ void AddGuardian(Missile &missile, AddMissileParameter &parameter)
 	missile.duration <<= 4;
 	missile.duration = std::max(missile.duration, 30);
 
-	missile.var1 = missile.duration - missile._miAnimLen;
-	missile.var3 = 1;
+	missile.guardian.monsterId = missile.duration - missile._miAnimLen;
+	missile.guardian.frameCounter = 1;
 }
 
 void AddChainLightning(Missile &missile, AddMissileParameter &parameter)
@@ -3005,9 +3005,9 @@ void ProcessGenericProjectile(Missile &missile)
 			CurrentLightManager.AddUnLight(missile._mlid);
 		PutMissile(missile);
 	} else {
-		if (missile.position.tile != Point { missile.var1, missile.var2 }) {
-			missile.var1 = missile.position.tile.x;
-			missile.var2 = missile.position.tile.y;
+		if (missile.position.tile != Point { missile.projectile.srcX, missile.projectile.srcY }) {
+			missile.projectile.srcX = missile.position.tile.x;
+			missile.projectile.srcY = missile.position.tile.y;
 			if (missile._mlid != NO_LIGHT)
 				CurrentLightManager.ChangeLight(missile._mlid, missile.position.tile, 8);
 		}
@@ -3508,10 +3508,10 @@ void ProcessGuardian(Missile &missile)
 {
 	missile.duration--;
 
-	if (missile.var2 > 0) {
-		missile.var2--;
+	if (missile.guardian.state > 0) {
+		missile.guardian.state--;
 	}
-	if (missile.duration == missile.var1 || (missile.getFrameGroup<GuardianFrame>() == GuardianFrame::Attack && missile.var2 == 0)) {
+	if (missile.duration == missile.guardian.monsterId || (missile.getFrameGroup<GuardianFrame>() == GuardianFrame::Attack && missile.guardian.state == 0)) {
 		missile.setFrameGroup<GuardianFrame>(GuardianFrame::Idle);
 	}
 
@@ -3559,12 +3559,12 @@ void ProcessGuardian(Missile &missile)
 		missile._miAnimAdd = -1;
 	}
 
-	missile.var3 += missile._miAnimAdd;
+	missile.guardian.frameCounter += missile._miAnimAdd;
 
-	if (missile.var3 > 15) {
-		missile.var3 = 15;
-	} else if (missile.var3 > 0) {
-		CurrentLightManager.ChangeLight(missile._mlid, position, missile.var3);
+	if (missile.guardian.frameCounter > 15) {
+		missile.guardian.frameCounter = 15;
+	} else if (missile.guardian.frameCounter > 0) {
+		CurrentLightManager.ChangeLight(missile._mlid, position, missile.guardian.frameCounter);
 	}
 
 	if (missile.duration == 0) {
