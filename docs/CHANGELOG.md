@@ -2,6 +2,12 @@
 
 All notable changes to this fork are documented below.
 
+## 2026-07-01
+
+- Refactor engine/lighting into `LightManager` class with singleton `CurrentLightManager`; update ~22 caller files
+- Move 12 theme/trigger/crypt scalar globals (`numthemes`, `armorFlag`, `weaponFlag`, `zharlib`, `trigflag`, `numtrigs`, `TWarpFrom`, `UberRow`, `UberCol`, `IsUberRoomOpened`, `IsUberLeverActivated`, `UberDiabloMonsterIndex`) into `Level` class with inline accessors
+- Replace `Missile::var1`-`var7` with typed anonymous union providing named struct accessors per missile family (projectile, guardian, portal, rune, wall, chain, inferno, nova, firewall, lightning, golem); migrate ProcessGenericProjectile and ProcessGuardian/AddGuardian
+
 ## 2026-06-24
 
 - Add file-level summaries to all source files missing them
