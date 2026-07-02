@@ -9,6 +9,10 @@ All notable changes to this fork are documented below.
 - Replace `Missile::var1`-`var7` with typed anonymous union providing named struct accessors per missile family (projectile, guardian, portal, rune, wall, chain, inferno, nova, firewall, lightning, golem); migrate ProcessGenericProjectile and ProcessGuardian/AddGuardian
 - Refactor `game/stores/` into `StoreManager` class with singleton `CurrentStoreManager`; update ~30 caller files
 
+## 2026-07-02
+
+- Refactor `ui/automap` into `AutomapManager` class with singleton `CurrentAutomapManager`; move 8 globals + 13 functions; update ~18 caller files
+
 ## 2026-06-24
 
 - Add file-level summaries to all source files missing them
