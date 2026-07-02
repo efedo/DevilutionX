@@ -82,13 +82,13 @@ Each module was evaluated on:
 
 **Current state:** Vendor management functions for Smith, Witch, Boy, Healer, etc.
 
-**Refactoring target:** `StoreManager` class.
+**Completed (2025-06):** Refactored into `StoreManager` class with singleton `CurrentStoreManager`. 19 module-level globals + 27 public functions moved into class. Updated ~30 caller files.
 
 ### 7. `ui/` automap (~15 free functions, 5+ globals)
 
 **Current state:** `InitAutomap()`, `DrawAutomap()`, `StartAutomap()`, etc. with `AutomapActive`, `AutoMapScale`, `AutomapOffset`, etc.
 
-**Refactoring target:** `AutomapManager` class.
+**Completed (2026-07):** Refactored into `AutomapManager` class with singleton `CurrentAutomapManager`. 8 globals + 13 public functions moved into class. Updated ~18 caller files.
 
 ---
 

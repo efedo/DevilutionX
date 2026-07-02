@@ -6,9 +6,9 @@ using namespace devilution;
 
 TEST(Automap, InitAutomap)
 {
-	InitAutomapOnce();
-	EXPECT_EQ(AutomapActive, false);
-	EXPECT_EQ(AutoMapScale, 50);
+	CurrentAutomapManager.InitAutomapOnce();
+	EXPECT_EQ(CurrentAutomapManager.GetAutomapActive(), false);
+	EXPECT_EQ(CurrentAutomapManager.GetAutoMapScale(), 50);
 	EXPECT_EQ(AmLine(AmLineLength::DoubleTile), static_cast<int>(AmLineLength::FullTile));
 	EXPECT_EQ(AmLine(AmLineLength::FullAndHalfTile), 6);
 	EXPECT_EQ(AmLine(AmLineLength::FullTile), static_cast<int>(AmLineLength::HalfTile));
@@ -18,53 +18,49 @@ TEST(Automap, InitAutomap)
 
 TEST(Automap, StartAutomap)
 {
-	StartAutomap();
-	EXPECT_EQ(AutomapOffset.deltaX, 0);
-	EXPECT_EQ(AutomapOffset.deltaY, 0);
-	EXPECT_EQ(AutomapActive, true);
+	CurrentAutomapManager.StartAutomap();
+	EXPECT_EQ(CurrentAutomapManager.GetAutomapOffset().deltaX, 0);
+	EXPECT_EQ(CurrentAutomapManager.GetAutomapOffset().deltaY, 0);
+	EXPECT_EQ(CurrentAutomapManager.GetAutomapActive(), true);
 }
 
 TEST(Automap, AutomapUp)
 {
-	AutomapOffset.deltaX = 1;
-	AutomapOffset.deltaY = 1;
-	AutomapUp();
-	EXPECT_EQ(AutomapOffset.deltaX, 0);
-	EXPECT_EQ(AutomapOffset.deltaY, 0);
+	CurrentAutomapManager.SetAutomapOffset({ 1, 1 });
+	CurrentAutomapManager.AutomapUp();
+	EXPECT_EQ(CurrentAutomapManager.GetAutomapOffset().deltaX, 0);
+	EXPECT_EQ(CurrentAutomapManager.GetAutomapOffset().deltaY, 0);
 }
 
 TEST(Automap, AutomapDown)
 {
-	AutomapOffset.deltaX = 1;
-	AutomapOffset.deltaY = 1;
-	AutomapDown();
-	EXPECT_EQ(AutomapOffset.deltaX, 2);
-	EXPECT_EQ(AutomapOffset.deltaY, 2);
+	CurrentAutomapManager.SetAutomapOffset({ 1, 1 });
+	CurrentAutomapManager.AutomapDown();
+	EXPECT_EQ(CurrentAutomapManager.GetAutomapOffset().deltaX, 2);
+	EXPECT_EQ(CurrentAutomapManager.GetAutomapOffset().deltaY, 2);
 }
 
 TEST(Automap, AutomapLeft)
 {
-	AutomapOffset.deltaX = 1;
-	AutomapOffset.deltaY = 1;
-	AutomapLeft();
-	EXPECT_EQ(AutomapOffset.deltaX, 0);
-	EXPECT_EQ(AutomapOffset.deltaY, 2);
+	CurrentAutomapManager.SetAutomapOffset({ 1, 1 });
+	CurrentAutomapManager.AutomapLeft();
+	EXPECT_EQ(CurrentAutomapManager.GetAutomapOffset().deltaX, 0);
+	EXPECT_EQ(CurrentAutomapManager.GetAutomapOffset().deltaY, 2);
 }
 
 TEST(Automap, AutomapRight)
 {
-	AutomapOffset.deltaX = 1;
-	AutomapOffset.deltaY = 1;
-	AutomapRight();
-	EXPECT_EQ(AutomapOffset.deltaX, 2);
-	EXPECT_EQ(AutomapOffset.deltaY, 0);
+	CurrentAutomapManager.SetAutomapOffset({ 1, 1 });
+	CurrentAutomapManager.AutomapRight();
+	EXPECT_EQ(CurrentAutomapManager.GetAutomapOffset().deltaX, 2);
+	EXPECT_EQ(CurrentAutomapManager.GetAutomapOffset().deltaY, 0);
 }
 
 TEST(Automap, AutomapZoomIn)
 {
-	AutoMapScale = 50;
-	AutomapZoomIn();
-	EXPECT_EQ(AutoMapScale, 75);
+	CurrentAutomapManager.SetAutoMapScale(50);
+	CurrentAutomapManager.AutomapZoomIn();
+	EXPECT_EQ(CurrentAutomapManager.GetAutoMapScale(), 75);
 	EXPECT_EQ(AmLine(AmLineLength::DoubleTile), static_cast<int>(AmLineLength::FullAndHalfTile));
 	EXPECT_EQ(AmLine(AmLineLength::FullTile), 6);
 	EXPECT_EQ(AmLine(AmLineLength::HalfTile), 3);
@@ -73,11 +69,11 @@ TEST(Automap, AutomapZoomIn)
 
 TEST(Automap, AutomapZoomIn_Max)
 {
-	AutoMapScale = 175;
-	AutoMapScale = 175;
-	AutomapZoomIn();
-	AutomapZoomIn();
-	EXPECT_EQ(AutoMapScale, 200);
+	CurrentAutomapManager.SetAutoMapScale(175);
+	CurrentAutomapManager.SetAutoMapScale(175);
+	CurrentAutomapManager.AutomapZoomIn();
+	CurrentAutomapManager.AutomapZoomIn();
+	EXPECT_EQ(CurrentAutomapManager.GetAutoMapScale(), 200);
 	EXPECT_EQ(AmLine(AmLineLength::DoubleTile), 32);
 	EXPECT_EQ(AmLine(AmLineLength::FullTile), static_cast<int>(AmLineLength::DoubleTile));
 	EXPECT_EQ(AmLine(AmLineLength::HalfTile), static_cast<int>(AmLineLength::FullTile));
@@ -86,9 +82,9 @@ TEST(Automap, AutomapZoomIn_Max)
 
 TEST(Automap, AutomapZoomOut)
 {
-	AutoMapScale = 200;
-	AutomapZoomOut();
-	EXPECT_EQ(AutoMapScale, 175);
+	CurrentAutomapManager.SetAutoMapScale(200);
+	CurrentAutomapManager.AutomapZoomOut();
+	EXPECT_EQ(CurrentAutomapManager.GetAutoMapScale(), 175);
 	EXPECT_EQ(AmLine(AmLineLength::DoubleTile), 28);
 	EXPECT_EQ(AmLine(AmLineLength::FullTile), 14);
 	EXPECT_EQ(AmLine(AmLineLength::HalfTile), 7);
@@ -97,10 +93,10 @@ TEST(Automap, AutomapZoomOut)
 
 TEST(Automap, AutomapZoomOut_Min)
 {
-	AutoMapScale = 50;
-	AutomapZoomOut();
-	AutomapZoomOut();
-	EXPECT_EQ(AutoMapScale, 25);
+	CurrentAutomapManager.SetAutoMapScale(50);
+	CurrentAutomapManager.AutomapZoomOut();
+	CurrentAutomapManager.AutomapZoomOut();
+	EXPECT_EQ(CurrentAutomapManager.GetAutoMapScale(), 25);
 	EXPECT_EQ(AmLine(AmLineLength::DoubleTile), static_cast<int>(AmLineLength::HalfTile));
 	EXPECT_EQ(AmLine(AmLineLength::FullTile), static_cast<int>(AmLineLength::QuarterTile));
 	EXPECT_EQ(AmLine(AmLineLength::HalfTile), 1);
@@ -109,13 +105,12 @@ TEST(Automap, AutomapZoomOut_Min)
 
 TEST(Automap, AutomapZoomReset)
 {
-	AutoMapScale = 50;
-	AutomapOffset.deltaX = 1;
-	AutomapOffset.deltaY = 1;
-	AutomapZoomReset();
-	EXPECT_EQ(AutomapOffset.deltaX, 0);
-	EXPECT_EQ(AutomapOffset.deltaY, 0);
-	EXPECT_EQ(AutoMapScale, 50);
+	CurrentAutomapManager.SetAutoMapScale(50);
+	CurrentAutomapManager.SetAutomapOffset({ 1, 1 });
+	CurrentAutomapManager.AutomapZoomReset();
+	EXPECT_EQ(CurrentAutomapManager.GetAutomapOffset().deltaX, 0);
+	EXPECT_EQ(CurrentAutomapManager.GetAutomapOffset().deltaY, 0);
+	EXPECT_EQ(CurrentAutomapManager.GetAutoMapScale(), 50);
 	EXPECT_EQ(AmLine(AmLineLength::DoubleTile), static_cast<int>(AmLineLength::FullTile));
 	EXPECT_EQ(AmLine(AmLineLength::FullTile), static_cast<int>(AmLineLength::HalfTile));
 	EXPECT_EQ(AmLine(AmLineLength::HalfTile), static_cast<int>(AmLineLength::QuarterTile));

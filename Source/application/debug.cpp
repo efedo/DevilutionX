@@ -242,7 +242,7 @@ bool GetDebugGridText(Point dungeonCoords, std::string &debugGridText)
 		break;
 	case DebugGridTextItem::AutomapView:
 		if (megaCoords.x >= 0 && megaCoords.x < DMAXX && megaCoords.y >= 0 && megaCoords.y < DMAXY)
-			info = AutomapView[megaCoords.x][megaCoords.y];
+			info = CurrentAutomapManager.GetAutomapView()[megaCoords.x][megaCoords.y];
 		break;
 	case DebugGridTextItem::CurrentMegaTile:
 		if (megaCoords.x >= 0 && megaCoords.x < DMAXX && megaCoords.y >= 0 && megaCoords.y < DMAXY)

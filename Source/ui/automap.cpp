@@ -948,14 +948,15 @@ AutomapTile GetAutomapTileType(Point position)
  */
 AutomapTile GetAutomapTypeView(Point map)
 {
-	if (map.x == -1 && map.y >= 0 && map.y < DMAXY && AutomapView[0][map.y] != MAP_EXP_NONE) {
+	uint8_t (*view)[DMAXY] = CurrentAutomapManager.GetAutomapView();
+	if (map.x == -1 && map.y >= 0 && map.y < DMAXY && view[0][map.y] != MAP_EXP_NONE) {
 		if (HasAutomapFlag({ 0, map.y + 1 }, AutomapTile::Flags::Dirt) && HasAutomapFlag({ 0, map.y }, AutomapTile::Flags::Dirt) && HasAutomapFlag({ 0, map.y - 1 }, AutomapTile::Flags::Dirt)) {
 			return {};
 		}
 		return { AutomapTile::Types::None, AutomapTile::Flags::Dirt };
 	}
 
-	if (map.y == -1 && map.x >= 0 && map.x < DMAXY && AutomapView[map.x][0] != MAP_EXP_NONE) {
+	if (map.y == -1 && map.x >= 0 && map.x < DMAXY && view[map.x][0] != MAP_EXP_NONE) {
 		if (HasAutomapFlag({ map.x + 1, 0 }, AutomapTile::Flags::Dirt) && HasAutomapFlag({ map.x, 0 }, AutomapTile::Flags::Dirt) && HasAutomapFlag({ map.x - 1, 0 }, AutomapTile::Flags::Dirt)) {
 			return {};
 		}
@@ -968,7 +969,7 @@ AutomapTile GetAutomapTypeView(Point map)
 	if (map.y < 0 || map.y >= DMAXX) {
 		return {};
 	}
-	if (AutomapView[map.x][map.y] == MAP_EXP_NONE) {
+	if (view[map.x][map.y] == MAP_EXP_NONE) {
 		return {};
 	}
 
@@ -982,7 +983,7 @@ void DrawAutomapTile(const Surface &out, Point center, Point map)
 {
 	uint8_t colorBright = MapColorsBright;
 	uint8_t colorDim = MapColorsDim;
-	const MapExplorationType explorationType = static_cast<MapExplorationType>(AutomapView[std::clamp(map.x, 0, DMAXX - 1)][std::clamp(map.y, 0, DMAXY - 1)]);
+	const MapExplorationType explorationType = static_cast<MapExplorationType>(CurrentAutomapManager.GetAutomapView()[std::clamp(map.x, 0, DMAXX - 1)][std::clamp(map.y, 0, DMAXY - 1)]);
 
 	switch (explorationType) {
 	case MAP_EXP_SHRINE:
@@ -1258,9 +1259,10 @@ Displacement GetAutomapScreen()
 	Displacement screen = {};
 
 	if (GetAutomapType() == AutomapType::Minimap) {
+		Rectangle rect = CurrentAutomapManager.GetMinimapRect();
 		screen = {
-			MinimapRect.position.x + (MinimapRect.size.width / 2),
-			MinimapRect.position.y + (MinimapRect.size.height / 2)
+			rect.position.x + (rect.size.width / 2),
+			rect.position.y + (rect.size.height / 2)
 		};
 	} else {
 		screen = {
@@ -1291,15 +1293,16 @@ void SearchAutomapItem(const Surface &out, const Displacement &myPlayerOffset, i
 	const int endY = std::clamp(tile.y + searchRadius, 0, MAXDUNY);
 
 	const AutomapType mapType = GetAutomapType();
-	const int scale = (mapType == AutomapType::Minimap) ? MinimapScale : AutoMapScale;
+	const int scale = (mapType == AutomapType::Minimap) ? CurrentAutomapManager.GetMinimapScale() : CurrentAutomapManager.GetAutoMapScale();
 
 	for (int i = startX; i < endX; i++) {
 		for (int j = startY; j < endY; j++) {
 			if (!highlightTile({ i, j }))
 				continue;
 
-			const int px = i - (2 * AutomapOffset.deltaX) - viewPosition().x;
-			const int py = j - (2 * AutomapOffset.deltaY) - viewPosition().y;
+			Displacement offset = CurrentAutomapManager.GetAutomapOffset();
+			const int px = i - (2 * offset.deltaX) - viewPosition().x;
+			const int py = j - (2 * offset.deltaY) - viewPosition().y;
 
 			Point screen = {
 				(myPlayerOffset.deltaX * scale / 100 / 2) + ((px - py) * AmLine(AmLineLength::DoubleTile)),
@@ -1345,14 +1348,15 @@ void DrawAutomapPlr(const Surface &out, const Displacement &myPlayerOffset, cons
 
 	const Point tile = player.position.tile;
 
-	const int px = tile.x - (2 * AutomapOffset.deltaX) - viewPosition().x;
-	const int py = tile.y - (2 * AutomapOffset.deltaY) - viewPosition().y;
+	Displacement offset = CurrentAutomapManager.GetAutomapOffset();
+	const int px = tile.x - (2 * offset.deltaX) - viewPosition().x;
+	const int py = tile.y - (2 * offset.deltaY) - viewPosition().y;
 
 	Displacement playerOffset = {};
 	if (player.isWalking())
 		playerOffset = GetOffsetForWalking(player.animInfo, player.direction);
 
-	const int scale = (GetAutomapType() == AutomapType::Minimap) ? MinimapScale : AutoMapScale;
+	const int scale = (GetAutomapType() == AutomapType::Minimap) ? CurrentAutomapManager.GetMinimapScale() : CurrentAutomapManager.GetAutoMapScale();
 
 	Point base = {
 		((playerOffset.deltaX + myPlayerOffset.deltaX) * scale / 100 / 2) + ((px - py) * AmLine(AmLineLength::DoubleTile)),
@@ -1546,24 +1550,18 @@ std::unique_ptr<AutomapTile[]> LoadAutomapData(size_t &tileCount)
 
 } // namespace
 
-bool AutomapActive;
-AutomapType CurrentAutomapType = AutomapType::Opaque;
-uint8_t AutomapView[DMAXX][DMAXY];
-int AutoMapScale;
-int MinimapScale;
-Displacement AutomapOffset;
-Rectangle MinimapRect {};
+AutomapManager CurrentAutomapManager;
 
-void InitAutomapOnce()
+void AutomapManager::InitAutomapOnce()
 {
-	AutomapActive = false;
-	AutoMapScale = 50;
+	automapActive_ = false;
+	autoMapScale_ = 50;
 
 	// Set the dimensions and screen position of the minimap relative to the screen dimensions
 	const int minimapWidth = gnScreenWidth / 4;
 	const Size minimapSize { minimapWidth, minimapWidth / 2 };
 	const int minimapPadding = gnScreenWidth / 128;
-	MinimapRect = Rectangle { { gnScreenWidth - minimapPadding - minimapSize.width, minimapPadding }, minimapSize };
+	minimapRect_ = Rectangle { { gnScreenWidth - minimapPadding - minimapSize.width, minimapPadding }, minimapSize };
 
 	// Set minimap scale
 	const int height = 480;
@@ -1571,13 +1569,13 @@ void InitAutomapOnce()
 	const int factor = gnScreenHeight / height;
 
 	if (factor >= 8) {
-		MinimapScale = scale * 8;
+		minimapScale_ = scale * 8;
 	} else {
-		MinimapScale = scale * factor;
+		minimapScale_ = scale * factor;
 	}
 }
 
-void InitAutomap()
+void AutomapManager::InitAutomap()
 {
 	size_t tileCount = 0;
 	const std::unique_ptr<AutomapTile[]> tileTypes = LoadAutomapData(tileCount);
@@ -1693,45 +1691,45 @@ void InitAutomap()
 		AutomapTypeTiles[i + 1] = tileTypes[i];
 	}
 
-	memset(AutomapView, 0, sizeof(AutomapView));
+	memset(automapView_, 0, sizeof(automapView_));
 
 	for (Tile &tile : tiles())
 		tile.removeFlags(DungeonFlag::Explored);
 }
 
-void StartAutomap()
+void AutomapManager::StartAutomap()
 {
-	AutomapOffset = { 0, 0 };
-	AutomapActive = true;
+	automapOffset_ = { 0, 0 };
+	automapActive_ = true;
 }
 
-void AutomapUp()
+void AutomapManager::AutomapUp()
 {
-	AutomapOffset.deltaX--;
-	AutomapOffset.deltaY--;
+	automapOffset_.deltaX--;
+	automapOffset_.deltaY--;
 }
 
-void AutomapDown()
+void AutomapManager::AutomapDown()
 {
-	AutomapOffset.deltaX++;
-	AutomapOffset.deltaY++;
+	automapOffset_.deltaX++;
+	automapOffset_.deltaY++;
 }
 
-void AutomapLeft()
+void AutomapManager::AutomapLeft()
 {
-	AutomapOffset.deltaX--;
-	AutomapOffset.deltaY++;
+	automapOffset_.deltaX--;
+	automapOffset_.deltaY++;
 }
 
-void AutomapRight()
+void AutomapManager::AutomapRight()
 {
-	AutomapOffset.deltaX++;
-	AutomapOffset.deltaY--;
+	automapOffset_.deltaX++;
+	automapOffset_.deltaY--;
 }
 
-void AutomapZoomIn()
+void AutomapManager::AutomapZoomIn()
 {
-	int &scale = (GetAutomapType() == AutomapType::Minimap) ? MinimapScale : AutoMapScale;
+	int &scale = (GetAutomapType() == AutomapType::Minimap) ? minimapScale_ : autoMapScale_;
 
 	if (scale >= 200)
 		return;
@@ -1739,9 +1737,9 @@ void AutomapZoomIn()
 	scale += 25;
 }
 
-void AutomapZoomOut()
+void AutomapManager::AutomapZoomOut()
 {
-	int &scale = (GetAutomapType() == AutomapType::Minimap) ? MinimapScale : AutoMapScale;
+	int &scale = (GetAutomapType() == AutomapType::Minimap) ? minimapScale_ : autoMapScale_;
 
 	if (scale <= 25)
 		return;
@@ -1749,30 +1747,30 @@ void AutomapZoomOut()
 	scale -= 25;
 }
 
-void DrawAutomap(const Surface &out)
+void AutomapManager::DrawAutomap(const Surface &out)
 {
 	Automap = { (viewPosition().x - 8) / 2, (viewPosition().y - 8) / 2 };
 	if (levelType() != DTYPE_TOWN) {
 		Automap += { -4, -4 };
 	}
-	while (Automap.x + AutomapOffset.deltaX < 0)
-		AutomapOffset.deltaX++;
-	while (Automap.x + AutomapOffset.deltaX >= DMAXX)
-		AutomapOffset.deltaX--;
+	while (Automap.x + automapOffset_.deltaX < 0)
+		automapOffset_.deltaX++;
+	while (Automap.x + automapOffset_.deltaX >= DMAXX)
+		automapOffset_.deltaX--;
 
-	while (Automap.y + AutomapOffset.deltaY < 0)
-		AutomapOffset.deltaY++;
-	while (Automap.y + AutomapOffset.deltaY >= DMAXY)
-		AutomapOffset.deltaY--;
+	while (Automap.y + automapOffset_.deltaY < 0)
+		automapOffset_.deltaY++;
+	while (Automap.y + automapOffset_.deltaY >= DMAXY)
+		automapOffset_.deltaY--;
 
-	Automap += AutomapOffset;
+	Automap += automapOffset_;
 
 	const Player &myPlayer = *MyPlayer;
 	Displacement myPlayerOffset = {};
 	if (myPlayer.isWalking())
 		myPlayerOffset = GetOffsetForWalking(myPlayer.animInfo, myPlayer.direction, true);
 
-	const int scale = (GetAutomapType() == AutomapType::Minimap) ? MinimapScale : AutoMapScale;
+	const int scale = (GetAutomapType() == AutomapType::Minimap) ? minimapScale_ : autoMapScale_;
 	const int d = (scale * 64) / 100;
 	int cells = (2 * (gnScreenWidth / 2 / d)) + 1;
 	if (((gnScreenWidth / 2) % d) != 0)
@@ -1784,23 +1782,23 @@ void DrawAutomap(const Surface &out)
 
 	if (GetAutomapType() == AutomapType::Minimap) {
 		// Background fill
-		DrawHalfTransparentRectTo(out, MinimapRect.position.x, MinimapRect.position.y, MinimapRect.size.width, MinimapRect.size.height);
+		DrawHalfTransparentRectTo(out, minimapRect_.position.x, minimapRect_.position.y, minimapRect_.size.width, minimapRect_.size.height);
 
 		const uint8_t frameShadowColor = PAL16_YELLOW + 12;
 
 		// Shadow
-		DrawHorizontalLine(out, MinimapRect.position + Displacement { -1, -1 }, MinimapRect.size.width + 1, frameShadowColor);
-		DrawHorizontalLine(out, MinimapRect.position + Displacement { -2, MinimapRect.size.height + 1 }, MinimapRect.size.width + 4, frameShadowColor);
-		DrawVerticalLine(out, MinimapRect.position + Displacement { -1, 0 }, MinimapRect.size.height, frameShadowColor);
-		DrawVerticalLine(out, MinimapRect.position + Displacement { MinimapRect.size.width + 1, -2 }, MinimapRect.size.height + 3, frameShadowColor);
+		DrawHorizontalLine(out, minimapRect_.position + Displacement { -1, -1 }, minimapRect_.size.width + 1, frameShadowColor);
+		DrawHorizontalLine(out, minimapRect_.position + Displacement { -2, minimapRect_.size.height + 1 }, minimapRect_.size.width + 4, frameShadowColor);
+		DrawVerticalLine(out, minimapRect_.position + Displacement { -1, 0 }, minimapRect_.size.height, frameShadowColor);
+		DrawVerticalLine(out, minimapRect_.position + Displacement { minimapRect_.size.width + 1, -2 }, minimapRect_.size.height + 3, frameShadowColor);
 
 		// Frame
-		DrawHorizontalLine(out, MinimapRect.position + Displacement { -2, -2 }, MinimapRect.size.width + 3, MapColorsDim);
-		DrawHorizontalLine(out, MinimapRect.position + Displacement { -2, MinimapRect.size.height }, MinimapRect.size.width + 3, MapColorsDim);
-		DrawVerticalLine(out, MinimapRect.position + Displacement { -2, -1 }, MinimapRect.size.height + 1, MapColorsDim);
-		DrawVerticalLine(out, MinimapRect.position + Displacement { MinimapRect.size.width, -1 }, MinimapRect.size.height + 1, MapColorsDim);
+		DrawHorizontalLine(out, minimapRect_.position + Displacement { -2, -2 }, minimapRect_.size.width + 3, MapColorsDim);
+		DrawHorizontalLine(out, minimapRect_.position + Displacement { -2, minimapRect_.size.height }, minimapRect_.size.width + 3, MapColorsDim);
+		DrawVerticalLine(out, minimapRect_.position + Displacement { -2, -1 }, minimapRect_.size.height + 1, MapColorsDim);
+		DrawVerticalLine(out, minimapRect_.position + Displacement { minimapRect_.size.width, -1 }, minimapRect_.size.height + 1, MapColorsDim);
 
-		if (AutoMapShowItems)
+		if (autoMapShowItems_)
 			SearchAutomapItem(out, myPlayerOffset, 8, [](Point position) {
 				return tileAt(position).item() != 0;
 			});
@@ -1864,7 +1862,7 @@ void DrawAutomap(const Surface &out)
 		}
 	}
 
-	if (AutoMapShowItems)
+	if (autoMapShowItems_)
 		SearchAutomapItem(out, myPlayerOffset, 8, [](Point position) { return tileAt(position).item() != 0; });
 #ifdef _DEBUG
 	if (IsDebugAutomapHighlightNeeded())
@@ -1874,13 +1872,13 @@ void DrawAutomap(const Surface &out)
 	DrawAutomapText(out);
 }
 
-void UpdateAutomapExplorer(Point map, MapExplorationType explorer)
+void AutomapManager::UpdateAutomapExplorer(Point map, MapExplorationType explorer)
 {
-	if (AutomapView[map.x][map.y] < explorer)
-		AutomapView[map.x][map.y] = explorer;
+	if (automapView_[map.x][map.y] < explorer)
+		automapView_[map.x][map.y] = explorer;
 }
 
-void SetAutomapView(Point position, MapExplorationType explorer)
+void AutomapManager::SetAutomapView(Point position, MapExplorationType explorer)
 {
 	const Point map { (position.x - 16) / 2, (position.y - 16) / 2 };
 
@@ -1956,9 +1954,9 @@ void SetAutomapView(Point position, MapExplorationType explorer)
 	}
 }
 
-void AutomapZoomReset()
+void AutomapManager::AutomapZoomReset()
 {
-	AutomapOffset = { 0, 0 };
+	automapOffset_ = { 0, 0 };
 }
 
 } // namespace devilution

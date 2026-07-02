@@ -79,7 +79,7 @@ void LightManager::DoVisionFlags(Point position, MapExplorationType doAutomap, b
 
 	if (doAutomap != MAP_EXP_NONE) {
 		if (tile.flags() != DungeonFlag::None)
-			SetAutomapView(position, doAutomap);
+			CurrentAutomapManager.SetAutomapView(position, doAutomap);
 		tile.addFlags(DungeonFlag::Explored);
 	}
 	if (visible)

@@ -100,8 +100,6 @@ enum OutlineColors : uint8_t {
 	OutlineColorsMonster = (PAL16_RED + 9),
 };
 
-bool AutoMapShowItems;
-
 // DevilutionX extension.
 extern void DrawControllerModifierHints(const Surface &out);
 
@@ -765,7 +763,7 @@ void DrawItem(const Surface &out, int8_t itemIndex, Point targetBufferPosition, 
 	const Item &item = Items[itemIndex];
 	const ClxSprite sprite = item.animInfo.currentSprite();
 	const Point position = targetBufferPosition + item.getRenderingOffset(sprite);
-	if (!CurrentStoreManager.IsPlayerInStore() && (itemIndex == pcursitem || AutoMapShowItems)) {
+	if (!CurrentStoreManager.IsPlayerInStore() && (itemIndex == pcursitem || CurrentAutomapManager.GetAutoMapShowItems())) {
 		ClxDrawOutlineSkipColorZero(out, GetOutlineColor(item, false), position, sprite);
 	}
 	ClxDrawLight(out, position, sprite, lightTableIndex);
@@ -1400,8 +1398,8 @@ void DrawView(const Surface &out, Point startPosition)
 	Displacement offset = {};
 	CalcFirstTilePosition(startPosition, offset);
 	DrawGame(out, startPosition, offset);
-	if (AutomapActive) {
-		DrawAutomap(out.subregionY(0, gnViewportHeight));
+	if (CurrentAutomapManager.GetAutomapActive()) {
+		CurrentAutomapManager.CurrentAutomapManager.DrawAutomap(out.subregionY(0, gnViewportHeight));
 	}
 #ifdef _DEBUG
 	bool debugGridTextNeeded = IsDebugGridTextNeeded();

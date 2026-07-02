@@ -527,23 +527,23 @@ void CheckMainPanelButtonDead()
 
 void DoAutoMap()
 {
-	if (!AutomapActive)
-		StartAutomap();
+	if (!CurrentAutomapManager.GetAutomapActive())
+		CurrentAutomapManager.StartAutomap();
 	else
-		AutomapActive = false;
+		CurrentAutomapManager.SetAutomapActive(false);
 }
 
 void CycleAutomapType()
 {
-	if (!AutomapActive) {
-		StartAutomap();
+	if (!CurrentAutomapManager.GetAutomapActive()) {
+		CurrentAutomapManager.StartAutomap();
 		return;
 	}
 	const AutomapType newType { static_cast<std::underlying_type_t<AutomapType>>(
 		(static_cast<unsigned>(GetAutomapType()) + 1) % enum_size<AutomapType>::value) };
 	SetAutomapType(newType);
 	if (newType == AutomapType::FIRST) {
-		AutomapActive = false;
+		CurrentAutomapManager.SetAutomapActive(false);
 	}
 }
 

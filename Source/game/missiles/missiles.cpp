@@ -34,6 +34,7 @@
 #include "engine/path.h"
 #include "engine/math/point.hpp"
 #include "engine/render/world_renderer.h"
+#include "ui/automap.h"
 #include "engine/math/world_tile.hpp"
 #include "function_ref.hpp"
 #include "ui/load_screens.h"
@@ -1209,7 +1210,7 @@ void InitMissiles()
 {
 	Player &myPlayer = *MyPlayer;
 
-	AutoMapShowItems = false;
+	CurrentAutomapManager.SetAutoMapShowItems(false);
 	myPlayer._pSpellFlags &= ~SpellFlag::Etherealize;
 	if (myPlayer._pInfraFlag) {
 		for (auto &missile : Missiles) {
@@ -1698,7 +1699,7 @@ void AddSearch(Missile &missile, AddMissileParameter & /*parameter*/)
 	Player &player = Players[missile._misource];
 
 	if (&player == MyPlayer)
-		AutoMapShowItems = true;
+		CurrentAutomapManager.SetAutoMapShowItems(true);
 	int lvl = 2;
 	if (missile._misource >= 0)
 		lvl = player.getCharacterLevel() * 2;
@@ -3272,7 +3273,7 @@ void ProcessSearch(Missile &missile)
 	missile._miDelFlag = true;
 	PlaySfxLoc(SfxID::SpellEnd, player.position.tile);
 	if (&player == MyPlayer)
-		AutoMapShowItems = false;
+		CurrentAutomapManager.SetAutoMapShowItems(false);
 }
 
 void ProcessNovaCommon(Missile &missile, MissileID projectileType)

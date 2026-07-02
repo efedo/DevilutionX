@@ -20,23 +20,13 @@ enum MapExplorationType : uint8_t {
 	MAP_EXP_NONE,
 	/** map tile explored in vanilla - compatibility reasons */
 	MAP_EXP_OLD,
-	/** map explored by a shrine */
+	/** map tile explored by a shrine */
 	MAP_EXP_SHRINE,
 	/** map tile explored by someone else in multiplayer */
 	MAP_EXP_OTHERS,
 	/** map tile explored by current player */
 	MAP_EXP_SELF,
 };
-
-/** Specifies whether the automap is enabled. */
-extern DVL_API_FOR_TEST bool AutomapActive;
-/** Tracks the explored areas of the map. */
-extern uint8_t AutomapView[DMAXX][DMAXY];
-/** Specifies the scale of the automap. */
-extern DVL_API_FOR_TEST int AutoMapScale;
-extern DVL_API_FOR_TEST int MinimapScale;
-extern DVL_API_FOR_TEST Displacement AutomapOffset;
-extern Rectangle MinimapRect;
 
 /** Defines the offsets used for Automap lines */
 enum class AmWidthOffset : int8_t {
@@ -88,113 +78,84 @@ enum class AutomapType : uint8_t {
 	LAST = Minimap
 };
 
-extern DVL_API_FOR_TEST AutomapType CurrentAutomapType;
+class AutomapManager {
+public:
+	// Accessors
+	[[nodiscard]] DVL_API_FOR_TEST bool GetAutomapActive() const { return automapActive_; }
+	DVL_API_FOR_TEST void SetAutomapActive(bool value) { automapActive_ = value; }
+
+	[[nodiscard]] uint8_t (*GetAutomapView())[DMAXY] { return automapView_; }
+
+	[[nodiscard]] DVL_API_FOR_TEST int GetAutoMapScale() const { return autoMapScale_; }
+	DVL_API_FOR_TEST void SetAutoMapScale(int value) { autoMapScale_ = value; }
+
+	[[nodiscard]] DVL_API_FOR_TEST int GetMinimapScale() const { return minimapScale_; }
+	void SetMinimapScale(int value) { minimapScale_ = value; }
+
+	[[nodiscard]] DVL_API_FOR_TEST Displacement GetAutomapOffset() const { return automapOffset_; }
+	DVL_API_FOR_TEST void SetAutomapOffset(Displacement value) { automapOffset_ = value; }
+
+	[[nodiscard]] Rectangle GetMinimapRect() const { return minimapRect_; }
+	void SetMinimapRect(Rectangle value) { minimapRect_ = value; }
+
+	[[nodiscard]] DVL_API_FOR_TEST AutomapType CurrentAutomapType() const { return currentAutomapType_; }
+	DVL_API_FOR_TEST void SetCurrentAutomapType(AutomapType type) { currentAutomapType_ = type; }
+
+	[[nodiscard]] bool GetAutoMapShowItems() const { return autoMapShowItems_; }
+	void SetAutoMapShowItems(bool value) { autoMapShowItems_ = value; }
+
+	// Methods
+	void InitAutomapOnce();
+	void InitAutomap();
+	void StartAutomap();
+	void StartMinimap();
+	void AutomapUp();
+	void AutomapDown();
+	void AutomapLeft();
+	void AutomapRight();
+	void AutomapZoomIn();
+	void AutomapZoomOut();
+	void DrawAutomap(const Surface &out);
+	void UpdateAutomapExplorer(Point map, MapExplorationType explorer);
+	void SetAutomapView(Point tile, MapExplorationType explorer);
+	void AutomapZoomReset();
+
+private:
+	bool automapActive_ = false;
+	AutomapType currentAutomapType_ = AutomapType::Opaque;
+	uint8_t automapView_[DMAXX][DMAXY] = {};
+	int autoMapScale_ = 50;
+	int minimapScale_ = 25;
+	Displacement automapOffset_ = {};
+	Rectangle minimapRect_ = {};
+	bool autoMapShowItems_ = false;
+};
+
+extern AutomapManager CurrentAutomapManager;
 
 /**
- * @brief Sets the map type. Does not change `AutomapActive`.
+ * @brief Sets the map type. Does not change `CurrentAutomapManager.GetAutomapActive()`.
  */
 inline void SetAutomapType(AutomapType type)
 {
-	CurrentAutomapType = type;
+	CurrentAutomapManager.SetCurrentAutomapType(type);
 }
 
-/**
- * @brief Sets the map type. Does not change `AutomapActive`.
- */
 inline AutomapType GetAutomapType()
 {
-	return CurrentAutomapType;
+	return CurrentAutomapManager.CurrentAutomapType();
 }
 
 inline Displacement AmOffset(AmWidthOffset x, AmHeightOffset y)
 {
-	int scale = (GetAutomapType() == AutomapType::Minimap) ? MinimapScale : AutoMapScale;
-
+	int scale = (GetAutomapType() == AutomapType::Minimap) ? CurrentAutomapManager.GetMinimapScale() : CurrentAutomapManager.GetAutoMapScale();
 	return { scale * static_cast<int>(x) / 100, scale * static_cast<int>(y) / 100 };
 }
 
 inline int AmLine(AmLineLength l)
 {
-	int scale = (GetAutomapType() == AutomapType::Minimap) ? MinimapScale : AutoMapScale;
-
+	int scale = (GetAutomapType() == AutomapType::Minimap) ? CurrentAutomapManager.GetMinimapScale() : CurrentAutomapManager.GetAutoMapScale();
 	return scale * static_cast<int>(l) / 100;
 }
-
-/**
- * @brief Sets the map type. Does not change `AutomapActive`.
- */
-void SetAutomapType(AutomapType type);
-
-AutomapType GetAutomapType();
-
-/**
- * @brief Initializes the automap.
- */
-void InitAutomapOnce();
-
-/**
- * @brief Loads the mapping between tile IDs and automap shapes.
- */
-void InitAutomap();
-
-/**
- * @brief Displays the automap.
- */
-void StartAutomap();
-
-/**
- * @brief Displays the minimap.
- */
-void StartMinimap();
-
-/**
- * @brief Scrolls the automap upwards.
- */
-void AutomapUp();
-
-/**
- * @brief Scrolls the automap downwards.
- */
-void AutomapDown();
-
-/**
- * @brief Scrolls the automap leftwards.
- */
-void AutomapLeft();
-
-/**
- * @brief Scrolls the automap rightwards.
- */
-void AutomapRight();
-
-/**
- * @brief Increases the zoom level of the automap.
- */
-void AutomapZoomIn();
-
-/**
- * @brief Decreases the zoom level of the automap.
- */
-void AutomapZoomOut();
-
-/**
- * @brief Renders the automap to the given buffer.
- */
-void DrawAutomap(const Surface &out);
-
-/**
- * @brief Updates automap explorer at point if value is higher than existing.
- */
-void UpdateAutomapExplorer(Point map, MapExplorationType explorer);
-
-/**
- * @brief Marks the given coordinate as within view on the automap.
- */
-void SetAutomapView(Point tile, MapExplorationType explorer);
-
-/**
- * @brief Resets the zoom level of the automap.
- */
-void AutomapZoomReset();
 
 } // namespace devilution

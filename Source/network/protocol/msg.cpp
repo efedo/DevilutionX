@@ -1037,7 +1037,11 @@ void DeltaLeaveSync(uint8_t bLevel)
 		delta.mactive = monster.activeForTicks;
 		delta.mWhoHit = monster.whoHit;
 	}
-	LocalLevels.insert_or_assign(bLevel, AutomapView);
+	{ // Store a copy of the automap view for network sync
+		using AutomapViewArray = uint8_t [DMAXX][DMAXY];
+		AutomapViewArray &view = *reinterpret_cast<AutomapViewArray *>(CurrentAutomapManager.GetAutomapView());
+		LocalLevels.insert_or_assign(bLevel, view);
+	}
 }
 
 void DeltaSyncObject(WorldTilePosition position, _cmd_id bCmd, const Player &player)
@@ -2970,9 +2974,9 @@ void DeltaLoadLevel()
 
 		auto localLevelIt = LocalLevels.find(localLevel);
 		if (localLevelIt != LocalLevels.end())
-			memcpy(AutomapView, &localLevelIt->second, sizeof(AutomapView));
+			memcpy(CurrentAutomapManager.GetAutomapView(), &localLevelIt->second, DMAXX * DMAXY);
 		else
-			memset(AutomapView, 0, sizeof(AutomapView));
+			memset(CurrentAutomapManager.GetAutomapView(), 0, DMAXX * DMAXY);
 
 		DeltaLoadObjects(deltaLevel);
 	}

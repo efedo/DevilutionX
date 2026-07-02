@@ -13,7 +13,6 @@
 
 namespace devilution {
 
-extern bool AutoMapShowItems;
 extern bool frameflag;
 
 /**

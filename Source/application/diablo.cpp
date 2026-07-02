@@ -588,15 +588,15 @@ void PressKey(SDL_Keycode vkey, uint16_t modState)
 	case SDLK_KP_PLUS:
 	case SDLK_EQUALS:
 	case SDLK_KP_EQUALS:
-		if (AutomapActive) {
-			AutomapZoomIn();
+		if (CurrentAutomapManager.GetAutomapActive()) {
+			CurrentAutomapManager.AutomapZoomIn();
 		}
 		return;
 	case SDLK_MINUS:
 	case SDLK_KP_MINUS:
 	case SDLK_UNDERSCORE:
-		if (AutomapActive) {
-			AutomapZoomOut();
+		if (CurrentAutomapManager.GetAutomapActive()) {
+			CurrentAutomapManager.AutomapZoomOut();
 		}
 		return;
 #ifdef _DEBUG
@@ -629,8 +629,8 @@ void PressKey(SDL_Keycode vkey, uint16_t modState)
 			HelpScrollUp();
 		} else if (ChatLogFlag) {
 			ChatLogScrollUp();
-		} else if (AutomapActive) {
-			AutomapUp();
+		} else if (CurrentAutomapManager.GetAutomapActive()) {
+			CurrentAutomapManager.AutomapUp();
 		} else if (IsStashOpen) {
 			Stash.PreviousPage();
 		}
@@ -644,8 +644,8 @@ void PressKey(SDL_Keycode vkey, uint16_t modState)
 			HelpScrollDown();
 		} else if (ChatLogFlag) {
 			ChatLogScrollDown();
-		} else if (AutomapActive) {
-			AutomapDown();
+		} else if (CurrentAutomapManager.GetAutomapActive()) {
+			CurrentAutomapManager.AutomapDown();
 		} else if (IsStashOpen) {
 			Stash.NextPage();
 		}
@@ -665,12 +665,12 @@ void PressKey(SDL_Keycode vkey, uint16_t modState)
 		}
 		return;
 	case SDLK_LEFT:
-		if (AutomapActive && !ChatFlag)
-			AutomapLeft();
+		if (CurrentAutomapManager.GetAutomapActive() && !ChatFlag)
+			CurrentAutomapManager.AutomapLeft();
 		return;
 	case SDLK_RIGHT:
-		if (AutomapActive && !ChatFlag)
-			AutomapRight();
+		if (CurrentAutomapManager.GetAutomapActive() && !ChatFlag)
+			CurrentAutomapManager.AutomapRight();
 		return;
 	default:
 		break;
@@ -818,8 +818,8 @@ void GameEventHandler(const SDL_Event &event, uint16_t modState)
 			} else if (IsStashOpen) {
 				Stash.PreviousPage();
 			} else if (SDL_GetModState() & SDL_KMOD_CTRL) {
-				if (AutomapActive) {
-					AutomapZoomIn();
+				if (CurrentAutomapManager.GetAutomapActive()) {
+					CurrentAutomapManager.AutomapZoomIn();
 				}
 			} else {
 				KeymapperPress(MouseScrollUpButton);
@@ -836,8 +836,8 @@ void GameEventHandler(const SDL_Event &event, uint16_t modState)
 			} else if (IsStashOpen) {
 				Stash.NextPage();
 			} else if (SDL_GetModState() & SDL_KMOD_CTRL) {
-				if (AutomapActive) {
-					AutomapZoomOut();
+				if (CurrentAutomapManager.GetAutomapActive()) {
+					CurrentAutomapManager.AutomapZoomOut();
 				}
 			} else {
 				KeymapperPress(MouseScrollDownButton);
@@ -2015,7 +2015,7 @@ void InitKeymapActions()
 	    SDLK_SPACE,
 	    [] {
 		    if (CanAutomapBeToggledOff())
-			    AutomapActive = false;
+			    CurrentAutomapManager.SetAutomapActive(false);
 
 		    ClosePanels();
 		    HelpFlag = false;
@@ -2533,7 +2533,7 @@ void InitPadmapActions()
 	    ControllerButton_NONE,
 	    [] {
 		    if (CanAutomapBeToggledOff())
-			    AutomapActive = false;
+			    CurrentAutomapManager.SetAutomapActive(false);
 
 		    ClosePanels();
 		    HelpFlag = false;
@@ -3086,7 +3086,7 @@ void LoadGameLevelFirstFlagEntry()
 		InitHelp();
 	}
 	CurrentStoreManager.InitStores();
-	InitAutomapOnce();
+	CurrentAutomapManager.InitAutomapOnce();
 }
 
 void LoadGameLevelStores()
@@ -3226,7 +3226,7 @@ tl::expected<void, std::string> LoadGameLevelTown(bool firstflag, lvl_entry lvld
 
 	for (int x = 0; x < DMAXX; x++)
 		for (int y = 0; y < DMAXY; y++)
-			UpdateAutomapExplorer({ x, y }, MAP_EXP_SELF);
+			CurrentAutomapManager.UpdateAutomapExplorer({ x, y }, MAP_EXP_SELF);
 	return {};
 }
 
@@ -3403,7 +3403,7 @@ tl::expected<void, std::string> LoadGameLevel(bool firstflag, lvl_entry lvldir)
 
 	IncProgress();
 
-	InitAutomap();
+	CurrentAutomapManager.InitAutomap();
 
 	if (levelType() != DTYPE_TOWN && lvldir != ENTRY_LOAD) {
 		CurrentLightManager.Init();

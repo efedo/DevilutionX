@@ -1982,7 +1982,7 @@ void SaveLevel(SaveWriter &saveWriter, LevelConversionData *levelConversionData)
 			file.WriteLE<uint8_t>(tile.preLight());
 		for (int j = 0; j < DMAXY; j++) {
 			for (int i = 0; i < DMAXX; i++) // NOLINT(modernize-loop-convert)
-				file.WriteLE<uint8_t>(AutomapView[i][j]);
+				file.WriteLE<uint8_t>(CurrentAutomapManager.GetAutomapView()[i][j]);
 		}
 	}
 
@@ -2060,7 +2060,7 @@ tl::expected<void, std::string> LoadLevel(LevelConversionData *levelConversionDa
 		for (int j = 0; j < DMAXY; j++) {
 			for (int i = 0; i < DMAXX; i++) { // NOLINT(modernize-loop-convert)
 				const auto automapView = static_cast<MapExplorationType>(file.NextLE<uint8_t>());
-				AutomapView[i][j] = automapView == MAP_EXP_OLD ? MAP_EXP_SELF : automapView;
+				CurrentAutomapManager.GetAutomapView()[i][j] = automapView == MAP_EXP_OLD ? MAP_EXP_SELF : automapView;
 			}
 		}
 
@@ -2074,7 +2074,7 @@ tl::expected<void, std::string> LoadLevel(LevelConversionData *levelConversionDa
 	}
 
 	if (!gbSkipSync) {
-		AutomapZoomReset();
+		CurrentAutomapManager.AutomapZoomReset();
 		ResyncQuests();
 		RedoMissileFlags();
 		CurrentLightManager.updateLighting_ = true;
@@ -2611,7 +2611,7 @@ tl::expected<void, std::string> LoadGame(bool firstflag)
 		for (int j = 0; j < DMAXY; j++) {
 			for (int i = 0; i < DMAXX; i++) { // NOLINT(modernize-loop-convert)
 				const auto automapView = static_cast<MapExplorationType>(file.NextLE<uint8_t>());
-				AutomapView[i][j] = automapView == MAP_EXP_OLD ? MAP_EXP_SELF : automapView;
+				CurrentAutomapManager.GetAutomapView()[i][j] = automapView == MAP_EXP_OLD ? MAP_EXP_SELF : automapView;
 			}
 		}
 		file.Skip(MAXDUNX * MAXDUNY); // dMissile
@@ -2633,9 +2633,9 @@ tl::expected<void, std::string> LoadGame(bool firstflag)
 	if (gbIsHellfire && !gbIsHellfireSaveGame)
 		SpawnPremium(myPlayer);
 
-	AutomapActive = file.NextBool8();
-	AutoMapScale = file.NextBE<int32_t>();
-	AutomapZoomReset();
+	CurrentAutomapManager.SetAutomapActive(file.NextBool8());
+	CurrentAutomapManager.SetAutoMapScale(file.NextBE<int32_t>());
+	CurrentAutomapManager.AutomapZoomReset();
 	ResyncQuests();
 
 	if (levelType() != DTYPE_TOWN) {
@@ -2866,7 +2866,7 @@ void SaveGameData(SaveWriter &saveWriter)
 			file.WriteLE<uint8_t>(tile.preLight());
 		for (int j = 0; j < DMAXY; j++) {
 			for (int i = 0; i < DMAXX; i++) // NOLINT(modernize-loop-convert)
-				file.WriteLE<uint8_t>(AutomapView[i][j]);
+				file.WriteLE<uint8_t>(CurrentAutomapManager.GetAutomapView()[i][j]);
 		}
 		for (int j = 0; j < MAXDUNY; j++) {
 			for (int i = 0; i < MAXDUNX; i++)                                 // NOLINT(modernize-loop-convert)
@@ -2880,8 +2880,8 @@ void SaveGameData(SaveWriter &saveWriter)
 	for (int i = 0; i < giNumberOfSmithPremiumItems; i++)
 		SaveItem(file, CurrentStoreManager.premiumItems()[i]);
 
-	file.WriteLE<uint8_t>(AutomapActive ? 1 : 0);
-	file.WriteBE<int32_t>(AutoMapScale);
+	file.WriteLE<uint8_t>(CurrentAutomapManager.GetAutomapActive() ? 1 : 0);
+	file.WriteBE<int32_t>(CurrentAutomapManager.GetAutoMapScale());
 
 	SaveAdditionalMissiles(saveWriter);
 	SaveLevelSeeds(saveWriter);

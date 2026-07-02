@@ -177,7 +177,7 @@ void DrawPartyMemberInfoPanel(const Surface &out)
 	}
 
 	Point pos = PartyPanelPos;
-	if (AutomapActive)
+	if (CurrentAutomapManager.GetAutomapActive())
 		pos.y += (FrameGap * 4);
 	if (*GetOptions().Graphics.showFPS)
 		pos.y += FrameGap;
@@ -298,7 +298,7 @@ void DrawPartyMemberInfoPanel(const Surface &out)
 		if (pos.y >= GetMainPanel().position.y - PortraitFrameSize.height - 10) {
 			// If so we need to draw the next set of portraits back at the top and to the right of the original position
 			pos.y = PartyPanelPos.y;
-			if (AutomapActive)
+			if (CurrentAutomapManager.GetAutomapActive())
 				pos.y += (FrameGap * 4);
 			if (*GetOptions().Graphics.showFPS)
 				pos.y += FrameGap;

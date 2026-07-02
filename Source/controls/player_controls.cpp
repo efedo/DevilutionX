@@ -1836,19 +1836,19 @@ void ProcessLeftStickOrDPadGameUI()
 
 void ProcessAutomapMovementGamepad()
 {
-	if (!AutomapActive)
+	if (!CurrentAutomapManager.GetAutomapActive())
 		return;
 
 	const auto &padmapper = GetOptions().Padmapper;
 
 	if (IsControllerButtonComboPressed(padmapper.ButtonComboForAction("AutomapMoveUp")))
-		AutomapUp();
+		CurrentAutomapManager.AutomapUp();
 	if (IsControllerButtonComboPressed(padmapper.ButtonComboForAction("AutomapMoveDown")))
-		AutomapDown();
+		CurrentAutomapManager.AutomapDown();
 	if (IsControllerButtonComboPressed(padmapper.ButtonComboForAction("AutomapMoveLeft")))
-		AutomapLeft();
+		CurrentAutomapManager.AutomapLeft();
 	if (IsControllerButtonComboPressed(padmapper.ButtonComboForAction("AutomapMoveRight")))
-		AutomapRight();
+		CurrentAutomapManager.AutomapRight();
 }
 
 void Movement(Player &player)
@@ -1963,7 +1963,7 @@ float rightStickLastMove = 0;
 
 bool ContinueSimulatedMouseEvent(const SDL_Event &event, const ControllerButtonEvent &gamepadEvent)
 {
-	if (!gbRunGame || AutomapActive)
+	if (!gbRunGame || CurrentAutomapManager.GetAutomapActive())
 		return false;
 
 #if !defined(USE_SDL1) && !defined(JOY_AXIS_RIGHTX) && !defined(JOY_AXIS_RIGHTY)

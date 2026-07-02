@@ -22,7 +22,7 @@ std::string DebugCmdMapReveal()
 {
 	for (int x = 0; x < DMAXX; x++)
 		for (int y = 0; y < DMAXY; y++)
-			UpdateAutomapExplorer({ x, y }, MAP_EXP_SHRINE);
+			CurrentAutomapManager.UpdateAutomapExplorer({ x, y }, MAP_EXP_SHRINE);
 	return "Automap fully explored.";
 }
 
@@ -30,7 +30,7 @@ std::string DebugCmdMapHide()
 {
 	for (int x = 0; x < DMAXX; x++)
 		for (int y = 0; y < DMAXY; y++)
-			AutomapView[x][y] = MAP_EXP_NONE;
+			CurrentAutomapManager.GetAutomapView()[x][y] = MAP_EXP_NONE;
 	return "Automap exploration removed.";
 }
 
