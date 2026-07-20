@@ -24,6 +24,8 @@ All notable changes to this fork are documented below.
 - Externalize AI-to-missile-type mapping: replace `GetMissileType()` switch with data lookup from `monster_missiles.tsv`
 - Add `behavior` column to `objdat.tsv`, populate for all 109 object types
 - Replace `OperateObject()` hardcoded `switch` with registry lookup via `ObjectBehaviorRegistry`
+- Externalize item generation parameters: quality curve, affix allocation, drop tables into `item_generation.tsv`
+- Create `ItemGenerationConfig` struct loaded from `item_generation.tsv` replacing hardcoded constants in `GetItemBLevel()`, `GetItemPowerPrefixAndSuffix()`, `RndItemForMonsterLevel()`, `RndAllItems()`, and `SpawnItem()`
 
 ## 2026-06-24
 

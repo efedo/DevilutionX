@@ -649,12 +649,27 @@ struct UniqueItem {
 	int32_t mappingId;
 };
 
+struct ItemGenerationConfig {
+	int magicChanceBase;
+	int magicChancePerLevel;
+	std::vector<item_misc_id> alwaysMagicMisc;
+	int uniqueChanceNormal;
+	int uniqueChanceUnique;
+	int bonusLevelsUnique;
+	int prefixPercent;
+	int suffixPercent;
+	int onlygoodChance;
+	int noDropPercent;
+	int goldPercent;
+};
+
 extern DVL_API_FOR_TEST std::vector<ItemData> AllItemsList;
 extern ankerl::unordered_dense::map<int32_t, int16_t> ItemMappingIdsToIndices;
 extern std::vector<PLStruct> ItemPrefixes;
 extern std::vector<PLStruct> ItemSuffixes;
 extern DVL_API_FOR_TEST std::vector<UniqueItem> UniqueItems;
 extern ankerl::unordered_dense::map<int32_t, int32_t> UniqueItemMappingIdsToIndices;
+extern ItemGenerationConfig CurrentItemGenerationConfig;
 
 tl::expected<_item_indexes, std::string> ParseItemId(std::string_view value);
 void LoadItemDatFromFile(DataFile &dataFile, std::string_view filename, int32_t baseMappingId);

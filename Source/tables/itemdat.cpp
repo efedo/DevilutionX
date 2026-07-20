@@ -41,6 +41,9 @@ std::vector<PLStruct> ItemPrefixes;
 /** Contains the data related to each item suffix. */
 std::vector<PLStruct> ItemSuffixes;
 
+/** Global item generation configuration loaded from item_generation.tsv. */
+ItemGenerationConfig CurrentItemGenerationConfig {};
+
 tl::expected<_item_indexes, std::string> ParseItemId(std::string_view value)
 {
 	const std::optional<_item_indexes> enumValueOpt = magic_enum::enum_cast<_item_indexes>(value);
@@ -703,6 +706,31 @@ void LoadItemAffixesDat(std::string_view filename, std::vector<PLStruct> &out)
 	out.shrink_to_fit();
 }
 
+namespace {
+
+void LoadItemGenerationConfig()
+{
+	const std::string_view filename = "txtdata\\items\\item_generation.tsv";
+	DataFile dataFile = DataFile::loadOrDie(filename);
+	dataFile.skipHeaderOrDie(filename);
+
+	for (DataFileRecord record : dataFile) {
+		RecordReader reader { record, filename };
+		reader.readInt("magicChanceBase", CurrentItemGenerationConfig.magicChanceBase);
+		reader.readInt("magicChancePerLevel", CurrentItemGenerationConfig.magicChancePerLevel);
+		reader.readEnumList("alwaysMagicMisc", CurrentItemGenerationConfig.alwaysMagicMisc, ParseItemMiscId);
+		reader.readInt("uniqueChanceNormal", CurrentItemGenerationConfig.uniqueChanceNormal);
+		reader.readInt("uniqueChanceUnique", CurrentItemGenerationConfig.uniqueChanceUnique);
+		reader.readInt("bonusLevelsUnique", CurrentItemGenerationConfig.bonusLevelsUnique);
+		reader.readInt("prefixPercent", CurrentItemGenerationConfig.prefixPercent);
+		reader.readInt("suffixPercent", CurrentItemGenerationConfig.suffixPercent);
+		reader.readInt("onlygoodChance", CurrentItemGenerationConfig.onlygoodChance);
+		reader.readInt("noDropPercent", CurrentItemGenerationConfig.noDropPercent);
+		reader.readInt("goldPercent", CurrentItemGenerationConfig.goldPercent);
+		break; // only one row expected
+	}
+}
+
 } // namespace
 
 void LoadItemData()
@@ -711,6 +739,7 @@ void LoadItemData()
 	LoadUniqueItemDat();
 	LoadItemAffixesDat("txtdata\\items\\item_prefixes.tsv", ItemPrefixes);
 	LoadItemAffixesDat("txtdata\\items\\item_suffixes.tsv", ItemSuffixes);
+	LoadItemGenerationConfig();
 }
 
 std::string_view ItemTypeToString(ItemType itemType)

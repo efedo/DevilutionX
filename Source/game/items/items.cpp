@@ -1334,8 +1334,9 @@ void GetItemPowerPrefixAndSuffix(
     tl::function_ref<void(const PLStruct &prefix)> prefixFound,
     tl::function_ref<void(const PLStruct &suffix)> suffixFound)
 {
-	bool allocatePrefix = FlipCoin(4);
-	bool allocateSuffix = !FlipCoin(3);
+	const auto &cfg = CurrentItemGenerationConfig;
+	bool allocatePrefix = GenerateRnd(100) < cfg.prefixPercent;
+	bool allocateSuffix = GenerateRnd(100) < cfg.suffixPercent;
 	if (!allocatePrefix && !allocateSuffix) {
 		// At least try and give each item a prefix or suffix
 		if (FlipCoin())
@@ -1344,7 +1345,7 @@ void GetItemPowerPrefixAndSuffix(
 			allocateSuffix = true;
 	}
 	goodorevil goe = GOE_ANY;
-	if (!onlygood && !FlipCoin(3))
+	if (!onlygood && GenerateRnd(100) < cfg.onlygoodChance)
 		onlygood = true;
 
 	if (allocatePrefix) {
@@ -1547,7 +1548,7 @@ _item_indexes RndUItem(Monster *monster)
 
 _item_indexes RndAllItems()
 {
-	if (GenerateRnd(100) > 25)
+	if (GenerateRnd(100) < CurrentItemGenerationConfig.goldPercent)
 		return IDI_GOLD;
 
 	int itemMaxLevel = ItemsGetCurrlevel() * 2;
@@ -1636,15 +1637,21 @@ void ItemRndDur(Item &item)
 
 int GetItemBLevel(int lvl, item_misc_id miscId, bool onlygood, bool uper15)
 {
+	const auto &cfg = CurrentItemGenerationConfig;
 	int iblvl = -1;
-	if (GenerateRnd(100) <= 10
-	    || GenerateRnd(100) <= lvl
+	auto alwaysMagic = [&]() {
+		for (auto id : cfg.alwaysMagicMisc)
+			if (miscId == id) return true;
+		return false;
+	};
+	if (GenerateRnd(100) <= cfg.magicChanceBase
+	    || GenerateRnd(100) <= lvl * cfg.magicChancePerLevel
 	    || onlygood
-	    || IsAnyOf(miscId, IMISC_STAFF, IMISC_RING, IMISC_AMULET)) {
+	    || alwaysMagic()) {
 		iblvl = lvl;
 	}
 	if (uper15)
-		iblvl = lvl + 4;
+		iblvl = lvl + cfg.bonusLevelsUnique;
 	return iblvl;
 }
 
@@ -1658,8 +1665,8 @@ void SetupBaseItem(Point position, _item_indexes idx, bool onlygood, bool sendms
 	GetSuperItemSpace(position, ii);
 	const int curlv = ItemsGetCurrlevel();
 
-	SetupAllItems(*MyPlayer, item, idx, AdvanceRndSeed(), 2 * curlv, 1, onlygood, delta);
-	TryRandomUniqueItem(item, idx, 2 * curlv, 1, onlygood, delta);
+	SetupAllItems(*MyPlayer, item, idx, AdvanceRndSeed(), 2 * curlv, CurrentItemGenerationConfig.uniqueChanceNormal, onlygood, delta);
+	TryRandomUniqueItem(item, idx, 2 * curlv, CurrentItemGenerationConfig.uniqueChanceNormal, onlygood, delta);
 	SetupItem(item);
 
 	if (sendmsg)
@@ -2331,8 +2338,8 @@ void CreateMagicItem(Point position, int lvl, ItemType itemType, int imid, int i
 
 	while (true) {
 		item = {};
-		SetupAllItems(*MyPlayer, item, idx, AdvanceRndSeed(), 2 * lvl, 1, true, delta);
-		TryRandomUniqueItem(item, idx, 2 * lvl, 1, true, delta);
+		SetupAllItems(*MyPlayer, item, idx, AdvanceRndSeed(), 2 * lvl, CurrentItemGenerationConfig.uniqueChanceNormal, true, delta);
+		TryRandomUniqueItem(item, idx, 2 * lvl, CurrentItemGenerationConfig.uniqueChanceNormal, true, delta);
 		SetupItem(item);
 		if (item._iCurs == icurs)
 			break;
@@ -3377,8 +3384,8 @@ Item *SpawnUnique(_unique_items uid, Point position, std::optional<int> level /*
 		const _item_indexes dropIdx = GetItemIndexForDroppableItem(false, [&uniqueItemData](const ItemData &item) {
 			return item.itype == uniqueItemData.itype;
 		});
-		SetupAllItems(*MyPlayer, item, dropIdx, AdvanceRndSeed(), curlv * 2, 15, true, false);
-		TryRandomUniqueItem(item, dropIdx, curlv * 2, 15, true, false);
+		SetupAllItems(*MyPlayer, item, dropIdx, AdvanceRndSeed(), curlv * 2, CurrentItemGenerationConfig.uniqueChanceUnique, true, false);
+		TryRandomUniqueItem(item, dropIdx, curlv * 2, CurrentItemGenerationConfig.uniqueChanceUnique, true, false);
 		SetupItem(item);
 	}
 
@@ -3410,10 +3417,11 @@ void GetSuperItemSpace(Point position, int8_t inum)
 
 _item_indexes RndItemForMonsterLevel(int8_t monsterLevel)
 {
-	if (GenerateRnd(100) > 40)
+	const auto &cfg = CurrentItemGenerationConfig;
+	if (GenerateRnd(100) >= 100 - cfg.noDropPercent)
 		return IDI_NONE;
 
-	if (GenerateRnd(100) > 25)
+	if (GenerateRnd(100) < cfg.goldPercent)
 		return IDI_GOLD;
 
 	return GetItemIndexForDroppableItem(true, [&monsterLevel](const ItemData &item) {
@@ -3433,13 +3441,13 @@ void SetupAllItems(const Player &player, Item &item, _item_indexes idx, uint32_t
 	if (onlygood)
 		item._iCreateInfo |= CF_ONLYGOOD;
 
-	if (uper == 15)
+	if (uper == CurrentItemGenerationConfig.uniqueChanceUnique)
 		item._iCreateInfo |= CF_UPER15;
-	else if (uper == 1)
+	else if (uper == CurrentItemGenerationConfig.uniqueChanceNormal)
 		item._iCreateInfo |= CF_UPER1;
 
 	if (item._iMiscId != IMISC_UNIQUE) {
-		const int iblvl = GetItemBLevel(lvl, item._iMiscId, onlygood, uper == 15);
+		const int iblvl = GetItemBLevel(lvl, item._iMiscId, onlygood, uper == CurrentItemGenerationConfig.uniqueChanceUnique);
 		if (iblvl != -1) {
 			_unique_items uid = UITEM_INVALID;
 			if (!forceNotUnique) {
@@ -3477,7 +3485,7 @@ void TryRandomUniqueItem(Item &item, _item_indexes idx, int8_t mLevel, int uper,
 
 	// Get item base level, which is used in CheckUnique to get the correct valid uniques for the base item.
 	DiscardRandomValues(1); // GetItemAttrs
-	const int blvl = GetItemBLevel(mLevel, item._iMiscId, onlygood, uper == 15);
+	const int blvl = GetItemBLevel(mLevel, item._iMiscId, onlygood, uper == CurrentItemGenerationConfig.uniqueChanceUnique);
 
 	// Gather all potential unique items. uid is the index into UniqueItems.
 	auto validUniques = GetValidUniques(blvl, AllItemsList[static_cast<size_t>(idx)].iItemId);
@@ -3492,10 +3500,10 @@ void TryRandomUniqueItem(Item &item, _item_indexes idx, int8_t mLevel, int uper,
 
 	// If we find at least one unique in uids that hasn't been obtained yet, we can proceed getting a random unique.
 	if (uids.empty()) {
-		// Set uper to 1 and make the level adjustment so we have better odds of not generating a unique item.
-		if (uper == 15)
-			mLevel += 4;
-		uper = 1;
+		// Set uper to normal and make the level adjustment so we have better odds of not generating a unique item.
+		if (uper == CurrentItemGenerationConfig.uniqueChanceUnique)
+			mLevel += CurrentItemGenerationConfig.bonusLevelsUnique;
+		uper = CurrentItemGenerationConfig.uniqueChanceNormal;
 
 		const Point itemPos = item.position;
 
@@ -3541,12 +3549,13 @@ void TryRandomUniqueItem(Item &item, _item_indexes idx, int8_t mLevel, int uper,
 	if (canGenerateReverseCompatible) {
 		int targetLvl = 1; // Target level for reverse compatibility, since vanilla always takes the last applicable uid in the list.
 
-		// Set target level. Ideally we use uper 15 to have a 16% chance of generating a unique item.
-		if (uniqueItem.UIMinLvl - 4 > 0) { // Negative level will underflow. Lvl 0 items may have unintended consequences.
-			uper = 15;
-			targetLvl = uniqueItem.UIMinLvl - 4;
+		const int bonus = CurrentItemGenerationConfig.bonusLevelsUnique;
+		// Set target level. Ideally we use uper unique to have a good chance of generating a unique item.
+		if (uniqueItem.UIMinLvl - bonus > 0) { // Negative level will underflow. Lvl 0 items may have unintended consequences.
+			uper = CurrentItemGenerationConfig.uniqueChanceUnique;
+			targetLvl = uniqueItem.UIMinLvl - bonus;
 		} else {
-			uper = 1;
+			uper = CurrentItemGenerationConfig.uniqueChanceNormal;
 			targetLvl = uniqueItem.UIMinLvl;
 		}
 
@@ -3622,7 +3631,8 @@ void SpawnItem(Monster &monster, Point position, bool sendmsg, bool spawn /*= fa
 	const int ii = AllocateItem();
 	auto &item = Items[ii];
 	GetSuperItemSpace(position, ii);
-	const int uper = monster.isUnique() ? 15 : 1;
+	const auto &cfg = CurrentItemGenerationConfig;
+	const int uper = monster.isUnique() ? cfg.uniqueChanceUnique : cfg.uniqueChanceNormal;
 
 	const int8_t mLevel = monster.data().level;
 	SetupAllItems(*MyPlayer, item, idx, AdvanceRndSeed(), mLevel, uper, onlygood, false);
@@ -4870,7 +4880,7 @@ void CreateSpellBook(Point position, SpellID ispell, bool sendmsg, bool delta)
 
 	while (true) {
 		item = {};
-		SetupAllItems(*MyPlayer, item, idx, AdvanceRndSeed(), 2 * lvl, 1, true, delta);
+		SetupAllItems(*MyPlayer, item, idx, AdvanceRndSeed(), 2 * lvl, CurrentItemGenerationConfig.uniqueChanceNormal, true, delta);
 		SetupItem(item);
 		if (item._iMiscId == IMISC_BOOK && item._iSpell == ispell)
 			break;
