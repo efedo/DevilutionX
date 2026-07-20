@@ -10,4 +10,4 @@ set(DEVILUTIONX_SYSTEM_LIBFMT OFF)
 #   error: undefined symbol: BZ2_bzDecompressEnd (referenced by top-level compiled C/C++ code)
 set(DEVILUTIONX_SYSTEM_BZIP2 OFF)
 
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/Packaging/emscripten/index.html" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+# Packaging/emscripten removed

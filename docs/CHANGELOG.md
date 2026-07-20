@@ -13,6 +13,11 @@ All notable changes to this fork are documented below.
 
 - Refactor `ui/automap` into `AutomapManager` class with singleton `CurrentAutomapManager`; move 8 globals + 13 functions; update ~18 caller files
 
+## 2026-07-20
+
+- Remove all Packaging/ and Android-specific build artifacts
+- Prune Android/UWP conditionals and references from CMake build system
+
 ## 2026-06-24
 
 - Add file-level summaries to all source files missing them

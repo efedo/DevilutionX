@@ -8,11 +8,7 @@ FetchContent_Declare_ExcludeFromAll(libzt
   GIT_TAG 1a9d83b8c4c2bdcd7ea6d8ab1dd2771b16eb4e13)
 FetchContent_MakeAvailable_ExcludeFromAll(libzt)
 
-if(NOT ANDROID)
-  set(libzt_LIB_NAME zt-static)
-else()
-  set(libzt_LIB_NAME zt-shared)
-endif()
+set(libzt_LIB_NAME zt-static)
 
 foreach(
   lib_name

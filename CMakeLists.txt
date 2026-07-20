@@ -97,11 +97,6 @@ option(GPERF "Build with GPerfTools profiler" OFF)
 cmake_dependent_option(GPERF_HEAP_FIRST_GAME_ITERATION "Save heap profile of the first game iteration" OFF "GPERF" OFF)
 option(ENABLE_CODECOVERAGE "Instrument code for code coverage (only enabled with BUILD_TESTING)" OFF)
 
-# Packaging options
-RELEASE_OPTION(CPACK "Configure CPack")
-option(MACOSX_STANDALONE_APP_BUNDLE "Generate a portable app bundle to use on other devices (requires sudo)" OFF)
-option(WIN_NSIS "Generate an NSIS installer" OFF)
-
 # Network options
 cmake_dependent_option(DISABLE_TCP "Disable TCP multiplayer option" OFF "NOT NONET" ON)
 cmake_dependent_option(DISABLE_ZERO_TIER "Disable ZeroTier multiplayer option" OFF "NOT NONET" ON)
@@ -183,7 +178,7 @@ endif()
 
 # By default, devilutionx.mpq and mods/Hellfire.mpq are built only if smpq is installed and MPQ support is enabled.
 if(SUPPORTS_MPQ AND NOT UNPACKED_MPQS)
-  if(BUILD_ASSETS_MPQ OR (CPACK STREQUAL "ON" AND (WIN32 OR CMAKE_SYSTEM_NAME STREQUAL "Linux")))
+  if(BUILD_ASSETS_MPQ)
     find_program(SMPQ smpq REQUIRED)
   elseif(NOT DEFINED BUILD_ASSETS_MPQ AND NOT SRC_DIST)
     find_program(SMPQ smpq)
@@ -356,25 +351,16 @@ elseif(TARGET_PLATFORM STREQUAL "dos")
   set(BIN_TARGET devx)
 endif()
 
-if(ANDROID)
-  add_library(${BIN_TARGET} SHARED Source/application/main.cpp)
-elseif(UWP_LIB)
-  set(BIN_TARGET libdevilutionx)
-else()
-  add_executable(${BIN_TARGET}
-    WIN32
-    MACOSX_BUNDLE
-    Source/application/main.cpp
-    Packaging/windows/devilutionx.exe.manifest
-    Packaging/windows/devilutionx.rc
-    Packaging/apple/LaunchScreen.storyboard)
+add_executable(${BIN_TARGET}
+  WIN32
+  MACOSX_BUNDLE
+  Source/application/main.cpp)
 
-    if(CMAKE_STRIP AND NOT DEVILUTIONX_DISABLE_STRIP)
-      add_custom_command(
-        TARGET ${BIN_TARGET} POST_BUILD
-        COMMAND $<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>>:${CMAKE_STRIP}>
-        ARGS $<TARGET_FILE:${BIN_TARGET}>)
-    endif()
+if(CMAKE_STRIP AND NOT DEVILUTIONX_DISABLE_STRIP)
+  add_custom_command(
+    TARGET ${BIN_TARGET} POST_BUILD
+    COMMAND $<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>>:${CMAKE_STRIP}>
+    ARGS $<TARGET_FILE:${BIN_TARGET}>)
 endif()
 
 if(TARGET_PLATFORM STREQUAL "dos")
@@ -385,9 +371,7 @@ if(TARGET_PLATFORM STREQUAL "dos")
     target_link_libraries(${BIN_TARGET} PRIVATE m)
 endif()
 
-if(NOT UWP_LIB)
-  target_link_dependencies(${BIN_TARGET} PRIVATE libdevilutionx)
-endif()
+target_link_dependencies(${BIN_TARGET} PRIVATE libdevilutionx)
 
 if(GPERF)
   target_link_libraries(${BIN_TARGET} PUBLIC ${GPERFTOOLS_LIBRARIES})
@@ -401,7 +385,7 @@ if(EMSCRIPTEN)
   target_link_options(${BIN_TARGET} PRIVATE --preload-file assets)
 endif()
 
-if(NOT USE_SDL1 AND NOT UWP_LIB)
+if(NOT USE_SDL1)
   target_link_libraries(${BIN_TARGET} PUBLIC ${SDL2_MAIN})
 endif()
 
@@ -412,305 +396,10 @@ endif()
 include(functions/set_relative_file_macro)
 set_relative_file_macro(${BIN_TARGET})
 
-if(APPLE)
-  set(MACOSX_BUNDLE_GUI_IDENTIFIER com.diasurgical.devilutionx)
-  set(MACOSX_BUNDLE_COPYRIGHT Unlicense)
-  set(MACOSX_BUNDLE_BUNDLE_NAME devilutionx)
-  set(MACOSX_BUNDLE_DISPLAY_NAME DevilutionX)
-  set(MACOSX_BUNDLE_INFO_STRING ${PROJECT_VERSION})
-  set(MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION})
-  set(MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION})
-  set(MACOSX_BUNDLE_LONG_VERSION_STRING "Version ${PROJECT_VERSION}")
-  if(IOS)
-    set(MACOSX_BUNDLE_REQUIRED_PLATFORM IPhoneOS)
-    set_target_properties(${BIN_TARGET} PROPERTIES XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2")
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "9.0")
-  elseif(DARWIN_MAJOR_VERSION GREATER_EQUAL 17)
-    set(MACOSX_BUNDLE_REQUIRED_PLATFORM Carbon)
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13.0")
-  endif()
-  if(DARWIN_MAJOR_VERSION VERSION_LESS 9)
-    # Finder on OSX Tiger can only handle icns files with up to 128x128 icons.
-    set(_icon_file AppIcon_128)
-  else()
-    set(_icon_file AppIcon)
-  endif()
-  target_sources(${BIN_TARGET} PRIVATE "Packaging/apple/${_icon_file}.icns")
-  set_source_files_properties("./Packaging/apple/${_icon_file}.icns" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-  set_target_properties(${BIN_TARGET} PROPERTIES MACOSX_BUNDLE_ICON_FILE "${_icon_file}.icns")
-  set_target_properties(${BIN_TARGET} PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Packaging/apple/Info.plist")
-
-  install (TARGETS ${BIN_TARGET} DESTINATION ./)
-
-  if(MACOSX_STANDALONE_APP_BUNDLE)
-      install(CODE "
-        include(BundleUtilities)
-        fixup_bundle(${CMAKE_BINARY_DIR}/${MACOSX_BUNDLE_BUNDLE_NAME}.app \"\" \"\")
-        "
-        COMPONENT Runtime)
-  endif()
-
-  find_library(COREFOUNDATION_LIBRARY CoreFoundation)
-  if(COREFOUNDATION_LIBRARY)
-    target_link_libraries(libdevilutionx PUBLIC "${COREFOUNDATION_LIBRARY}")
-    target_compile_definitions(libdevilutionx PRIVATE USE_COREFOUNDATION)
-  endif()
-
-  set(MACOSX_BUNDLE_LONG_VERSION_STRING "Version ${PROJECT_VERSION}")
-  set(CPACK On)
-endif()
-
-if(NINTENDO_SWITCH)
-  nx_generate_nacp (${BIN_TARGET}.nacp
-    NAME    "DevilutionX"
-    AUTHOR  "Devilution Team"
-    VERSION "${PROJECT_VERSION}"
-  )
-
-  file(MAKE_DIRECTORY "${DEVILUTIONX_ASSETS_OUTPUT_DIRECTORY}")
-  nx_create_nro(${BIN_TARGET}
-    NACP  ${BIN_TARGET}.nacp
-    ICON  "${PROJECT_SOURCE_DIR}/Packaging/switch/icon.jpg"
-    ROMFS ${DEVILUTIONX_ASSETS_OUTPUT_DIRECTORY}
-  )
-endif()
-
-if(VITA)
-  set(VITA_APP_NAME "devilutionX")
-  set(VITA_TITLEID  "DVLX00001")
-  set(VITA_VERSION  "01.00")
-  set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d PARENTAL_LEVEL=1")
-  set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d ATTRIBUTE2=12")
-  vita_create_self(devilutionx.self devilutionx UNSAFE)
-  if(BUILD_ASSETS_MPQ OR SRC_DIST)
-    vita_create_vpk(devilutionx.vpk ${VITA_TITLEID} devilutionx.self
-      VERSION ${VITA_VERSION}
-      NAME ${VITA_APP_NAME}
-      FILE Packaging/vita/sce_sys sce_sys
-      FILE ${DEVILUTIONX_MPQ} devilutionx.mpq
-      FILE ${HELLFIRE_MPQ} mods/Hellfire.mpq
-    )
-  else()
-    vita_create_vpk(devilutionx.vpk ${VITA_TITLEID} devilutionx.self
-      VERSION ${VITA_VERSION}
-      NAME ${VITA_APP_NAME}
-      FILE Packaging/vita/sce_sys sce_sys
-      FILE assets assets
-      ${VITA_TRANSLATIONS_LIST}
-    )
-  endif()
-
-endif()
-
-if(PS4)
-  add_custom_command(
-    TARGET devilutionx_mpq POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${DEVILUTIONX_MPQ} "${PROJECT_SOURCE_DIR}/Packaging/ps4/")
-  add_custom_command(
-    TARGET hellfire_mpq POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_SOURCE_DIR}/Packaging/ps4/mods"
-    COMMAND ${CMAKE_COMMAND} -E copy ${HELLFIRE_MPQ} "${PROJECT_SOURCE_DIR}/Packaging/ps4/mods/")
-  add_self(${BIN_TARGET})
-  add_pkg(${BIN_TARGET} "${PROJECT_SOURCE_DIR}/Packaging/ps4"
-    "DVLX00001" "DevilutionX" "${PROJECT_VERSION}")
-endif()
-
-if(NINTENDO_3DS)
-  set(APP_TITLE       "DevilutionX")
-  set(APP_DESCRIPTION "DevilutionX port for 3DS")
-  set(APP_AUTHOR      "Diasurgical Team")
-  set(APP_ICON        "${PROJECT_SOURCE_DIR}/Packaging/ctr/icon.png")
-  set(APP_BANNER      "${PROJECT_SOURCE_DIR}/Packaging/ctr/banner.png")
-  set(APP_AUDIO       "${CMAKE_BINARY_DIR}/banner_audio.wav")
-  set(APP_RSF         "${PROJECT_SOURCE_DIR}/Packaging/ctr/template.rsf")
-  set(APP_VERSION ${PROJECT_VERSION})
-
-  find_program(FFMPEG ffmpeg)
-  if(FFMPEG)
-    add_custom_command(OUTPUT ${APP_AUDIO}
-      COMMAND ${FFMPEG} -y -ss 3.3 -t 3 -i "${PROJECT_SOURCE_DIR}/Packaging/resources/shareware-startup.wav" -af "afade=t=in:st=0:d=0.1,afade=t=out:st=2.9:d=0.1" ${APP_AUDIO}
-      DEPENDS ${PROJECT_SOURCE_DIR}/Packaging/resources/shareware-startup.wav
-      VERBATIM)
-  else()
-    add_custom_command(OUTPUT ${APP_AUDIO}
-      COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/Packaging/ctr/audio_silent.wav ${APP_AUDIO}
-      DEPENDS ${PROJECT_SOURCE_DIR}/Packaging/ctr/audio_silent.wav
-      VERBATIM)
-  endif()
-
-  include(Tools3DS)
-  add_3dsx_target(${BIN_TARGET})
-  add_cia_target(${BIN_TARGET} ${APP_RSF} ${APP_BANNER} ${APP_AUDIO})
-endif()
-
-if(NXDK)
-  target_link_libraries(${BIN_TARGET} PRIVATE "${NXDK_DIR}/lib/libnxdk_automount_d.lib")
-  target_link_options(${BIN_TARGET} PRIVATE "-include:_automount_d_drive")
-
-  set(_nxdk_pkg_dir "${CMAKE_BINARY_DIR}/pkg")
-  set(_xbe_path "${_nxdk_pkg_dir}/default.xbe")
-  add_custom_command(
-    OUTPUT "${_xbe_path}"
-    COMMAND "${CMAKE_COMMAND}" -E make_directory "${_nxdk_pkg_dir}"
-    COMMAND "${NXDK_DIR}/tools/cxbe/cxbe" "-OUT:${_xbe_path}" -TITLE:DevilutionX "-Logo:${PROJECT_SOURCE_DIR}/Packaging/xbox_nxdk/xbe_logo.pgm" "${CMAKE_BINARY_DIR}/${BIN_TARGET}.exe"
-    DEPENDS "${BIN_TARGET}"
-  )
-  add_custom_target(nxdk_xbe DEPENDS "${_xbe_path}")
-endif()
-
-if(CPACK AND (APPLE OR BUILD_ASSETS_MPQ OR SRC_DIST))
-  if(WIN32)
-    if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-      set(SDL2_WIN32_DLLS_DIR "${CMAKE_BINARY_DIR}")
-    else()
-      set(SDL2_WIN32_DLLS_DIR "${SDL2_EXEC_PREFIX}")
-    endif()
-    set(SDL2_WIN32_LICENSES_DIR "${PROJECT_SOURCE_DIR}/Packaging/resources")
-
-    file(GLOB SDL2_WIN32_ALL_DLLS
-      LIST_DIRECTORIES false
-      "${SDL2_WIN32_DLLS_DIR}/*.dll")
-    file(GLOB SDL2_WIN32_ALL_LICENSES
-      LIST_DIRECTORIES false
-      "${SDL2_WIN32_LICENSES_DIR}/LICENSE*.txt"
-      "${SDL2_WIN32_LICENSES_DIR}/README*.txt")
-
-    set(CPACK_PACKAGE_NAME ${project_name})
-    if(WIN_NSIS)
-      set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}_${PROJECT_VERSION}_Installer")
-      set(CPACK_GENERATOR "NSIS")
-      set(CPACK_PACKAGE_INSTALL_DIRECTORY "${PROJECT_NAME}")
-      set(CPACK_NSIS_MUI_ICON "${PROJECT_SOURCE_DIR}/Packaging/windows/icon.ico")
-      set(CPACK_NSIS_MUI_UNIICON "${PROJECT_SOURCE_DIR}/Packaging/windows/icon.ico")
-      set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/LICENSE.md")
-      set(CPACK_NSIS_EXECUTABLES_DIRECTORY ".")
-      set(CPACK_PACKAGE_EXECUTABLES "devilutionx" "DevilutionX")
-      set(CPACK_NSIS_MUI_FINISHPAGE_RUN "${BIN_TARGET}")
-    else()
-      set(CPACK_PACKAGE_FILE_NAME "devilutionx")
-      set(CPACK_GENERATOR "ZIP")
-    endif()
-    set(CPACK_STRIP_FILES TRUE)
-    install(TARGETS ${BIN_TARGET} DESTINATION .)
-    install(FILES "${PROJECT_SOURCE_DIR}/Packaging/windows/README.txt"
-      DESTINATION "."
-    )
-    install(FILES "${DEVILUTIONX_MPQ}"
-      DESTINATION "."
-    )
-    install(FILES "${HELLFIRE_MPQ}"
-      DESTINATION "mods"
-    )
-
-    foreach(_SDL2_WIN32_DLL_PATH ${SDL2_WIN32_ALL_DLLS} ${WIN32_INSTALL_DLLS})
-      install(FILES "${_SDL2_WIN32_DLL_PATH}"
-        DESTINATION "."
-      )
-    endforeach()
-
-    foreach(_SDL2_WIN32_LICENSE_PATH ${SDL2_WIN32_ALL_LICENSES})
-      install(FILES "${_SDL2_WIN32_LICENSE_PATH}"
-        DESTINATION "LICENSE"
-      )
-    endforeach()
-
-    if(DISCORD_SHARED_LIB)
-      install(FILES "${DISCORD_SHARED_LIB}"
-        DESTINATION "."
-      )
-    endif()
-
-    if(SCREEN_READER_INTEGRATION)
-      install(FILES "${Tolk_BINARY_DIR}/libTolk.dll"
-        DESTINATION "."
-      )
-    endif()
-
-  elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    string(TOLOWER ${PROJECT_NAME} project_name)
-    set(CPACK_PACKAGE_NAME ${project_name})
-    set(CPACK_GENERATOR "7Z")
-    # Common *nix files
-    set(CPACK_STRIP_FILES TRUE)
-    install(TARGETS ${BIN_TARGET} DESTINATION bin)
-    set(desktop_file "${PROJECT_SOURCE_DIR}/Packaging/nix/${project_name}.desktop")
-    set(desktop_file_hellfire "${PROJECT_SOURCE_DIR}/Packaging/nix/${project_name}-hellfire.desktop")
-
-    find_program(DFI desktop-file-install)
-    if(DFI)
-      execute_process(COMMAND ${DFI} --dir=${CMAKE_BINARY_DIR} ${desktop_file})
-      set(desktop_file "${CMAKE_BINARY_DIR}/${project_name}.desktop")
-      execute_process(COMMAND ${DFI} --dir=${CMAKE_BINARY_DIR} ${desktop_file_hellfire})
-      set(desktop_file_hellfire "${CMAKE_BINARY_DIR}/${project_name}-hellfire.desktop")
-    endif()
-
-    install(FILES "${desktop_file}"
-      DESTINATION "share/applications"
-    )
-    install(FILES "${desktop_file_hellfire}"
-      DESTINATION "share/applications"
-    )
-    install(FILES "${PROJECT_SOURCE_DIR}/Packaging/nix/README.txt"
-      DESTINATION "share/diasurgical/${project_name}"
-    )
-    install(FILES "${DEVILUTIONX_MPQ}"
-      DESTINATION "share/diasurgical/${project_name}"
-    )
-    install(FILES "${HELLFIRE_MPQ}"
-      DESTINATION "share/diasurgical/${project_name}/mods"
-    )
-    install(FILES "${PROJECT_SOURCE_DIR}/Packaging/resources/icon_flat.png"
-      DESTINATION "share/icons/hicolor/512x512/apps"
-      RENAME "${project_name}.png"
-    )
-    install(FILES "${PROJECT_SOURCE_DIR}/Packaging/resources/hellfire.png"
-      DESTINATION "share/icons/hicolor/512x512/apps"
-      RENAME "${project_name}-hellfire.png"
-    )
-    install(FILES "${PROJECT_SOURCE_DIR}/Packaging/nix/devilutionx.metainfo.xml"
-      DESTINATION "share/metainfo"
-      RENAME "${project_name}.metainfo.xml"
-    )
-    if(DISCORD_SHARED_LIB)
-      install(FILES "${DISCORD_SHARED_LIB}" DESTINATION "lib")
-    endif()
-
-    # -G DEB
-    set(CPACK_PACKAGE_CONTACT "anders@jenbo.dk")
-    if(USE_SDL1)
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libsdl1.2debian")
-    else()
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libsdl2-2.0-0, libsdl2-image-2.0-0")
-    endif()
-    set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
-
-    # -G RPM
-    set(CPACK_RPM_FILE_NAME RPM-DEFAULT)
-
-    find_program(RPMBUILD rpmbuild)
-    if(RPMBUILD)
-      list(APPEND CPACK_GENERATOR "RPM")
-    endif()
-    find_program(DPKG dpkg)
-    if(DPKG)
-      list(APPEND CPACK_GENERATOR "DEB")
-    endif()
-
-  elseif(APPLE)
-    set(CPACK_PACKAGE_FILE_NAME "devilutionx")
-    set(CPACK_DMG_DISABLE_APPLICATIONS_SYMLINK "ON")
-    set(CPACK_STRIP_FILES TRUE)
-    set(CPACK_GENERATOR "DragNDrop")
-  endif()
-
-  set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
-  set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
-  set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
-  include(CPack)
+find_library(COREFOUNDATION_LIBRARY CoreFoundation)
+if(COREFOUNDATION_LIBRARY)
+  target_link_libraries(libdevilutionx PUBLIC "${COREFOUNDATION_LIBRARY}")
+  target_compile_definitions(libdevilutionx PRIVATE USE_COREFOUNDATION)
 endif()
 
 resolve_target_link_dependencies()
-if(UWP_LIB)
-  get_target_property(_linked_objects libdevilutionx LINKED_OBJECTS)
-  target_sources(libdevilutionx PRIVATE ${_linked_objects})
-endif()
