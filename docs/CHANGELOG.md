@@ -17,6 +17,9 @@ All notable changes to this fork are documented below.
 
 - Remove all Packaging/ and Android-specific build artifacts
 - Prune Android/UWP conditionals and references from CMake build system
+- Consolidate Level identity fields into `LevelId`, remove 5 duplicate fields from Level
+- Make `World::switchLevel` accept a `LevelId` instead of bare `LevelIndex`, centralizing identity setup
+- Simplify all level-transition callers to construct `LevelId` in one call
 
 ## 2026-06-24
 

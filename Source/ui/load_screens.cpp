@@ -344,10 +344,7 @@ void DoLoad(interface_mode uMsg)
 		}
 		IncProgress();
 		FreeGameMem();
-		SwitchCurrentLevel(static_cast<LevelIndex>(myPlayer.plrlevel));
-		isSetLevel() = false;
-		currentLevelNumber() = myPlayer.plrlevel;
-		levelType() = GetLevelType(currentLevelNumber());
+		SwitchCurrentLevel(LevelId { myPlayer.plrlevel, GetLevelType(myPlayer.plrlevel), false, SL_NONE });
 		IncProgress();
 		loadResult = LoadGameLevel(false, ENTRY_MAIN);
 		if (loadResult.has_value()) IncProgress();
@@ -361,9 +358,10 @@ void DoLoad(interface_mode uMsg)
 		}
 		IncProgress();
 		FreeGameMem();
-		SwitchCurrentLevel(static_cast<LevelIndex>(currentLevelNumber() - 1));
-		currentLevelNumber()--;
-		levelType() = GetLevelType(currentLevelNumber());
+		{
+			uint8_t prevLevel = currentLevelNumber() - 1;
+			SwitchCurrentLevel(LevelId { prevLevel, GetLevelType(prevLevel), false, SL_NONE });
+		}
 		assert(myPlayer.isOnActiveLevel());
 		IncProgress();
 		loadResult = LoadGameLevel(false, ENTRY_PREV);
@@ -381,10 +379,10 @@ void DoLoad(interface_mode uMsg)
 			DeltaSaveLevel();
 		}
 		IncProgress();
-		SwitchCurrentLevel(static_cast<LevelIndex>(-1 - static_cast<int>(setLevelNumber())));
-		isSetLevel() = true;
-		levelType() = setLevelType();
-		currentLevelNumber() = static_cast<uint8_t>(setLevelNumber());
+		{
+			_setlevels setLvl = setLevelNumber();
+			SwitchCurrentLevel(LevelId { static_cast<uint8_t>(setLvl), setLevelType(), true, setLvl });
+		}
 		FreeGameMem();
 		IncProgress();
 		loadResult = LoadGameLevel(false, ENTRY_SETLVL);
@@ -398,12 +396,12 @@ void DoLoad(interface_mode uMsg)
 			DeltaSaveLevel();
 		}
 		IncProgress();
-		isSetLevel() = false;
 		FreeGameMem();
 		IncProgress();
-		SwitchCurrentLevel(static_cast<LevelIndex>(GetMapReturnLevel()));
-		currentLevelNumber() = GetMapReturnLevel();
-		levelType() = GetLevelType(currentLevelNumber());
+		{
+			uint8_t returnLvl = GetMapReturnLevel();
+			SwitchCurrentLevel(LevelId { returnLvl, GetLevelType(returnLvl), false, SL_NONE });
+		}
 		loadResult = LoadGameLevel(false, ENTRY_RTNLVL);
 		if (loadResult.has_value()) IncProgress();
 		break;
@@ -430,10 +428,7 @@ void DoLoad(interface_mode uMsg)
 		}
 		IncProgress();
 		FreeGameMem();
-		SwitchCurrentLevel(static_cast<LevelIndex>(myPlayer.plrlevel));
-		isSetLevel() = false;
-		currentLevelNumber() = myPlayer.plrlevel;
-		levelType() = GetLevelType(currentLevelNumber());
+		SwitchCurrentLevel(LevelId { myPlayer.plrlevel, GetLevelType(myPlayer.plrlevel), false, SL_NONE });
 		IncProgress();
 		loadResult = LoadGameLevel(false, ENTRY_TWARPDN);
 		if (loadResult.has_value()) IncProgress();
@@ -447,9 +442,7 @@ void DoLoad(interface_mode uMsg)
 		}
 		IncProgress();
 		FreeGameMem();
-		SwitchCurrentLevel(static_cast<LevelIndex>(myPlayer.plrlevel));
-		currentLevelNumber() = myPlayer.plrlevel;
-		levelType() = GetLevelType(currentLevelNumber());
+		SwitchCurrentLevel(LevelId { myPlayer.plrlevel, GetLevelType(myPlayer.plrlevel), false, SL_NONE });
 		IncProgress();
 		loadResult = LoadGameLevel(false, ENTRY_TWARPUP);
 		if (loadResult.has_value()) IncProgress();
@@ -463,10 +456,7 @@ void DoLoad(interface_mode uMsg)
 		}
 		IncProgress();
 		FreeGameMem();
-		SwitchCurrentLevel(0);
-		isSetLevel() = false;
-		currentLevelNumber() = myPlayer.plrlevel;
-		levelType() = GetLevelType(currentLevelNumber());
+		SwitchCurrentLevel(LevelId { myPlayer.plrlevel, GetLevelType(myPlayer.plrlevel), false, SL_NONE });
 		IncProgress();
 		loadResult = LoadGameLevel(false, ENTRY_MAIN);
 		if (loadResult.has_value()) IncProgress();

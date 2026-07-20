@@ -29,15 +29,9 @@ World::World()
 // Current level
 // ---------------------------------------------------------------------------
 
-void World::switchLevel(LevelIndex index)
+void World::switchLevel(LevelId target)
 {
-	// Update the current level's identity without recreating it.
-	// This preserves all sprite data and level state.
-	// The identity fields (leveltype_, currlevel_, …) will be filled in
-	// by the caller immediately after via the gendung macros.
-	LevelId levelId;
-	levelId.levelNum = static_cast<uint8_t>(index < 0 ? 0 : index);
-	currentLevel_->setId(levelId);
+	currentLevel_->setId(target);
 }
 
 Level &World::currentLevel()

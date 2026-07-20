@@ -810,10 +810,7 @@ bool IsNearThemeRoom(WorldTilePosition testPosition)
 
 void InitLevels()
 {
-	SwitchCurrentLevel(0);
-	currentLevelNumber() = 0;
-	levelType() = DTYPE_TOWN;
-	isSetLevel() = false;
+	SwitchCurrentLevel(LevelId { 0, DTYPE_TOWN, false, SL_NONE });
 }
 
 void FloodTransparencyValues(uint8_t floorID)

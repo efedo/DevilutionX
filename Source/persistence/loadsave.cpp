@@ -2472,15 +2472,15 @@ tl::expected<void, std::string> LoadGame(bool firstflag)
 
 	pfile_remove_temp_files();
 
-	isSetLevel() = file.NextBool8();
-	setLevelNumber() = static_cast<_setlevels>(file.NextBE<uint32_t>());
-	const auto savedCurrlevel = file.NextBE<uint32_t>();
-	const auto savedLeveltype = static_cast<dungeon_type>(file.NextBE<uint32_t>());
-	SwitchCurrentLevel(static_cast<LevelIndex>(savedCurrlevel));
-	currentLevelNumber() = savedCurrlevel;
-	levelType() = savedLeveltype;
-	if (!isSetLevel())
-		levelType() = GetLevelType(currentLevelNumber());
+	{
+		bool loadIsSetLevel = file.NextBool8();
+		_setlevels loadSetLevelNumber = static_cast<_setlevels>(file.NextBE<uint32_t>());
+		const auto savedCurrlevel = static_cast<uint8_t>(file.NextBE<uint32_t>());
+		auto savedLeveltype = static_cast<dungeon_type>(file.NextBE<uint32_t>());
+		if (!loadIsSetLevel)
+			savedLeveltype = GetLevelType(savedCurrlevel);
+		SwitchCurrentLevel(LevelId { savedCurrlevel, savedLeveltype, loadIsSetLevel, loadSetLevelNumber });
+	}
 	const int viewX = file.NextBE<int32_t>();
 	const int viewY = file.NextBE<int32_t>();
 	invflag = file.NextBool8();

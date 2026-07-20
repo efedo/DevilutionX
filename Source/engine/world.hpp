@@ -67,12 +67,14 @@ public:
     [[nodiscard]] const Level &currentLevel() const;
 
     /**
-     * @brief Creates (if needed) and activates the level at @p index.
+     * @brief Sets the current level's identity to @p target.
      *
-     * Updates currentLevel_ with the index and initializes it as a placeholder
-     * if needed. Callers immediately fill in identity fields via gendung macros.
+     * Reuses the existing Level object (no assets are freed or loaded).
+     * All identity fields are written from the LevelId in one call,
+     * replacing the old pattern of SwitchCurrentLevel(index) followed by
+     * separate gendung macro assignments.
      */
-    void switchLevel(LevelIndex index);
+    void switchLevel(LevelId target);
 
     // -------------------------------------------------------------------------
     // Lifecycle
@@ -114,15 +116,18 @@ inline Level &currentLevel()
 }
 
 /**
- * @brief Creates (if needed) and activates the level at @p index.
+ * @brief Sets the current level's identity to @p target.
+ *
+ * Reuses the existing Level object (no assets are freed or loaded).
+ * All identity fields are written from the LevelId in one call.
  *
  * Must be called before any gendung macro (currentLevelNumber(), levelType(), …) is
- * first written on a level transition so that currentLevel() resolves
+ * first read during a level transition so that currentLevel() resolves
  * to a valid Level object.
  */
-inline void SwitchCurrentLevel(LevelIndex index)
+inline void SwitchCurrentLevel(LevelId target)
 {
-    CurrentWorld.switchLevel(index);
+    CurrentWorld.switchLevel(target);
 }
 
 } // namespace devilution

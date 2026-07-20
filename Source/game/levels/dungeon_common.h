@@ -99,27 +99,27 @@ inline decltype(auto) maximumDungeonPosition() // Maximum rendered dungeon posit
 
 inline decltype(auto) levelType() // Active dungeon type.
 {
-	return (currentLevel().leveltype_);
+	return (currentLevel().typeRef());
 }
 
 inline decltype(auto) currentLevelNumber() // Active dungeon level number.
 {
-	return (currentLevel().currlevel_);
+	return (currentLevel().levelNumRef());
 }
 
 inline decltype(auto) isSetLevel() // Whether the active level is a quest level.
 {
-	return (currentLevel().setlevel_);
+	return (currentLevel().isSetLevelRef());
 }
 
 inline decltype(auto) setLevelNumber() // Active quest-level identifier.
 {
-	return (currentLevel().setlvlnum_);
+	return (currentLevel().setLevelIdRef());
 }
 
 inline decltype(auto) setLevelType() // Dungeon type of the active quest level.
 {
-	return (currentLevel().setlvltype_);
+	return (currentLevel().typeRef());
 }
 
 inline decltype(auto) viewPosition() // Player viewpoint position.

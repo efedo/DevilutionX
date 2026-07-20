@@ -135,27 +135,19 @@ void SetCurrentPortal(size_t p)
 void GetPortalLevel()
 {
 	if (levelType() != DTYPE_TOWN) {
-		SwitchCurrentLevel(0);
-		isSetLevel() = false;
-		currentLevelNumber() = 0;
+		SwitchCurrentLevel(LevelId { 0, DTYPE_TOWN, false, SL_NONE });
 		MyPlayer->setLevel(0);
-		levelType() = DTYPE_TOWN;
 		return;
 	}
 
 	if (Portals[portalindex].setlvl) {
-		SwitchCurrentLevel(static_cast<LevelIndex>(-1 - static_cast<int>(Portals[portalindex].level)));
-		isSetLevel() = true;
-		setLevelNumber() = (_setlevels)Portals[portalindex].level;
-		currentLevelNumber() = Portals[portalindex].level;
-		MyPlayer->setLevel(setLevelNumber());
-		setLevelType() = levelType() = Portals[portalindex].ltype;
+		uint8_t lvl = Portals[portalindex].level;
+		SwitchCurrentLevel(LevelId { lvl, Portals[portalindex].ltype, true, static_cast<_setlevels>(lvl) });
+		MyPlayer->setLevel(static_cast<_setlevels>(lvl));
 	} else {
-		SwitchCurrentLevel(static_cast<LevelIndex>(Portals[portalindex].level));
-		isSetLevel() = false;
-		currentLevelNumber() = Portals[portalindex].level;
-		MyPlayer->setLevel(currentLevelNumber());
-		levelType() = Portals[portalindex].ltype;
+		uint8_t lvl = Portals[portalindex].level;
+		SwitchCurrentLevel(LevelId { lvl, Portals[portalindex].ltype, false, SL_NONE });
+		MyPlayer->setLevel(lvl);
 	}
 
 	if (portalindex == MyPlayerId) {

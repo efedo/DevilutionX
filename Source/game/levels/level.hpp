@@ -139,13 +139,16 @@ public:
 	WorldTilePosition dmaxPosition_ = {};           // Maximum populated world-tile coordinates.
 
 	// -------------------------------------------------------------------------
-	// Level identity  (previously in gendung.cpp)
+	// Mutable accessors for identity fields (for gendung backward compat)
 	// -------------------------------------------------------------------------
-	dungeon_type leveltype_ = DTYPE_TOWN;    // Active dungeon type.
-	uint8_t currlevel_ = 0;                  // Active regular dungeon level number.
-	bool setlevel_ = false;                  // Whether the active level is a quest set level.
-	_setlevels setlvlnum_ = SL_NONE;         // Active quest set-level identifier.
-	dungeon_type setlvltype_ = DTYPE_TOWN;   // Dungeon type of the active quest set level.
+	/** @return reference to the dungeon type held in id_. */
+	[[nodiscard]] dungeon_type &typeRef() { return id_.type; }
+	/** @return reference to the level number held in id_. */
+	[[nodiscard]] uint8_t &levelNumRef() { return id_.levelNum; }
+	/** @return reference to the set-level flag held in id_. */
+	[[nodiscard]] bool &isSetLevelRef() { return id_.isSetLevel; }
+	/** @return reference to the set-level id held in id_. */
+	[[nodiscard]] _setlevels &setLevelIdRef() { return id_.setLevelId; }
 
 	// -------------------------------------------------------------------------
 	// View / rendering
