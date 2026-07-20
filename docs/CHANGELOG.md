@@ -33,6 +33,8 @@ All notable changes to this fork are documented below.
 - Add `Object::data()` accessor returning `AllObjects[_otype]`
 - Replace `QuestLevelNames[]` array with data-driven `SetLevelNames` lookup
 - Add `onExpiryMissile` column to `misdat.tsv` replacing the switch in `ProcessGenericProjectile`
+- Add `shortName` column to `towners.tsv`, replacing hardcoded `TownerShortNames` map
+- Add TSV entries for TOWN_FARMER, TOWN_GIRL, TOWN_COWFARM (Hellfire NPCs)
 
 ## 2026-06-24
 

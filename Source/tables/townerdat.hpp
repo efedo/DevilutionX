@@ -23,8 +23,9 @@ namespace devilution {
  * @brief Data for a single towner entry loaded from TSV.
  */
 struct TownerDataEntry {
-	_talker_id type; // Parsed from TSV using magic_enum
+	_talker_id type;
 	std::string name;
+	std::string shortName;
 	Point position;
 	Direction direction;
 	uint16_t animWidth;

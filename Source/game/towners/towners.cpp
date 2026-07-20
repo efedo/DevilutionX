@@ -709,21 +709,7 @@ std::vector<Towner> Towners;
 
 std::unordered_map<_talker_id, std::string> TownerLongNames;
 
-const std::unordered_map<_talker_id, const char *> TownerShortNames = {
-	{ TOWN_SMITH, "griswold" },
-	{ TOWN_HEALER, "pepin" },
-	{ TOWN_DEADGUY, "deadguy" },
-	{ TOWN_TAVERN, "ogden" },
-	{ TOWN_STORY, "cain" },
-	{ TOWN_DRUNK, "farnham" },
-	{ TOWN_WITCH, "adria" },
-	{ TOWN_BMAID, "gillian" },
-	{ TOWN_PEGBOY, "wirt" },
-	{ TOWN_COW, "cow" },
-	{ TOWN_FARMER, "lester" },
-	{ TOWN_GIRL, "celia" },
-	{ TOWN_COWFARM, "nut" },
-};
+std::unordered_map<_talker_id, std::string> TownerShortNames;
 
 size_t GetNumTownerTypes()
 {
@@ -774,10 +760,13 @@ void InitTowners()
 		TownerBehaviors[behavior.type] = &behavior;
 	}
 
-	// Build TownerLongNames from TSV data (first occurrence of each type wins)
+	// Build TownerLongNames and TownerShortNames from TSV data (first occurrence of each type wins)
 	TownerLongNames.clear();
+	TownerShortNames.clear();
 	for (const auto &entry : TownersDataEntries) {
 		TownerLongNames.try_emplace(entry.type, entry.name);
+		if (!entry.shortName.empty())
+			TownerShortNames.try_emplace(entry.type, entry.shortName);
 	}
 
 	CowSprites.emplace(LoadCelSheet("towners\\animals\\cow", 128));

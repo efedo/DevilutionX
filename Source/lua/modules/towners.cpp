@@ -45,7 +45,7 @@ sol::table LuaTownersModule(sol::state_view &lua)
 
 		sol::table townerTable = lua.create_table();
 		PopulateTownerTable(townerId, townerTable);
-		LuaSetDoc(table, shortNameIt->second, /*signature=*/"", name.c_str(), std::move(townerTable));
+		LuaSetDoc(table, shortNameIt->second.c_str(), /*signature=*/"", name.c_str(), std::move(townerTable));
 	}
 
 	LuaSetDocFn(table, "addDialogOption",
