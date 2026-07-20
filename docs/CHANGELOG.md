@@ -22,6 +22,8 @@ All notable changes to this fork are documented below.
 - Simplify all level-transition callers to construct `LevelId` in one call
 - Externalize monster AI dispatch: replace `AiProc[]` array with `std::unordered_map` registry populated at startup
 - Externalize AI-to-missile-type mapping: replace `GetMissileType()` switch with data lookup from `monster_missiles.tsv`
+- Add `behavior` column to `objdat.tsv`, populate for all 109 object types
+- Replace `OperateObject()` hardcoded `switch` with registry lookup via `ObjectBehaviorRegistry`
 
 ## 2026-06-24
 

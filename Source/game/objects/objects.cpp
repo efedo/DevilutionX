@@ -4485,115 +4485,99 @@ _item_indexes ItemMiscIdIdx(item_misc_id imiscid)
 	return static_cast<_item_indexes>(i);
 }
 
+// ---------------------------------------------------------------------------
+// Object behavior registry
+// ---------------------------------------------------------------------------
+
+std::unordered_map<std::string, ObjectBehaviorHandler> ObjectBehaviorRegistry;
+
+void RegisterObjectBehaviors()
+{
+	auto &reg = ObjectBehaviorRegistry;
+	reg["door"] = [](Player &player, Object &object, bool sendmsg) {
+		OperateDoor(object, sendmsg);
+	};
+	reg["lever"] = [](Player &player, Object &object, bool sendmsg) {
+		OperateLever(object, sendmsg);
+	};
+	reg["book"] = [](Player &player, Object &object, bool sendmsg) {
+		if (sendmsg) OperateBook(player, object, sendmsg);
+	};
+	reg["chamber_of_bone_book"] = [](Player &player, Object &object, bool sendmsg) {
+		OperateChamberOfBoneBook(object, sendmsg);
+	};
+	reg["chest"] = [](Player &player, Object &object, bool sendmsg) {
+		OperateChest(player, object, sendmsg);
+	};
+	reg["sarcophagus"] = [](Player &player, Object &object, bool sendmsg) {
+		OperateSarcophagus(object, sendmsg, sendmsg);
+	};
+	reg["trap_lever"] = [](Player &player, Object &object, bool sendmsg) {
+		OperateTrapLever(object);
+	};
+	reg["book_lever"] = [](Player &player, Object &object, bool sendmsg) {
+		if (sendmsg) OperateBookLever(object, sendmsg);
+	};
+	reg["shrine"] = [](Player &player, Object &object, bool sendmsg) {
+		OperateShrine(player, object, SfxID::OperateShrine);
+	};
+	reg["bookstand"] = [](Player &player, Object &object, bool sendmsg) {
+		OperateBookStand(object, sendmsg, sendmsg);
+	};
+	reg["bookcase"] = [](Player &player, Object &object, bool sendmsg) {
+		OperateBookcase(object, sendmsg, sendmsg);
+	};
+	reg["decap"] = [](Player &player, Object &object, bool sendmsg) {
+		OperateDecapitatedBody(object, sendmsg, sendmsg);
+	};
+	reg["armor_stand"] = [](Player &player, Object &object, bool sendmsg) {
+		OperateArmorStand(object, sendmsg, sendmsg);
+	};
+	reg["goat_shrine"] = [](Player &player, Object &object, bool sendmsg) {
+		OperateGoatShrine(player, object, SfxID::OperateGoatShrine);
+	};
+	reg["cauldron"] = [](Player &player, Object &object, bool sendmsg) {
+		OperateCauldron(player, object, SfxID::OperateCaldron);
+	};
+	reg["fountain"] = [](Player &player, Object &object, bool sendmsg) {
+		OperateFountains(player, object);
+	};
+	reg["story_book"] = [](Player &player, Object &object, bool sendmsg) {
+		if (sendmsg) OperateStoryBook(object);
+	};
+	reg["pedestal"] = [](Player &player, Object &object, bool sendmsg) {
+		if (sendmsg) OperatePedestal(player, object, sendmsg);
+	};
+	reg["weapon_rack"] = [](Player &player, Object &object, bool sendmsg) {
+		OperateWeaponRack(object, sendmsg, sendmsg);
+	};
+	reg["mushroom_patch"] = [](Player &player, Object &object, bool sendmsg) {
+		OperateMushroomPatch(player, object);
+	};
+	reg["laz_stand"] = [](Player &player, Object &object, bool sendmsg) {
+		if (sendmsg) OperateLazStand(object);
+	};
+	reg["slain_hero"] = [](Player &player, Object &object, bool sendmsg) {
+		OperateSlainHero(player, object, sendmsg);
+	};
+	reg["sign_chest"] = [](Player &player, Object &object, bool sendmsg) {
+		OperateInnSignChest(player, object, sendmsg);
+	};
+}
+
+// ---------------------------------------------------------------------------
+// Operating objects
+// ---------------------------------------------------------------------------
+
 void OperateObject(Player &player, Object &object)
 {
 	const bool sendmsg = &player == MyPlayer;
-
-	switch (object._otype) {
-	case OBJ_L1LDOOR:
-	case OBJ_L1RDOOR:
-	case OBJ_L2LDOOR:
-	case OBJ_L2RDOOR:
-	case OBJ_L3LDOOR:
-	case OBJ_L3RDOOR:
-	case OBJ_L5LDOOR:
-	case OBJ_L5RDOOR:
-		if (sendmsg)
-			OperateDoor(object, sendmsg);
-		break;
-	case OBJ_LEVER:
-	case OBJ_L5LEVER:
-	case OBJ_SWITCHSKL:
-		OperateLever(object, sendmsg);
-		break;
-	case OBJ_BOOK2L:
-		if (sendmsg)
-			OperateBook(player, object, sendmsg);
-		break;
-	case OBJ_BOOK2R:
-		OperateChamberOfBoneBook(object, sendmsg);
-		break;
-	case OBJ_CHEST1:
-	case OBJ_CHEST2:
-	case OBJ_CHEST3:
-	case OBJ_TCHEST1:
-	case OBJ_TCHEST2:
-	case OBJ_TCHEST3:
-		OperateChest(player, object, sendmsg);
-		break;
-	case OBJ_SARC:
-	case OBJ_L5SARC:
-		OperateSarcophagus(object, sendmsg, sendmsg);
-		break;
-	case OBJ_FLAMELVR:
-		OperateTrapLever(object);
-		break;
-	case OBJ_BLINDBOOK:
-	case OBJ_BLOODBOOK:
-	case OBJ_STEELTOME:
-		if (sendmsg)
-			OperateBookLever(object, sendmsg);
-		break;
-	case OBJ_SHRINEL:
-	case OBJ_SHRINER:
-		OperateShrine(player, object, SfxID::OperateShrine);
-		break;
-	case OBJ_SKELBOOK:
-	case OBJ_BOOKSTAND:
-		OperateBookStand(object, sendmsg, sendmsg);
-		break;
-	case OBJ_BOOKCASEL:
-	case OBJ_BOOKCASER:
-		OperateBookcase(object, sendmsg, sendmsg);
-		break;
-	case OBJ_DECAP:
-		OperateDecapitatedBody(object, sendmsg, sendmsg);
-		break;
-	case OBJ_ARMORSTAND:
-	case OBJ_WARARMOR:
-		OperateArmorStand(object, sendmsg, sendmsg);
-		break;
-	case OBJ_GOATSHRINE:
-		OperateGoatShrine(player, object, SfxID::OperateGoatShrine);
-		break;
-	case OBJ_CAULDRON:
-		OperateCauldron(player, object, SfxID::OperateCaldron);
-		break;
-	case OBJ_BLOODFTN:
-	case OBJ_PURIFYINGFTN:
-	case OBJ_MURKYFTN:
-	case OBJ_TEARFTN:
-		OperateFountains(player, object);
-		break;
-	case OBJ_STORYBOOK:
-	case OBJ_L5BOOKS:
-		if (sendmsg)
-			OperateStoryBook(object);
-		break;
-	case OBJ_PEDESTAL:
-		if (sendmsg)
-			OperatePedestal(player, object, sendmsg);
-		break;
-	case OBJ_WARWEAP:
-	case OBJ_WEAPONRACK:
-		OperateWeaponRack(object, sendmsg, sendmsg);
-		break;
-	case OBJ_MUSHPATCH:
-		OperateMushroomPatch(player, object);
-		break;
-	case OBJ_LAZSTAND:
-		if (sendmsg)
-			OperateLazStand(object);
-		break;
-	case OBJ_SLAINHERO:
-		OperateSlainHero(player, object, sendmsg);
-		break;
-	case OBJ_SIGNCHEST:
-		OperateInnSignChest(player, object, sendmsg);
-		break;
-	default:
-		break;
-	}
+	const std::string &behavior = object.data().behavior;
+	if (behavior.empty())
+		return;
+	auto it = ObjectBehaviorRegistry.find(behavior);
+	if (it != ObjectBehaviorRegistry.end())
+		it->second(player, object, sendmsg);
 }
 
 void DeltaSyncOpObject(Object &object)

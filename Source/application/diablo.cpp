@@ -105,6 +105,7 @@
 #include "network/storm/storm_net.hpp"
 #include "network/storm/storm_svid.h"
 #include "tables/monstdat.h"
+#include "tables/objdat.h"
 #include "tables/playerdat.hpp"
 #include "game/towners/towners.hpp"
 #include "engine/track.h"
@@ -2769,6 +2770,7 @@ int DiabloMain(int argc, char **argv)
 	LoadMonsterData();
 	LoadItemData();
 	LoadObjectData();
+	RegisterObjectBehaviors();
 	LoadQuestData();
 
 	DiabloInit();

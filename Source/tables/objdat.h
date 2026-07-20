@@ -6,6 +6,8 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "engine/cursor.h"
@@ -205,6 +207,7 @@ struct ObjectData {
 	uint8_t animLen;   // Number of frames in current animation
 	uint8_t animWidth;
 	SelectionRegion selectionRegion;
+	std::string behavior; // Name of the behavior handler for this object type, empty if decorative
 
 	[[nodiscard]] bool isAnimated() const
 	{
@@ -236,6 +239,16 @@ struct ObjectData {
 		return HasAnyOf(flags, ObjectDataFlags::Breakable);
 	}
 };
+
+// ---------------------------------------------------------------------------
+// Object behavior registry — replaces OperateObject() switch.
+// ---------------------------------------------------------------------------
+struct Player;
+struct Object;
+using ObjectBehaviorHandler = void (*)(Player &, Object &, bool sendmsg);
+extern std::unordered_map<std::string, ObjectBehaviorHandler> ObjectBehaviorRegistry;
+
+void RegisterObjectBehaviors();
 
 extern const _object_id ObjTypeConv[];
 extern DVL_API_FOR_TEST std::vector<ObjectData> AllObjects;
