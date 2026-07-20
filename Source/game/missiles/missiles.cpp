@@ -2973,34 +2973,9 @@ void ProcessGenericProjectile(Missile &missile)
 		missile._miDelFlag = true;
 		const Point dst = { 0, 0 };
 		const Direction dir = missile.getDirection();
-		switch (missile._mitype) {
-		case MissileID::Firebolt:
-		case MissileID::MagmaBall:
-			AddMissile(missile.position.tile, dst, dir, MissileID::MagmaBallExplosion, missile._micaster, missile._misource, 0, 0, &missile);
-			break;
-		case MissileID::BloodStar:
-			AddMissile(missile.position.tile, dst, dir, MissileID::BloodStarExplosion, missile._micaster, missile._misource, 0, 0, &missile);
-			break;
-		case MissileID::Acid:
-			AddMissile(missile.position.tile, dst, dir, MissileID::AcidSplat, missile._micaster, missile._misource, 0, 0, &missile);
-			break;
-		case MissileID::OrangeFlare:
-			AddMissile(missile.position.tile, dst, dir, MissileID::OrangeExplosion, missile._micaster, missile._misource, 0, 0, &missile);
-			break;
-		case MissileID::BlueFlare:
-			AddMissile(missile.position.tile, dst, dir, MissileID::BlueExplosion, missile._micaster, missile._misource, 0, 0, &missile);
-			break;
-		case MissileID::RedFlare:
-			AddMissile(missile.position.tile, dst, dir, MissileID::RedExplosion, missile._micaster, missile._misource, 0, 0, &missile);
-			break;
-		case MissileID::YellowFlare:
-			AddMissile(missile.position.tile, dst, dir, MissileID::YellowExplosion, missile._micaster, missile._misource, 0, 0, &missile);
-			break;
-		case MissileID::BlueFlare2:
-			AddMissile(missile.position.tile, dst, dir, MissileID::BlueExplosion2, missile._micaster, missile._misource, 0, 0, &missile);
-			break;
-		default:
-			break;
+		const MissileData &expiryData = GetMissileData(missile._mitype);
+		if (expiryData.onExpiryMissile != MissileID::Null) {
+			AddMissile(missile.position.tile, dst, dir, expiryData.onExpiryMissile, missile._micaster, missile._misource, 0, 0, &missile);
 		}
 		if (missile._mlid != NO_LIGHT)
 			CurrentLightManager.AddUnLight(missile._mlid);

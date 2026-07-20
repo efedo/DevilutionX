@@ -32,6 +32,7 @@ All notable changes to this fork are documented below.
 - Externalize quest pools and set level names into `quest_pools.tsv` and `set_level_names.tsv`
 - Add `Object::data()` accessor returning `AllObjects[_otype]`
 - Replace `QuestLevelNames[]` array with data-driven `SetLevelNames` lookup
+- Add `onExpiryMissile` column to `misdat.tsv` replacing the switch in `ProcessGenericProjectile`
 
 ## 2026-06-24
 

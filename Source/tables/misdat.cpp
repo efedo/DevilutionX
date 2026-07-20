@@ -17,6 +17,8 @@
 
 #include <expected.hpp>
 
+#include <magic_enum/magic_enum.hpp>
+
 #include "data/mpq_file.hpp"
 #include "data/iterators.hpp"
 #include "data/record_reader.hpp"
@@ -361,6 +363,16 @@ tl::expected<SfxID, std::string> ParseHitSound(std::string_view value)
 	return tl::make_unexpected("Unknown enum value (only a few are supported for now)");
 }
 
+tl::expected<MissileID, std::string> ParseMissileID(std::string_view value)
+{
+	if (value.empty()) return MissileID::Null;
+	const std::optional<MissileID> enumValueOpt = magic_enum::enum_cast<MissileID>(value);
+	if (enumValueOpt.has_value()) {
+		return enumValueOpt.value();
+	}
+	return tl::make_unexpected("Unknown MissileID enum value");
+}
+
 tl::expected<MissileMovementDistribution, std::string> ParseMissileMovementDistribution(std::string_view value)
 {
 	if (value.empty()) return MissileMovementDistribution::Disabled;
@@ -388,6 +400,7 @@ void LoadMisdat()
 		reader.read("graphic", item.graphic, ParseMissileGraphicID);
 		reader.readEnumList("flags", item.flags, ParseMissileDataFlag);
 		reader.read("movementDistribution", item.movementDistribution, ParseMissileMovementDistribution);
+		reader.read("onExpiryMissile", item.onExpiryMissile, ParseMissileID);
 	}
 
 	// Sanity check because we do not actually parse the IDs yet.

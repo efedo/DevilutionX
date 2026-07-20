@@ -165,6 +165,7 @@ struct MissileData {
 	MissileGraphicID graphic;
 	MissileDataFlags flags;
 	MissileMovementDistribution movementDistribution;
+	MissileID onExpiryMissile = MissileID::Null;
 
 	[[nodiscard]] bool isDrawn() const
 	{
