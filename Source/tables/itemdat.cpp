@@ -706,6 +706,8 @@ void LoadItemAffixesDat(std::string_view filename, std::vector<PLStruct> &out)
 	out.shrink_to_fit();
 }
 
+} // namespace
+
 namespace {
 
 void LoadItemGenerationConfig()
@@ -718,7 +720,17 @@ void LoadItemGenerationConfig()
 		RecordReader reader { record, filename };
 		reader.readInt("magicChanceBase", CurrentItemGenerationConfig.magicChanceBase);
 		reader.readInt("magicChancePerLevel", CurrentItemGenerationConfig.magicChancePerLevel);
-		reader.readEnumList("alwaysMagicMisc", CurrentItemGenerationConfig.alwaysMagicMisc, ParseItemMiscId);
+		{
+			std::string raw;
+			reader.readString("alwaysMagicMisc", raw);
+			if (!raw.empty()) {
+				for (const std::string_view part : SplitByChar(raw, ',')) {
+					auto result = ParseItemMiscId(part);
+					if (result.has_value())
+						CurrentItemGenerationConfig.alwaysMagicMisc.push_back(result.value());
+				}
+			}
+		}
 		reader.readInt("uniqueChanceNormal", CurrentItemGenerationConfig.uniqueChanceNormal);
 		reader.readInt("uniqueChanceUnique", CurrentItemGenerationConfig.uniqueChanceUnique);
 		reader.readInt("bonusLevelsUnique", CurrentItemGenerationConfig.bonusLevelsUnique);

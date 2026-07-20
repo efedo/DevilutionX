@@ -47,6 +47,7 @@
 #include "persistence/options.h"
 #include "ui/player_messages.h"
 #include "game/stores/stores.hpp"
+#include "tables/leveldat.h"
 #include "utils/console.h"
 #include "utils/log.hpp"
 #include "utils/string/str_cat.hpp"
@@ -283,6 +284,7 @@ void LuaReloadActiveMods()
 	LoadItemData();
 	LoadObjectData();
 	LoadQuestData();
+	LoadLevelGenerationData();
 
 	lua::LoadModsComplete();
 }

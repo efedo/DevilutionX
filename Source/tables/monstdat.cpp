@@ -424,8 +424,6 @@ void LoadMonstDat()
 // AI → missile-type mapping
 // ---------------------------------------------------------------------------
 
-namespace {
-
 std::unordered_map<MonsterAIID, MissileID> s_AiMissileMap;
 
 tl::expected<MissileID, std::string> ParseMissileId(std::string_view value)
@@ -453,8 +451,6 @@ void LoadAiMissileDat()
 		s_AiMissileMap[aiId] = missileId;
 	}
 }
-
-} // namespace
 
 std::optional<MissileID> AiMissileType(MonsterAIID ai)
 {

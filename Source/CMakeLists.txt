@@ -378,6 +378,7 @@ target_link_dependencies(libdevilutionx_game_mode PRIVATE
 )
 
 add_devilutionx_object_library(libdevilutionx_dungeon_common
+  tables/leveldat.cpp
   game/levels/crypt.cpp
   game/levels/level_l1.cpp
   game/levels/level_l2.cpp
@@ -393,6 +394,7 @@ target_link_dependencies(libdevilutionx_dungeon_common PUBLIC
   libdevilutionx_items
   libdevilutionx_monster
   libdevilutionx_random
+  libdevilutionx_txtdata
 )
 
 add_devilutionx_object_library(libdevilutionx_headless_mode

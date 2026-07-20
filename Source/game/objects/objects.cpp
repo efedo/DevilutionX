@@ -43,6 +43,7 @@
 #include "persistence/options.h"
 #include "qol/stash.h"
 #include "game/stores/stores.hpp"
+#include "tables/leveldat.h"
 #include "tables/objdat.h"
 #include "game/towners/towners.hpp"
 #include "engine/track.h"
@@ -472,15 +473,7 @@ void AddL2Torches()
 
 void AddObjTraps()
 {
-	int rndv;
-	if (currentLevelNumber() == 1)
-		rndv = 10;
-	if (currentLevelNumber() >= 2)
-		rndv = 15;
-	if (currentLevelNumber() >= 5)
-		rndv = 20;
-	if (currentLevelNumber() >= 7)
-		rndv = 25;
+	const int rndv = GetTrapPercent(currentLevelNumber());
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) {
 			Object *triggerObject = FindObjectAtPosition({ i, j }, false);

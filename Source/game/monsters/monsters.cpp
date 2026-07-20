@@ -5,6 +5,7 @@
  */
 #include "game/monsters/monsters.hpp"
 #include "game/monsters/monster_pool.hpp"
+#include "tables/leveldat.h"
 
 #include "engine/bestiary.hpp"
 
@@ -3057,15 +3058,17 @@ void ActivateSpawn(Monster &monster, Point position, Direction dir)
 	StartSpecialStand(monster, dir);
 }
 
+} // namespace
+
 // ---------------------------------------------------------------------------
-// AI registry — populated at startup, replaces AiProc[].
+// AI registry — populated at startup.
 // ---------------------------------------------------------------------------
 
 std::unordered_map<MonsterAIID, AiFunc> AiRegistry;
 
 void RegisterAiFunctions()
 {
-	auto ® = AiRegistry;
+	auto &reg = AiRegistry;
 	reg[MonsterAIID::Zombie]          = &ZombieAi;
 	reg[MonsterAIID::Fat]             = &OverlordAi;
 	reg[MonsterAIID::SkeletonMelee]   = &SkeletonAi;
@@ -3107,50 +3110,6 @@ void RegisterAiFunctions()
 	reg[MonsterAIID::Necromorb]       = &AiRanged;
 	reg[MonsterAIID::BoneDemon]       = &AiRangedAvoidance;
 }
-
-/** Maps from monster AI ID to monster AI function. */
-void (*AiProc[])(Monster &monster) = {
-	/*MonsterAIID::Zombie         */ &ZombieAi,
-	/*MonsterAIID::Fat            */ &OverlordAi,
-	/*MonsterAIID::SkeletonMelee  */ &SkeletonAi,
-	/*MonsterAIID::SkeletonRanged */ &SkeletonBowAi,
-	/*MonsterAIID::Scavenger      */ &ScavengerAi,
-	/*MonsterAIID::Rhino          */ &RhinoAi,
-	/*MonsterAIID::GoatMelee      */ &AiAvoidance,
-	/*MonsterAIID::GoatRanged     */ &AiRanged,
-	/*MonsterAIID::Fallen         */ &FallenAi,
-	/*MonsterAIID::Magma          */ &AiRangedAvoidance,
-	/*MonsterAIID::SkeletonKing   */ &LeoricAi,
-	/*MonsterAIID::Bat            */ &BatAi,
-	/*MonsterAIID::Gargoyle       */ &GargoyleAi,
-	/*MonsterAIID::Butcher        */ &ButcherAi,
-	/*MonsterAIID::Succubus       */ &AiRanged,
-	/*MonsterAIID::Sneak          */ &SneakAi,
-	/*MonsterAIID::Storm          */ &AiRangedAvoidance,
-	/*MonsterAIID::FireMan        */ nullptr,
-	/*MonsterAIID::Gharbad        */ &GharbadAi,
-	/*MonsterAIID::Acid           */ &AiRangedAvoidance,
-	/*MonsterAIID::AcidUnique     */ &AiRanged,
-	/*MonsterAIID::Golem          */ &GolumAi,
-	/*MonsterAIID::Zhar           */ &ZharAi,
-	/*MonsterAIID::Snotspill      */ &SnotSpilAi,
-	/*MonsterAIID::Snake          */ &SnakeAi,
-	/*MonsterAIID::Counselor      */ &CounselorAi,
-	/*MonsterAIID::Mega           */ &MegaAi,
-	/*MonsterAIID::Diablo         */ &AiRangedAvoidance,
-	/*MonsterAIID::Lazarus        */ &LazarusAi,
-	/*MonsterAIID::LazarusSuccubus*/ &LazarusMinionAi,
-	/*MonsterAIID::Lachdanan      */ &LachdananAi,
-	/*MonsterAIID::Warlord        */ &WarlordAi,
-	/*MonsterAIID::FireBat        */ &AiRanged,
-	/*MonsterAIID::Torchant       */ &AiRanged,
-	/*MonsterAIID::HorkDemon      */ &HorkDemonAi,
-	/*MonsterAIID::Lich           */ &AiRanged,
-	/*MonsterAIID::ArchLich       */ &AiRanged,
-	/*MonsterAIID::Psychorb       */ &AiRanged,
-	/*MonsterAIID::Necromorb      */ &AiRanged,
-	/*MonsterAIID::BoneDemon      */ &AiRangedAvoidance
-};
 
 bool IsRelativeMoveOK(const Monster &monster, Point position, Direction mdir)
 {
@@ -3267,8 +3226,6 @@ bool PosOkMovingMissile(Point position)
 {
 	return !IsMissileBlockedByTile(position);
 }
-
-} // namespace
 
 MonsterSpritesData LoadMonsterSpritesData(const MonsterData &monsterData)
 {
@@ -3578,9 +3535,10 @@ tl::expected<void, std::string> InitMonsters()
 					na++;
 			}
 		}
-		size_t numplacemonsters = na / 30;
+		const int levelNum = currentLevelNumber();
+		size_t numplacemonsters = na / GetMonsterDensityDivisor(levelNum);
 		if (gbIsMultiplayer)
-			numplacemonsters += numplacemonsters / 2;
+			numplacemonsters = numplacemonsters * GetMpMonsterMultiplierPercent(levelNum) / 100;
 		if (ActiveMonsterCount + numplacemonsters > MaxMonsters - 10)
 			numplacemonsters = MaxMonsters - 10 - ActiveMonsterCount;
 		totalmonsters = ActiveMonsterCount + numplacemonsters;

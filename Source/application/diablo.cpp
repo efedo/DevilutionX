@@ -104,6 +104,7 @@
 #include "game/stores/stores.hpp"
 #include "network/storm/storm_net.hpp"
 #include "network/storm/storm_svid.h"
+#include "tables/leveldat.h"
 #include "tables/monstdat.h"
 #include "tables/objdat.h"
 #include "tables/playerdat.hpp"
@@ -2772,6 +2773,7 @@ int DiabloMain(int argc, char **argv)
 	LoadObjectData();
 	RegisterObjectBehaviors();
 	LoadQuestData();
+	LoadLevelGenerationData();
 
 	DiabloInit();
 #ifdef __UWP__

@@ -26,6 +26,9 @@ All notable changes to this fork are documented below.
 - Replace `OperateObject()` hardcoded `switch` with registry lookup via `ObjectBehaviorRegistry`
 - Externalize item generation parameters: quality curve, affix allocation, drop tables into `item_generation.tsv`
 - Create `ItemGenerationConfig` struct loaded from `item_generation.tsv` replacing hardcoded constants in `GetItemBLevel()`, `GetItemPowerPrefixAndSuffix()`, `RndItemForMonsterLevel()`, `RndAllItems()`, and `SpawnItem()`
+- Externalize level generation parameters: monster density divisor, MP multiplier, and trap frequency into `level_generation.tsv`
+- Create `LevelGenerationData` struct with level-range lookups for monster density, MP multiplier, and trap percent
+- Use new data-driven lookups in `AddObjTraps()` and `InitMonsters()`
 
 ## 2026-06-24
 
