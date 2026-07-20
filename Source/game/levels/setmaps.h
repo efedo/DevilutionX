@@ -31,6 +31,5 @@ inline dungeon_type GetArenaLevelType(_setlevels arenaLevel)
 void LoadSetMap();
 
 /* rdata */
-extern const char *const QuestLevelNames[];
 
 } // namespace devilution

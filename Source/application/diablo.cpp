@@ -2773,6 +2773,8 @@ int DiabloMain(int argc, char **argv)
 	LoadObjectData();
 	RegisterObjectBehaviors();
 	LoadQuestData();
+	LoadSetLevelNames();
+	LoadQuestPools();
 	LoadLevelGenerationData();
 
 	DiabloInit();

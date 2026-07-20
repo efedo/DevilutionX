@@ -51,7 +51,7 @@ std::string DebugCmdWarpToQuestLevel(uint8_t level)
 		setLevelType() = quest._qlvltype;
 		StartNewLvl(*MyPlayer, WM_DIABSETLVL, level);
 
-		return StrCat("Moved you to quest level ", QuestLevelNames[level], ".");
+		return StrCat("Moved you to quest level ", SetLevelNames[level], ".");
 	}
 
 	return StrCat("Quest level ", level, " does not exist!");

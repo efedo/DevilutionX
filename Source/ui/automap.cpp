@@ -17,6 +17,7 @@
 #include "engine/render/primitive_render.hpp"
 #include "game/levels/dungeon_common.h"
 #include "game/levels/setmaps.h"
+#include "game/quests/quests.hpp"
 #include "persistence/options.h"
 #include "game/players/players.hpp"
 #include "utils/attributes.h"
@@ -1466,7 +1467,7 @@ void DrawAutomapText(const Surface &out)
 	}
 
 	if (isSetLevel()) {
-		drawStringAndAdvanceLine(_(QuestLevelNames[setLevelNumber()]));
+		drawStringAndAdvanceLine(_(SetLevelNames[setLevelNumber()].c_str()));
 	} else {
 		std::string description;
 		switch (levelType()) {

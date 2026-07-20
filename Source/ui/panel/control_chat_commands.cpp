@@ -12,6 +12,7 @@
 #include "engine/gfx/backbuffer_state.hpp"
 #include "game/players/inventory.hpp"
 #include "game/levels/setmaps.h"
+#include "game/quests/quests.hpp"
 #include "network/storm/storm_net.hpp"
 #include "utils/algorithm/container.hpp"
 #include "utils/log.hpp"
@@ -58,7 +59,7 @@ std::string TextCmdHelp(const std::string_view parameter)
 void AppendArenaOverview(std::string &ret)
 {
 	for (int arena = SL_FIRST_ARENA; arena <= SL_LAST; arena++) {
-		StrAppend(ret, "\n", arena - SL_FIRST_ARENA + 1, " (", QuestLevelNames[arena], ")");
+		StrAppend(ret, "\n", arena - SL_FIRST_ARENA + 1, " (", SetLevelNames[arena], ")");
 	}
 }
 

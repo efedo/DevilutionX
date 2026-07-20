@@ -5,7 +5,10 @@
  */
 #pragma once
 
+#include <array>
 #include <cstdint>
+#include <string>
+#include <vector>
 
 #include "engine/gfx/clx_sprite.hpp"
 #include "engine/math/point.hpp"
@@ -140,6 +143,14 @@ bool UseMultiplayerQuests();
 /* rdata */
 extern std::vector<QuestData> QuestsData;
 
+/** Set level display names indexed by _setlevels enum. */
+extern std::array<std::string, SL_LAST + 1> SetLevelNames;
+
+/** Quest pools for single-player randomization. */
+extern std::vector<std::vector<quest_id>> QuestPools;
+
 void LoadQuestData();
+void LoadSetLevelNames();
+void LoadQuestPools();
 
 } // namespace devilution

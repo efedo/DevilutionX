@@ -9,6 +9,8 @@
 
 #include <fmt/format.h>
 
+#include <magic_enum/magic_enum.hpp>
+
 #include "ui/menu/ui_flags.hpp"
 #include "ui/panel/control.hpp"
 #include "engine/cursor.h"
@@ -54,6 +56,10 @@ int ReturnLevel;
 
 /** Contains the data related to each quest_id. */
 std::vector<QuestData> QuestsData;
+
+std::array<std::string, SL_LAST + 1> SetLevelNames;
+
+std::vector<std::vector<quest_id>> QuestPools;
 
 namespace {
 
@@ -255,25 +261,44 @@ void InitQuests()
 
 void InitialiseQuestPools(uint32_t seed, Quest quests[])
 {
-	DiabloGenerator rng(seed);
-	quests[rng.pickRandomlyAmong({ Q_SKELKING, Q_PWATER })]._qactive = QUEST_NOTAVAIL;
+	if (QuestPools.empty()) {
+		// Fallback to hardcoded pools if TSV data not loaded (e.g., tests)
+		DiabloGenerator rng(seed);
+		quests[rng.pickRandomlyAmong({ Q_SKELKING, Q_PWATER })]._qactive = QUEST_NOTAVAIL;
 
-	if (seed == 988045466) {
-		// If someone starts a new game at 1977-12-28 19:44:42 UTC or 2087-02-18 22:43:02 UTC
-		//  vanilla Diablo ends up reading QuestGroup1[-2] here. Due to the way the data segment
-		//  is laid out (at least in 1.09) this ends up reading the address of the string
-		//  "A Dark Passage" and trying to write to Quests[<addr>*8] which lands in read-only memory.
-		// The proper result would've been to mark The Butcher unavailable but instead nothing happens.
-		rng.discardRandomValues(1);
-	} else {
-		quests[rng.pickRandomlyAmong({ Q_BUTCHER, Q_LTBANNER, Q_GARBUD })]._qactive = QUEST_NOTAVAIL;
+		if (seed == 988045466) {
+			rng.discardRandomValues(1);
+		} else {
+			quests[rng.pickRandomlyAmong({ Q_BUTCHER, Q_LTBANNER, Q_GARBUD })]._qactive = QUEST_NOTAVAIL;
+		}
+
+		quests[rng.pickRandomlyAmong({ Q_BLIND, Q_ROCK, Q_BLOOD })]._qactive = QUEST_NOTAVAIL;
+
+		quests[rng.pickRandomlyAmong({ Q_MUSHROOM, Q_ZHAR, Q_ANVIL })]._qactive = QUEST_NOTAVAIL;
+
+		quests[rng.pickRandomlyAmong({ Q_VEIL, Q_WARLORD })]._qactive = QUEST_NOTAVAIL;
+		return;
 	}
 
-	quests[rng.pickRandomlyAmong({ Q_BLIND, Q_ROCK, Q_BLOOD })]._qactive = QUEST_NOTAVAIL;
+	DiabloGenerator rng(seed);
 
-	quests[rng.pickRandomlyAmong({ Q_MUSHROOM, Q_ZHAR, Q_ANVIL })]._qactive = QUEST_NOTAVAIL;
+	auto pickFromPool = [&rng](const std::vector<quest_id> &pool) -> quest_id {
+		const auto index = std::max<int32_t>(rng.generateRnd(static_cast<int32_t>(pool.size())), 0);
+		return pool[index];
+	};
 
-	quests[rng.pickRandomlyAmong({ Q_VEIL, Q_WARLORD })]._qactive = QUEST_NOTAVAIL;
+	// Pool 0: always process normally
+	quests[pickFromPool(QuestPools[0])]._qactive = QUEST_NOTAVAIL;
+
+	const bool badSeed = (seed == 988045466);
+	for (size_t i = 1; i < QuestPools.size(); i++) {
+		if (badSeed && i == 1) {
+			// Vanilla compatibility: QuestGroup1[-2] bug — pool 1 skipped, one RNG call discarded
+			rng.discardRandomValues(1);
+			continue;
+		}
+		quests[pickFromPool(QuestPools[i])]._qactive = QUEST_NOTAVAIL;
+	}
 }
 
 void CheckQuests()
@@ -951,6 +976,19 @@ void LoadQuestDatFromFile(DataFile &dataFile, std::string_view filename)
 
 } // namespace
 
+namespace {
+
+tl::expected<quest_id, std::string> ParseQuestId(std::string_view value)
+{
+	const std::optional<quest_id> enumValueOpt = magic_enum::enum_cast<quest_id>(value);
+	if (enumValueOpt.has_value()) {
+		return enumValueOpt.value();
+	}
+	return tl::make_unexpected("Unknown quest_id value");
+}
+
+} // namespace
+
 void LoadQuestData()
 {
 	const std::string_view filename = "txtdata\\quests\\questdat.tsv";
@@ -960,6 +998,40 @@ void LoadQuestData()
 	LoadQuestDatFromFile(dataFile, filename);
 
 	QuestsData.shrink_to_fit();
+}
+
+void LoadSetLevelNames()
+{
+	const std::string_view filename = "txtdata\\quests\\set_level_names.tsv";
+	DataFile dataFile = DataFile::loadOrDie(filename);
+	dataFile.skipHeaderOrDie(filename);
+
+	SetLevelNames = {};
+	for (DataFileRecord record : dataFile) {
+		RecordReader reader { record, filename };
+		_setlevels sl;
+		reader.read("setLevel", sl, ParseSetLevel);
+		reader.readString("displayName", SetLevelNames[static_cast<size_t>(sl)]);
+	}
+}
+
+void LoadQuestPools()
+{
+	const std::string_view filename = "txtdata\\quests\\quest_pools.tsv";
+	DataFile dataFile = DataFile::loadOrDie(filename);
+	dataFile.skipHeaderOrDie(filename);
+
+	QuestPools.clear();
+	for (DataFileRecord record : dataFile) {
+		RecordReader reader { record, filename };
+		int poolId;
+		quest_id qid;
+		reader.readInt("poolId", poolId);
+		reader.read("questId", qid, ParseQuestId);
+		if (static_cast<int>(QuestPools.size()) <= poolId)
+			QuestPools.resize(poolId + 1);
+		QuestPools[poolId].push_back(qid);
+	}
 }
 
 } // namespace devilution

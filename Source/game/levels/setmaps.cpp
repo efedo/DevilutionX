@@ -28,19 +28,6 @@
 
 namespace devilution {
 
-/** Maps from quest level to quest level names. */
-const char *const QuestLevelNames[] = {
-	"",
-	N_("Skeleton King's Lair"),
-	N_("Chamber of Bone"),
-	N_("Maze"),
-	N_("Poisoned Water Supply"),
-	N_("Archbishop Lazarus' Lair"),
-	N_("Church Arena"),
-	N_("Hell Arena"),
-	N_("Circle of Life Arena"),
-};
-
 namespace {
 
 void AddSKingObjs()

@@ -284,6 +284,8 @@ void LuaReloadActiveMods()
 	LoadItemData();
 	LoadObjectData();
 	LoadQuestData();
+	LoadSetLevelNames();
+	LoadQuestPools();
 	LoadLevelGenerationData();
 
 	lua::LoadModsComplete();

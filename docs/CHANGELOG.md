@@ -29,6 +29,9 @@ All notable changes to this fork are documented below.
 - Externalize level generation parameters: monster density divisor, MP multiplier, and trap frequency into `level_generation.tsv`
 - Create `LevelGenerationData` struct with level-range lookups for monster density, MP multiplier, and trap percent
 - Use new data-driven lookups in `AddObjTraps()` and `InitMonsters()`
+- Externalize quest pools and set level names into `quest_pools.tsv` and `set_level_names.tsv`
+- Add `Object::data()` accessor returning `AllObjects[_otype]`
+- Replace `QuestLevelNames[]` array with data-driven `SetLevelNames` lookup
 
 ## 2026-06-24
 

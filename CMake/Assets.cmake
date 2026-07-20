@@ -212,6 +212,8 @@ set(devilutionx_assets
   txtdata/monsters/unique_monstdat.tsv
   txtdata/objects/objdat.tsv
   txtdata/quests/questdat.tsv
+  txtdata/quests/quest_pools.tsv
+  txtdata/quests/set_level_names.tsv
   txtdata/sound/effects.tsv
   txtdata/spells/spelldat.tsv
   txtdata/text/textdat.tsv

@@ -82,6 +82,12 @@ struct Object {
 	// Used by spell book objects which trigger quest progress for Halls of the Blind, Valor, or Warlord of Blood
 	_speech_id bookMessage = TEXT_NONE;
 
+	// Returns the static data for this object type
+	[[nodiscard]] const ObjectData &data() const
+	{
+		return AllObjects[static_cast<size_t>(_otype)];
+	}
+
 	// Returns the network identifier for this object
 	// This is currently the index into the Objects array, but may change in the future.
 	[[nodiscard]] unsigned int GetId() const;
