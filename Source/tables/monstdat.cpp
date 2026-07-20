@@ -420,6 +420,50 @@ void LoadMonstDat()
 
 } // namespace
 
+// ---------------------------------------------------------------------------
+// AI → missile-type mapping
+// ---------------------------------------------------------------------------
+
+namespace {
+
+std::unordered_map<MonsterAIID, MissileID> s_AiMissileMap;
+
+tl::expected<MissileID, std::string> ParseMissileId(std::string_view value)
+{
+	const std::optional<MissileID> enumValueOpt = magic_enum::enum_cast<MissileID>(value);
+	if (enumValueOpt.has_value()) {
+		return enumValueOpt.value();
+	}
+	return tl::make_unexpected("Unknown MissileID enum value");
+}
+
+void LoadAiMissileDat()
+{
+	const std::string_view filename = "txtdata\\monsters\\monster_missiles.tsv";
+	DataFile dataFile = DataFile::loadOrDie(filename);
+	dataFile.skipHeaderOrDie(filename);
+	s_AiMissileMap.clear();
+
+	for (DataFileRecord record : dataFile) {
+		RecordReader reader { record, filename };
+		MonsterAIID aiId;
+		reader.read("ai", aiId, ParseAiId);
+		MissileID missileId;
+		reader.read("missileType", missileId, ParseMissileId);
+		s_AiMissileMap[aiId] = missileId;
+	}
+}
+
+} // namespace
+
+std::optional<MissileID> AiMissileType(MonsterAIID ai)
+{
+	const auto it = s_AiMissileMap.find(ai);
+	if (it != s_AiMissileMap.end())
+		return it->second;
+	return std::nullopt;
+}
+
 void LoadUniqueMonstDatFromFile(DataFile &dataFile, std::string_view filename)
 {
 	dataFile.skipHeaderOrDie(filename);
@@ -473,6 +517,8 @@ void LoadMonsterData()
 {
 	LoadMonstDat();
 	LoadUniqueMonstDat();
+	RegisterAiFunctions();
+	LoadAiMissileDat();
 }
 
 size_t GetNumMonsterSprites()

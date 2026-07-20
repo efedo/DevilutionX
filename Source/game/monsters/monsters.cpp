@@ -1944,42 +1944,6 @@ void AiAvoidance(Monster &monster)
 	monster.checkStandAnimationIsLoaded(md);
 }
 
-MissileID GetMissileType(MonsterAIID ai)
-{
-	switch (ai) {
-	case MonsterAIID::GoatRanged:
-		return MissileID::Arrow;
-	case MonsterAIID::Succubus:
-	case MonsterAIID::LazarusSuccubus:
-		return MissileID::BloodStar;
-	case MonsterAIID::Acid:
-	case MonsterAIID::AcidUnique:
-		return MissileID::Acid;
-	case MonsterAIID::FireBat:
-		return MissileID::Firebolt;
-	case MonsterAIID::Torchant:
-		return MissileID::Fireball;
-	case MonsterAIID::Lich:
-		return MissileID::OrangeFlare;
-	case MonsterAIID::ArchLich:
-		return MissileID::YellowFlare;
-	case MonsterAIID::Psychorb:
-		return MissileID::BlueFlare;
-	case MonsterAIID::Necromorb:
-		return MissileID::RedFlare;
-	case MonsterAIID::Magma:
-		return MissileID::MagmaBall;
-	case MonsterAIID::Storm:
-		return MissileID::ThinLightningControl;
-	case MonsterAIID::Diablo:
-		return MissileID::DiabloApocalypse;
-	case MonsterAIID::BoneDemon:
-		return MissileID::BlueFlare2;
-	default:
-		return MissileID::Arrow;
-	}
-}
-
 void AiRanged(Monster &monster)
 {
 	if (monster.mode != MonsterMode::Stand) {
@@ -1999,7 +1963,7 @@ void AiRanged(Monster &monster)
 		}
 		if (monster.mode == MonsterMode::Stand) {
 			if (LineClearMovingMissile(monster.position.tile, monster.enemyPosition)) {
-				const MissileID missileType = GetMissileType(monster.ai);
+				const MissileID missileType = AiMissileType(monster.ai).value_or(MissileID::Arrow);
 				if (monster.ai == MonsterAIID::AcidUnique)
 					StartRangedSpecialAttack(monster, missileType, 0);
 				else
@@ -2028,7 +1992,7 @@ void AiRangedAvoidance(Monster &monster)
 		MonstCheckDoors(monster);
 	const int lessmissiles = (monster.ai == MonsterAIID::Acid) ? 1 : 0;
 	const int dam = (monster.ai == MonsterAIID::Diablo) ? 40 : 0;
-	const MissileID missileType = GetMissileType(monster.ai);
+	const MissileID missileType = AiMissileType(monster.ai).value_or(MissileID::Arrow);
 	int v = GenerateRnd(10000);
 	const unsigned distanceToEnemy = monster.distanceToEnemy();
 	if (distanceToEnemy >= 2 && monster.activeForTicks == UINT8_MAX && IsSameTransparencyRegion(monster.position.tile, monster.enemyPosition)) {
@@ -3091,6 +3055,57 @@ void ActivateSpawn(Monster &monster, Point position, Direction dir)
 	monster.position.future = position;
 	monster.position.old = position;
 	StartSpecialStand(monster, dir);
+}
+
+// ---------------------------------------------------------------------------
+// AI registry — populated at startup, replaces AiProc[].
+// ---------------------------------------------------------------------------
+
+std::unordered_map<MonsterAIID, AiFunc> AiRegistry;
+
+void RegisterAiFunctions()
+{
+	auto ® = AiRegistry;
+	reg[MonsterAIID::Zombie]          = &ZombieAi;
+	reg[MonsterAIID::Fat]             = &OverlordAi;
+	reg[MonsterAIID::SkeletonMelee]   = &SkeletonAi;
+	reg[MonsterAIID::SkeletonRanged]  = &SkeletonBowAi;
+	reg[MonsterAIID::Scavenger]       = &ScavengerAi;
+	reg[MonsterAIID::Rhino]           = &RhinoAi;
+	reg[MonsterAIID::GoatMelee]       = &AiAvoidance;
+	reg[MonsterAIID::GoatRanged]      = &AiRanged;
+	reg[MonsterAIID::Fallen]          = &FallenAi;
+	reg[MonsterAIID::Magma]           = &AiRangedAvoidance;
+	reg[MonsterAIID::SkeletonKing]    = &LeoricAi;
+	reg[MonsterAIID::Bat]             = &BatAi;
+	reg[MonsterAIID::Gargoyle]        = &GargoyleAi;
+	reg[MonsterAIID::Butcher]         = &ButcherAi;
+	reg[MonsterAIID::Succubus]        = &AiRanged;
+	reg[MonsterAIID::Sneak]           = &SneakAi;
+	reg[MonsterAIID::Storm]           = &AiRangedAvoidance;
+	reg[MonsterAIID::FireMan]         = nullptr;
+	reg[MonsterAIID::Gharbad]         = &GharbadAi;
+	reg[MonsterAIID::Acid]            = &AiRangedAvoidance;
+	reg[MonsterAIID::AcidUnique]      = &AiRanged;
+	reg[MonsterAIID::Golem]           = &GolumAi;
+	reg[MonsterAIID::Zhar]            = &ZharAi;
+	reg[MonsterAIID::Snotspill]       = &SnotSpilAi;
+	reg[MonsterAIID::Snake]           = &SnakeAi;
+	reg[MonsterAIID::Counselor]       = &CounselorAi;
+	reg[MonsterAIID::Mega]            = &MegaAi;
+	reg[MonsterAIID::Diablo]          = &AiRangedAvoidance;
+	reg[MonsterAIID::Lazarus]         = &LazarusAi;
+	reg[MonsterAIID::LazarusSuccubus] = &LazarusMinionAi;
+	reg[MonsterAIID::Lachdanan]       = &LachdananAi;
+	reg[MonsterAIID::Warlord]         = &WarlordAi;
+	reg[MonsterAIID::FireBat]         = &AiRanged;
+	reg[MonsterAIID::Torchant]        = &AiRanged;
+	reg[MonsterAIID::HorkDemon]       = &HorkDemonAi;
+	reg[MonsterAIID::Lich]            = &AiRanged;
+	reg[MonsterAIID::ArchLich]        = &AiRanged;
+	reg[MonsterAIID::Psychorb]        = &AiRanged;
+	reg[MonsterAIID::Necromorb]       = &AiRanged;
+	reg[MonsterAIID::BoneDemon]       = &AiRangedAvoidance;
 }
 
 /** Maps from monster AI ID to monster AI function. */
@@ -4261,7 +4276,7 @@ void ProcessMonsters()
 
 		while (true) {
 			if ((monster.flags & MFLAG_SEARCH) == 0 || !AiPlanPath(monster)) {
-				AiProc[static_cast<int8_t>(monster.ai)](monster);
+				AiRegistry.at(monster.ai)(monster);
 			}
 
 			if (!UpdateModeStance(monster))

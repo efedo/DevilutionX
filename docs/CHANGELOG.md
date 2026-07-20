@@ -20,6 +20,8 @@ All notable changes to this fork are documented below.
 - Consolidate Level identity fields into `LevelId`, remove 5 duplicate fields from Level
 - Make `World::switchLevel` accept a `LevelId` instead of bare `LevelIndex`, centralizing identity setup
 - Simplify all level-transition callers to construct `LevelId` in one call
+- Externalize monster AI dispatch: replace `AiProc[]` array with `std::unordered_map` registry populated at startup
+- Externalize AI-to-missile-type mapping: replace `GetMissileType()` switch with data lookup from `monster_missiles.tsv`
 
 ## 2026-06-24
 

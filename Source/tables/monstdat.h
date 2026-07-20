@@ -7,12 +7,15 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <magic_enum/magic_enum.hpp>
 
 #include "engine/cursor.h"
+#include "tables/misdat.h"
 #include "tables/textdat.h"
 
 namespace devilution {
@@ -350,6 +353,33 @@ struct UniqueMonsterData {
 extern std::vector<MonsterData> MonstersData;
 extern const _monster_id MonstConvTbl[];
 extern std::vector<UniqueMonsterData> UniqueMonstersData;
+
+// ---------------------------------------------------------------------------
+// AI registry — replaces AiProc[] hardcoded function-pointer table.
+// ---------------------------------------------------------------------------
+struct Monster;
+using AiFunc = void (*)(Monster &monster);
+extern std::unordered_map<MonsterAIID, AiFunc> AiRegistry;
+
+/**
+ * @brief Registers all built-in AI functions into AiRegistry.
+ * Called during LoadMonsterData().
+ */
+void RegisterAiFunctions();
+
+// ---------------------------------------------------------------------------
+// AI-to-missile mapping — replaces GetMissileType() switch.
+// ---------------------------------------------------------------------------
+
+/**
+ * @brief Returns the missile ID the given AI fires, or std::nullopt for melee-only AIs.
+ */
+std::optional<MissileID> AiMissileType(MonsterAIID ai);
+
+/**
+ * @brief Loads AI→missile mappings from TSV.
+ */
+void LoadAiMissileDat();
 
 void LoadMonstDatFromFile(DataFile &dataFile, std::string_view filename, bool grow);
 void LoadUniqueMonstDatFromFile(DataFile &dataFile, std::string_view filename);
