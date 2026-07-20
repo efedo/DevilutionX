@@ -1399,7 +1399,7 @@ void DrawView(const Surface &out, Point startPosition)
 	CalcFirstTilePosition(startPosition, offset);
 	DrawGame(out, startPosition, offset);
 	if (CurrentAutomapManager.GetAutomapActive()) {
-		CurrentAutomapManager.CurrentAutomapManager.DrawAutomap(out.subregionY(0, gnViewportHeight));
+		CurrentAutomapManager.DrawAutomap(out.subregionY(0, gnViewportHeight));
 	}
 #ifdef _DEBUG
 	bool debugGridTextNeeded = IsDebugGridTextNeeded();
