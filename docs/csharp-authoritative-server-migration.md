@@ -71,6 +71,22 @@ The Lua surface also includes:
 
 These responsibilities must be separated before Lua can be removed safely.
 
+## Phase 1 Status
+
+The first behavior-preserving extraction has been implemented:
+
+- `data/ModManager` now owns active mod archive unload/load operations.
+- `data/GameDataManager` now owns the ordered reload of mod-overridable tables.
+- `game/events/GameEventBus` now carries typed engine-neutral events.
+- Lua subscribes through a temporary event adapter; gameplay and table code no
+  longer calls Lua event functions directly.
+- Damage and experience events cross the adapter boundary with stable runtime
+  IDs, while the adapter temporarily resolves those IDs to legacy Lua userdata.
+
+The remaining Phase 1 work is to extract sound reload, replace the Hellfire
+Lua bootstrap with declarative content metadata, move debug commands behind an
+engine-neutral registry, and add a content manifest/hash.
+
 ## Migration Principles
 
 1. Do not embed C# into the current C++ engine. Communicate with the C# server through the same protocol intended for Godot.

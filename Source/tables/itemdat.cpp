@@ -14,7 +14,7 @@
 #include "data/mpq_file.hpp"
 #include "data/iterators.hpp"
 #include "data/record_reader.hpp"
-#include "lua/lua_event.hpp"
+#include "game/events/event_bus.hpp"
 #include "tables/spelldat.h"
 #include "utils/string/str_cat.hpp"
 
@@ -622,7 +622,7 @@ void LoadItemDat()
 	ItemMappingIdsToIndices.clear();
 	LoadItemDatFromFile(dataFile, filename, 0);
 
-	lua::ItemDataLoaded();
+	CurrentGameEventBus.ItemDataLoaded();
 }
 
 void ReadItemPower(RecordReader &reader, std::string_view fieldName, ItemPower &power)
@@ -679,7 +679,7 @@ void LoadUniqueItemDat()
 	UniqueItemMappingIdsToIndices.clear();
 	LoadUniqueItemDatFromFile(dataFile, filename, 0);
 
-	lua::UniqueItemDataLoaded();
+	CurrentGameEventBus.UniqueItemDataLoaded();
 }
 
 void LoadItemAffixesDat(std::string_view filename, std::vector<PLStruct> &out)

@@ -13,14 +13,15 @@
 
 #include <sol/sol.hpp>
 
-#include "lua/lua_global.hpp"
+#include "game/events/event_bus.hpp"
 #include "game/monsters/monsters.hpp"
 #include "game/players/players.hpp"
+#include "lua/lua_global.hpp"
 #include "utils/log.hpp"
 
 namespace devilution {
 
-namespace lua {
+namespace {
 
 template <typename... Args>
 void CallLuaEvent(std::string_view name, Args &&...args)
@@ -39,75 +40,73 @@ void CallLuaEvent(std::string_view name, Args &&...args)
 	SafeCallResult(fn(std::forward<Args>(args)...), /*optional=*/true);
 }
 
-template <typename T, typename... Args>
-T CallLuaEventReturn(T defaultValue, std::string_view name, Args &&...args)
-{
-	sol::table *events = GetLuaEvents();
-	if (events == nullptr) {
-		return defaultValue;
+class LuaEventAdapter final : public GameEventListener {
+public:
+	void OnMonsterDataLoaded() override
+	{
+		CallLuaEvent("MonsterDataLoaded");
 	}
-
-	const auto trigger = events->traverse_get<std::optional<sol::object>>(name, "trigger");
-	if (!trigger.has_value() || !trigger->is<sol::protected_function>()) {
-		return defaultValue;
+	void OnUniqueMonsterDataLoaded() override
+	{
+		CallLuaEvent("UniqueMonsterDataLoaded");
 	}
-	const sol::protected_function fn = trigger->as<sol::protected_function>();
-	sol::object result = SafeCallResult(fn(std::forward<Args>(args)...), /*optional=*/true);
-	if (result.is<T>()) {
-		return result.as<T>();
+	void OnItemDataLoaded() override
+	{
+		CallLuaEvent("ItemDataLoaded");
 	}
-	return defaultValue;
+	void OnUniqueItemDataLoaded() override
+	{
+		CallLuaEvent("UniqueItemDataLoaded");
+	}
+	void OnStoreOpened(std::string_view name) override
+	{
+		CallLuaEvent("StoreOpened", name);
+	}
+	void OnMonsterTakeDamage(size_t monsterId, int damage, int damageType) override
+	{
+		if (monsterId < MaxMonsters)
+			CallLuaEvent("OnMonsterTakeDamage", &Monsters[monsterId], damage, damageType);
+	}
+	void OnPlayerGainExperience(uint8_t playerId, uint32_t experience) override
+	{
+		if (playerId < Players.size())
+			CallLuaEvent("OnPlayerGainExperience", &Players[playerId], experience);
+	}
+	void OnPlayerTakeDamage(uint8_t playerId, int damage, int damageType) override
+	{
+		if (playerId < Players.size())
+			CallLuaEvent("OnPlayerTakeDamage", &Players[playerId], damage, damageType);
+	}
+	void OnGameDataReloaded() override
+	{
+		CallLuaEvent("LoadModsComplete");
+	}
+	void OnGameDrawComplete() override
+	{
+		CallLuaEvent("GameDrawComplete");
+	}
+	void OnGameStart() override
+	{
+		CallLuaEvent("GameStart");
+	}
+};
+
+std::optional<LuaEventAdapter> CurrentLuaEventAdapter;
+
+} // namespace
+
+void InitializeLuaEventAdapter()
+{
+	CurrentLuaEventAdapter.emplace();
+	CurrentGameEventBus.Subscribe(*CurrentLuaEventAdapter);
 }
 
-void MonsterDataLoaded()
+void ShutdownLuaEventAdapter()
 {
-	CallLuaEvent("MonsterDataLoaded");
+	if (!CurrentLuaEventAdapter.has_value())
+		return;
+	CurrentGameEventBus.Unsubscribe(*CurrentLuaEventAdapter);
+	CurrentLuaEventAdapter.reset();
 }
-void UniqueMonsterDataLoaded()
-{
-	CallLuaEvent("UniqueMonsterDataLoaded");
-}
-void ItemDataLoaded()
-{
-	CallLuaEvent("ItemDataLoaded");
-}
-void UniqueItemDataLoaded()
-{
-	CallLuaEvent("UniqueItemDataLoaded");
-}
-
-void StoreOpened(std::string_view name)
-{
-	CallLuaEvent("StoreOpened", name);
-}
-
-void OnMonsterTakeDamage(const Monster *monster, int damage, int damageType)
-{
-	CallLuaEvent("OnMonsterTakeDamage", monster, damage, damageType);
-}
-
-void OnPlayerGainExperience(const Player *player, uint32_t exp)
-{
-	CallLuaEvent("OnPlayerGainExperience", player, exp);
-}
-void OnPlayerTakeDamage(const Player *player, int damage, int damageType)
-{
-	CallLuaEvent("OnPlayerTakeDamage", player, damage, damageType);
-}
-
-void LoadModsComplete()
-{
-	CallLuaEvent("LoadModsComplete");
-}
-void GameDrawComplete()
-{
-	CallLuaEvent("GameDrawComplete");
-}
-void GameStart()
-{
-	CallLuaEvent("GameStart");
-}
-
-} // namespace lua
 
 } // namespace devilution

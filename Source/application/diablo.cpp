@@ -74,7 +74,7 @@
 #include "game/levels/triggers.h"
 #include "engine/lighting.h"
 #include "persistence/loadsave.h"
-#include "lua/lua_event.hpp"
+#include "game/events/event_bus.hpp"
 #include "lua/lua_global.hpp"
 #include "ui/menu.h"
 #include "ui/minitext.h"
@@ -894,7 +894,7 @@ void RunGameLoop(interface_mode uMsg)
 	gbGameLoopStartup = true;
 	nthread_ignore_mutex(false);
 
-	lua::GameStart();
+	CurrentGameEventBus.GameStart();
 #ifdef GPERF_HEAP_FIRST_GAME_ITERATION
 	unsigned run_game_iteration = 0;
 #endif

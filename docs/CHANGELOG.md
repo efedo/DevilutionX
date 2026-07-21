@@ -40,6 +40,7 @@ All notable changes to this fork are documented below.
 
 - Fix quest-pool initialization, item-generation reload state and legacy drop probabilities
 - Restore test includes and test access to the refactored store and automap managers
+- Extract active-mod and game-data reload ownership from Lua behind C++ managers and a typed event bus
 
 ## 2026-06-24
 

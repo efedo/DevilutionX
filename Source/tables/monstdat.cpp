@@ -24,7 +24,7 @@
 #include "data/iterators.hpp"
 #include "data/record_reader.hpp"
 #include "game/items/items.hpp"
-#include "lua/lua_event.hpp"
+#include "game/events/event_bus.hpp"
 #include "game/monsters/monsters.hpp"
 #include "tables/textdat.h"
 #include "utils/language.h"
@@ -413,7 +413,7 @@ void LoadMonstDat()
 	MonstersData.resize(NUM_DEFAULT_MTYPES); // ensure the hardcoded monster type slots are filled
 	LoadMonstDatFromFile(dataFile, filename, false);
 
-	lua::MonsterDataLoaded();
+	CurrentGameEventBus.MonsterDataLoaded();
 
 	MonstersData.shrink_to_fit();
 }
@@ -502,7 +502,7 @@ void LoadUniqueMonstDat()
 	UniqueMonstersData.clear();
 	LoadUniqueMonstDatFromFile(dataFile, filename);
 
-	lua::UniqueMonsterDataLoaded();
+	CurrentGameEventBus.UniqueMonsterDataLoaded();
 
 	UniqueMonstersData.shrink_to_fit();
 }

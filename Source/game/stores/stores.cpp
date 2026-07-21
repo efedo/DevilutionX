@@ -25,7 +25,7 @@
 #include "engine/render/text_render.hpp"
 #include "engine/gfx/translation_table.hpp"
 #include "application/game_mode.hpp"
-#include "lua/lua_event.hpp"
+#include "game/events/event_bus.hpp"
 #include "ui/minitext.h"
 #include "network/protocol/multi.h"
 #include "persistence/options.h"
@@ -2269,7 +2269,7 @@ void StoreManager::StartStore(TalkID s)
 
 	// Fire StoreOpened Lua event for main store entries
 	if (std::optional<std::string_view> name = TownerNameForTalkID(s); name.has_value())
-		lua::StoreOpened(*name);
+		CurrentGameEventBus.StoreOpened(*name);
 
 	switch (s) {
 	case TalkID::Smith:

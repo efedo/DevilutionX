@@ -30,6 +30,8 @@
 #include <config.h>
 
 #include "application/fatal_error.h"
+#include "data/game_data_manager.hpp"
+#include "data/mod_manager.hpp"
 #include "engine/audio/effects.h"
 #include "engine/assets.hpp"
 #include "lua/lua_event.hpp"
@@ -47,7 +49,6 @@
 #include "persistence/options.h"
 #include "ui/player_messages.h"
 #include "game/stores/stores.hpp"
-#include "tables/leveldat.h"
 #include "utils/console.h"
 #include "utils/log.hpp"
 #include "utils/string/str_cat.hpp"
@@ -254,10 +255,7 @@ void LuaReloadActiveMods()
 	CurrentStoreManager.ClearTownerDialogOptions();
 
 	gbIsHellfire = false;
-	UnloadModArchives();
-
-	std::vector<std::string_view> modnames = GetOptions().Mods.GetActiveModList();
-	LoadModArchives(modnames);
+	std::vector<std::string_view> modnames = CurrentModManager.ReloadActiveMods();
 
 	for (const std::string_view modname : modnames) {
 		const std::string packageName = StrCat("mods.", modname, ".init");
@@ -276,24 +274,14 @@ void LuaReloadActiveMods()
 		ui_sound_init();
 
 	// Reload game data (this can probably be done later in the process to avoid having to reload it)
-	LoadTextData();
-	LoadPlayerDataFiles();
-	LoadSpellData();
-	LoadMissileData();
-	LoadMonsterData();
-	LoadItemData();
-	LoadObjectData();
-	LoadQuestData();
-	LoadSetLevelNames();
-	LoadQuestPools();
-	LoadLevelGenerationData();
+	CurrentGameDataManager.Reload();
 
-	lua::LoadModsComplete();
 }
 
 void LuaInitialize()
 {
 	CurrentLuaState.emplace();
+	InitializeLuaEventAdapter();
 	sol::state &lua = CurrentLuaState->sol;
 	lua_setwarnf(lua.lua_state(), LuaWarn, /*ud=*/nullptr);
 	lua.open_libraries(
@@ -348,6 +336,7 @@ void LuaShutdown()
 	// Must clear before destroying the Lua state: registered callbacks
 	// capture sol::function handles that reference CurrentLuaState.
 	CurrentStoreManager.ClearTownerDialogOptions();
+	ShutdownLuaEventAdapter();
 	CurrentLuaState = std::nullopt;
 }
 

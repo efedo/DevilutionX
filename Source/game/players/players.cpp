@@ -41,7 +41,7 @@
 #include "game/levels/triggers.h"
 #include "engine/lighting.h"
 #include "persistence/loadsave.h"
-#include "lua/lua_event.hpp"
+#include "game/events/event_bus.hpp"
 #include "ui/minitext.h"
 #include "game/missiles/missiles.hpp"
 #include "game/monsters/monsters.hpp"
@@ -2635,7 +2635,7 @@ void Player::_addExperience(uint32_t experience, int levelDelta)
 		clampedExp = std::min<uint32_t>({ clampedExp, /* level 1-5: */ getNextExperienceThreshold() / 20U, /* level 6-50: */ 200U * getCharacterLevel() });
 	}
 
-	lua::OnPlayerGainExperience(this, clampedExp);
+	CurrentGameEventBus.PlayerGainExperience(getId(), clampedExp);
 
 	const uint32_t maxExperience = GetNextExperienceThresholdForLevel(getMaxCharacterLevel());
 
@@ -3093,7 +3093,7 @@ void Player::applyDamage(DamageType damageType, int dam, int minHP, int frac, De
 	Player &player = *this;
 	int totalDamage = (dam << 6) + frac;
 	if (&player == MyPlayer && !player.hasNoLife()) {
-		lua::OnPlayerTakeDamage(&player, totalDamage, static_cast<int>(damageType));
+		CurrentGameEventBus.PlayerTakeDamage(player.getId(), totalDamage, static_cast<int>(damageType));
 	}
 	if (totalDamage > 0 && player.pManaShield && HasNoneOf(player._pIFlags, ItemSpecialEffect::NoMana)) {
 		const uint8_t manaShieldLevel = player._pSplLvl[static_cast<int8_t>(SpellID::ManaShield)];

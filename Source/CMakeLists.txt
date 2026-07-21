@@ -13,6 +13,7 @@ set(libdevilutionx_SRCS
   application/diablo.cpp
   ui/diablo_msg.cpp
   game/quests/quest_stars.cpp
+  game/events/event_bus.cpp
   ui/gamemenu.cpp
   ui/menu_framework.cpp
   ui/help.cpp
@@ -71,6 +72,9 @@ set(libdevilutionx_SRCS
   ui/menu/support_lines.cpp
   ui/menu/title.cpp
   ui/menu/text_input.cpp
+
+  data/game_data_manager.cpp
+  data/mod_manager.cpp
 
   network/transport/abstract_net.cpp
   network/transport/base.cpp

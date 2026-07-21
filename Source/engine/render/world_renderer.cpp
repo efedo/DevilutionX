@@ -50,7 +50,7 @@
 #include "game/levels/dungeon_common.h"
 #include "game/levels/tile_properties.hpp"
 #include "engine/lighting.h"
-#include "lua/lua_event.hpp"
+#include "game/events/event_bus.hpp"
 #include "ui/minitext.h"
 #include "game/missiles/missiles.hpp"
 #include "network/protocol/network_ticks.h"
@@ -1996,7 +1996,7 @@ void DrawAndBlit()
 
 	DrawFPS(out);
 
-	lua::GameDrawComplete();
+	CurrentGameEventBus.GameDrawComplete();
 
 	DrawMain(hgt, drawInfoBox, drawHealth, drawMana, drawBelt, drawControlButtons);
 
