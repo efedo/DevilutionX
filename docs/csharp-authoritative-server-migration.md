@@ -184,6 +184,17 @@ the local server process using the same versioned format as multiplayer saves.
 Save migrations are explicit, validated, and tied to content and schema
 versions; incompatible saves are rejected with an actionable reason.
 
+### Baseline Status
+
+- The Lua capability inventory and freeze rules are recorded in
+  `docs/lua-capability-inventory.md`.
+- The cross-language replay fixture envelope and initial scenario list are
+  recorded in `docs/replay-fixtures.md`.
+- Existing characterization coverage includes item generation, stores,
+  inventory, player behavior, quests, vendors, and the typed event bus.
+- Missing baseline coverage is explicit mod-reload/Hellfire behavior, canonical
+  state hashing, and replay execution against a fixture.
+
 ### Tasks
 
 1. Record architecture decisions for:
