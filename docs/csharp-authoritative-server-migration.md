@@ -192,8 +192,11 @@ versions; incompatible saves are rejected with an actionable reason.
   recorded in `docs/replay-fixtures.md`.
 - Existing characterization coverage includes item generation, stores,
   inventory, player behavior, quests, vendors, and the typed event bus.
-- Missing baseline coverage is explicit mod-reload/Hellfire behavior, canonical
-  state hashing, and replay execution against a fixture.
+- Replay primitives now cover canonical field encoding, SHA-256 state digests,
+  and deterministic command ordering; complete game-state projection and JSON
+  replay execution remain.
+- Missing baseline coverage is explicit mod-reload/Hellfire behavior and
+  fixture execution against the running C++ game state.
 
 ### Tasks
 

@@ -87,9 +87,9 @@ The first fixtures should cover one narrow behavior each:
 7. Quest selection and quest-pool state transitions.
 8. Mod reload ordering and Hellfire activation.
 
-The current C++ tests provide starting characterization coverage, but they do
-not yet emit this fixture format. Fixture generation and state hashing are the
-next implementation step after the inventory is reviewed.
+The C++ replay primitives now provide canonical field encoding, SHA-256
+digests, and command ordering. They do not yet serialize the complete game
+state or execute JSON fixtures; those remain the next integration step.
 
 ## Existing C++ characterization coverage
 
@@ -102,4 +102,4 @@ next implementation step after the inventory is reviewed.
 | Damage calculations and event order | `monster_test`, `player_test`, `game_event_bus_test` | Partial; add damage-state and ordering checkpoints |
 | Quest selection and transitions | `quests_test` | Initial pool coverage; add seeded transition fixtures |
 | Mod reload and Hellfire activation | None | Missing characterization fixture |
-| Canonical state hashing | None | Missing implementation and test |
+| Canonical state hashing | `replay_test` | Primitive encoding and SHA-256 tested; complete game-state projection remains |

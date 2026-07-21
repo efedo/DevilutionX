@@ -14,6 +14,7 @@ set(libdevilutionx_SRCS
   ui/diablo_msg.cpp
   game/quests/quest_stars.cpp
   game/events/event_bus.cpp
+  game/replay/replay.cpp
   ui/gamemenu.cpp
   ui/menu_framework.cpp
   ui/help.cpp
@@ -919,6 +920,7 @@ endif()
 
 add_devilutionx_object_library(libdevilutionx ${libdevilutionx_SRCS})
 target_include_directories(libdevilutionx PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(libdevilutionx PUBLIC ${PROJECT_SOURCE_DIR}/3rdParty/PicoSHA2)
 target_link_dependencies(libdevilutionx PUBLIC
   DevilutionX::SDL
   fmt::fmt

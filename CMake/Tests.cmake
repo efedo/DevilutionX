@@ -18,6 +18,7 @@ set(tests
   debug_console_history_test
   debug_overlay_state_test
   game_event_bus_test
+  replay_test
   monster_corpses_test
   diablo_test
   level_common_test
