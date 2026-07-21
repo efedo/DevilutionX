@@ -2,7 +2,9 @@
 
 #include <gtest/gtest.h>
 
+#include "game/players/players.hpp"
 #include "game/replay/replay.hpp"
+#include "game/stores/stores.hpp"
 
 namespace devilution {
 namespace {
@@ -74,6 +76,68 @@ TEST(ReplayCommands, PreservesInputOrderForDuplicateReceiptSequences)
 	ASSERT_EQ(sorted.size(), 2U);
 	EXPECT_EQ(sorted[0].clientSequence, 1U);
 	EXPECT_EQ(sorted[1].clientSequence, 2U);
+}
+
+TEST(ReplayStateProjection, ChangesWhenAuthoritativePlayerStateChanges)
+{
+	Player player;
+	player._pName[0] = 'A';
+	player._pName[1] = '\0';
+	player._pGold = 100;
+	player._pExperience = 200;
+	player.life.current = 640;
+	player.life.maximum = 640;
+
+	ReplayStateHasher first;
+	AppendReplayPlayerState(first, 0, player);
+
+	player._pGold = 101;
+	ReplayStateHasher second;
+	AppendReplayPlayerState(second, 0, player);
+
+	EXPECT_NE(first.Digest(), second.Digest());
+}
+
+TEST(ReplayStateProjection, ExcludesLocalizedItemNames)
+{
+	Item item;
+	item._iSeed = 42;
+	item._itype = ItemType::Sword;
+	item._iIvalue = 100;
+
+	ReplayStateHasher first;
+	AppendReplayItemState(first, item);
+
+	item._iName[0] = 'S';
+	item._iName[1] = 'w';
+	item._iName[2] = 'o';
+	item._iName[3] = 'r';
+	item._iName[4] = 'd';
+	item._iName[5] = '\0';
+	item._iIName[0] = 'E';
+	item._iIName[1] = '\0';
+	ReplayStateHasher second;
+	AppendReplayItemState(second, item);
+
+	EXPECT_EQ(first.Digest(), second.Digest());
+}
+
+TEST(ReplayStateProjection, IncludesStoreInventoryAndSelection)
+{
+	StoreManager store;
+	store.activeStore() = TalkID::Smith;
+	store.premiumItemLevel() = 3;
+	store.premiumItems().push_back();
+	store.premiumItems()[0]._iSeed = 42;
+
+	ReplayStateHasher first;
+	AppendReplayStoreState(first, store);
+
+	store.premiumItems()[0]._iSeed = 43;
+	ReplayStateHasher second;
+	AppendReplayStoreState(second, store);
+
+	EXPECT_NE(first.Digest(), second.Digest());
 }
 
 } // namespace

@@ -108,6 +108,7 @@ public:
 
 	// Items sold by Griswold
 	DVL_API_FOR_TEST StaticVector<Item, NumSmithBasicItemsHf> &smithItems() { return smithItems_; }
+	DVL_API_FOR_TEST const StaticVector<Item, NumSmithBasicItemsHf> &smithItems() const { return smithItems_; }
 
 	DVL_API_FOR_TEST int premiumItemCount() const { return premiumItemCount_; }
 	DVL_API_FOR_TEST int &premiumItemCount() { return premiumItemCount_; }
@@ -116,18 +117,22 @@ public:
 	DVL_API_FOR_TEST int &premiumItemLevel() { return premiumItemLevel_; }
 
 	DVL_API_FOR_TEST StaticVector<Item, NumSmithItemsHf> &premiumItems() { return premiumItems_; }
+	DVL_API_FOR_TEST const StaticVector<Item, NumSmithItemsHf> &premiumItems() const { return premiumItems_; }
 
 	// Items sold by Pepin
 	DVL_API_FOR_TEST StaticVector<Item, NumHealerItemsHf> &healerItems() { return healerItems_; }
+	DVL_API_FOR_TEST const StaticVector<Item, NumHealerItemsHf> &healerItems() const { return healerItems_; }
 
 	// Items sold by Adria
 	DVL_API_FOR_TEST StaticVector<Item, NumWitchItemsHf> &witchItems() { return witchItems_; }
+	DVL_API_FOR_TEST const StaticVector<Item, NumWitchItemsHf> &witchItems() const { return witchItems_; }
 
 	// Wirt item
 	DVL_API_FOR_TEST int boyItemLevel() const { return boyItemLevel_; }
 	DVL_API_FOR_TEST int &boyItemLevel() { return boyItemLevel_; }
 
 	DVL_API_FOR_TEST Item &boyItem() { return boyItem_; }
+	DVL_API_FOR_TEST const Item &boyItem() const { return boyItem_; }
 
 	// Extra dialog options injected by mods, keyed by towner short name.
 	DVL_API_FOR_TEST std::vector<std::pair<std::string, std::vector<TownerDialogOption>>> &extraTownerOptions()

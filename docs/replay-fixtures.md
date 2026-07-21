@@ -88,17 +88,18 @@ The first fixtures should cover one narrow behavior each:
 8. Mod reload ordering and Hellfire activation.
 
 The C++ replay primitives now provide canonical field encoding, SHA-256
-digests, and command ordering. They do not yet serialize the complete game
-state or execute JSON fixtures; those remain the next integration step.
+digests, command ordering, and an initial player/store state projection. They
+do not yet serialize the complete game state or execute JSON fixtures; those
+remain the next integration step.
 
 ## Existing C++ characterization coverage
 
 | Behavior | Current tests | Coverage assessment |
 | --- | --- | --- |
-| Item generation and unique-item availability | `items_test`, `vendor_test` | Existing deterministic cases; convert selected cases to replay fixtures |
-| Store inventory and pricing | `vendor_test`, `stores_test`, `store_transaction_test` | Broad transaction coverage; add normalized state checkpoints |
+| Item generation and unique-item availability | `items_test`, `vendor_test`, `replay_test` | Existing deterministic cases; convert selected cases to replay fixtures |
+| Store inventory and pricing | `vendor_test`, `stores_test`, `store_transaction_test`, `replay_test` | Projection exists; add normalized state checkpoints |
 | Purchases, sales, repairs, recharge, identification, and gold | `store_transaction_test` | Broad success/failure coverage; add command-level fixture inputs |
-| Player stats/resources and experience | `player_test` | Partial; add explicit experience/life/mana transition fixtures |
+| Player stats/resources and experience | `player_test`, `replay_test` | Projection exists; add explicit experience/life/mana transition fixtures |
 | Damage calculations and event order | `monster_test`, `player_test`, `game_event_bus_test` | Partial; add damage-state and ordering checkpoints |
 | Quest selection and transitions | `quests_test` | Initial pool coverage; add seeded transition fixtures |
 | Mod reload and Hellfire activation | None | Missing characterization fixture |

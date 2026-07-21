@@ -16,6 +16,10 @@
 
 namespace devilution {
 
+struct Item;
+struct Player;
+class StoreManager;
+
 struct ReplayCommandOrder {
 	uint64_t targetTick = 0;
 	uint64_t serverReceiptSequence = 0;
@@ -58,5 +62,18 @@ public:
 private:
 	std::vector<uint8_t> bytes_;
 };
+
+/**
+ * Appends the authoritative portion of one item to a replay state hash.
+ * Presentation-only fields such as localized names and animation state are
+ * intentionally excluded.
+ */
+void AppendReplayItemState(ReplayStateHasher &hasher, const Item &item);
+
+/** Appends one player's stable identity and authoritative state. */
+void AppendReplayPlayerState(ReplayStateHasher &hasher, uint8_t playerId, const Player &player);
+
+/** Appends authoritative store inventories and the active store selection. */
+void AppendReplayStoreState(ReplayStateHasher &hasher, const StoreManager &storeManager);
 
 } // namespace devilution

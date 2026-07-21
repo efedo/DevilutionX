@@ -42,6 +42,7 @@ All notable changes to this fork are documented below.
 - Restore test includes and test access to the refactored store and automap managers
 - Extract active-mod and game-data reload ownership from Lua behind C++ managers and a typed event bus
 - Add deterministic replay primitives for canonical state hashing and command ordering
+- Add initial canonical player and store state projections for replay comparison
 
 ## 2026-06-24
 
