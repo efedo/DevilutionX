@@ -202,6 +202,7 @@ set(devilutionx_assets
   txtdata/classes/warrior/sprites.tsv
   txtdata/classes/warrior/starting_loadout.tsv
   txtdata/classes/classdat.tsv
+  txtdata/items/item_generation.tsv
   txtdata/items/item_prefixes.tsv
   txtdata/items/item_suffixes.tsv
   txtdata/items/itemdat.tsv
@@ -211,6 +212,7 @@ set(devilutionx_assets
   txtdata/monsters/monster_missiles.tsv
   txtdata/monsters/monstdat.tsv
   txtdata/monsters/unique_monstdat.tsv
+  txtdata/levels/level_generation.tsv
   txtdata/objects/objdat.tsv
   txtdata/quests/questdat.tsv
   txtdata/quests/quest_pools.tsv
