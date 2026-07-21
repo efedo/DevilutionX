@@ -36,6 +36,11 @@ All notable changes to this fork are documented below.
 - Add `shortName` column to `towners.tsv`, replacing hardcoded `TownerShortNames` map
 - Add TSV entries for TOWN_FARMER, TOWN_GIRL, TOWN_COWFARM (Hellfire NPCs)
 
+## 2026-07-21
+
+- Fix quest-pool initialization, item-generation reload state and legacy drop probabilities
+- Restore test includes and test access to the refactored store and automap managers
+
 ## 2026-06-24
 
 - Add file-level summaries to all source files missing them

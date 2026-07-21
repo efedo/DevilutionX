@@ -1,2 +1,2 @@
 magicChanceBase	magicChancePerLevel	alwaysMagicMisc	uniqueChanceNormal	uniqueChanceUnique	bonusLevelsUnique	prefixPercent	suffixPercent	onlygoodChance	noDropPercent	goldPercent
-10	1	staff,ring,amulet	1	15	4	25	66	33	60	75
+10	1	staff,ring,amulet	1	15	4	25	66	66	59	74

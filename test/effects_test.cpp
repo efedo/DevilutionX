@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "engine/effects.h"
-#include "engine/sound_position.hpp"
+#include "engine/audio/effects.h"
+#include "engine/audio/sound_position.hpp"
 #include "game/players/players.hpp"
 
 using namespace devilution;

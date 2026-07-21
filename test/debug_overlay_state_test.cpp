@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "debug_overlay/overlay_state.hpp"
+#include "ui/debug_overlay/overlay_state.hpp"
 
 using namespace devilution;
 

@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 
 namespace devilution {
 namespace {

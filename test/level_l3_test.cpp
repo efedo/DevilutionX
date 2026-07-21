@@ -1,7 +1,7 @@
 #include <fmt/format.h>
 #include <gtest/gtest.h>
 
-#include "drlg_test.hpp"
+#include "level_test.hpp"
 #include "game/levels/dungeon_common.h"
 
 using namespace devilution;

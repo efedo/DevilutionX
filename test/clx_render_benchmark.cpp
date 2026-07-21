@@ -2,11 +2,11 @@
 
 #include <benchmark/benchmark.h>
 
-#include "engine/clx_sprite.hpp"
-#include "engine/displacement.hpp"
-#include "engine/load_clx.hpp"
+#include "engine/gfx/clx_sprite.hpp"
+#include "engine/math/displacement.hpp"
+#include "engine/load/load_clx.hpp"
 #include "engine/render/clx_render.hpp"
-#include "engine/surface.hpp"
+#include "engine/gfx/surface.hpp"
 #include "utils/log.hpp"
 #include "utils/sdl_wrap.h"
 

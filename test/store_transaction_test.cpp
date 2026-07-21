@@ -28,7 +28,7 @@
 
 #include "ui_test.hpp"
 
-#include "control/control.hpp"
+#include "ui/panel/control.hpp"
 #include "engine/random.hpp"
 #include "game/players/inventory.hpp"
 #include "game/items/items.hpp"
@@ -38,7 +38,7 @@
 #include "qol/stash.h"
 #include "game/quests/quests.hpp"
 #include "game/stores/stores.hpp"
-#include "storm/storm_net.hpp"
+#include "network/storm/storm_net.hpp"
 #include "tables/itemdat.h"
 #include "tables/playerdat.hpp"
 #include "tables/spelldat.h"
@@ -741,7 +741,7 @@ TEST_F(StoreTransactionTest, RepairCost_MagicItem_ScalesWithDurabilityLoss)
 		item._ivalue = 2000;
 		item._iIvalue = 19000;
 		CurrentStoreManager.currentItemIndex() = 0;
-		AddStoreHoldRepair(&item, 0);
+		CurrentStoreManager.AddStoreHoldRepair(&item, 0);
 
 		if (CurrentStoreManager.currentItemIndex() > 0) {
 			const int due = item._iMaxDur - dur;
@@ -766,7 +766,7 @@ TEST_F(StoreTransactionTest, RepairCost_NormalItem_MinimumOneGold)
 	item._iDurability = 19; // Only 1 durability lost.
 
 	CurrentStoreManager.currentItemIndex() = 0;
-	AddStoreHoldRepair(&item, 0);
+	CurrentStoreManager.AddStoreHoldRepair(&item, 0);
 
 	ASSERT_EQ(CurrentStoreManager.currentItemIndex(), 1);
 	EXPECT_GE(CurrentStoreManager.playerItems()[0]._iIvalue, 1)

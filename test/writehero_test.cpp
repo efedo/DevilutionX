@@ -15,8 +15,8 @@
 #include "persistence/pack.h"
 #include "persistence/save_file.h"
 #include "tables/playerdat.hpp"
-#include "utils/endian_swap.hpp"
-#include "utils/file_util.h"
+#include "utils/endian/endian_swap.hpp"
+#include "utils/file/file_util.h"
 #include "utils/paths.h"
 
 namespace devilution {

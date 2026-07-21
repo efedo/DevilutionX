@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "debug_overlay/console_history.hpp"
+#include "ui/debug_overlay/console_history.hpp"
 
 using namespace devilution;
 

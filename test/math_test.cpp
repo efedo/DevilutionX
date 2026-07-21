@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "engine/displacement.hpp"
+#include "engine/math/displacement.hpp"
 
 namespace devilution {
 

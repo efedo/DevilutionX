@@ -13,7 +13,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "utils/str_cat.hpp"
+#include "utils/string/str_cat.hpp"
 
 void PrintTo(const SDL_Color &color, std::ostream *os)
 {

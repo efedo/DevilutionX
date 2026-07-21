@@ -34,7 +34,7 @@ TEST(Stores, AddStoreHoldRepair_magic)
 		item->_iIvalue = 19000;
 		item->_iDurability = i;
 		CurrentStoreManager.currentItemIndex() = 0;
-		AddStoreHoldRepair(item, 0);
+		CurrentStoreManager.AddStoreHoldRepair(item, 0);
 		EXPECT_EQ(1, CurrentStoreManager.currentItemIndex());
 		EXPECT_EQ(95 * (item->_iMaxDur - i) / 2, item->_ivalue);
 	}
@@ -43,7 +43,7 @@ TEST(Stores, AddStoreHoldRepair_magic)
 	CurrentStoreManager.currentItemIndex() = 0;
 	item->_ivalue = 500;
 	item->_iIvalue = 30; // To cheap to repair
-	AddStoreHoldRepair(item, 0);
+	CurrentStoreManager.AddStoreHoldRepair(item, 0);
 	EXPECT_EQ(0, CurrentStoreManager.currentItemIndex());
 	EXPECT_EQ(30, item->_iIvalue);
 	EXPECT_EQ(500, item->_ivalue);
@@ -67,7 +67,7 @@ TEST(Stores, AddStoreHoldRepair_normal)
 		item->_iIvalue = item->_ivalue;
 		item->_iDurability = i;
 		CurrentStoreManager.currentItemIndex() = 0;
-		AddStoreHoldRepair(item, 0);
+		CurrentStoreManager.AddStoreHoldRepair(item, 0);
 		EXPECT_EQ(1, CurrentStoreManager.currentItemIndex());
 		EXPECT_EQ(50 * (item->_iMaxDur - i), item->_ivalue);
 	}
@@ -76,7 +76,7 @@ TEST(Stores, AddStoreHoldRepair_normal)
 	CurrentStoreManager.currentItemIndex() = 0;
 	item->_ivalue = 10; // less than 1 per dur
 	item->_iIvalue = item->_ivalue;
-	AddStoreHoldRepair(item, 0);
+	CurrentStoreManager.AddStoreHoldRepair(item, 0);
 	EXPECT_EQ(1, CurrentStoreManager.currentItemIndex());
 	EXPECT_EQ(1, item->_ivalue);
 	EXPECT_EQ(1, item->_iIvalue);
@@ -84,27 +84,27 @@ TEST(Stores, AddStoreHoldRepair_normal)
 
 TEST(Stores, TownerNameForTalkID_knownTowners)
 {
-	EXPECT_STREQ(TownerNameForTalkID(TalkID::Smith), "griswold");
-	EXPECT_STREQ(TownerNameForTalkID(TalkID::Witch), "adria");
-	EXPECT_STREQ(TownerNameForTalkID(TalkID::Boy), "wirt");
-	EXPECT_STREQ(TownerNameForTalkID(TalkID::Healer), "pepin");
-	EXPECT_STREQ(TownerNameForTalkID(TalkID::Storyteller), "cain");
-	EXPECT_STREQ(TownerNameForTalkID(TalkID::Tavern), "ogden");
-	EXPECT_STREQ(TownerNameForTalkID(TalkID::Drunk), "farnham");
-	EXPECT_STREQ(TownerNameForTalkID(TalkID::Barmaid), "gillian");
+	EXPECT_EQ(CurrentStoreManager.TownerNameForTalkID(TalkID::Smith), "griswold");
+	EXPECT_EQ(CurrentStoreManager.TownerNameForTalkID(TalkID::Witch), "adria");
+	EXPECT_EQ(CurrentStoreManager.TownerNameForTalkID(TalkID::Boy), "wirt");
+	EXPECT_EQ(CurrentStoreManager.TownerNameForTalkID(TalkID::Healer), "pepin");
+	EXPECT_EQ(CurrentStoreManager.TownerNameForTalkID(TalkID::Storyteller), "cain");
+	EXPECT_EQ(CurrentStoreManager.TownerNameForTalkID(TalkID::Tavern), "ogden");
+	EXPECT_EQ(CurrentStoreManager.TownerNameForTalkID(TalkID::Drunk), "farnham");
+	EXPECT_EQ(CurrentStoreManager.TownerNameForTalkID(TalkID::Barmaid), "gillian");
 }
 
 TEST(Stores, TownerNameForTalkID_subPagesReturnNull)
 {
 	// Sub-pages (buy/sell screens) should not fire StoreOpened
-	EXPECT_EQ(TownerNameForTalkID(TalkID::None), nullptr);
-	EXPECT_EQ(TownerNameForTalkID(TalkID::SmithBuy), nullptr);
-	EXPECT_EQ(TownerNameForTalkID(TalkID::SmithSell), nullptr);
-	EXPECT_EQ(TownerNameForTalkID(TalkID::SmithRepair), nullptr);
-	EXPECT_EQ(TownerNameForTalkID(TalkID::WitchBuy), nullptr);
-	EXPECT_EQ(TownerNameForTalkID(TalkID::Gossip), nullptr);
-	EXPECT_EQ(TownerNameForTalkID(TalkID::StorytellerIdentify), nullptr);
-	EXPECT_EQ(TownerNameForTalkID(TalkID::StorytellerIdentifyShow), nullptr);
+	EXPECT_FALSE(CurrentStoreManager.TownerNameForTalkID(TalkID::None).has_value());
+	EXPECT_FALSE(CurrentStoreManager.TownerNameForTalkID(TalkID::SmithBuy).has_value());
+	EXPECT_FALSE(CurrentStoreManager.TownerNameForTalkID(TalkID::SmithSell).has_value());
+	EXPECT_FALSE(CurrentStoreManager.TownerNameForTalkID(TalkID::SmithRepair).has_value());
+	EXPECT_FALSE(CurrentStoreManager.TownerNameForTalkID(TalkID::WitchBuy).has_value());
+	EXPECT_FALSE(CurrentStoreManager.TownerNameForTalkID(TalkID::Gossip).has_value());
+	EXPECT_FALSE(CurrentStoreManager.TownerNameForTalkID(TalkID::StorytellerIdentify).has_value());
+	EXPECT_FALSE(CurrentStoreManager.TownerNameForTalkID(TalkID::StorytellerIdentifyShow).has_value());
 }
 
 TEST(Stores, ClearTownerDialogOptions_removesRegistrations)

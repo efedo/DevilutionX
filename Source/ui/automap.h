@@ -131,7 +131,7 @@ private:
 	bool autoMapShowItems_ = false;
 };
 
-extern AutomapManager CurrentAutomapManager;
+extern DVL_API_FOR_TEST AutomapManager CurrentAutomapManager;
 
 /**
  * @brief Sets the map type. Does not change `CurrentAutomapManager.GetAutomapActive()`.

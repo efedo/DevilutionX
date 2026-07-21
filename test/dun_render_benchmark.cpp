@@ -7,12 +7,12 @@
 #include <benchmark/benchmark.h>
 
 #include "engine/assets.hpp"
-#include "engine/clx_sprite.hpp"
-#include "engine/displacement.hpp"
+#include "engine/gfx/clx_sprite.hpp"
+#include "engine/math/displacement.hpp"
 #include "engine/lighting_defs.hpp"
-#include "engine/load_file.hpp"
+#include "engine/load/load_file.hpp"
 #include "engine/render/dun_render.hpp"
-#include "engine/surface.hpp"
+#include "engine/gfx/surface.hpp"
 #include "game/levels/dun_tile.hpp"
 #include "game/levels/dungeon_common.h"
 #include "engine/lighting.h"

@@ -8,7 +8,7 @@
 #include "persistence/pack.h"
 #include "tables/monstdat.h"
 #include "tables/playerdat.hpp"
-#include "utils/endian_swap.hpp"
+#include "utils/endian/endian_swap.hpp"
 #include "utils/is_of.hpp"
 #include "utils/paths.h"
 

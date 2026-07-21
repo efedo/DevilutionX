@@ -715,6 +715,7 @@ void LoadItemGenerationConfig()
 	const std::string_view filename = "txtdata\\items\\item_generation.tsv";
 	DataFile dataFile = DataFile::loadOrDie(filename);
 	dataFile.skipHeaderOrDie(filename);
+	CurrentItemGenerationConfig.alwaysMagicMisc.clear();
 
 	for (DataFileRecord record : dataFile) {
 		RecordReader reader { record, filename };

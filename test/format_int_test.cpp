@@ -1,7 +1,7 @@
 
 #include <gtest/gtest.h>
 
-#include "utils/format_int.hpp"
+#include "utils/string/format_int.hpp"
 
 namespace devilution {
 namespace {

@@ -2,7 +2,7 @@
 
 #include <cstdio>
 
-#include "utils/file_util.h"
+#include "utils/file/file_util.h"
 
 using namespace devilution;
 

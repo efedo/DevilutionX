@@ -287,9 +287,6 @@ void InitialiseQuestPools(uint32_t seed, Quest quests[])
 		return pool[index];
 	};
 
-	// Pool 0: always process normally
-	quests[pickFromPool(QuestPools[0])]._qactive = QUEST_NOTAVAIL;
-
 	const bool badSeed = (seed == 988045466);
 	for (size_t i = 1; i < QuestPools.size(); i++) {
 		if (badSeed && i == 1) {

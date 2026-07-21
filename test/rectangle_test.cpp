@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "engine/point.hpp"
+#include "engine/math/point.hpp"
 #include "engine/rectangle.hpp"
 
 namespace devilution {

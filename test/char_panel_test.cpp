@@ -22,8 +22,8 @@
 
 #include "ui_test.hpp"
 
-#include "control/control.hpp"
-#include "control/control_panel.hpp"
+#include "ui/panel/control.hpp"
+#include "ui/panel/control_panel.hpp"
 #include "application/diablo.h"
 #include "game/players/players.hpp"
 

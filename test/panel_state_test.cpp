@@ -15,7 +15,7 @@
 
 #include "ui_test.hpp"
 
-#include "control/control.hpp"
+#include "ui/panel/control.hpp"
 #include "game/players/inventory.hpp"
 #include "persistence/options.h"
 #include "panels/spell_list.hpp"

@@ -1,7 +1,7 @@
 #include <benchmark/benchmark.h>
 
 #include "engine/crawl.hpp"
-#include "engine/displacement.hpp"
+#include "engine/math/displacement.hpp"
 
 namespace devilution {
 namespace {

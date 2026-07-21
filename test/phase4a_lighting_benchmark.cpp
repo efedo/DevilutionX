@@ -3,7 +3,7 @@
 #include <random>
 
 #include "engine/lighting_defs.hpp"
-#include "engine/point.hpp"
+#include "engine/math/point.hpp"
 #include "engine/world_tile.hpp"
 #include "game/levels/dungeon_common.h"
 #include "game/levels/level.hpp"

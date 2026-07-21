@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "control/control.hpp"
+#include "ui/panel/control.hpp"
 #include "application/diablo.h"
 #include "engine/render/world_renderer.h"
 #include "persistence/options.h"

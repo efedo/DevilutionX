@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "drlg_test.hpp"
+#include "level_test.hpp"
 
 using namespace devilution;
 

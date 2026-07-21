@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "engine/random.hpp"
-#include "utils/static_vector.hpp"
+#include "utils/container/static_vector.hpp"
 
 using namespace devilution;
 

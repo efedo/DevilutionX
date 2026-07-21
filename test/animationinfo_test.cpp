@@ -3,7 +3,7 @@
 #include <gtest/gtest.h>
 
 #include "engine/animationinfo.h"
-#include "network/network_ticks.h"
+#include "network/protocol/network_ticks.h"
 
 using namespace devilution;
 

@@ -242,6 +242,6 @@ private:
 	std::vector<std::pair<std::string, std::vector<TownerDialogOption>>> extraTownerOptions_;
 };
 
-extern StoreManager CurrentStoreManager;
+extern DVL_API_FOR_TEST StoreManager CurrentStoreManager;
 
 } // namespace devilution

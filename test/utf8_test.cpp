@@ -1,7 +1,7 @@
 
 #include <gtest/gtest.h>
 
-#include "utils/utf8.hpp"
+#include "utils/string/utf8.hpp"
 
 namespace devilution {
 namespace {

@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "network/multi.h"
+#include "network/protocol/multi.h"
 
 namespace devilution {
 

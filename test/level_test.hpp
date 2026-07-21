@@ -8,12 +8,12 @@
 #include <gtest/gtest.h>
 
 #include "engine/assets.hpp"
-#include "engine/load_file.hpp"
+#include "engine/load/load_file.hpp"
 #include "game/levels/themes.h"
-#include "network/multi.h"
+#include "network/protocol/multi.h"
 #include "game/players/players.hpp"
 #include "game/quests/quests.hpp"
-#include "utils/endian_swap.hpp"
+#include "utils/endian/endian_swap.hpp"
 #include "utils/paths.h"
 
 using namespace devilution;

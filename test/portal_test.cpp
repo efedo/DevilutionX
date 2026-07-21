@@ -1,5 +1,5 @@
 #include "game/portals/portal.hpp"
-#include "portals/validation.hpp"
+#include "game/portals/validation.hpp"
 
 #include "game/portals/portal.hpp"
 #include "game/portals/validation.hpp"

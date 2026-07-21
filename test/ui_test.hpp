@@ -14,7 +14,7 @@
 
 #include <gtest/gtest.h>
 
-#include "control/control.hpp"
+#include "ui/panel/control.hpp"
 #include "controls/control_mode.hpp"
 #include "engine/cursor.h"
 #include "engine/assets.hpp"
@@ -27,7 +27,7 @@
 #include "qol/visual_store.h"
 #include "game/quests/quests.hpp"
 #include "game/stores/stores.hpp"
-#include "storm/storm_net.hpp"
+#include "network/storm/storm_net.hpp"
 #include "tables/itemdat.h"
 #include "tables/playerdat.hpp"
 #include "tables/spelldat.h"
