@@ -112,6 +112,78 @@ The work is divided into five parallel but ordered workstreams:
 
 ## Phase 0: Decisions and Behavioral Baseline
 
+### Decisions Recorded
+
+#### Protocol schema
+
+Use Protobuf `.proto` files as the canonical protocol schema. Generate C++ and
+C# bindings from the same definitions, and keep the message contracts
+independent of the underlying transport.
+
+This provides one versioned contract for the current C++ client, the future C#
+server, and the Godot client. Protobuf field numbers and explicit versioning
+rules will be treated as compatibility-sensitive API. The wire format will
+carry authoritative commands, snapshots, events, errors, and content identity
+metadata; it will not expose engine pointers or Godot types.
+
+#### Initial transport
+
+Use TCP with length-delimited Protobuf envelopes for the first implementation.
+The protocol package will remain transport-independent, and unreliable or
+unordered delivery will not be introduced until profiling demonstrates a need
+for it.
+
+#### Simulation rate
+
+Use a fixed 20 Hz authoritative simulation tick for the initial server. This
+matches the current engine default and keeps replay behavior stable. Client
+rendering and interpolation may run at a different frame rate, but gameplay
+state changes occur only on server ticks.
+
+#### Command delivery and ordering
+
+Commands carry a client sequence number and requested simulation tick. The
+server assigns a monotonically increasing receipt sequence and processes
+accepted commands by `(target_tick, server_receipt_sequence)`.
+
+The protocol also includes application-level acknowledgements. The client
+tracks the measured connection latency and resubmits a command when its
+acknowledgement does not arrive within an adaptive timeout. The server
+deduplicates client sequence numbers, so resubmission cannot execute a command
+twice. Replay fixtures record the server-assigned receipt sequence and the
+resulting target tick.
+
+Late-command handling is command-specific. Gameplay-critical commands use a
+strict lateness window and are rejected or explicitly rescheduled when they
+cannot be applied against a valid state. Non-critical commands may be accepted
+at the current tick when doing so is safe and does not reinterpret stale
+gameplay intent. The protocol will expose whether a command was accepted,
+rejected, or rescheduled.
+
+#### Single-player hosting
+
+Single-player will launch the same authoritative server as a local process and
+connect through the normal protocol. The C++ and Godot clients will not use a
+separate client-authoritative rules path. An in-process server may be added
+later only as an optimization if it preserves protocol and behavior parity.
+
+#### C# plugin trust and deployment
+
+C# server plugins are full-trust server code. Only the server administrator may
+install or enable them; clients cannot upload, choose, or execute server
+assemblies. Public servers may require signed or allowlisted assemblies. The
+server advertises enabled plugin IDs, versions, and a plugin manifest hash as
+part of its server identity.
+
+#### Save ownership and migration
+
+The authoritative server exclusively owns save creation, validation, migration,
+and persistence. Clients may request save-related operations but never write
+authoritative character or world state. Local single-player saves are stored by
+the local server process using the same versioned format as multiplayer saves.
+Save migrations are explicit, validated, and tied to content and schema
+versions; incompatible saves are rejected with an actionable reason.
+
 ### Tasks
 
 1. Record architecture decisions for:
