@@ -48,16 +48,29 @@ All notable changes to this fork are documented below.
 
 - Add authoritative wallet, active-store, and inventory snapshots after
   handshake and command batches
+- Add deterministic SHA-256 hashes for the authoritative snapshot projection
+- Add baseline experience, life, and mana fields to the store player projection
+- Add primary attributes, equipment slots, and inventory-grid snapshot fields
+- Add core authoritative item-state fields to store inventory snapshots
+- Add C# replay-fixture execution, authoritative clock abstraction, session
+  entity-ID coverage, empty-batch validation, and command-delivery vector tests
+- Reconcile the C# migration plan with implemented phase status, ownership,
+  remaining exit gates, and the current critical path
+- Add external content and versioned C# gameplay modules as first-class
+  migration workstreams with per-slice ownership and verification gates
+- Add external TSV store loading, module-owned store transactions, deterministic
+  replay checkpoint parity, fixed-point/RNG/ID primitives, and gameplay ruleset
+  identity coverage
 - Add an executable JSON replay fixture baseline for player/store projection
-
-## 2026-07-22
 
 - Add the initial transport-independent Protobuf protocol contract and compatibility rules
 - Add adaptive client command acknowledgement retries with duplicate and late-command outcomes
-- Add a shared retry/deduplication protocol test vector for the future C# server
+- Add a shared retry/deduplication protocol test vector consumed by the C# server tests
 - Add the initial C# authoritative command server with Protobuf bindings and deduplication tests
 - Add bounded TCP Protobuf sessions with handshake validation and command routing
 - Add the first C# authoritative store executor with retry-safe purchases and shared stock
+- Add opt-in C++ Protobuf generation, bounded envelope framing, and a minimal
+  authoritative client covering handshake, command acknowledgement, and snapshots
 
 ## 2026-06-24
 

@@ -129,6 +129,21 @@ public sealed class AuthoritativeCommandServerTests
         Assert.Equal(0, executor.CallCount);
     }
 
+    [Fact]
+    public void EmptyBatchReturnsOneMalformedResultWithoutAReceipt()
+    {
+        var executor = new RecordingExecutor();
+        var server = new AuthoritativeCommandServer(executor);
+
+        var acknowledgement = server.ProcessBatch("player-a", new CommandBatch(), currentTick: 10);
+
+        var result = Assert.Single(acknowledgement.Results);
+        Assert.Equal(CommandStatus.Rejected, result.Status);
+        Assert.Equal(CommandRejectReason.Malformed, result.RejectReason);
+        Assert.Equal(0UL, result.ServerReceiptSequence);
+        Assert.Equal(0, executor.CallCount);
+    }
+
     private static Command Attack(ulong clientSequence, ulong requestedTick)
     {
         return new Command {

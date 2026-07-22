@@ -60,6 +60,12 @@ set(tests
   char_panel_test
   menu_framework_test
 )
+if(NOT NONET AND NOT DISABLE_TCP)
+  list(APPEND tests authoritative_envelope_codec_test)
+endif()
+if(DEVILUTIONX_ENABLE_AUTHORITATIVE_CLIENT)
+  list(APPEND tests authoritative_client_test)
+endif()
 set(standalone_tests
   codec_test
   crawl_test

@@ -72,11 +72,73 @@ private:
 			return ParseUnsigned(fixture_.tickRateHz);
 		if (key == "rng_seed")
 			return ParseUnsigned(fixture_.rngSeed);
+		if (key == "initial_state")
+			return ParseInitialState();
+		if (key == "legacy_store_state")
+			return ParseStoreState();
 		if (key == "commands")
 			return ParseCommands();
 		if (key == "checkpoints")
 			return ParseCheckpoints();
 		return SkipValue();
+	}
+
+	bool ParseInitialState()
+	{
+		return ParseObject([this](std::string_view key) {
+			if (key == "player")
+				return ParseString(fixture_.initialState.player);
+			if (key == "gold")
+				return ParseUnsigned(fixture_.initialState.gold);
+			if (key == "experience")
+				return ParseUnsigned(fixture_.initialState.experience);
+			if (key == "life")
+				return ParseSigned(fixture_.initialState.life);
+			if (key == "mana")
+				return ParseSigned(fixture_.initialState.mana);
+			if (key == "character_class")
+				return ParseSigned(fixture_.initialState.characterClass);
+			if (key == "character_level")
+				return ParseUnsigned(fixture_.initialState.characterLevel);
+			return SkipValue();
+		});
+	}
+
+	bool ParseStoreState()
+	{
+		return ParseObject([this](std::string_view key) {
+			if (key == "active_store")
+				return ParseSigned(fixture_.storeState.activeStore);
+			if (key == "premium_item_count")
+				return ParseSigned(fixture_.storeState.premiumItemCount);
+			if (key == "premium_item_level")
+				return ParseSigned(fixture_.storeState.premiumItemLevel);
+			if (key == "premium_item_seeds")
+				return ParseSeedArray();
+			return SkipValue();
+		});
+	}
+
+	bool ParseSeedArray()
+	{
+		if (!Consume('['))
+			return Fail("expected premium item seed array");
+		fixture_.storeState.premiumItemSeeds.clear();
+		SkipWhitespace();
+		if (Consume(']'))
+			return true;
+		while (true) {
+			uint32_t seed = 0;
+			if (!ParseUnsigned(seed))
+				return false;
+			fixture_.storeState.premiumItemSeeds.push_back(seed);
+			SkipWhitespace();
+			if (Consume(']'))
+				return true;
+			if (!Consume(','))
+				return Fail("expected comma or closing bracket");
+			SkipWhitespace();
+		}
 	}
 
 	bool ParseCommands()
@@ -153,6 +215,26 @@ private:
 			return Fail("unsigned integer out of range");
 		value = static_cast<Integer>(parsed);
 		return true;
+	}
+
+	template <typename Integer>
+	bool ParseSigned(Integer &value)
+	{
+		const size_t start = position_;
+		bool negative = false;
+		uint64_t magnitude = 0;
+		if (!ParseUnsigned(magnitude, negative))
+			return false;
+		if (negative) {
+			if (magnitude > static_cast<uint64_t>(std::numeric_limits<Integer>::max()) + 1)
+				return Fail("signed integer out of range");
+			value = static_cast<Integer>(-static_cast<int64_t>(magnitude));
+		} else {
+			if (magnitude > static_cast<uint64_t>(std::numeric_limits<Integer>::max()))
+				return Fail("signed integer out of range");
+			value = static_cast<Integer>(magnitude);
+		}
+		return position_ != start || Fail("expected signed integer");
 	}
 
 	bool ParseUnsigned(uint64_t &value, bool &negative)

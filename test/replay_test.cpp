@@ -85,7 +85,7 @@ TEST(ReplayCommands, PreservesInputOrderForDuplicateReceiptSequences)
 
 TEST(ReplayStateProjection, ChangesWhenAuthoritativePlayerStateChanges)
 {
-	Player player;
+	Player player{};
 	player._pName[0] = 'A';
 	player._pName[1] = '\0';
 	player._pGold = 100;
@@ -171,18 +171,25 @@ TEST(ReplayFixture, ParsesAndHashesInitialStoreState)
 	EXPECT_EQ(sorted[0].clientSequence, 1U);
 	EXPECT_EQ(sorted[1].clientSequence, 2U);
 
-	Player player;
-	player._pName[0] = 'A';
+	Player player{};
+	player._pName[0] = fixture.initialState.player[0];
 	player._pName[1] = '\0';
-	player._pGold = 100;
-	player._pExperience = 200;
-	player.life.current = 640;
-	player.life.maximum = 640;
+	player._pClass = static_cast<HeroClass>(fixture.initialState.characterClass);
+	player.setCharacterLevel(fixture.initialState.characterLevel);
+	player._pGold = fixture.initialState.gold;
+	player._pExperience = fixture.initialState.experience;
+	player.life.current = fixture.initialState.life;
+	player.life.maximum = fixture.initialState.life;
+	player.mana.current = fixture.initialState.mana;
+	player.mana.maximum = fixture.initialState.mana;
 	StoreManager store;
-	store.activeStore() = TalkID::Smith;
-	store.premiumItemLevel() = 3;
-	store.premiumItems().push_back();
-	store.premiumItems()[0]._iSeed = 42;
+	store.activeStore() = static_cast<TalkID>(fixture.storeState.activeStore);
+	store.premiumItemCount() = fixture.storeState.premiumItemCount;
+	store.premiumItemLevel() = fixture.storeState.premiumItemLevel;
+	for (const uint32_t seed : fixture.storeState.premiumItemSeeds) {
+		store.premiumItems().push_back();
+		store.premiumItems().back()._iSeed = seed;
+	}
 
 	ReplayStateHasher state;
 	AppendReplayPlayerState(state, 0, player);

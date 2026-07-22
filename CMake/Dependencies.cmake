@@ -3,6 +3,17 @@
 include(functions/dependency_options)
 include(functions/emscripten_system_library)
 
+if(DEVILUTIONX_ENABLE_AUTHORITATIVE_CLIENT)
+  find_package(Protobuf REQUIRED)
+  if(NOT COMMAND protobuf_generate_cpp)
+    message(FATAL_ERROR "The selected Protobuf package does not provide protobuf_generate_cpp")
+  endif()
+  protobuf_generate_cpp(
+    DEVILUTIONX_PROTOCOL_SRCS
+    DEVILUTIONX_PROTOCOL_HDRS
+    "${PROJECT_SOURCE_DIR}/protocol/devilution.proto")
+endif()
+
 if(EMSCRIPTEN)
   emscripten_system_library("zlib" ZLIB::ZLIB USE_ZLIB=1)
 else()

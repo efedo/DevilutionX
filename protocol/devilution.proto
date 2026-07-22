@@ -22,6 +22,7 @@ message ClientHello {
 	string client_build_id = 1;
 	string protocol_schema_version = 2;
 	string content_manifest_hash = 3;
+	string resume_token = 4;
 }
 
 message ServerHello {
@@ -29,6 +30,7 @@ message ServerHello {
 	string protocol_schema_version = 2;
 	string content_manifest_hash = 3;
 	uint32 tick_rate_hz = 4;
+	string session_token = 5;
 }
 
 message CommandBatch {
@@ -46,6 +48,11 @@ message Command {
 		CastRequested cast_requested = 12;
 		OpenStoreRequested open_store_requested = 13;
 		PurchaseRequested purchase_requested = 14;
+		SellItemRequested sell_item_requested = 15;
+		RepairItemRequested repair_item_requested = 16;
+		RechargeItemRequested recharge_item_requested = 17;
+		IdentifyItemRequested identify_item_requested = 18;
+		MoveInventoryItemRequested move_inventory_item_requested = 19;
 	}
 }
 
@@ -72,6 +79,27 @@ message OpenStoreRequested {
 message PurchaseRequested {
 	uint32 store_id = 1;
 	uint32 store_slot = 2;
+}
+
+message SellItemRequested {
+	uint32 inventory_index = 1;
+}
+
+message RepairItemRequested {
+	uint32 inventory_index = 1;
+}
+
+message RechargeItemRequested {
+	uint32 inventory_index = 1;
+}
+
+message IdentifyItemRequested {
+	uint32 inventory_index = 1;
+}
+
+message MoveInventoryItemRequested {
+	uint32 inventory_index = 1;
+	uint32 target_cell = 2;
 }
 
 message CommandAck {
@@ -119,6 +147,10 @@ message PlayerSnapshot {
 	// Zero means that the player has no active store.
 	uint32 active_store_id = 7;
 	repeated ItemSnapshot inventory = 8;
+	uint32 experience = 9;
+	PlayerAttributesSnapshot attributes = 10;
+	repeated EquippedItemSnapshot equipment = 11;
+	repeated int32 inventory_grid = 12;
 }
 
 message ItemSnapshot {
@@ -127,6 +159,84 @@ message ItemSnapshot {
 	uint32 item_seed = 3;
 	uint32 price = 4;
 	uint64 purchased_at_tick = 5;
+	ItemStateSnapshot state = 6;
+}
+
+message ItemStateSnapshot {
+	uint32 create_info = 1;
+	int32 item_type = 2;
+	int32 position_x = 3;
+	int32 position_y = 4;
+	bool deleted = 5;
+	bool identified = 6;
+	int32 magical = 7;
+	int32 equip_location = 8;
+	int32 item_class = 9;
+	int32 value = 10;
+	int32 identified_value = 11;
+	int32 min_damage = 12;
+	int32 max_damage = 13;
+	int32 armor_class = 14;
+	uint32 flags = 15;
+	int32 misc_id = 16;
+	int32 spell_id = 17;
+	int32 item_index = 18;
+	int32 charges = 19;
+	int32 max_charges = 20;
+	int32 durability = 21;
+	int32 max_durability = 22;
+	int32 plus_damage = 23;
+	int32 plus_to_hit = 24;
+	int32 plus_armor_class = 25;
+	int32 plus_strength = 26;
+	int32 plus_magic = 27;
+	int32 plus_dexterity = 28;
+	int32 plus_vitality = 29;
+	int32 plus_fire_resistance = 30;
+	int32 plus_lightning_resistance = 31;
+	int32 plus_magic_resistance = 32;
+	int32 plus_mana = 33;
+	int32 plus_hit_points = 34;
+	int32 plus_damage_modifier = 35;
+	int32 plus_get_hit = 36;
+	int32 plus_light = 37;
+	int32 spell_level_add = 38;
+	int32 unique_id = 39;
+	int32 fire_min_damage = 40;
+	int32 fire_max_damage = 41;
+	int32 lightning_min_damage = 42;
+	int32 lightning_max_damage = 43;
+	int32 plus_enemy_armor_class = 44;
+	int32 prefix_power = 45;
+	int32 suffix_power = 46;
+	int32 value_add_1 = 47;
+	int32 value_multiply_1 = 48;
+	int32 value_add_2 = 49;
+	int32 value_multiply_2 = 50;
+	int32 minimum_strength = 51;
+	int32 minimum_magic = 52;
+	int32 minimum_dexterity = 53;
+	bool stat_flag = 54;
+	int32 hellfire_damage_armor_flags = 55;
+	uint32 buff = 56;
+}
+
+message PlayerAttributesSnapshot {
+	AttributeSnapshot strength = 1;
+	AttributeSnapshot magic = 2;
+	AttributeSnapshot dexterity = 3;
+	AttributeSnapshot vitality = 4;
+}
+
+message AttributeSnapshot {
+	int32 base = 1;
+	int32 current = 2;
+}
+
+message EquippedItemSnapshot {
+	uint32 slot = 1;
+	uint32 item_seed = 2;
+	ItemStateSnapshot state = 3;
 }
 
 message EventBatch {

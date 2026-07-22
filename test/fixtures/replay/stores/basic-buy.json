@@ -8,7 +8,16 @@
     "player": "A",
     "gold": 100,
     "experience": 200,
-    "life": 640
+    "life": 640,
+    "mana": 0,
+    "character_class": 0,
+    "character_level": 1
+  },
+  "legacy_store_state": {
+    "active_store": 1,
+    "premium_item_count": 0,
+    "premium_item_level": 3,
+    "premium_item_seeds": [42]
   },
   "commands": [
     {
@@ -28,7 +37,7 @@
   "checkpoints": [
     {
       "tick": 0,
-      "state_sha256": "91b7c8ff9b654b465dd54877ff09b159ac5d33e857c79d9933e22130fd203703"
+      "state_sha256": "67c0e197eb04c359e6501c0df7419799d878903d6760c471d0eae93dd12c45be"
     }
   ],
   "content_manifest": ["baseline-store-content"]

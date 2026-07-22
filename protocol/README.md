@@ -7,9 +7,11 @@ initial wire transport is TCP with a four-byte little-endian length-prefixed
 current maximum payload is 1 MiB.
 
 `server/src/Devilution.Server` generates C# bindings from this schema at build
-time. The legacy C++ build intentionally does not generate or link Protobuf
-yet, so the server can evolve against the same contract without prematurely
-adding a generator or runtime dependency to the legacy client.
+time. The legacy C++ build does not generate or link Protobuf by default. An
+opt-in configure with `-DDEVILUTIONX_ENABLE_AUTHORITATIVE_CLIENT=ON` generates
+C++ bindings into the build tree and builds the standalone authoritative client
+against the optional `authoritative-client` vcpkg feature; the legacy packet
+transport remains the default.
 
 ## Compatibility rules
 
@@ -23,23 +25,36 @@ adding a generator or runtime dependency to the legacy client.
   from a missing field.
 - `client_sequence` is scoped to a session and is reused for retries. The
   server returns the original result for duplicate commands.
+- Store transactions use explicit intent messages for opening, purchasing,
+  selling, repairing, recharging, identifying, and moving inventory items;
+  clients never send the resulting gold, durability, charges, or placement.
 - The server assigns `server_receipt_sequence` and reports the authoritative
   `applied_tick`. Late-command acceptance, rejection, or rescheduling is
   explicit in `CommandResult.status`.
 - Content manifest identity is part of the handshake. A mismatch is a
   protocol error, not a best-effort compatibility mode.
+- A successful handshake returns a server-issued `session_token`. A reconnect
+  may present that token to resume the command ledger and authoritative entity
+  identity; an unknown token creates a new session.
 - `Snapshot` carries the authoritative tick and per-player state. The initial
-  store projection includes gold, active store, and purchased item fields;
-  `state_sha256` remains reserved for the complete state projection.
+  store projection includes gold, experience, life, mana, primary attributes,
+  active store, equipment slots, purchased item fields, and inventory-grid
+  cells.
+  `state_sha256` hashes those authoritative fields using fixed-width
+  little-endian integers, length-prefixed UTF-8 strings, and SHA-256; future
+  state fields must extend the canonical order explicitly.
+- `ItemSnapshot.state` carries the current core item state used by the store
+  vertical slice. Localized names and other presentation-only values are not
+  part of the projection.
 
-C++ code generation and descriptor compatibility checks will be added once the
-new client transport is introduced.
+C++ descriptor compatibility checks will be added as the client surface grows.
 
 `test-vectors/command-delivery-retry.json` is the first language-neutral
 behavior vector. It covers a lost acknowledgement, a retry resolved as a
 duplicate, a gameplay-critical late rejection, and a lenient reschedule. The
-future C# server tests and a generated-Protobuf client harness should consume
-this vector rather than re-encoding those expectations independently.
+future generated-Protobuf client harness should consume this vector rather than
+re-encoding those expectations independently; the C# server test suite now
+loads and validates it directly.
 
 ## Current C++ client slice
 
@@ -47,6 +62,11 @@ this vector rather than re-encoding those expectations independently.
 policy without depending on generated Protobuf types. It allocates
 session-scoped sequence numbers, estimates RTT with a smoothed variance,
 resubmits unacknowledged commands, and resolves accepted, rejected,
-rescheduled, and duplicate outcomes. Transport integration and server-side
-deduplication are supplied by the C# server; TCP session integration is the
-next cross-project step.
+rescheduled, and duplicate outcomes. The opt-in
+`network/authoritative/AuthoritativeClient` now proves the initial C++ wire
+path: it performs the handshake, submits a command batch, receives an
+acknowledgement, and reads a snapshot. The tracker is not yet wired into that
+send loop, and the authoritative client is not yet selected by the legacy
+gameplay network provider. When the server is configured with a snapshot
+provider, callers set `expectInitialSnapshot` and consume the initial snapshot
+before submitting commands; this matches the current server session ordering.

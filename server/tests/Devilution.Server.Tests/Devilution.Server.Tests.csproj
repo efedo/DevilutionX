@@ -15,4 +15,9 @@
   <ItemGroup>
     <ProjectReference Include="../../src/Devilution.Server/Devilution.Server.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../../../test/fixtures/replay/stores/basic-buy.json" Link="Fixtures/basic-buy.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../../protocol/test-vectors/command-delivery-retry.json" Link="Vectors/command-delivery-retry.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

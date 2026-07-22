@@ -6,6 +6,9 @@ This document defines an incremental path from the current C++ engine with embed
 
 - A C# authoritative game server.
 - A Godot client that does not own gameplay state.
+- External content packs for game-specific definitions and tuning.
+- Versioned C# gameplay modules for authoritative behavior that is not
+  reasonably declarative.
 - C# server extensions for trusted gameplay customization.
 - C# Godot components for client-only presentation customization.
 - No Lua or sol2 dependency in the final system.
@@ -14,16 +17,28 @@ The migration must keep the current game playable while systems move one at a ti
 
 ## Target Architecture
 
-The final architecture has four primary components:
+The final architecture has six primary components:
 
 | Component | Responsibility |
 |---|---|
-| C# domain library | Deterministic rules, simulation state, commands, events, validation, and game-data models |
-| C# server host | Sessions, networking, persistence, ticking, plugin loading, and operational concerns |
+| C# domain kernel | Engine-neutral deterministic primitives, simulation state machinery, commands, events, validation, and stable gameplay-module APIs |
+| C# game-data runtime | External data loading, overlays, validation, symbolic IDs, and content manifests |
+| C# gameplay modules | Game-specific authoritative rules that consume validated data and operate through domain APIs |
+| C# server host | Sessions, networking, persistence, ticking, gameplay-module loading, and operational concerns |
 | Godot client | Input, rendering, audio, UI, prediction/interpolation, and presentation effects |
 | Protocol package | Versioned commands, snapshots, events, identifiers, errors, and content manifests |
 
-The C# domain library must not reference Godot. The server host and Godot client may both reference the protocol package, but only the server may mutate authoritative state.
+The C# domain kernel and game-data runtime must not reference Godot or a
+specific game module. Gameplay modules may reference their stable APIs, while
+the server host composes and runs the selected modules. The server host and
+Godot client may both reference the protocol package, but only the server may
+mutate authoritative state.
+
+"C# scripts" means versioned gameplay modules authored in C# and built as
+server-loaded assemblies. The server must not compile or execute source code
+provided by clients. The shipped game and administrator-installed extensions
+use the same identity, loading, and compatibility model, although public
+servers may apply stricter signing or allowlist policy to third-party modules.
 
 Single-player should use the same protocol as multiplayer. It may launch a local server process or host the server in-process, but it must not use a separate client-authoritative rules path.
 
@@ -87,10 +102,11 @@ The remaining Phase 1 work is to extract sound reload, replace the Hellfire
 Lua bootstrap with declarative content metadata, move debug commands behind an
 engine-neutral registry, and add a content manifest/hash.
 
-The Phase 0 replay baseline now also includes a strict JSON fixture-envelope
-parser and an executable player/store checkpoint fixture. This validates the
-initial canonical projection and command ordering, while full-state projection
-and command-driven simulation remain ahead of the C# port.
+The Phase 0 replay baseline now also includes strict C++ and C# JSON fixture
+loaders and an executable player/store checkpoint fixture. The C# store server
+executes the fixture's supported commands and validates receipt ordering. Its
+snapshot hash does not yet match the broader legacy C++ state projection; that
+gap is explicit in the C# test suite and is the next parity target.
 
 ## Migration Principles
 
@@ -102,18 +118,52 @@ and command-driven simulation remain ahead of the C# port.
 6. Make each migration step reversible behind a temporary feature flag until parity tests pass.
 7. Avoid running two authoritative simulations in production. Dual execution is for test and shadow comparison only.
 8. Freeze the public Lua API once migration starts. New gameplay capabilities should be added to the C# domain or protocol instead.
+9. Prefer external declarative data for definitions and tuning. Put behavior in
+   a C# gameplay module only when it cannot be represented clearly as validated
+   data.
+10. Keep game-specific rules out of the generic domain kernel and server host.
+    Each migrated slice must explicitly classify its definitions, generic
+    mechanics, and game-specific behavior.
 
 ## Workstreams
 
-The work is divided into five parallel but ordered workstreams:
+The work is divided into six parallel but ordered workstreams:
 
 | Workstream | Scope |
 |---|---|
 | C++ decoupling | Remove mod, data, event, and tooling responsibilities from the Lua lifecycle |
 | Protocol | Define stable IDs, commands, events, snapshots, errors, versioning, and transport-independent framing |
-| C# domain and server | Port authoritative rules and host them in the separate server project |
+| C# domain and server | Build deterministic engine-neutral mechanics and host them in the separate server project |
 | Godot client | Consume authoritative state and replace C++ presentation systems |
-| Content and mods | Version data packs and split trusted server plugins from client presentation extensions |
+| External content | Move game-specific definitions and tuning into versioned data packs |
+| C# gameplay modules and mods | Move non-declarative game rules into versioned server modules and split them from client presentation extensions |
+
+## Progress Snapshot (2026-07-22)
+
+| Phase | State | Implemented | Remaining gate |
+|---|---|---|---|
+| Phase 0: decisions and baseline | Mostly complete | Decisions, Lua inventory, C++ replay hashing, shared fixture format, command-delivery vector, deterministic initial replay checkpoint | Explicit mod-reload/Hellfire fixtures and full transition checkpoint parity |
+| Phase 1: C++ decoupling | Partial | `ModManager`, `GameDataManager`, typed events, Lua adapter, stable event IDs | Sound reload, declarative Hellfire metadata, debug registry, content manifest/hash |
+| Phase 2: C# domain and protocol | Partial | Protobuf schema and C#/opt-in C++ generation, bounded framing, C# TCP sessions, initial C++ handshake/command/acknowledgement/snapshot client, command admission/deduplication, snapshots, state hashing, replay/vector loaders, TSV/content hashing, gameplay-module contract, fixed-point/RNG/ID primitives, reconnect ledger/entity resumption | Wire C++ retries to transport, full snapshot resync, stable ID catalogs, complete transition parity, shared C++/C# content identity |
+| Phase 3: inventory and stores | Server side started | External TSV store definitions, module-owned purchase/sale/repair/recharge/identification/movement rules, shared stock, wallet/inventory snapshots, item-state projection | Legacy pricing/generation parity, full inventory/equipment semantics, C++ remote adapter, golden transaction parity |
+| Phase 4: remaining authoritative systems | Not started | Protocol placeholders for movement, combat, spells, and events | Domain implementations and remote adapters |
+| Phase 5: Godot client | Not started | Target boundary documented | Godot project, connection, rendering, input, UI, and correction paths |
+| Phase 6: content/modules and Lua removal | Not started | Target data/domain/module layering, capability destinations, and removal gates documented | Implement replacement paths, externalize shipped content/rules, and remove Lua/sol2 |
+
+### Current Critical Path
+
+1. Extend the now-matching `stores/basic-buy` projection through transition
+   checkpoints, item generation, and full store state rather than only the
+   deterministic initial baseline.
+2. Wire the generated C++ command-delivery tracker into the new feature-flagged
+   TCP client, then add reconnect and full snapshot-resynchronization tests.
+3. Make the C++ and C# content manifest hashes match, then complete the store
+   vertical slice with definitions in external data and game-specific behavior
+   in the shipped C# gameplay module: item instances, inventory placement,
+   store generation/pricing, sale, repair, recharge, identification, and the
+   Adria mana-refill rule.
+5. Switch stores to `C# remote` only after the C++ adapter passes command-level
+   replay fixtures and state-hash comparisons.
 
 ## Phase 0: Decisions and Behavioral Baseline
 
@@ -173,13 +223,28 @@ connect through the normal protocol. The C++ and Godot clients will not use a
 separate client-authoritative rules path. An in-process server may be added
 later only as an optimization if it preserves protocol and behavior parity.
 
-#### C# plugin trust and deployment
+#### C# gameplay-module trust and deployment
 
-C# server plugins are full-trust server code. Only the server administrator may
-install or enable them; clients cannot upload, choose, or execute server
+C# gameplay modules are full-trust server code. Shipped modules are part of the
+server distribution; only the server administrator may install or enable
+third-party modules. Clients cannot upload, choose, or execute server
 assemblies. Public servers may require signed or allowlisted assemblies. The
-server advertises enabled plugin IDs, versions, and a plugin manifest hash as
-part of its server identity.
+server advertises the ordered module IDs, versions, and hashes as part of its
+combined ruleset identity.
+
+#### External content and C# gameplay modules
+
+Game-specific definitions, tuning values, and relationships belong in external
+content packs whenever they can be expressed declaratively. The migration keeps
+the existing TSV files canonical until parity is established; format changes
+may occur later as independently tested content migrations.
+
+Game-specific behavior that cannot be represented cleanly as data belongs in a
+versioned C# gameplay module, not in the generic domain kernel or server host.
+The shipped Diablo rules module is loaded through the same stable module
+contract used by trusted administrator-installed extensions. A server identity,
+save, or replay fixture records the ordered content packs, gameplay modules,
+versions, and hashes as one authoritative ruleset identity.
 
 #### Save ownership and migration
 
@@ -198,11 +263,11 @@ versions; incompatible saves are rejected with an actionable reason.
   recorded in `docs/replay-fixtures.md`.
 - Existing characterization coverage includes item generation, stores,
   inventory, player behavior, quests, vendors, and the typed event bus.
-- Replay primitives now cover canonical field encoding, SHA-256 state digests,
-  deterministic command ordering, and an initial player/store projection;
-  the first executable JSON fixture now covers that projection. Complete
-  game-state projection, command execution, and generated protocol bindings
-  remain.
+- C++ replay primitives cover canonical field encoding, SHA-256 state digests,
+  deterministic command ordering, and an initial player/store projection. The
+  C# server now loads the same fixture, executes its store commands, validates
+  receipt ordering, and reports the still-unresolved checkpoint hash mismatch.
+  Complete game-state projection and exact cross-language parity remain.
 - Missing baseline coverage is explicit mod-reload/Hellfire behavior and
   fixture execution against the running C++ game state.
 - The initial transport-independent Protobuf contract is recorded in
@@ -217,8 +282,13 @@ versions; incompatible saves are rejected with an actionable reason.
   deduplication, globally ordered receipts, and the agreed late-command policy.
   Its TCP host validates the handshake and routes command batches; the executor
   now includes the first deterministic store/purchase vertical slice and
-  projects wallet, active-store, and purchased-item state into TCP snapshots.
-  Complete-state hashing and parity with legacy store pricing remain.
+  projects baseline player resources, primary attributes, equipment slots,
+  inventory layout, wallet, active-store, and purchased-item state into TCP
+  snapshots. Snapshot hashes now cover those projected authoritative fields
+  using the shared canonical encoding. Complete legacy-state hashing and
+  parity with legacy store pricing remain; the core legacy item fields are now
+  projected, while full replay fixture parity and any fields added later to
+  the legacy item model are still pending.
 
 ### Tasks
 
@@ -227,7 +297,7 @@ versions; incompatible saves are rejected with an actionable reason.
    - Reliable transport for the first implementation. The first version should favor correctness and observability over custom low-latency transport work.
    - Server tick rate and command ordering.
    - Local-server hosting for single-player.
-   - C# plugin trust and deployment policy.
+   - C# gameplay-module trust and deployment policy.
    - Save ownership and migration strategy.
 2. Inventory every Lua module, function, event, and bundled script.
 3. Classify each Lua capability as server-authoritative, client-presentation, data-loading, or developer tooling.
@@ -244,7 +314,7 @@ versions; incompatible saves are rejected with an actionable reason.
 ### Exit Criteria
 
 - Every current Lua entry point has an assigned target owner.
-- The protocol, tick, local-server, plugin, and persistence decisions are written down.
+- The protocol, tick, local-server, gameplay-module, and persistence decisions are written down.
 - The first deterministic replay fixtures run against the C++ implementation.
 - No new gameplay feature is added through the Lua API.
 
@@ -307,16 +377,49 @@ Define an engine-neutral debug command registry. Adapt existing debug commands t
 
 ## Phase 2: Establish the C# Domain and Protocol
 
+### Current Status
+
+Implemented:
+
+- One versioned Protobuf schema with generated C# bindings.
+- Opt-in C++ Protobuf generation, bounded envelope framing, and an initial
+  C++ authoritative client for handshake, command acknowledgement, and snapshots.
+- Length-prefixed TCP envelopes, handshake validation, bounded payloads, and
+  loopback integration tests.
+- Session-scoped command deduplication, global receipt ordering, explicit late
+  outcomes, adaptive C++ retry policy, and a shared behavior vector consumed by
+  C# tests.
+- An injectable authoritative clock, per-connection entity allocation,
+  authoritative snapshots, and canonical SHA-256 hashing.
+- Strict C# replay fixture loading and store-command execution.
+- C# TSV parsing, ordered content-pack hashing, gameplay-module loading and
+  dependency validation, combined ruleset identity, legacy Q6 fixed-point
+  arithmetic, Borland-compatible LCG behavior, and stable entity allocation.
+- Exact initial `stores/basic-buy` parity with the deterministic C++ projection.
+
+Remaining before Phase 2 exit:
+
+- Wire `CommandDeliveryTracker` to the generated C++ client and preserve
+  command retries across reconnects.
+- Define stable session/player/level/item IDs and reconnect/resynchronization.
+- Add fixed-point/RNG golden vectors from the C++ implementation and port
+  remaining tick-scheduling semantics.
+- Match the C++ TSV/content manifest identity and add stable symbolic ID
+  catalogs for every protocol-visible content type.
+- Add reconnect/resynchronization and complete transition fixtures against both
+  implementations.
+
 ### Recommended C# Project Boundaries
 
 The separate server repository should contain projects equivalent to:
 
 ```text
-Game.Domain        Pure game state and deterministic rules
-Game.Data          TSV parsing, validation, overlays, and content manifests
-Game.Protocol      Generated contracts and protocol versioning
-Game.Server        Sessions, transport, tick loop, persistence, and plugins
-Game.ReplayTests   Golden replays and C++/C# parity fixtures
+Game.Domain          Generic deterministic primitives, state machinery, and module APIs
+Game.Data            TSV parsing, validation, overlays, and content manifests
+Game.Rules.Diablo    Shipped game-specific C# behavior and rule composition
+Game.Protocol        Generated contracts and protocol versioning
+Game.Server          Sessions, transport, tick loop, persistence, and module loading
+Game.ReplayTests     Golden replays and C++/C# parity fixtures
 ```
 
 ### Protocol Foundation
@@ -355,10 +458,31 @@ Implement C# loaders for the existing TSV files. Both implementations must agree
 
 Generate or validate shared symbolic IDs so C++ and C# cannot silently assign different ordinals.
 
+### Gameplay Module Foundation
+
+Define a small deterministic module contract that provides:
+
+- A stable module ID, semantic version, compatibility range, and assembly hash.
+- Explicit registration for command handlers, event handlers, rule services,
+  and data validators; modules must not use reflection-based discovery order as
+  gameplay order.
+- Deterministic dependency and load ordering with duplicate/conflict errors.
+- Access only to approved domain services, RNG streams, clocks, content views,
+  and state mutation APIs.
+- Lifecycle hooks that do not expose transport, filesystem, wall-clock, Godot,
+  or mutable server-host internals to deterministic gameplay code.
+
+The first-party Diablo module and third-party trusted modules use this contract.
+Third-party modules remain full-trust process code operationally, so API
+restriction supports architecture and determinism but is not a security
+sandbox.
+
 ### Exit Criteria
 
 - C# loads the same base and Hellfire data as C++.
 - Known data sets produce matching content identities.
+- The server loads the shipped Diablo gameplay module and produces a stable
+  combined content/module ruleset identity.
 - RNG and fixed-point golden tests match.
 - A client can handshake, submit a no-op command, and receive a versioned snapshot.
 - Replay fixtures can execute against both C++ and C# implementations.
@@ -367,12 +491,29 @@ Generate or validate shared symbolic IDs so C++ and C# cannot silently assign di
 
 Inventory and stores should be the first authoritative slice because they are discrete, security-sensitive, already well tested, and touch current Lua behavior.
 
+### Current Status
+
+The C# server currently owns a test-only store simulation with external TSV
+definitions, shared stock, per-session wallets, open-store/purchase validation,
+retry-safe execution, module-owned sale/repair/recharge/identification/movement
+rules, and snapshots for baseline player resources, attributes, equipment
+slots, inventory layout, and legacy item fields. It rejects invalid,
+disallowed, or unaffordable transactions and sends updated snapshots over TCP.
+
+This subsystem remains `Dual test`, not `C# remote`: legacy store generation,
+pricing parity, complete inventory placement/equipment semantics, Adria's
+mana-refill rule, and the C++ remote-authority adapter are not implemented.
+
 ### Server Work
 
-1. Port item instances, inventory layout, equipment, belt, gold, and derived-stat recalculation.
-2. Port store stock generation, pricing, purchase, sale, repair, recharge, and identification.
-3. Make the server own all item seeds and store RNG.
-4. Implement commands such as:
+1. Load item, affix, store, pricing, repair, recharge, and identification
+   definitions from external content through `Game.Data`.
+2. Keep generic item instances, inventory layout, equipment, belt, gold, and
+   deterministic collection mechanics in `Game.Domain`.
+3. Implement store generation, pricing policy, transactions, eligibility, and
+   Adria's mana-refill behavior in `Game.Rules.Diablo`.
+4. Make the server own all item seeds and store RNG.
+5. Implement commands such as:
    - `OpenStore`
    - `BuyItem`
    - `SellItem`
@@ -380,7 +521,7 @@ Inventory and stores should be the first authoritative slice because they are di
    - `RechargeItem`
    - `IdentifyItem`
    - `MoveInventoryItem`
-5. Emit state changes and presentation events after accepted commands.
+6. Emit state changes and presentation events after accepted commands.
 
 ### Existing C++ Client Work
 
@@ -398,6 +539,8 @@ For each fixture, run the same initial data, seeds, and commands through both im
 - The server rejects invalid or unaffordable transactions without client-side trust.
 - C++ remote mode completes inventory and store flows.
 - Golden transactions match legacy behavior.
+- Item/store definitions are external data, and Diablo-specific transaction
+  policy is owned by the shipped gameplay module rather than the server host.
 - The Adria mana-refill behavior has a C# server rule and does not require Lua in remote mode.
 
 ## Phase 4: Move Remaining Authoritative Systems
@@ -417,18 +560,29 @@ Migrate in dependency order:
 For each system:
 
 1. Add or extend C++ characterization fixtures.
-2. Define commands, events, and snapshot fields.
-3. Port the rules to `Game.Domain`.
-4. Run replay and state-hash comparisons.
-5. Add a C++ remote-authority adapter.
-6. Switch the feature default only after parity is demonstrated.
-7. Remove the old local-authority path once rollback is no longer required.
+2. Inventory hard-coded definitions, tuning values, Lua behavior, and C++
+   behavior, then classify each as external data, generic domain mechanics, or
+   game-specific C# module behavior.
+3. Move definitions and tuning into validated external content packs while
+   preserving stable IDs and overlay semantics.
+4. Add generic mechanics and state APIs to `Game.Domain` only where they are
+   reusable and game-neutral.
+5. Implement game-specific behavior in `Game.Rules.Diablo` through the stable
+   gameplay-module API.
+6. Define commands, events, and snapshot fields.
+7. Run data-manifest, module-identity, replay, and state-hash comparisons.
+8. Add a C++ remote-authority adapter.
+9. Switch the feature default only after parity is demonstrated.
+10. Remove the old local-authority and Lua paths once rollback is no longer
+    required.
 
 ### Exit Criteria
 
 - The C++ client can complete a full single-player and multiplayer session against the C# server.
 - The server is the only writer of gameplay state.
 - Save/load and reconnect are server-owned.
+- Every migrated subsystem has no unclassified game-specific definitions or
+  behavior left in the generic domain or server host.
 - Long-running replay and soak tests show no unexplained divergence.
 
 ## Phase 5: Build the Godot Client
@@ -455,27 +609,51 @@ Do not share Godot nodes, vectors, resources, or scene objects with `Game.Domain
 - Captured protocol sessions can drive repeatable client tests.
 - Client disconnection, stale commands, correction, and resynchronization are handled visibly.
 
-## Phase 6: Replace Mods and Remove Lua
+## Phase 6: Complete Content/Rule Externalization and Remove Lua
+
+### Target Content and Rule Model
+
+Every shipped or modded gameplay capability has exactly one primary home:
+
+| Capability | Primary home |
+|---|---|
+| Definitions, tuning, localization keys, and relationships | External content pack |
+| Generic deterministic state and mechanics | `Game.Domain` |
+| Shipped Diablo-specific behavior | `Game.Rules.Diablo` gameplay module |
+| Trusted server customization | Administrator-installed C# gameplay module |
+| Client-only presentation behavior | Godot C# component or presentation data |
+
+Content packs and gameplay modules form one ordered ruleset. The server
+validates dependencies and compatibility before starting a session, computes a
+combined identity, and records it in handshakes, saves, diagnostics, and replay
+fixtures. Reload is transactional: either the complete data/module composition
+validates and becomes active, or the previous ruleset remains active.
+
+Built-in modules are deployed as compiled assemblies. Supporting editable C#
+source during development is a build-tooling concern, not a production runtime
+compiler or a client-upload mechanism.
 
 ### Map Existing Bundled Scripts
 
 | Existing Lua behavior | Destination |
 |---|---|
 | Hellfire bootstrap | Declarative content-pack manifest and server configuration |
-| Adria refills mana | Trusted C# server rule triggered by an authoritative store interaction |
+| Adria refills mana | Shipped `Game.Rules.Diablo` rule triggered by an authoritative store interaction |
 | Damage floating numbers | Godot C# presentation component consuming damage events |
 | XP floating numbers | Godot C# presentation component consuming experience events |
 | Clock | Godot C# presentation component |
 | Data extension functions | Manifest-driven data overlays validated by `Game.Data` |
 | Lua developer modules and REPL | Authenticated server admin commands plus Godot/C++ debug frontends |
 
-### C# Plugin Policy
+### C# Gameplay Module Policy
 
-Server C# plugins are full-trust code unless isolated. Therefore:
+Server C# gameplay modules are full-trust code unless isolated. Therefore:
 
-- Only server administrators may install server assemblies.
-- Clients may not upload or select executable server plugins.
-- The server advertises plugin IDs, versions, and a manifest hash.
+- Shipped modules come from the server distribution; only server administrators
+  may install third-party assemblies.
+- Clients may not upload or select executable server modules.
+- The server advertises ordered module IDs, versions, and hashes as part of the
+  combined ruleset identity.
 - Public servers should use allowlists or signed packages.
 - Untrusted scripting, if required later, must use a real isolation boundary such as a separate process or sandboxed bytecode runtime.
 
@@ -485,45 +663,58 @@ Client extensions must not receive APIs that mutate authoritative state. They ma
 
 1. No non-Lua source includes a Lua or sol2 header.
 2. No active content pack contains required `.lua` files.
-3. Debug/admin workflows have non-Lua replacements.
-4. Mod and data reload works without a Lua state.
-5. Remove Lua initialization, shutdown, REPL, autocomplete, bindings, and assets.
-6. Remove Lua and sol2 from CMake, vcpkg, source distributions, and documentation.
-7. Remove the temporary Lua event adapter.
-8. Build and test with no Lua headers or libraries available.
+3. Every migrated subsystem has documented ownership across external data,
+   generic domain mechanics, and C# gameplay-module behavior.
+4. Debug/admin workflows have non-Lua replacements.
+5. Content and gameplay-module reload works without a Lua state.
+6. Remove Lua initialization, shutdown, REPL, autocomplete, bindings, and assets.
+7. Remove Lua and sol2 from CMake, vcpkg, source distributions, and documentation.
+8. Remove the temporary Lua event adapter.
+9. Build and test with no Lua headers or libraries available.
 
-## Initial Pull Request Sequence
+## Initial Delivery Sequence Status
 
-Keep the first changes small and behavior-preserving:
+| Step | State | Notes |
+|---|---|---|
+| Lua capability inventory and freeze notice | Complete | Capability destinations and freeze rules are documented |
+| Minimal replay fixture and state hashing | Complete for initial baseline | Both languages load the fixture and match the deterministic initial checkpoint; transition parity remains |
+| Extract `ModManager` | Complete | Active archive ownership moved out of Lua |
+| Extract `GameDataManager` | Partial | Reload ordering moved; content identity and validation remain |
+| Add typed engine-neutral events | Complete for initial events | Damage and experience paths use stable IDs |
+| Add `LuaEventAdapter` | Complete for initial events | Lua remains the temporary consumer |
+| Replace pointer-derived IDs | Partial | Event IDs are stable; protocol-wide ID catalogs remain |
+| Replace Hellfire Lua bootstrap | Not started | Requires declarative content metadata |
+| Add protocol schema, handshake, IDs, and bindings | Partial | Schema, handshake, C# bindings, and opt-in initial C++ bindings/client exist; complete IDs remain |
+| Add C# deterministic primitives, TSV loader, and parity tests | Partial | Fixed-point, LCG, TSV, hashing, and initial parity tests exist; C++ golden vectors and complete parity remain |
+| Define gameplay-module contract and ruleset identity | Started | Explicit module registry, Diablo store rules, and combined identity exist; full module API remains |
+| Extract first store/item data and Diablo rules module | Partial | External store data and transactions are module-owned; legacy pricing/generation remains |
+| Add minimal C++ server connection | Complete for initial slice | Opt-in client proves handshake, command acknowledgement, and snapshot exchange; retry wiring and remote gameplay remain |
+| Implement remote inventory/store slice | Started server-side | C++ feature flag and legacy transaction parity remain |
 
-1. Add the Lua capability inventory and freeze notice; add missing characterization tests.
-2. Add replay fixture types and state hashing for a minimal player/store scenario.
-3. Extract `ModManager` from `LuaReloadActiveMods()` without changing reload behavior.
-4. Extract `GameDataManager` and document/test reload order.
-5. Add typed engine-neutral events and route current call sites through them.
-6. Add `LuaEventAdapter`; remove Lua includes from gameplay and table modules.
-7. Replace pointer-derived script IDs with stable runtime entity IDs.
-8. Replace Hellfire Lua bootstrap with a declarative content-pack manifest.
-9. Add the initial protocol schema, handshake, IDs, and generated C++/C# bindings.
-10. Add the C# deterministic primitives, TSV loader, and parity tests.
-11. Add a minimal C++ connection to the server and snapshot diagnostic screen.
-12. Implement the inventory/store vertical slice behind a remote-authority feature flag.
-
-Each pull request should include tests and update this document if it changes a decision, dependency, or milestone.
+Each delivery should include tests and update this document if it changes a
+decision, dependency, milestone, or ownership state.
 
 ## Test Strategy
 
 Use several complementary test layers:
 
 - C++ characterization tests preserve current behavior during extraction.
-- C# unit tests validate domain rules without networking or Godot.
+- C# unit tests validate domain mechanics and gameplay-module rules without
+  networking or Godot.
+- Data validation tests cover schemas, overlays, symbolic IDs, and actionable
+  source-pack errors.
+- Gameplay-module conformance tests cover identity, dependency order,
+  registration order, compatibility failures, and forbidden nondeterministic
+  service access.
 - Contract tests ensure C++, C#, and Godot agree on message compatibility.
 - Replay tests run identical seeds and commands through C++ and C#.
 - State hashes detect the first divergent tick, not merely the final mismatch.
 - Integration tests run a real server with a headless client.
 - Soak tests exercise reconnects, delayed commands, malformed input, and long sessions.
 
-Golden fixtures must record the content manifest and protocol version. A fixture generated from one content set must never be silently evaluated against another.
+Golden fixtures must record the content manifest, ordered gameplay-module
+identity, and protocol version. A fixture generated from one ruleset must never
+be silently evaluated against another.
 
 ## Major Risks and Mitigations
 
@@ -535,19 +726,46 @@ Golden fixtures must record the content manifest and protocol version. A fixture
 | Pointer-backed Lua objects leak into protocol design | Stable IDs, immutable events, and command handlers |
 | Client remains accidentally authoritative | Server validates every command and owns every RNG decision |
 | Data reload semantics change | Extract and test one ordered `GameDataManager` first |
-| C# plugins become a remote-code-execution path | Administrator-installed trusted plugins only, or process isolation |
+| Game-specific definitions remain hard-coded during the server port | Require an external-data classification and manifest comparison for every migrated slice |
+| Game rules accumulate in the generic domain or server host | Require first-party behavior to use the same explicit gameplay-module boundary as extensions |
+| Gameplay modules introduce nondeterminism | Expose deterministic services through a narrow API and test load/registration order |
+| Third-party C# modules become a remote-code-execution path | Administrator-installed trusted modules only, or process isolation |
 | Godot types contaminate server rules | Keep `Game.Domain` free of Godot dependencies |
 | Single-player develops a separate rules path | Always use the protocol and a local authoritative server |
 | Migration creates permanent duplicate implementations | Add explicit removal gates to every migrated system |
 
 ## Progress Tracking
 
+### Current Ownership
+
+| Subsystem | Ownership state | Next gate |
+|---|---|---|
+| C++ mod/data lifecycle | `C++ local` | Finish content manifest and remove remaining Lua orchestration |
+| External content packs | `Dual test` | Match C++ TSV overlay behavior and content hashes |
+| C# gameplay-module platform | `Dual test` | Complete API surface, compatibility checks, and deterministic service restrictions |
+| Shipped Diablo gameplay module | `Dual test` | Match legacy store pricing/generation and move the remaining store rules |
+| Typed gameplay events | `C++ local` | Expand event coverage and replace the temporary Lua adapter |
+| Command delivery policy | `Dual test` | Wire generated C++ messages and retry policy to the TCP server |
+| Protocol transport/server sessions | `Dual test` | Add reconnect and full snapshot resync around the initial C++ client |
+| Replay fixture infrastructure | `Dual test` | Add transition checkpoints and full C++/C# state projection parity |
+| Inventory/store authority | `Dual test` | Match legacy pricing/generation, complete placement semantics, and add C++ remote mode |
+| Remaining gameplay systems | `C++ local` | Migrate in the Phase 4 dependency order |
+| Godot presentation | Not started | Begin after the Phase 2 protocol boundary stabilizes |
+| Lua/sol2 | `C++ local` compatibility layer | Remove only after all capability destinations are active |
+
 Track progress by authoritative ownership rather than by percentage of translated files. For every subsystem, record one of:
 
 - `C++ local`: existing engine still owns the rules.
 - `Dual test`: C++ and C# run only for parity comparison.
 - `C# remote`: server owns the rules; C++ client is an adapter.
+- `External data`: game-specific definitions are owned by versioned content
+  packs rather than hard-coded source.
+- `C# module`: game-specific behavior runs through the gameplay-module contract
+  rather than the generic domain or server host.
 - `Godot client`: Godot consumes the server implementation.
 - `Legacy removed`: old C++/Lua implementation and dependencies are deleted.
 
-The migration is complete when all gameplay subsystems are `C# remote`, the required client features are `Godot client`, and Lua satisfies the removal checklist.
+The migration is complete when all gameplay subsystems are `C# remote`, their
+definitions and behavior have reached the appropriate `External data` and `C#
+module` ownership states, the required client features are `Godot client`, and
+Lua satisfies the removal checklist.

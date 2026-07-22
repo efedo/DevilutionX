@@ -19,4 +19,15 @@ public sealed class StoreCatalogTests
         Assert.True(catalog.TryGetItem(1, 0, out var item));
         Assert.Equal(42U, item.ItemSeed);
     }
+
+    [Fact]
+    public void ItemStateIsRetainedInAuthoritativeStock()
+    {
+        var state = AuthoritativeItemState.Empty with { Identified = true, ItemType = 1 };
+        var catalog = new StoreCatalog();
+        catalog.AddStore(1, [new StoreItem(0, 42, 75, state)]);
+
+        Assert.True(catalog.TryGetItem(1, 0, out var item));
+        Assert.Equal(state, item.State);
+    }
 }

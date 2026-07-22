@@ -1,7 +1,7 @@
 # Deterministic Replay Fixture Format
 
 Replay fixtures are the Phase 0 behavioral baseline for comparing the current
-C++ implementation with the future C# authoritative server. A fixture records
+C++ implementation with the C# authoritative server. A fixture records
 the content, seed, commands, tick ordering, and expected state hashes needed to
 reproduce a run.
 
@@ -34,6 +34,12 @@ runtime wire format; runtime messages remain length-delimited Protobuf.
   "initial_state": {
     "player_ids": [0],
     "level_id": { "theme": "town", "index": 0 }
+  },
+  "legacy_store_state": {
+    "active_store": 1,
+    "premium_item_count": 0,
+    "premium_item_level": 3,
+    "premium_item_seeds": [42]
   },
   "commands": [
     {
@@ -89,18 +95,23 @@ The first fixtures should cover one narrow behavior each:
 
 The C++ replay primitives now provide canonical field encoding, SHA-256
 digests, command ordering, and an initial player/store state projection. The
-strict envelope parser and `stores/basic-buy` fixture exercise that initial
-projection. Complete game-state serialization, command execution, and
-non-placeholder transition checkpoints remain future work.
+strict envelope parser and `stores/basic-buy` fixture exercise that projection
+with an explicitly value-initialized C++ baseline, and the C# legacy projection
+matches its initial checkpoint. Complete game-state serialization, command
+execution, and transition checkpoints remain future work. The C# server uses
+the same primitive encoding for its current protocol snapshot projection,
+including baseline resources, primary attributes, equipment slots, inventory
+layout, and core item state. Full legacy player/store transition parity will be
+added as the domain model grows.
 
 ## Executable baseline fixture
 
 `test/fixtures/replay/stores/basic-buy.json` is copied into the test fixture
-directory and consumed by `ReplayFixture.ParsesAndHashesInitialStoreState`.
-It verifies the versioned envelope, preserves client sequence numbers, sorts
-commands by authoritative order, and compares the canonical player/store
-checkpoint hash. The parser skips unknown metadata and command payload fields,
-so the fixture format can grow without adding a JSON dependency to the engine.
+directory and consumed by the C++ and C# replay tests. It verifies the versioned
+envelope, preserves client sequence numbers, sorts commands by authoritative
+order, and compares the canonical player/store checkpoint hash. The parser
+skips unknown metadata and command payload fields, so the fixture format can
+grow without adding a JSON dependency to the engine.
 
 ## Existing C++ characterization coverage
 

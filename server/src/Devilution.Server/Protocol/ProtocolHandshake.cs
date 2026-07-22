@@ -1,4 +1,5 @@
 using Devilution.Protocol.V1;
+using Devilution.Server.Gameplay;
 
 namespace Devilution.Server.Protocol;
 
@@ -6,7 +7,18 @@ public sealed record ProtocolServerIdentity(
     string BuildId,
     string ProtocolSchemaVersion,
     string ContentManifestHash,
-    uint TickRateHz);
+    uint TickRateHz)
+{
+    public static ProtocolServerIdentity FromRuleset(
+        string buildId,
+        string protocolSchemaVersion,
+        uint tickRateHz,
+        GameplayRulesetIdentity ruleset)
+    {
+        ArgumentNullException.ThrowIfNull(ruleset);
+        return new ProtocolServerIdentity(buildId, protocolSchemaVersion, ruleset.CombinedSha256, tickRateHz);
+    }
+}
 
 public readonly record struct HandshakeResult(bool Accepted, ServerHello? ServerHello, ProtocolError? Error)
 {

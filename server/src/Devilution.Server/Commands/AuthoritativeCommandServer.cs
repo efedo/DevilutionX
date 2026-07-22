@@ -30,6 +30,11 @@ public sealed class AuthoritativeCommandServer
         ArgumentNullException.ThrowIfNull(batch);
 
         var acknowledgement = new CommandAck();
+        if (batch.Commands.Count == 0) {
+            acknowledgement.Results.Add(CreateMalformedResult(0, currentTick));
+            return acknowledgement;
+        }
+
         foreach (var command in batch.Commands)
             acknowledgement.Results.Add(Process(sessionId, command, currentTick));
         return acknowledgement;

@@ -1,5 +1,6 @@
 using Devilution.Protocol.V1;
 using Devilution.Server.Commands;
+using Devilution.Server.Snapshots;
 using Devilution.Server.Stores;
 using Xunit;
 
@@ -98,7 +99,30 @@ public sealed class StoreSimulationExecutorTests
     [Fact]
     public void SnapshotContainsAuthoritativeWalletStoreAndInventory()
     {
-        var catalog = CreateCatalog(new StoreItem(0, 42, 75));
+        var itemState = new AuthoritativeItemState(
+            123,
+            1,
+            4,
+            -2,
+            false,
+            true,
+            1,
+            2,
+            3,
+            100,
+            80,
+            1,
+            3,
+            4,
+            7,
+            5,
+            6,
+            9,
+            2,
+            4,
+            10,
+            20);
+        var catalog = CreateCatalog(new StoreItem(0, 42, 75, itemState));
         var executor = new StoreSimulationExecutor(catalog, startingGold: 100);
         var server = new AuthoritativeCommandServer(executor);
         server.Process("player-a", OpenStore(1), currentTick: 10);
@@ -112,11 +136,144 @@ public sealed class StoreSimulationExecutorTests
         Assert.Equal(7U, player.EntityId);
         Assert.Equal(25U, player.Gold);
         Assert.Equal(1U, player.ActiveStoreId);
+        Assert.Equal("076755606be2eb40b3bfb08e763326f8979eab164c02e011860d254893c9ff91", snapshot.StateSha256);
+        Assert.Equal(SnapshotStateHasher.Compute(snapshot), snapshot.StateSha256);
         Assert.Equal(1U, item.StoreId);
         Assert.Equal(0U, item.StoreSlot);
         Assert.Equal(42U, item.ItemSeed);
         Assert.Equal(75U, item.Price);
         Assert.Equal(12UL, item.PurchasedAtTick);
+        Assert.Equal(123U, item.State.CreateInfo);
+        Assert.Equal(1, item.State.ItemType);
+        Assert.Equal(4, item.State.PositionX);
+        Assert.Equal(-2, item.State.PositionY);
+        Assert.True(item.State.Identified);
+        Assert.Equal(100, item.State.Value);
+        Assert.Equal(3, item.State.MaxDamage);
+        Assert.Equal(7U, item.State.Flags);
+        Assert.Equal(20, item.State.MaxDurability);
+    }
+
+    [Fact]
+    public void SnapshotIncludesConfiguredBaselinePlayerResources()
+    {
+        var attributes = new PlayerAttributesState(
+            new PlayerAttributeState(10, 12),
+            new PlayerAttributeState(8, 9),
+            new PlayerAttributeState(15, 16),
+            new PlayerAttributeState(20, 21));
+        var executor = new StoreSimulationExecutor(
+            new StoreCatalog(),
+            startingGold: 100,
+            startingExperience: 200,
+            startingLife: 640,
+            startingMana: 32,
+            startingAttributes: attributes,
+            startingEquipment: [new EquippedStoreItem(0, 77)],
+            startingInventoryGrid: [0, -1, 2]);
+
+        var state = executor.GetPlayerState("player-a");
+        var snapshot = executor.CreateSnapshot("player-a", entityId: 7, tick: 0);
+        var player = Assert.Single(snapshot.Players);
+
+        Assert.Equal(200U, state.Experience);
+        Assert.Equal(640, state.Life);
+        Assert.Equal(32, state.Mana);
+        Assert.Equal(200U, player.Experience);
+        Assert.Equal(640, player.Life);
+        Assert.Equal(32, player.Mana);
+        Assert.Equal(12, player.Attributes.Strength.Current);
+        Assert.Equal(9, player.Attributes.Magic.Current);
+        Assert.Equal(16, player.Attributes.Dexterity.Current);
+        Assert.Equal(21, player.Attributes.Vitality.Current);
+        Assert.Equal(77U, Assert.Single(player.Equipment).ItemSeed);
+        Assert.Equal(new[] { 0, -1, 2 }, player.InventoryGrid);
+
+        var changed = new Snapshot {
+            Players = {
+                new PlayerSnapshot {
+                    EntityId = player.EntityId,
+                    Experience = player.Experience + 1,
+                    Life = player.Life,
+                    Mana = player.Mana,
+                    Gold = player.Gold,
+                },
+            },
+        };
+        Assert.NotEqual(snapshot.StateSha256, SnapshotStateHasher.Compute(changed));
+    }
+
+    [Fact]
+    public void ModuleOwnedStoreTransactionsSupportIdentificationRepairRechargeMoveAndSale()
+    {
+        var itemState = new AuthoritativeItemState(
+            1,
+            1,
+            0,
+            0,
+            false,
+            false,
+            1,
+            0,
+            1,
+            100,
+            100,
+            1,
+            2,
+            5,
+            0,
+            0,
+            0,
+            1,
+            1,
+            3,
+            10,
+            20);
+        var catalog = CreateCatalog(new StoreItem(0, 42, 75, itemState));
+        var executor = new StoreSimulationExecutor(catalog, startingGold: 1000, startingInventoryGrid: [-1, -1]);
+        var server = new AuthoritativeCommandServer(executor);
+
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", OpenStore(1), 0).Status);
+        var purchase = Purchase(2, 0);
+        purchase.RequestedTick = 1;
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", purchase, 1).Status);
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", new Command {
+            ClientSequence = 3,
+            RequestedTick = 2,
+            IdentifyItemRequested = new IdentifyItemRequested { InventoryIndex = 0 },
+        }, 2).Status);
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", new Command {
+            ClientSequence = 4,
+            RequestedTick = 3,
+            RepairItemRequested = new RepairItemRequested { InventoryIndex = 0 },
+        }, 3).Status);
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", new Command {
+            ClientSequence = 5,
+            RequestedTick = 4,
+            RechargeItemRequested = new RechargeItemRequested { InventoryIndex = 0 },
+        }, 4).Status);
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", new Command {
+            ClientSequence = 6,
+            RequestedTick = 5,
+            MoveInventoryItemRequested = new MoveInventoryItemRequested { InventoryIndex = 0, TargetCell = 1 },
+        }, 5).Status);
+
+        var state = executor.GetPlayerState("player-a");
+        var item = Assert.Single(state.Inventory);
+        Assert.Equal(0, state.InventoryGrid[1]);
+        Assert.True(item.State.Identified);
+        Assert.Equal(item.State.MaxDurability, item.State.Durability);
+        Assert.Equal(item.State.MaxCharges, item.State.Charges);
+
+        var sale = server.Process("player-a", new Command {
+            ClientSequence = 7,
+            RequestedTick = 6,
+            SellItemRequested = new SellItemRequested { InventoryIndex = 0 },
+        }, 6);
+
+        Assert.Equal(CommandStatus.Accepted, sale.Status);
+        Assert.Empty(executor.GetPlayerState("player-a").Inventory);
+        Assert.Equal(835U, executor.GetPlayerState("player-a").Gold);
     }
 
     private static StoreCatalog CreateCatalog(params StoreItem[] items)

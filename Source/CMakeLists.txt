@@ -871,6 +871,7 @@ endif()
 if(NOT NONET)
   if(NOT DISABLE_TCP)
     list(APPEND libdevilutionx_SRCS
+      network/authoritative/envelope_codec.cpp
       network/transport/tcp_client.cpp
       network/transport/tcp_server.cpp)
   endif()
@@ -880,6 +881,12 @@ if(NOT NONET)
       network/transport/zerotier_native.cpp
       network/transport/zerotier_lwip.cpp)
   endif()
+endif()
+
+if(DEVILUTIONX_ENABLE_AUTHORITATIVE_CLIENT)
+  list(APPEND libdevilutionx_SRCS
+    ${DEVILUTIONX_PROTOCOL_SRCS}
+    network/authoritative/authoritative_client.cpp)
 endif()
 
 if(NOT USE_SDL1)
@@ -922,6 +929,9 @@ endif()
 
 add_devilutionx_object_library(libdevilutionx ${libdevilutionx_SRCS})
 target_include_directories(libdevilutionx PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+if(DEVILUTIONX_ENABLE_AUTHORITATIVE_CLIENT)
+  target_include_directories(libdevilutionx PUBLIC ${CMAKE_BINARY_DIR} ${Protobuf_INCLUDE_DIRS})
+endif()
 target_include_directories(libdevilutionx PUBLIC ${PROJECT_SOURCE_DIR}/3rdParty/PicoSHA2)
 target_link_dependencies(libdevilutionx PUBLIC
   DevilutionX::SDL
@@ -979,6 +989,9 @@ target_link_dependencies(libdevilutionx PUBLIC
   libdevilutionx_utf8
   libdevilutionx_utils_console
 )
+if(DEVILUTIONX_ENABLE_AUTHORITATIVE_CLIENT)
+  target_link_dependencies(libdevilutionx PUBLIC ${Protobuf_LIBRARIES})
+endif()
 if(NOT TARGET_PLATFORM STREQUAL "dos")
   target_link_dependencies(libdevilutionx PUBLIC Threads::Threads)
 endif()
