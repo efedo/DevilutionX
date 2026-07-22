@@ -115,6 +115,18 @@ message PlayerSnapshot {
 	int32 position_y = 3;
 	int32 life = 4;
 	int32 mana = 5;
+	uint32 gold = 6;
+	// Zero means that the player has no active store.
+	uint32 active_store_id = 7;
+	repeated ItemSnapshot inventory = 8;
+}
+
+message ItemSnapshot {
+	uint32 store_id = 1;
+	uint32 store_slot = 2;
+	uint32 item_seed = 3;
+	uint32 price = 4;
+	uint64 purchased_at_tick = 5;
 }
 
 message EventBatch {

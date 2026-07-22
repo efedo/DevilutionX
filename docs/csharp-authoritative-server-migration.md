@@ -216,8 +216,9 @@ versions; incompatible saves are rejected with an actionable reason.
   command boundary, including generated Protobuf bindings, session-scoped
   deduplication, globally ordered receipts, and the agreed late-command policy.
   Its TCP host validates the handshake and routes command batches; the executor
-  now includes the first deterministic store/purchase vertical slice. Snapshot
-  projection and parity with legacy store pricing remain.
+  now includes the first deterministic store/purchase vertical slice and
+  projects wallet, active-store, and purchased-item state into TCP snapshots.
+  Complete-state hashing and parity with legacy store pricing remain.
 
 ### Tasks
 

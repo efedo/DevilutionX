@@ -95,6 +95,30 @@ public sealed class StoreSimulationExecutorTests
         Assert.Equal(CommandRejectReason.InvalidTarget, unknownSlot.RejectReason);
     }
 
+    [Fact]
+    public void SnapshotContainsAuthoritativeWalletStoreAndInventory()
+    {
+        var catalog = CreateCatalog(new StoreItem(0, 42, 75));
+        var executor = new StoreSimulationExecutor(catalog, startingGold: 100);
+        var server = new AuthoritativeCommandServer(executor);
+        server.Process("player-a", OpenStore(1), currentTick: 10);
+        server.Process("player-a", Purchase(2, 0), currentTick: 12);
+
+        var snapshot = executor.CreateSnapshot("player-a", entityId: 7, tick: 12);
+        var player = Assert.Single(snapshot.Players);
+        var item = Assert.Single(player.Inventory);
+
+        Assert.Equal(12UL, snapshot.Tick);
+        Assert.Equal(7U, player.EntityId);
+        Assert.Equal(25U, player.Gold);
+        Assert.Equal(1U, player.ActiveStoreId);
+        Assert.Equal(1U, item.StoreId);
+        Assert.Equal(0U, item.StoreSlot);
+        Assert.Equal(42U, item.ItemSeed);
+        Assert.Equal(75U, item.Price);
+        Assert.Equal(12UL, item.PurchasedAtTick);
+    }
+
     private static StoreCatalog CreateCatalog(params StoreItem[] items)
     {
         var catalog = new StoreCatalog();

@@ -28,6 +28,9 @@ adding a generator or runtime dependency to the legacy client.
   explicit in `CommandResult.status`.
 - Content manifest identity is part of the handshake. A mismatch is a
   protocol error, not a best-effort compatibility mode.
+- `Snapshot` carries the authoritative tick and per-player state. The initial
+  store projection includes gold, active store, and purchased item fields;
+  `state_sha256` remains reserved for the complete state projection.
 
 C++ code generation and descriptor compatibility checks will be added once the
 new client transport is introduced.

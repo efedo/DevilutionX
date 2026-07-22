@@ -1,5 +1,6 @@
 using Devilution.Protocol.V1;
 using Devilution.Server.Commands;
+using Devilution.Server.Snapshots;
 
 namespace Devilution.Server.Stores;
 
@@ -15,7 +16,7 @@ public sealed record StorePlayerSnapshot(uint Gold, uint? ActiveStoreId, IReadOn
  * outer command server provides command-level deduplication, so this executor
  * is called once even when a purchase is retried.
  */
-public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor
+public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAuthoritativeSnapshotProvider
 {
     private readonly object synchronization = new();
     private readonly StoreCatalog catalog;
@@ -53,6 +54,31 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor
             var player = GetOrCreatePlayer(sessionId);
             return new StorePlayerSnapshot(player.Gold, player.ActiveStoreId, player.Inventory.ToArray());
         }
+    }
+
+    public Snapshot CreateSnapshot(string sessionId, uint entityId, ulong tick)
+    {
+        var state = GetPlayerState(sessionId);
+        var player = new PlayerSnapshot {
+            EntityId = entityId,
+            Gold = state.Gold,
+            ActiveStoreId = state.ActiveStoreId ?? 0,
+        };
+
+        foreach (var item in state.Inventory) {
+            player.Inventory.Add(new ItemSnapshot {
+                StoreId = item.StoreId,
+                StoreSlot = item.StoreSlot,
+                ItemSeed = item.ItemSeed,
+                Price = item.Price,
+                PurchasedAtTick = item.PurchasedAtTick,
+            });
+        }
+
+        return new Snapshot {
+            Tick = tick,
+            Players = { player },
+        };
     }
 
     private CommandExecutionResult OpenStore(PlayerStoreState player, uint storeId)

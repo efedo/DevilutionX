@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using Devilution.Protocol.V1;
 using Devilution.Server.Commands;
 using Devilution.Server.Protocol;
+using Devilution.Server.Snapshots;
 
 namespace Devilution.Server.Host;
 
@@ -20,7 +21,9 @@ public sealed class AuthoritativeTcpServer : IAsyncDisposable
     private readonly AuthoritativeCommandServer commandServer;
     private readonly ProtocolHandshake handshake;
     private readonly Func<ulong> currentTickProvider;
+    private readonly IAuthoritativeSnapshotProvider? snapshotProvider;
     private readonly ConcurrentDictionary<TcpClient, byte> clients = new();
+    private int nextEntityId;
     private CancellationTokenSource? cancellation;
     private Task? acceptLoop;
 
@@ -29,11 +32,13 @@ public sealed class AuthoritativeTcpServer : IAsyncDisposable
         ProtocolHandshake handshake,
         Func<ulong> currentTickProvider,
         int port = 0,
-        IPAddress? address = null)
+        IPAddress? address = null,
+        IAuthoritativeSnapshotProvider? snapshotProvider = null)
     {
         this.commandServer = commandServer ?? throw new ArgumentNullException(nameof(commandServer));
         this.handshake = handshake ?? throw new ArgumentNullException(nameof(handshake));
         this.currentTickProvider = currentTickProvider ?? throw new ArgumentNullException(nameof(currentTickProvider));
+        this.snapshotProvider = snapshotProvider;
         listener = new TcpListener(address ?? IPAddress.Loopback, port);
     }
 
@@ -106,14 +111,19 @@ public sealed class AuthoritativeTcpServer : IAsyncDisposable
             }
 
             await EnvelopeCodec.WriteAsync(stream, new Envelope { ServerHello = handshakeResult.ServerHello! }, cancellationToken);
+            var entityId = (uint)Interlocked.Increment(ref nextEntityId);
+            var currentTick = currentTickProvider();
+            await SendSnapshotIfAvailableAsync(stream, sessionId, entityId, currentTick, cancellationToken);
             while (!cancellationToken.IsCancellationRequested) {
                 var envelope = await EnvelopeCodec.ReadAsync(stream, cancellationToken);
                 if (envelope is null)
                     return;
 
                 if (envelope.PayloadCase == Envelope.PayloadOneofCase.CommandBatch) {
-                    var acknowledgement = commandServer.ProcessBatch(sessionId, envelope.CommandBatch, currentTickProvider());
+                    currentTick = currentTickProvider();
+                    var acknowledgement = commandServer.ProcessBatch(sessionId, envelope.CommandBatch, currentTick);
                     await EnvelopeCodec.WriteAsync(stream, new Envelope { CommandAck = acknowledgement }, cancellationToken);
+                    await SendSnapshotIfAvailableAsync(stream, sessionId, entityId, currentTick, cancellationToken);
                 } else {
                     await SendErrorAsync(stream, ProtocolErrorCode.InvalidMessage, "The session only accepts command batches after the handshake.", cancellationToken);
                     return;
@@ -138,5 +148,19 @@ public sealed class AuthoritativeTcpServer : IAsyncDisposable
         return EnvelopeCodec.WriteAsync(stream, new Envelope {
             Error = new ProtocolError { Code = code, Detail = detail },
         }, cancellationToken);
+    }
+
+    private async ValueTask SendSnapshotIfAvailableAsync(
+        Stream stream,
+        string sessionId,
+        uint entityId,
+        ulong tick,
+        CancellationToken cancellationToken)
+    {
+        if (snapshotProvider is null)
+            return;
+
+        var snapshot = snapshotProvider.CreateSnapshot(sessionId, entityId, tick);
+        await EnvelopeCodec.WriteAsync(stream, new Envelope { Snapshot = snapshot }, cancellationToken);
     }
 }
