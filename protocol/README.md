@@ -30,6 +30,12 @@ legacy client prematurely.
 Code generation and descriptor compatibility checks will be added when the
 separate C# server project is brought into the workspace.
 
+`test-vectors/command-delivery-retry.json` is the first language-neutral
+behavior vector. It covers a lost acknowledgement, a retry resolved as a
+duplicate, a gameplay-critical late rejection, and a lenient reschedule. The
+future C# server tests and a generated-Protobuf client harness should consume
+this vector rather than re-encoding those expectations independently.
+
 ## Current C++ client slice
 
 `network/protocol/CommandDeliveryTracker` implements the client-side delivery

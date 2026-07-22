@@ -1,0 +1,86 @@
+{
+  "format_version": 1,
+  "vector_id": "command-delivery/retry-dedup",
+  "protocol_schema_version": "0.1.0",
+  "initial_rtt_ms": 100,
+  "steps": [
+    {
+      "operation": "send",
+      "client_sequence": 1,
+      "requested_tick": 10,
+      "at_ms": 0
+    },
+    {
+      "operation": "server_result",
+      "client_sequence": 1,
+      "server_receipt_sequence": 7,
+      "applied_tick": 10,
+      "status": "ACCEPTED",
+      "at_ms": 40,
+      "acknowledgement_delivered": false
+    },
+    {
+      "operation": "retry_due",
+      "client_sequence": 1,
+      "at_ms": 300
+    },
+    {
+      "operation": "send",
+      "client_sequence": 1,
+      "requested_tick": 10,
+      "at_ms": 300
+    },
+    {
+      "operation": "server_result",
+      "client_sequence": 1,
+      "server_receipt_sequence": 7,
+      "applied_tick": 10,
+      "status": "DUPLICATE",
+      "at_ms": 340,
+      "acknowledgement_delivered": true
+    },
+    {
+      "operation": "receive_ack",
+      "client_sequence": 1,
+      "server_receipt_sequence": 7,
+      "applied_tick": 10,
+      "status": "DUPLICATE",
+      "at_ms": 380
+    },
+    {
+      "operation": "send",
+      "client_sequence": 2,
+      "requested_tick": 12,
+      "at_ms": 1000
+    },
+    {
+      "operation": "receive_ack",
+      "client_sequence": 2,
+      "server_receipt_sequence": 8,
+      "applied_tick": 14,
+      "status": "REJECTED",
+      "reject_reason": "TOO_LATE",
+      "at_ms": 1100
+    },
+    {
+      "operation": "send",
+      "client_sequence": 3,
+      "requested_tick": 16,
+      "at_ms": 2000
+    },
+    {
+      "operation": "receive_ack",
+      "client_sequence": 3,
+      "server_receipt_sequence": 9,
+      "applied_tick": 18,
+      "status": "RESCHEDULED",
+      "at_ms": 2100
+    }
+  ],
+  "assertions": [
+    "client_sequence 1 executes once",
+    "duplicate acknowledgement reuses server_receipt_sequence 7",
+    "client_sequence 2 is not retried after a terminal rejection",
+    "client_sequence 3 reports its authoritative rescheduled tick 18"
+  ]
+}
