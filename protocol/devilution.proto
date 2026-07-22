@@ -1,0 +1,154 @@
+syntax = "proto3";
+
+package devilution.protocol.v1;
+
+option csharp_namespace = "Devilution.Protocol.V1";
+
+// The wire transport is intentionally outside this schema. The initial
+// implementation uses TCP with a length-delimited Envelope payload.
+message Envelope {
+	oneof payload {
+		ClientHello client_hello = 10;
+		ServerHello server_hello = 11;
+		CommandBatch command_batch = 20;
+		CommandAck command_ack = 21;
+		Snapshot snapshot = 30;
+		EventBatch event_batch = 31;
+		ProtocolError error = 40;
+	}
+}
+
+message ClientHello {
+	string client_build_id = 1;
+	string protocol_schema_version = 2;
+	string content_manifest_hash = 3;
+}
+
+message ServerHello {
+	string server_build_id = 1;
+	string protocol_schema_version = 2;
+	string content_manifest_hash = 3;
+	uint32 tick_rate_hz = 4;
+}
+
+message CommandBatch {
+	repeated Command commands = 1;
+}
+
+message Command {
+	// Retried commands reuse this value. The server deduplicates by session and
+	// client_sequence, then returns the original result for a duplicate.
+	uint64 client_sequence = 1;
+	uint64 requested_tick = 2;
+	oneof intent {
+		MoveRequested move_requested = 10;
+		AttackRequested attack_requested = 11;
+		CastRequested cast_requested = 12;
+		OpenStoreRequested open_store_requested = 13;
+		PurchaseRequested purchase_requested = 14;
+	}
+}
+
+message MoveRequested {
+	int32 direction_x = 1;
+	int32 direction_y = 2;
+}
+
+message AttackRequested {
+	uint32 target_entity_id = 1;
+}
+
+message CastRequested {
+	uint32 spell_id = 1;
+	uint32 target_entity_id = 2;
+	int32 target_x = 3;
+	int32 target_y = 4;
+}
+
+message OpenStoreRequested {
+	uint32 store_id = 1;
+}
+
+message PurchaseRequested {
+	uint32 store_id = 1;
+	uint32 store_slot = 2;
+}
+
+message CommandAck {
+	repeated CommandResult results = 1;
+}
+
+message CommandResult {
+	uint64 client_sequence = 1;
+	uint64 server_receipt_sequence = 2;
+	uint64 applied_tick = 3;
+	CommandStatus status = 4;
+	CommandRejectReason reject_reason = 5;
+}
+
+enum CommandStatus {
+	COMMAND_STATUS_UNSPECIFIED = 0;
+	COMMAND_STATUS_ACCEPTED = 1;
+	COMMAND_STATUS_REJECTED = 2;
+	COMMAND_STATUS_RESCHEDULED = 3;
+	COMMAND_STATUS_DUPLICATE = 4;
+}
+
+enum CommandRejectReason {
+	COMMAND_REJECT_REASON_UNSPECIFIED = 0;
+	COMMAND_REJECT_REASON_MALFORMED = 1;
+	COMMAND_REJECT_REASON_TOO_LATE = 2;
+	COMMAND_REJECT_REASON_NOT_ALLOWED = 3;
+	COMMAND_REJECT_REASON_INVALID_TARGET = 4;
+	COMMAND_REJECT_REASON_INSUFFICIENT_RESOURCES = 5;
+}
+
+message Snapshot {
+	uint64 tick = 1;
+	string state_sha256 = 2;
+	repeated PlayerSnapshot players = 3;
+}
+
+message PlayerSnapshot {
+	uint32 entity_id = 1;
+	int32 position_x = 2;
+	int32 position_y = 3;
+	int32 life = 4;
+	int32 mana = 5;
+}
+
+message EventBatch {
+	uint64 tick = 1;
+	repeated GameEvent events = 2;
+}
+
+message GameEvent {
+	oneof event {
+		DamageEvent damage = 10;
+		ExperienceEvent experience = 11;
+	}
+}
+
+message DamageEvent {
+	uint32 source_entity_id = 1;
+	uint32 target_entity_id = 2;
+	int32 amount = 3;
+}
+
+message ExperienceEvent {
+	uint32 player_entity_id = 1;
+	uint32 amount = 2;
+}
+
+message ProtocolError {
+	ProtocolErrorCode code = 1;
+	string detail = 2;
+}
+
+enum ProtocolErrorCode {
+	PROTOCOL_ERROR_CODE_UNSPECIFIED = 0;
+	PROTOCOL_ERROR_CODE_UNSUPPORTED_SCHEMA = 1;
+	PROTOCOL_ERROR_CODE_CONTENT_MISMATCH = 2;
+	PROTOCOL_ERROR_CODE_NOT_AUTHENTICATED = 3;
+	PROTOCOL_ERROR_CODE_INVALID_MESSAGE = 4;
+}

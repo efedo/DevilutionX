@@ -45,6 +45,10 @@ All notable changes to this fork are documented below.
 - Add initial canonical player and store state projections for replay comparison
 - Add an executable JSON replay fixture baseline for player/store projection
 
+## 2026-07-22
+
+- Add the initial transport-independent Protobuf protocol contract and compatibility rules
+
 ## 2026-06-24
 
 - Add file-level summaries to all source files missing them

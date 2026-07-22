@@ -121,9 +121,10 @@ The work is divided into five parallel but ordered workstreams:
 
 #### Protocol schema
 
-Use Protobuf `.proto` files as the canonical protocol schema. Generate C++ and
-C# bindings from the same definitions, and keep the message contracts
-independent of the underlying transport.
+Use Protobuf `.proto` files as the canonical protocol schema. The initial
+contract is `protocol/devilution.proto`; generate C++ and C# bindings from the
+same definition, and keep the message contracts independent of the underlying
+transport.
 
 This provides one versioned contract for the current C++ client, the future C#
 server, and the Godot client. Protobuf field numbers and explicit versioning
@@ -199,9 +200,14 @@ versions; incompatible saves are rejected with an actionable reason.
   inventory, player behavior, quests, vendors, and the typed event bus.
 - Replay primitives now cover canonical field encoding, SHA-256 state digests,
   deterministic command ordering, and an initial player/store projection;
-  complete game-state projection and JSON replay execution remain.
+  the first executable JSON fixture now covers that projection. Complete
+  game-state projection, command execution, and generated protocol bindings
+  remain.
 - Missing baseline coverage is explicit mod-reload/Hellfire behavior and
   fixture execution against the running C++ game state.
+- The initial transport-independent Protobuf contract is recorded in
+  `protocol/devilution.proto`; code generation is intentionally deferred until
+  the separate C# server project is connected.
 
 ### Tasks
 
