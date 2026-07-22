@@ -51,6 +51,7 @@ All notable changes to this fork are documented below.
 - Add adaptive client command acknowledgement retries with duplicate and late-command outcomes
 - Add a shared retry/deduplication protocol test vector for the future C# server
 - Add the initial C# authoritative command server with Protobuf bindings and deduplication tests
+- Add bounded TCP Protobuf sessions with handshake validation and command routing
 
 ## 2026-06-24
 

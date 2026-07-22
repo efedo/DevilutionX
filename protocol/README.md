@@ -2,7 +2,9 @@
 
 `devilution.proto` is the canonical, transport-independent Protobuf schema
 for the C++ client, C# authoritative server, and future Godot client. The
-initial wire transport is TCP with a length-delimited `Envelope` message.
+initial wire transport is TCP with a four-byte little-endian length-prefixed
+`Envelope` message. The server rejects empty or oversized envelopes; the
+current maximum payload is 1 MiB.
 
 `server/src/Devilution.Server` generates C# bindings from this schema at build
 time. The legacy C++ build intentionally does not generate or link Protobuf

@@ -1,0 +1,142 @@
+using System.Collections.Concurrent;
+using System.Net;
+using System.Net.Sockets;
+using Devilution.Protocol.V1;
+using Devilution.Server.Commands;
+using Devilution.Server.Protocol;
+
+namespace Devilution.Server.Host;
+
+/**
+ * TCP session host for length-delimited Protobuf envelopes.
+ *
+ * Each connection is a session for the current slice. A future reconnect
+ * token can preserve a session's command ledger without changing the wire
+ * command contract.
+ */
+public sealed class AuthoritativeTcpServer : IAsyncDisposable
+{
+    private readonly TcpListener listener;
+    private readonly AuthoritativeCommandServer commandServer;
+    private readonly ProtocolHandshake handshake;
+    private readonly Func<ulong> currentTickProvider;
+    private readonly ConcurrentDictionary<TcpClient, byte> clients = new();
+    private CancellationTokenSource? cancellation;
+    private Task? acceptLoop;
+
+    public AuthoritativeTcpServer(
+        AuthoritativeCommandServer commandServer,
+        ProtocolHandshake handshake,
+        Func<ulong> currentTickProvider,
+        int port = 0,
+        IPAddress? address = null)
+    {
+        this.commandServer = commandServer ?? throw new ArgumentNullException(nameof(commandServer));
+        this.handshake = handshake ?? throw new ArgumentNullException(nameof(handshake));
+        this.currentTickProvider = currentTickProvider ?? throw new ArgumentNullException(nameof(currentTickProvider));
+        listener = new TcpListener(address ?? IPAddress.Loopback, port);
+    }
+
+    public int Port => ((IPEndPoint?)listener.LocalEndpoint)?.Port ?? 0;
+
+    public void Start()
+    {
+        if (cancellation is not null)
+            throw new InvalidOperationException("The server has already started.");
+
+        cancellation = new CancellationTokenSource();
+        listener.Start();
+        acceptLoop = AcceptLoopAsync(cancellation.Token);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (cancellation is null)
+            return;
+
+        cancellation.Cancel();
+        listener.Stop();
+        foreach (var client in clients.Keys)
+            client.Dispose();
+
+        if (acceptLoop is not null) {
+            try {
+                await acceptLoop;
+            } catch (OperationCanceledException) when (cancellation.IsCancellationRequested) {
+            }
+        }
+
+        cancellation.Dispose();
+        cancellation = null;
+        acceptLoop = null;
+    }
+
+    private async Task AcceptLoopAsync(CancellationToken cancellationToken)
+    {
+        while (!cancellationToken.IsCancellationRequested) {
+            TcpClient client;
+            try {
+                client = await listener.AcceptTcpClientAsync(cancellationToken);
+            } catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) {
+                break;
+            } catch (ObjectDisposedException) when (cancellationToken.IsCancellationRequested) {
+                break;
+            }
+
+            clients.TryAdd(client, 0);
+            _ = HandleClientAsync(client, cancellationToken);
+        }
+    }
+
+    private async Task HandleClientAsync(TcpClient client, CancellationToken cancellationToken)
+    {
+        var sessionId = Guid.NewGuid().ToString("N");
+        try {
+            await using var stream = client.GetStream();
+            var helloEnvelope = await EnvelopeCodec.ReadAsync(stream, cancellationToken);
+            if (helloEnvelope is null || helloEnvelope.PayloadCase != Envelope.PayloadOneofCase.ClientHello) {
+                await SendErrorAsync(stream, ProtocolErrorCode.InvalidMessage, "The first envelope must be a client hello.", cancellationToken);
+                return;
+            }
+
+            var handshakeResult = handshake.Validate(helloEnvelope.ClientHello);
+            if (!handshakeResult.Accepted) {
+                await EnvelopeCodec.WriteAsync(stream, new Envelope { Error = handshakeResult.Error! }, cancellationToken);
+                return;
+            }
+
+            await EnvelopeCodec.WriteAsync(stream, new Envelope { ServerHello = handshakeResult.ServerHello! }, cancellationToken);
+            while (!cancellationToken.IsCancellationRequested) {
+                var envelope = await EnvelopeCodec.ReadAsync(stream, cancellationToken);
+                if (envelope is null)
+                    return;
+
+                if (envelope.PayloadCase == Envelope.PayloadOneofCase.CommandBatch) {
+                    var acknowledgement = commandServer.ProcessBatch(sessionId, envelope.CommandBatch, currentTickProvider());
+                    await EnvelopeCodec.WriteAsync(stream, new Envelope { CommandAck = acknowledgement }, cancellationToken);
+                } else {
+                    await SendErrorAsync(stream, ProtocolErrorCode.InvalidMessage, "The session only accepts command batches after the handshake.", cancellationToken);
+                    return;
+                }
+            }
+        } catch (EndOfStreamException) {
+        } catch (InvalidDataException exception) {
+            try {
+                await using var stream = client.GetStream();
+                await SendErrorAsync(stream, ProtocolErrorCode.InvalidMessage, exception.Message, cancellationToken);
+            } catch (Exception) {
+            }
+        } catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) {
+        } finally {
+            clients.TryRemove(client, out _);
+            client.Dispose();
+        }
+    }
+
+    private static ValueTask SendErrorAsync(Stream stream, ProtocolErrorCode code, string detail, CancellationToken cancellationToken)
+    {
+        return EnvelopeCodec.WriteAsync(stream, new Envelope {
+            Error = new ProtocolError { Code = code, Detail = detail },
+        }, cancellationToken);
+    }
+}

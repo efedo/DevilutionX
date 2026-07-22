@@ -215,8 +215,8 @@ versions; incompatible saves are rejected with an actionable reason.
 - `server/src/Devilution.Server` now provides the initial C# authoritative
   command boundary, including generated Protobuf bindings, session-scoped
   deduplication, globally ordered receipts, and the agreed late-command policy.
-  Its executor is currently a domain seam; TCP sessions and gameplay execution
-  remain the next server slices.
+  Its TCP host validates the handshake and routes command batches; the executor
+  is currently a domain seam, with gameplay execution remaining.
 
 ### Tasks
 

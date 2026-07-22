@@ -13,8 +13,9 @@ owns command admission and exactly-once execution at the server boundary.
 - A two-tick leniency window for late `OpenStoreRequested` commands.
 
 The executor interface is intentionally separate from transport and gameplay
-rules. The next server slices will add a TCP length-delimited Protobuf session
-host, content-manifest handshake validation, and the store simulation executor.
+rules. `AuthoritativeTcpServer` now provides the TCP session boundary and
+routes authenticated command batches into this domain. The next server slice
+is the store simulation executor.
 
 Run the server unit tests with xUnit's native runner:
 
