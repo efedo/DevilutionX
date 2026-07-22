@@ -206,11 +206,17 @@ versions; incompatible saves are rejected with an actionable reason.
 - Missing baseline coverage is explicit mod-reload/Hellfire behavior and
   fixture execution against the running C++ game state.
 - The initial transport-independent Protobuf contract is recorded in
-  `protocol/devilution.proto`; code generation is intentionally deferred until
-  the separate C# server project is connected.
+  `protocol/devilution.proto`; the C# server generates bindings from it while
+  C++ code generation is intentionally deferred until the new client transport
+  is introduced.
 - The C++ client now has a transport-independent command-delivery tracker for
   adaptive acknowledgement retries and terminal server outcomes; transport
-  wiring and server-side deduplication remain.
+  wiring remains.
+- `server/src/Devilution.Server` now provides the initial C# authoritative
+  command boundary, including generated Protobuf bindings, session-scoped
+  deduplication, globally ordered receipts, and the agreed late-command policy.
+  Its executor is currently a domain seam; TCP sessions and gameplay execution
+  remain the next server slices.
 
 ### Tasks
 

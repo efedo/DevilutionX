@@ -4,10 +4,10 @@
 for the C++ client, C# authoritative server, and future Godot client. The
 initial wire transport is TCP with a length-delimited `Envelope` message.
 
-The schema is not generated or linked into the C++ build yet. Keeping the
-schema artifact independent at this stage lets the server project consume the
-same contract without introducing a generator or runtime dependency into the
-legacy client prematurely.
+`server/src/Devilution.Server` generates C# bindings from this schema at build
+time. The legacy C++ build intentionally does not generate or link Protobuf
+yet, so the server can evolve against the same contract without prematurely
+adding a generator or runtime dependency to the legacy client.
 
 ## Compatibility rules
 
@@ -27,8 +27,8 @@ legacy client prematurely.
 - Content manifest identity is part of the handshake. A mismatch is a
   protocol error, not a best-effort compatibility mode.
 
-Code generation and descriptor compatibility checks will be added when the
-separate C# server project is brought into the workspace.
+C++ code generation and descriptor compatibility checks will be added once the
+new client transport is introduced.
 
 `test-vectors/command-delivery-retry.json` is the first language-neutral
 behavior vector. It covers a lost acknowledgement, a retry resolved as a
@@ -43,4 +43,5 @@ policy without depending on generated Protobuf types. It allocates
 session-scoped sequence numbers, estimates RTT with a smoothed variance,
 resubmits unacknowledged commands, and resolves accepted, rejected,
 rescheduled, and duplicate outcomes. Transport integration and server-side
-deduplication are the next cross-project step.
+deduplication are supplied by the C# server; TCP session integration is the
+next cross-project step.

@@ -50,6 +50,7 @@ All notable changes to this fork are documented below.
 - Add the initial transport-independent Protobuf protocol contract and compatibility rules
 - Add adaptive client command acknowledgement retries with duplicate and late-command outcomes
 - Add a shared retry/deduplication protocol test vector for the future C# server
+- Add the initial C# authoritative command server with Protobuf bindings and deduplication tests
 
 ## 2026-06-24
 
