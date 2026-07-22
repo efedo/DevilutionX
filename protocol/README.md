@@ -29,3 +29,12 @@ legacy client prematurely.
 
 Code generation and descriptor compatibility checks will be added when the
 separate C# server project is brought into the workspace.
+
+## Current C++ client slice
+
+`network/protocol/CommandDeliveryTracker` implements the client-side delivery
+policy without depending on generated Protobuf types. It allocates
+session-scoped sequence numbers, estimates RTT with a smoothed variance,
+resubmits unacknowledged commands, and resolves accepted, rejected,
+rescheduled, and duplicate outcomes. Transport integration and server-side
+deduplication are the next cross-project step.

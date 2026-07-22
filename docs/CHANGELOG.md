@@ -48,6 +48,7 @@ All notable changes to this fork are documented below.
 ## 2026-07-22
 
 - Add the initial transport-independent Protobuf protocol contract and compatibility rules
+- Add adaptive client command acknowledgement retries with duplicate and late-command outcomes
 
 ## 2026-06-24
 

@@ -208,6 +208,9 @@ versions; incompatible saves are rejected with an actionable reason.
 - The initial transport-independent Protobuf contract is recorded in
   `protocol/devilution.proto`; code generation is intentionally deferred until
   the separate C# server project is connected.
+- The C++ client now has a transport-independent command-delivery tracker for
+  adaptive acknowledgement retries and terminal server outcomes; transport
+  wiring and server-side deduplication remain.
 
 ### Tasks
 

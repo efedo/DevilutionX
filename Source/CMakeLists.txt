@@ -28,6 +28,7 @@ set(libdevilutionx_SRCS
   game/missiles/missiles.cpp
   ui/movie.cpp
   network/protocol/msg.cpp
+  network/protocol/command_delivery.cpp
   network/protocol/network_ticks.cpp
   persistence/save_file.cpp
   ui/player_messages.cpp
