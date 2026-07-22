@@ -43,6 +43,7 @@ All notable changes to this fork are documented below.
 - Extract active-mod and game-data reload ownership from Lua behind C++ managers and a typed event bus
 - Add deterministic replay primitives for canonical state hashing and command ordering
 - Add initial canonical player and store state projections for replay comparison
+- Add an executable JSON replay fixture baseline for player/store projection
 
 ## 2026-06-24
 

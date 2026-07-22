@@ -1,9 +1,14 @@
 #include <cstdint>
+#include <fstream>
+#include <iterator>
+#include <string>
+#include <vector>
 
 #include <gtest/gtest.h>
 
 #include "game/players/players.hpp"
 #include "game/replay/replay.hpp"
+#include "game/replay/replay_fixture.hpp"
 #include "game/stores/stores.hpp"
 
 namespace devilution {
@@ -138,6 +143,60 @@ TEST(ReplayStateProjection, IncludesStoreInventoryAndSelection)
 	AppendReplayStoreState(second, store);
 
 	EXPECT_NE(first.Digest(), second.Digest());
+}
+
+TEST(ReplayFixture, ParsesAndHashesInitialStoreState)
+{
+	std::ifstream file("test/fixtures/replay/stores/basic-buy.json");
+	ASSERT_TRUE(file.is_open());
+	const std::string json((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+
+	ReplayFixture fixture;
+	std::string error;
+	ASSERT_TRUE(ParseReplayFixture(json, fixture, error)) << error;
+	EXPECT_EQ(fixture.formatVersion, 1U);
+	EXPECT_EQ(fixture.fixtureId, "stores/basic-buy");
+	EXPECT_EQ(fixture.protocolSchemaVersion, "0.1.0");
+	EXPECT_EQ(fixture.tickRateHz, 20U);
+	EXPECT_EQ(fixture.rngSeed, 305419896U);
+	ASSERT_EQ(fixture.commands.size(), 2U);
+	EXPECT_EQ(fixture.commands[0].clientSequence, 2U);
+	EXPECT_EQ(fixture.commands[0].kind, "BuyItem");
+
+	const std::vector<ReplayCommand> sorted = SortReplayCommands({
+	    { .clientSequence = fixture.commands[0].clientSequence, .order = fixture.commands[0].order },
+	    { .clientSequence = fixture.commands[1].clientSequence, .order = fixture.commands[1].order },
+	});
+	ASSERT_EQ(sorted.size(), 2U);
+	EXPECT_EQ(sorted[0].clientSequence, 1U);
+	EXPECT_EQ(sorted[1].clientSequence, 2U);
+
+	Player player;
+	player._pName[0] = 'A';
+	player._pName[1] = '\0';
+	player._pGold = 100;
+	player._pExperience = 200;
+	player.life.current = 640;
+	player.life.maximum = 640;
+	StoreManager store;
+	store.activeStore() = TalkID::Smith;
+	store.premiumItemLevel() = 3;
+	store.premiumItems().push_back();
+	store.premiumItems()[0]._iSeed = 42;
+
+	ReplayStateHasher state;
+	AppendReplayPlayerState(state, 0, player);
+	AppendReplayStoreState(state, store);
+	EXPECT_EQ(fixture.initialStateSha256, state.HexDigest());
+}
+
+TEST(ReplayFixture, RejectsMalformedJson)
+{
+	ReplayFixture fixture;
+	std::string error;
+
+	EXPECT_FALSE(ParseReplayFixture(R"({ "format_version": 1, "commands": [ })", fixture, error));
+	EXPECT_FALSE(error.empty());
 }
 
 } // namespace

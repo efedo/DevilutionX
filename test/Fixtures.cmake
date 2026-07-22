@@ -83,6 +83,7 @@ set(devilutionx_fixtures
   memory_map/player.txt
   memory_map/portal.txt
   memory_map/quest.txt
+  replay/stores/basic-buy.json
   timedemo/WarriorLevel1to2/demo_0.dmo
   timedemo/WarriorLevel1to2/demo_0_reference_spawn_0.sv
   timedemo/WarriorLevel1to2/spawn_0.sv

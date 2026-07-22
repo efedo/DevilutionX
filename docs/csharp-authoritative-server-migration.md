@@ -87,6 +87,11 @@ The remaining Phase 1 work is to extract sound reload, replace the Hellfire
 Lua bootstrap with declarative content metadata, move debug commands behind an
 engine-neutral registry, and add a content manifest/hash.
 
+The Phase 0 replay baseline now also includes a strict JSON fixture-envelope
+parser and an executable player/store checkpoint fixture. This validates the
+initial canonical projection and command ordering, while full-state projection
+and command-driven simulation remain ahead of the C# port.
+
 ## Migration Principles
 
 1. Do not embed C# into the current C++ engine. Communicate with the C# server through the same protocol intended for Godot.

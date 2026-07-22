@@ -88,9 +88,19 @@ The first fixtures should cover one narrow behavior each:
 8. Mod reload ordering and Hellfire activation.
 
 The C++ replay primitives now provide canonical field encoding, SHA-256
-digests, command ordering, and an initial player/store state projection. They
-do not yet serialize the complete game state or execute JSON fixtures; those
-remain the next integration step.
+digests, command ordering, and an initial player/store state projection. The
+strict envelope parser and `stores/basic-buy` fixture exercise that initial
+projection. Complete game-state serialization, command execution, and
+non-placeholder transition checkpoints remain future work.
+
+## Executable baseline fixture
+
+`test/fixtures/replay/stores/basic-buy.json` is copied into the test fixture
+directory and consumed by `ReplayFixture.ParsesAndHashesInitialStoreState`.
+It verifies the versioned envelope, preserves client sequence numbers, sorts
+commands by authoritative order, and compares the canonical player/store
+checkpoint hash. The parser skips unknown metadata and command payload fields,
+so the fixture format can grow without adding a JSON dependency to the engine.
 
 ## Existing C++ characterization coverage
 
