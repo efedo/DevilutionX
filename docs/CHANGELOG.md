@@ -52,6 +52,7 @@ All notable changes to this fork are documented below.
 - Add a shared retry/deduplication protocol test vector for the future C# server
 - Add the initial C# authoritative command server with Protobuf bindings and deduplication tests
 - Add bounded TCP Protobuf sessions with handshake validation and command routing
+- Add the first C# authoritative store executor with retry-safe purchases and shared stock
 
 ## 2026-06-24
 

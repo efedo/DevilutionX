@@ -216,7 +216,8 @@ versions; incompatible saves are rejected with an actionable reason.
   command boundary, including generated Protobuf bindings, session-scoped
   deduplication, globally ordered receipts, and the agreed late-command policy.
   Its TCP host validates the handshake and routes command batches; the executor
-  is currently a domain seam, with gameplay execution remaining.
+  now includes the first deterministic store/purchase vertical slice. Snapshot
+  projection and parity with legacy store pricing remain.
 
 ### Tasks
 

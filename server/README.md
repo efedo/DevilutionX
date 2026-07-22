@@ -14,8 +14,9 @@ owns command admission and exactly-once execution at the server boundary.
 
 The executor interface is intentionally separate from transport and gameplay
 rules. `AuthoritativeTcpServer` now provides the TCP session boundary and
-routes authenticated command batches into this domain. The next server slice
-is the store simulation executor.
+routes authenticated command batches into this domain. `Stores` now provides
+the first deterministic store executor with shared stock and per-session
+wallet/inventory state. Snapshot projection is the next server slice.
 
 Run the server unit tests with xUnit's native runner:
 
