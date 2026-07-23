@@ -67,6 +67,7 @@ if(DEVILUTIONX_ENABLE_AUTHORITATIVE_CLIENT)
   list(APPEND tests authoritative_client_test)
 endif()
 set(standalone_tests
+  content_manifest_test
   codec_test
   crawl_test
   mpq_file_test
@@ -106,6 +107,14 @@ foreach(test_target ${tests} ${standalone_tests} ${benchmarks})
   endif()
 endforeach()
 
+if(DEVILUTIONX_ENABLE_AUTHORITATIVE_CLIENT)
+  if(WIN32)
+    target_compile_definitions(authoritative_client_test PRIVATE "DVL_PROTOBUF_EXPORT=__declspec(dllimport)")
+  else()
+    target_compile_definitions(authoritative_client_test PRIVATE DVL_PROTOBUF_EXPORT=)
+  endif()
+endif()
+
 foreach(test_target ${tests} ${standalone_tests})
   gtest_discover_tests(${test_target})
 endforeach()
@@ -131,6 +140,8 @@ add_library(language_for_testing OBJECT test/language_for_testing.cpp)
 target_sources(language_for_testing INTERFACE $<TARGET_OBJECTS:language_for_testing>)
 
 target_link_dependencies(codec_test PRIVATE libdevilutionx_codec app_fatal_for_testing)
+target_sources(content_manifest_test PRIVATE Source/data/content_manifest.cpp)
+target_include_directories(content_manifest_test PRIVATE 3rdParty/PicoSHA2)
 target_link_dependencies(clx_render_benchmark
   PRIVATE
   DevilutionX::SDL

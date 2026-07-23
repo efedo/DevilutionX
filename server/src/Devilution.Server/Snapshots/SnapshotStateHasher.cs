@@ -61,6 +61,23 @@ public static class SnapshotStateHasher
                 hasher.AppendInt32(cell);
         }
 
+        hasher.AppendBool(snapshot.ActiveStore is not null);
+        if (snapshot.ActiveStore is not null) {
+            hasher.AppendUInt32(snapshot.ActiveStore.StoreId);
+            var items = snapshot.ActiveStore.Items
+                .OrderBy(item => item.StoreSlot)
+                .ThenBy(item => item.ItemSeed)
+                .ThenBy(item => item.Price)
+                .ToArray();
+            hasher.AppendUInt64((ulong)items.Length);
+            foreach (var item in items) {
+                hasher.AppendUInt32(item.StoreSlot);
+                hasher.AppendUInt32(item.ItemSeed);
+                hasher.AppendUInt32(item.Price);
+                AppendItemState(hasher, item.State);
+            }
+        }
+
         return hasher.HexDigest();
     }
 

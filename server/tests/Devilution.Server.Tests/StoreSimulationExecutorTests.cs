@@ -136,7 +136,7 @@ public sealed class StoreSimulationExecutorTests
         Assert.Equal(7U, player.EntityId);
         Assert.Equal(25U, player.Gold);
         Assert.Equal(1U, player.ActiveStoreId);
-        Assert.Equal("076755606be2eb40b3bfb08e763326f8979eab164c02e011860d254893c9ff91", snapshot.StateSha256);
+        Assert.Equal("b4ca80780c2ea293cfa2cc09277eab13688e158e4f120adc9819a0d787368dd9", snapshot.StateSha256);
         Assert.Equal(SnapshotStateHasher.Compute(snapshot), snapshot.StateSha256);
         Assert.Equal(1U, item.StoreId);
         Assert.Equal(0U, item.StoreSlot);

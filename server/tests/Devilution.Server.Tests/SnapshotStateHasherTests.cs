@@ -11,7 +11,7 @@ public sealed class SnapshotStateHasherTests
     {
         var snapshot = new Snapshot();
 
-        Assert.Equal("af5570f5a1810b7af78caf4bc70a660f0df51e42baf91d4de5b2328de0e83dfc", SnapshotStateHasher.Compute(snapshot));
+        Assert.Equal("3e7077fd2f66d689e0cee6a7cf5b37bf2dca7c979af356d0a31cbc5c85605c7d", SnapshotStateHasher.Compute(snapshot));
     }
 
     [Fact]
@@ -77,6 +77,28 @@ public sealed class SnapshotStateHasherTests
         };
         var second = first.Clone();
         second.Players[0].Inventory[0].State.Buff = 3;
+
+        Assert.NotEqual(SnapshotStateHasher.Compute(first), SnapshotStateHasher.Compute(second));
+    }
+
+    [Fact]
+    public void ActiveStoreItemStateChangesTheStateHash()
+    {
+        var first = new Snapshot {
+            ActiveStore = new StoreSnapshot {
+                StoreId = 1,
+                Items = {
+                    new StoreItemSnapshot {
+                        StoreSlot = 0,
+                        ItemSeed = 42,
+                        Price = 75,
+                        State = new ItemStateSnapshot { PrefixPower = 1, Buff = 2 },
+                    },
+                },
+            },
+        };
+        var second = first.Clone();
+        second.ActiveStore.Items[0].State.Buff = 3;
 
         Assert.NotEqual(SnapshotStateHasher.Compute(first), SnapshotStateHasher.Compute(second));
     }

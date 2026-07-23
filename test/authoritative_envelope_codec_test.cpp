@@ -85,15 +85,18 @@ TEST(AuthoritativeEnvelopeCodec, RejectsTruncatedPayload)
 	EXPECT_EQ(actual.error(), "The envelope payload was truncated.");
 }
 
-TEST(AuthoritativeEnvelopeCodec, RejectsZeroLengthAndOversizedPayloads)
+TEST(AuthoritativeEnvelopeCodec, RejectsZeroLengthPayload)
 {
 	LoopbackSocketPair zeroLength;
 	const std::array<uint8_t, 4> zeroHeader { 0, 0, 0, 0 };
 	asio::write(zeroLength.server, asio::buffer(zeroHeader));
 	EXPECT_EQ(EnvelopeCodec::Read(zeroLength.client).error(), "Envelope length is outside the allowed range.");
+}
 
+TEST(AuthoritativeEnvelopeCodec, RejectsOversizedPayload)
+{
 	LoopbackSocketPair oversized;
-	const std::array<uint8_t, 4> oversizedHeader { 0, 0, 16, 0 };
+	const std::array<uint8_t, 4> oversizedHeader { 1, 0, 16, 0 };
 	asio::write(oversized.server, asio::buffer(oversizedHeader));
 	EXPECT_EQ(EnvelopeCodec::Read(oversized.client).error(), "Envelope length is outside the allowed range.");
 }

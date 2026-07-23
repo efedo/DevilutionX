@@ -71,6 +71,19 @@ All notable changes to this fork are documented below.
 - Add the first C# authoritative store executor with retry-safe purchases and shared stock
 - Add opt-in C++ Protobuf generation, bounded envelope framing, and a minimal
   authoritative client covering handshake, command acknowledgement, and snapshots
+- Wire the C++ command-delivery tracker into queued authoritative sends,
+  adaptive resubmissions, and acknowledgement resolution
+- Fix native authoritative builds by generating Protobuf sources in the consuming
+  CMake directory and exporting generated message data to C++ DLL tests
+- Fix C++ authoritative connection includes and invalid-frame boundary coverage
+- Add authoritative active-store stock snapshots and include vendor items in
+  deterministic snapshot hashes and reconnect-resynchronization tests
+- Add matching C++ and C# canonical content-manifest hashes with shared golden
+  vectors and malformed-row validation
+- Extend C++ and C# replay fixtures with structured content identity, retained
+  checkpoints, store command payloads, and optional final snapshot validation
+- Fix the native replay fixture test to avoid character-level validation before
+  player experience tables are initialized
 
 ## 2026-06-24
 

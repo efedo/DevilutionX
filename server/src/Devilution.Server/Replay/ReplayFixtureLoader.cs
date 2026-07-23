@@ -21,6 +21,8 @@ public static class ReplayFixtureLoader
             ParseCommands(root.GetProperty("commands")),
             ParseCheckpoints(root.GetProperty("checkpoints"))) {
             LegacyStoreState = ParseLegacyStoreState(root),
+            ContentManifest = ParseContentManifest(root),
+            FinalStateSha256 = OptionalString(root, "final_state_sha256"),
         };
 
         if (fixture.FormatVersion != 1)
@@ -31,8 +33,29 @@ public static class ReplayFixtureLoader
             throw new InvalidDataException("Replay fixture must contain commands.");
         if (fixture.Commands.Select(command => command.ClientSequence).Distinct().Count() != fixture.Commands.Count)
             throw new InvalidDataException("Replay fixture command sequences must be unique.");
+        if (fixture.ContentManifest is not null) {
+            foreach (var commandTick in fixture.Commands.Select(command => command.TargetTick).Distinct()) {
+                if (!fixture.Checkpoints.Any(checkpoint => checkpoint.Tick == commandTick))
+                    throw new InvalidDataException($"Replay fixture must include a checkpoint at command tick {commandTick}.");
+            }
+        }
 
         return fixture;
+    }
+
+    private static ReplayContentManifest? ParseContentManifest(JsonElement root)
+    {
+        if (!root.TryGetProperty("content_manifest", out var value))
+            return null;
+        if (value.ValueKind == JsonValueKind.Array)
+            return null;
+        if (value.ValueKind != JsonValueKind.Object)
+            throw new InvalidDataException("Replay fixture content_manifest must be an object or legacy array.");
+
+        return new ReplayContentManifest(
+            RequiredString(value, "id"),
+            RequiredString(value, "version"),
+            RequiredString(value, "sha256"));
     }
 
     private static ReplayInitialState ParseInitialState(JsonElement value)
@@ -115,6 +138,18 @@ public static class ReplayFixtureLoader
     private static string RequiredString(JsonElement value, string property)
     {
         if (!value.TryGetProperty(property, out var result) || result.ValueKind != JsonValueKind.String)
+            throw new InvalidDataException($"Replay fixture property '{property}' must be a string.");
+        var text = result.GetString();
+        if (string.IsNullOrWhiteSpace(text))
+            throw new InvalidDataException($"Replay fixture property '{property}' must not be empty.");
+        return text;
+    }
+
+    private static string? OptionalString(JsonElement value, string property)
+    {
+        if (!value.TryGetProperty(property, out var result))
+            return null;
+        if (result.ValueKind != JsonValueKind.String)
             throw new InvalidDataException($"Replay fixture property '{property}' must be a string.");
         var text = result.GetString();
         if (string.IsNullOrWhiteSpace(text))

@@ -19,6 +19,20 @@ struct ReplayFixtureCommand {
 	uint64_t clientSequence = 0;
 	ReplayCommandOrder order;
 	std::string kind;
+	uint32_t storeId = 1;
+	uint32_t storeSlot = 0;
+};
+
+struct ReplayFixtureContentManifest {
+	std::string id;
+	std::string version;
+	std::string sha256;
+	std::vector<std::string> packs;
+};
+
+struct ReplayFixtureCheckpoint {
+	uint64_t tick = 0;
+	std::string stateSha256;
 };
 
 struct ReplayFixtureInitialState {
@@ -44,9 +58,11 @@ struct ReplayFixture {
 	std::string protocolSchemaVersion;
 	uint32_t tickRateHz = 0;
 	uint64_t rngSeed = 0;
+	ReplayFixtureContentManifest contentManifest;
 	ReplayFixtureInitialState initialState;
 	ReplayFixtureStoreState storeState;
 	std::vector<ReplayFixtureCommand> commands;
+	std::vector<ReplayFixtureCheckpoint> checkpoints;
 	std::string initialStateSha256;
 };
 

@@ -159,9 +159,18 @@ TEST(ReplayFixture, ParsesAndHashesInitialStoreState)
 	EXPECT_EQ(fixture.protocolSchemaVersion, "0.1.0");
 	EXPECT_EQ(fixture.tickRateHz, 20U);
 	EXPECT_EQ(fixture.rngSeed, 305419896U);
+	ASSERT_EQ(fixture.contentManifest.packs.size(), 1U);
+	EXPECT_EQ(fixture.contentManifest.packs[0], "baseline-store-content");
 	ASSERT_EQ(fixture.commands.size(), 2U);
 	EXPECT_EQ(fixture.commands[0].clientSequence, 2U);
 	EXPECT_EQ(fixture.commands[0].kind, "BuyItem");
+	EXPECT_EQ(fixture.commands[0].storeId, 1U);
+	EXPECT_EQ(fixture.commands[0].storeSlot, 0U);
+	EXPECT_EQ(fixture.commands[1].storeId, 1U);
+	EXPECT_EQ(fixture.commands[1].storeSlot, 0U);
+	ASSERT_EQ(fixture.checkpoints.size(), 1U);
+	EXPECT_EQ(fixture.checkpoints[0].tick, 0U);
+	EXPECT_EQ(fixture.checkpoints[0].stateSha256, "67c0e197eb04c359e6501c0df7419799d878903d6760c471d0eae93dd12c45be");
 
 	const std::vector<ReplayCommand> sorted = SortReplayCommands({
 	    { .clientSequence = fixture.commands[0].clientSequence, .order = fixture.commands[0].order },
@@ -175,7 +184,7 @@ TEST(ReplayFixture, ParsesAndHashesInitialStoreState)
 	player._pName[0] = fixture.initialState.player[0];
 	player._pName[1] = '\0';
 	player._pClass = static_cast<HeroClass>(fixture.initialState.characterClass);
-	player.setCharacterLevel(fixture.initialState.characterLevel);
+	ASSERT_EQ(fixture.initialState.characterLevel, player.getCharacterLevel());
 	player._pGold = fixture.initialState.gold;
 	player._pExperience = fixture.initialState.experience;
 	player.life.current = fixture.initialState.life;
@@ -195,6 +204,56 @@ TEST(ReplayFixture, ParsesAndHashesInitialStoreState)
 	AppendReplayPlayerState(state, 0, player);
 	AppendReplayStoreState(state, store);
 	EXPECT_EQ(fixture.initialStateSha256, state.HexDigest());
+}
+
+TEST(ReplayFixture, ParsesStructuredManifestCheckpointAndStorePayloads)
+{
+	constexpr std::string_view Fixture = R"({
+  "content_manifest": {
+    "id": "base-plus-hellfire",
+    "version": "1",
+    "sha256": "content-hash"
+  },
+  "commands": [
+    {
+      "client_sequence": 1,
+      "target_tick": 4,
+      "server_receipt_sequence": 1,
+      "kind": "OpenStore",
+      "payload": { "store_id": 7 }
+    },
+    {
+      "client_sequence": 2,
+      "target_tick": 5,
+      "server_receipt_sequence": 2,
+      "payload": { "store_id": 7, "item_index": 3 },
+      "kind": "BuyItem"
+    }
+  ],
+  "checkpoints": [
+    { "tick": 0, "state_sha256": "initial-hash" },
+    { "tick": 5, "state_sha256": "purchase-hash" }
+  ]
+})";
+
+	ReplayFixture fixture;
+	std::string error;
+	ASSERT_TRUE(ParseReplayFixture(Fixture, fixture, error)) << error;
+	EXPECT_EQ(fixture.contentManifest.id, "base-plus-hellfire");
+	EXPECT_EQ(fixture.contentManifest.version, "1");
+	EXPECT_EQ(fixture.contentManifest.sha256, "content-hash");
+	EXPECT_TRUE(fixture.contentManifest.packs.empty());
+	ASSERT_EQ(fixture.commands.size(), 2U);
+	EXPECT_EQ(fixture.commands[0].storeId, 7U);
+	EXPECT_EQ(fixture.commands[0].storeSlot, 0U);
+	EXPECT_EQ(fixture.commands[1].storeId, 7U);
+	EXPECT_EQ(fixture.commands[1].storeSlot, 3U);
+	ASSERT_EQ(fixture.checkpoints.size(), 2U);
+	EXPECT_EQ(fixture.checkpoints[0].tick, 0U);
+	EXPECT_EQ(fixture.checkpoints[0].stateSha256, "initial-hash");
+	EXPECT_EQ(fixture.checkpoints[1].tick, 5U);
+	EXPECT_EQ(fixture.checkpoints[1].stateSha256, "purchase-hash");
+	EXPECT_EQ(fixture.initialStateSha256, "initial-hash");
 }
 
 TEST(ReplayFixture, RejectsMalformedJson)

@@ -65,8 +65,9 @@ resubmits unacknowledged commands, and resolves accepted, rejected,
 rescheduled, and duplicate outcomes. The opt-in
 `network/authoritative/AuthoritativeClient` now proves the initial C++ wire
 path: it performs the handshake, submits a command batch, receives an
-acknowledgement, and reads a snapshot. The tracker is not yet wired into that
-send loop, and the authoritative client is not yet selected by the legacy
-gameplay network provider. When the server is configured with a snapshot
+acknowledgement, reads a snapshot, and wires the tracker into initial sends,
+timeout-driven resubmissions, and acknowledgement resolution. The
+authoritative client is not yet selected by the legacy gameplay network
+provider. When the server is configured with a snapshot
 provider, callers set `expectInitialSnapshot` and consume the initial snapshot
 before submitting commands; this matches the current server session ordering.

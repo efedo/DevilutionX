@@ -160,49 +160,67 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
 
     public Snapshot CreateSnapshot(string sessionId, uint entityId, ulong tick)
     {
-        var state = GetPlayerState(sessionId);
-        var player = new PlayerSnapshot {
-            EntityId = entityId,
-            Gold = state.Gold,
-            ActiveStoreId = state.ActiveStoreId ?? 0,
-            Life = state.Life,
-            Mana = state.Mana,
-            Experience = state.Experience,
-            Attributes = new PlayerAttributesSnapshot {
-                Strength = ToSnapshot(state.Attributes.Strength),
-                Magic = ToSnapshot(state.Attributes.Magic),
-                Dexterity = ToSnapshot(state.Attributes.Dexterity),
-                Vitality = ToSnapshot(state.Attributes.Vitality),
-            },
-        };
+        if (string.IsNullOrWhiteSpace(sessionId))
+            throw new ArgumentException("A session ID is required.", nameof(sessionId));
 
-        foreach (var item in state.Inventory) {
-            player.Inventory.Add(new ItemSnapshot {
-                StoreId = item.StoreId,
-                StoreSlot = item.StoreSlot,
-                ItemSeed = item.ItemSeed,
-                Price = item.Price,
-                PurchasedAtTick = item.PurchasedAtTick,
-                State = ToSnapshot(item.State),
-            });
+        lock (synchronization) {
+            var state = GetOrCreatePlayer(sessionId);
+            var player = new PlayerSnapshot {
+                EntityId = entityId,
+                Gold = state.Gold,
+                ActiveStoreId = state.ActiveStoreId ?? 0,
+                Life = state.Life,
+                Mana = state.Mana,
+                Experience = state.Experience,
+                Attributes = new PlayerAttributesSnapshot {
+                    Strength = ToSnapshot(state.Attributes.Strength),
+                    Magic = ToSnapshot(state.Attributes.Magic),
+                    Dexterity = ToSnapshot(state.Attributes.Dexterity),
+                    Vitality = ToSnapshot(state.Attributes.Vitality),
+                },
+            };
+
+            foreach (var item in state.Inventory) {
+                player.Inventory.Add(new ItemSnapshot {
+                    StoreId = item.StoreId,
+                    StoreSlot = item.StoreSlot,
+                    ItemSeed = item.ItemSeed,
+                    Price = item.Price,
+                    PurchasedAtTick = item.PurchasedAtTick,
+                    State = ToSnapshot(item.State),
+                });
+            }
+
+            foreach (var item in state.Equipment) {
+                player.Equipment.Add(new EquippedItemSnapshot {
+                    Slot = item.Slot,
+                    ItemSeed = item.ItemSeed,
+                    State = ToSnapshot(item.State),
+                });
+            }
+
+            player.InventoryGrid.Add(state.InventoryGrid);
+
+            var snapshot = new Snapshot {
+                Tick = tick,
+                Players = { player },
+            };
+            if (state.ActiveStoreId is uint storeId) {
+                var store = new StoreSnapshot { StoreId = storeId };
+                foreach (var item in catalog.GetItems(storeId)) {
+                    store.Items.Add(new StoreItemSnapshot {
+                        StoreSlot = item.StoreSlot,
+                        ItemSeed = item.ItemSeed,
+                        Price = item.Price,
+                        State = ToSnapshot(item.State),
+                    });
+                }
+                snapshot.ActiveStore = store;
+            }
+
+            snapshot.StateSha256 = SnapshotStateHasher.Compute(snapshot);
+            return snapshot;
         }
-
-        foreach (var item in state.Equipment) {
-            player.Equipment.Add(new EquippedItemSnapshot {
-                Slot = item.Slot,
-                ItemSeed = item.ItemSeed,
-                State = ToSnapshot(item.State),
-            });
-        }
-
-        player.InventoryGrid.Add(state.InventoryGrid);
-
-        var snapshot = new Snapshot {
-            Tick = tick,
-            Players = { player },
-        };
-        snapshot.StateSha256 = SnapshotStateHasher.Compute(snapshot);
-        return snapshot;
     }
 
     private static AttributeSnapshot ToSnapshot(PlayerAttributeState attribute)

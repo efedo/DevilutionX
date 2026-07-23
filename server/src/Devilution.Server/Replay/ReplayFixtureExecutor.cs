@@ -45,9 +45,11 @@ public static class ReplayFixtureExecutor
             results.Add(result);
         }
 
-        return new ReplayExecutionResult(
-            initialSnapshot,
-            executor.CreateSnapshot(sessionId, entityId, fixture.OrderedCommands.Last().TargetTick),
-            results);
+        var finalSnapshot = executor.CreateSnapshot(sessionId, entityId, fixture.OrderedCommands.Last().TargetTick);
+        if (fixture.FinalStateSha256 is not null
+            && !string.Equals(fixture.FinalStateSha256, finalSnapshot.StateSha256, StringComparison.Ordinal))
+            throw new InvalidDataException("Replay final snapshot hash mismatch.");
+
+        return new ReplayExecutionResult(initialSnapshot, finalSnapshot, results);
     }
 }

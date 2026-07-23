@@ -171,6 +171,15 @@ public sealed class StoreCatalog
         return stores.TryGetValue(storeId, out var stock) && stock.Remove(storeSlot);
     }
 
+    /** Returns a stable copy of the remaining items in one store. */
+    public IReadOnlyList<StoreItem> GetItems(uint storeId)
+    {
+        if (!stores.TryGetValue(storeId, out var stock))
+            return [];
+
+        return stock.Values.OrderBy(item => item.StoreSlot).ToArray();
+    }
+
     private static AuthoritativeItemState ParseItemState(TsvRow row)
     {
         return AuthoritativeItemState.Empty with {

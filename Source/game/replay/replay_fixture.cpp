@@ -72,6 +72,8 @@ private:
 			return ParseUnsigned(fixture_.tickRateHz);
 		if (key == "rng_seed")
 			return ParseUnsigned(fixture_.rngSeed);
+		if (key == "content_manifest")
+			return ParseContentManifest();
 		if (key == "initial_state")
 			return ParseInitialState();
 		if (key == "legacy_store_state")
@@ -81,6 +83,47 @@ private:
 		if (key == "checkpoints")
 			return ParseCheckpoints();
 		return SkipValue();
+	}
+
+	bool ParseContentManifest()
+	{
+		if (position_ >= input_.size())
+			return Fail("expected content manifest");
+		if (input_[position_] == '[')
+			return ParseContentManifestPacks();
+		if (input_[position_] != '{')
+			return Fail("expected content manifest object or pack array");
+		return ParseObject([this](std::string_view key) {
+			if (key == "id")
+				return ParseString(fixture_.contentManifest.id);
+			if (key == "version")
+				return ParseString(fixture_.contentManifest.version);
+			if (key == "sha256")
+				return ParseString(fixture_.contentManifest.sha256);
+			return SkipValue();
+		});
+	}
+
+	bool ParseContentManifestPacks()
+	{
+		if (!Consume('['))
+			return Fail("expected content manifest pack array");
+		fixture_.contentManifest.packs.clear();
+		SkipWhitespace();
+		if (Consume(']'))
+			return true;
+		while (true) {
+			std::string pack;
+			if (!ParseString(pack))
+				return false;
+			fixture_.contentManifest.packs.push_back(std::move(pack));
+			SkipWhitespace();
+			if (Consume(']'))
+				return true;
+			if (!Consume(','))
+				return Fail("expected comma or closing bracket");
+			SkipWhitespace();
+		}
 	}
 
 	bool ParseInitialState()
@@ -172,7 +215,20 @@ private:
 			return ParseUnsigned(command.order.serverReceiptSequence);
 		if (key == "kind")
 			return ParseString(command.kind);
+		if (key == "payload")
+			return ParseCommandPayload(command);
 		return SkipValue();
+	}
+
+	bool ParseCommandPayload(ReplayFixtureCommand &command)
+	{
+		return ParseObject([this, &command](std::string_view key) {
+			if (key == "store_id")
+				return ParseUnsigned(command.storeId);
+			if (key == "store_slot" || key == "item_index")
+				return ParseUnsigned(command.storeSlot);
+			return SkipValue();
+		});
 	}
 
 	bool ParseCheckpoints()
@@ -183,18 +239,18 @@ private:
 		if (Consume(']'))
 			return true;
 		while (true) {
-			uint64_t tick = 0;
-			std::string stateHash;
-			if (!ParseObject([this, &tick, &stateHash](std::string_view key) {
+			ReplayFixtureCheckpoint checkpoint;
+			if (!ParseObject([this, &checkpoint](std::string_view key) {
 				if (key == "tick")
-					return ParseUnsigned(tick);
+					return ParseUnsigned(checkpoint.tick);
 				if (key == "state_sha256")
-					return ParseString(stateHash);
+					return ParseString(checkpoint.stateSha256);
 				return SkipValue();
 			}))
 				return false;
-			if (tick == 0)
-				fixture_.initialStateSha256 = std::move(stateHash);
+			if (checkpoint.tick == 0)
+				fixture_.initialStateSha256 = checkpoint.stateSha256;
+			fixture_.checkpoints.push_back(std::move(checkpoint));
 			SkipWhitespace();
 			if (Consume(']'))
 				return true;

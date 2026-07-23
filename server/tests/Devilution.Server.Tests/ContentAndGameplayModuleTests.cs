@@ -22,14 +22,18 @@ public sealed class ContentAndGameplayModuleTests
     }
 
     [Fact]
-    public void ContentManifestHashIncludesOrderedPackAndOverlayContent()
+    public void ContentManifestHashMatchesNativeGoldenVectors()
     {
-        var firstTable = TsvTable.Parse("items.tsv", "id\tvalue\na\t1\n");
-        var secondTable = TsvTable.Parse("items.tsv", "id\tvalue\na\t2\n");
-        var first = new ContentManifest("base", "1", [new ContentPack("base", "1", [firstTable]), new ContentPack("mod", "1", [secondTable])]);
-        var reordered = new ContentManifest("base", "1", [new ContentPack("mod", "1", [secondTable]), new ContentPack("base", "1", [firstTable])]);
+        var items = TsvTable.Parse("items.tsv", "id\tname\nshort-sword\tShort Sword\nbuckler\tBuckler\n");
+        var monsters = TsvTable.Parse("monsters.tsv", "id\tname\ngoat\tGoatman\n");
+        var baseline = new ContentManifest("baseline", "1", [new ContentPack("core", "1", [items]), new ContentPack("expansion", "2", [monsters])]);
+        var reordered = new ContentManifest("baseline", "1", [new ContentPack("expansion", "2", [monsters]), new ContentPack("core", "1", [items])]);
+        var changedItems = TsvTable.Parse("items.tsv", "id\tname\nshort-sword\tShort Sword\nbuckler\tTower Shield\n");
+        var changed = new ContentManifest("baseline", "1", [new ContentPack("core", "1", [changedItems]), new ContentPack("expansion", "2", [monsters])]);
 
-        Assert.NotEqual(first.Sha256, reordered.Sha256);
+        Assert.Equal("40d13766d2726d36216120e9cd36e064c72fee0395a46d23abcf6d316c9ff34c", baseline.Sha256);
+        Assert.Equal("5c536ffd249de81cefd8d74bcf35b4738f129d950a89e339f521c0f1994ee35f", reordered.Sha256);
+        Assert.Equal("5d12a34dddd0fdaa81382946736e6637afc5e319e5228a89571144da2a24cf59", changed.Sha256);
     }
 
     [Fact]

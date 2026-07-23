@@ -2,6 +2,23 @@ include(Definitions)
 include(functions/devilutionx_library)
 include(functions/genex)
 
+if(DEVILUTIONX_ENABLE_AUTHORITATIVE_CLIENT)
+  protobuf_generate(
+    APPEND_PATH
+    LANGUAGE cpp
+    OUT_VAR DEVILUTIONX_PROTOCOL_GENERATED
+    EXPORT_MACRO DVL_PROTOBUF_EXPORT
+    PROTOC_EXE "${Protobuf_PROTOC_EXECUTABLE}"
+    PROTOS "${PROJECT_SOURCE_DIR}/protocol/devilution.proto")
+  foreach(DEVILUTIONX_PROTOCOL_GENERATED_FILE IN LISTS DEVILUTIONX_PROTOCOL_GENERATED)
+    if(DEVILUTIONX_PROTOCOL_GENERATED_FILE MATCHES "\\.cc$")
+      list(APPEND DEVILUTIONX_PROTOCOL_SRCS "${DEVILUTIONX_PROTOCOL_GENERATED_FILE}")
+    else()
+      list(APPEND DEVILUTIONX_PROTOCOL_HDRS "${DEVILUTIONX_PROTOCOL_GENERATED_FILE}")
+    endif()
+  endforeach()
+endif()
+
 set(libdevilutionx_SRCS
   application/fatal_error.cpp
   ui/automap.cpp
@@ -77,6 +94,7 @@ set(libdevilutionx_SRCS
   ui/menu/text_input.cpp
 
   data/game_data_manager.cpp
+  data/content_manifest.cpp
   data/mod_manager.cpp
 
   network/transport/abstract_net.cpp
@@ -931,6 +949,11 @@ add_devilutionx_object_library(libdevilutionx ${libdevilutionx_SRCS})
 target_include_directories(libdevilutionx PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 if(DEVILUTIONX_ENABLE_AUTHORITATIVE_CLIENT)
   target_include_directories(libdevilutionx PUBLIC ${CMAKE_BINARY_DIR} ${Protobuf_INCLUDE_DIRS})
+  if(WIN32 AND BUILD_TESTING)
+    target_compile_definitions(libdevilutionx PRIVATE "DVL_PROTOBUF_EXPORT=__declspec(dllexport)")
+  else()
+    target_compile_definitions(libdevilutionx PRIVATE DVL_PROTOBUF_EXPORT=)
+  endif()
 endif()
 target_include_directories(libdevilutionx PUBLIC ${PROJECT_SOURCE_DIR}/3rdParty/PicoSHA2)
 target_link_dependencies(libdevilutionx PUBLIC

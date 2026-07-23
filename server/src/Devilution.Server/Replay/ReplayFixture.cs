@@ -29,6 +29,8 @@ public sealed record ReplayFixtureCommand(
     uint StoreId,
     uint StoreSlot);
 
+public sealed record ReplayContentManifest(string Id, string Version, string Sha256);
+
 public sealed record ReplayCheckpoint(ulong Tick, string StateSha256);
 
 public sealed record ReplayFixture(
@@ -42,6 +44,12 @@ public sealed record ReplayFixture(
     IReadOnlyList<ReplayCheckpoint> Checkpoints)
 {
     public ReplayLegacyStoreState LegacyStoreState { get; init; } = new(1, 0, 3, [42]);
+
+    /** Null when loading the legacy array-shaped content_manifest metadata. */
+    public ReplayContentManifest? ContentManifest { get; init; }
+
+    /** Optional authoritative final snapshot hash for transition fixtures. */
+    public string? FinalStateSha256 { get; init; }
 
     public IReadOnlyList<ReplayFixtureCommand> OrderedCommands => Commands
         .OrderBy(command => command.TargetTick)
