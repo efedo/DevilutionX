@@ -202,5 +202,128 @@ TEST(AuthoritativeClient, RetriesTrackedCommandsWithTheOriginalSequence)
 	EXPECT_TRUE(serverObservedExpectedMessages);
 }
 
+TEST(AuthoritativeClient, ReconnectsWithSessionTokenAndResubmitsUnresolvedCommands)
+{
+	asio::io_context serverIo;
+	tcp::acceptor acceptor { serverIo, { tcp::v4(), 0 } };
+	std::atomic_bool serverObservedExpectedMessages = false;
+	std::thread server([&]() {
+		tcp::socket initialSocket(serverIo);
+		acceptor.accept(initialSocket);
+
+		auto initialHelloPayload = EnvelopeCodec::Read(initialSocket);
+		if (!initialHelloPayload.has_value() || !initialHelloPayload->has_value())
+			return;
+		protocol::Envelope initialHello;
+		if (!initialHello.ParseFromArray(initialHelloPayload->value().data(), static_cast<int>(initialHelloPayload->value().size()))
+		    || initialHello.payload_case() != protocol::Envelope::kClientHello
+		    || !initialHello.client_hello().resume_token().empty())
+			return;
+
+		protocol::Envelope initialServerHello;
+		initialServerHello.mutable_server_hello()->set_protocol_schema_version("1");
+		initialServerHello.mutable_server_hello()->set_content_manifest_hash("content");
+		initialServerHello.mutable_server_hello()->set_session_token("resume-session");
+		WriteEnvelope(initialSocket, initialServerHello);
+
+		auto firstCommandPayload = EnvelopeCodec::Read(initialSocket);
+		if (!firstCommandPayload.has_value() || !firstCommandPayload->has_value())
+			return;
+		protocol::Envelope firstCommand;
+		if (!firstCommand.ParseFromArray(firstCommandPayload->value().data(), static_cast<int>(firstCommandPayload->value().size()))
+		    || firstCommand.payload_case() != protocol::Envelope::kCommandBatch
+		    || firstCommand.command_batch().commands_size() != 1
+		    || firstCommand.command_batch().commands(0).client_sequence() != 1
+		    || firstCommand.command_batch().commands(0).move_requested().direction_x() != 1)
+			return;
+		initialSocket.close();
+
+		tcp::socket resumedSocket(serverIo);
+		acceptor.accept(resumedSocket);
+		auto resumedHelloPayload = EnvelopeCodec::Read(resumedSocket);
+		if (!resumedHelloPayload.has_value() || !resumedHelloPayload->has_value())
+			return;
+		protocol::Envelope resumedHello;
+		if (!resumedHello.ParseFromArray(resumedHelloPayload->value().data(), static_cast<int>(resumedHelloPayload->value().size()))
+		    || resumedHello.payload_case() != protocol::Envelope::kClientHello
+		    || resumedHello.client_hello().resume_token() != "resume-session")
+			return;
+
+		protocol::Envelope resumedServerHello;
+		resumedServerHello.mutable_server_hello()->set_protocol_schema_version("1");
+		resumedServerHello.mutable_server_hello()->set_content_manifest_hash("content");
+		resumedServerHello.mutable_server_hello()->set_session_token("resume-session");
+		WriteEnvelope(resumedSocket, resumedServerHello);
+
+		protocol::Envelope resynchronizationSnapshot;
+		resynchronizationSnapshot.mutable_snapshot()->set_tick(40);
+		resynchronizationSnapshot.mutable_snapshot()->set_state_sha256("resynchronized-state");
+		WriteEnvelope(resumedSocket, resynchronizationSnapshot);
+
+		auto resentCommandsPayload = EnvelopeCodec::Read(resumedSocket);
+		if (!resentCommandsPayload.has_value() || !resentCommandsPayload->has_value())
+			return;
+		protocol::Envelope resentCommands;
+		if (!resentCommands.ParseFromArray(resentCommandsPayload->value().data(), static_cast<int>(resentCommandsPayload->value().size()))
+		    || resentCommands.payload_case() != protocol::Envelope::kCommandBatch
+		    || resentCommands.command_batch().commands_size() != 2
+		    || resentCommands.command_batch().commands(0).client_sequence() != 1
+		    || resentCommands.command_batch().commands(0).move_requested().direction_x() != 1
+		    || resentCommands.command_batch().commands(1).client_sequence() != 2
+		    || resentCommands.command_batch().commands(1).move_requested().direction_y() != -1)
+			return;
+
+		protocol::Envelope acknowledgement;
+		for (uint64_t sequence : { 1U, 2U }) {
+			auto *result = acknowledgement.mutable_command_ack()->add_results();
+			result->set_client_sequence(sequence);
+			result->set_status(protocol::COMMAND_STATUS_ACCEPTED);
+		}
+		WriteEnvelope(resumedSocket, acknowledgement);
+		serverObservedExpectedMessages = true;
+	});
+
+	AuthoritativeClient::Configuration configuration {
+		.host = "127.0.0.1",
+		.port = acceptor.local_endpoint().port(),
+		.clientBuildId = "client",
+		.protocolSchemaVersion = "1",
+		.contentManifestHash = "content",
+	};
+	auto client = AuthoritativeClient::Connect(configuration);
+	ASSERT_TRUE(client.has_value()) << client.error();
+
+	protocol::Command sentCommand;
+	sentCommand.set_requested_tick(39);
+	sentCommand.mutable_move_requested()->set_direction_x(1);
+	EXPECT_EQ((*client)->QueueCommand(sentCommand), 1U);
+	ASSERT_TRUE((*client)->SendQueuedCommands(0).has_value());
+
+	protocol::Command queuedCommand;
+	queuedCommand.set_requested_tick(40);
+	queuedCommand.mutable_move_requested()->set_direction_y(-1);
+	EXPECT_EQ((*client)->QueueCommand(queuedCommand), 2U);
+	EXPECT_EQ((*client)->PendingTrackedCommandCount(), 2U);
+
+	auto reconnect = (*client)->Reconnect(100);
+	ASSERT_TRUE(reconnect.has_value()) << reconnect.error();
+	auto snapshot = (*client)->ReadSnapshot();
+	ASSERT_TRUE(snapshot.has_value()) << snapshot.error();
+	EXPECT_EQ(snapshot->tick(), 40U);
+	EXPECT_EQ(snapshot->state_sha256(), "resynchronized-state");
+
+	auto acknowledgement = (*client)->ReceiveCommandAcknowledgement(125);
+	ASSERT_TRUE(acknowledgement.has_value()) << acknowledgement.error();
+	EXPECT_EQ(acknowledgement->results_size(), 2);
+	EXPECT_EQ((*client)->PendingTrackedCommandCount(), 0U);
+
+	protocol::Command nextCommand;
+	EXPECT_EQ((*client)->QueueCommand(nextCommand), 3U);
+
+	(*client)->Close();
+	server.join();
+	EXPECT_TRUE(serverObservedExpectedMessages);
+}
+
 } // namespace
 } // namespace devilution::authoritative

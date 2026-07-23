@@ -45,6 +45,9 @@ public:
 
 	const protocol::ServerHello &ServerHello() const noexcept { return serverHello_; }
 
+	/** Resumes the current server session and resubmits unresolved commands. */
+	tl::expected<void, std::string> Reconnect(uint64_t nowMs);
+
 	tl::expected<protocol::CommandAck, std::string> Submit(const protocol::CommandBatch &batch);
 	tl::expected<protocol::Snapshot, std::string> ReadSnapshot();
 
@@ -67,12 +70,14 @@ public:
 private:
 	AuthoritativeClient();
 
+	tl::expected<void, std::string> ConnectTransport(bool expectInitialSnapshot);
 	tl::expected<protocol::Envelope, std::string> ReadEnvelope();
 	tl::expected<void, std::string> WriteEnvelope(const protocol::Envelope &envelope);
 
 	asio::io_context ioContext_;
 	asio::ip::tcp::resolver resolver_ { ioContext_ };
 	asio::ip::tcp::socket socket_ { ioContext_ };
+	Configuration configuration_;
 	protocol::ServerHello serverHello_;
 	std::optional<protocol::Snapshot> pendingSnapshot_;
 	CommandDeliveryTracker deliveryTracker_;

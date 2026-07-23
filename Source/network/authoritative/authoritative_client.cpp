@@ -60,42 +60,64 @@ tl::expected<std::unique_ptr<AuthoritativeClient>, std::string> AuthoritativeCli
 		return tl::make_unexpected(std::string("Authoritative client configuration is incomplete."));
 
 	auto client = std::unique_ptr<AuthoritativeClient>(new AuthoritativeClient());
+	client->configuration_ = std::move(configuration);
+	if (auto result = client->ConnectTransport(client->configuration_.expectInitialSnapshot); !result.has_value())
+		return tl::make_unexpected(result.error());
+	return client;
+}
+
+tl::expected<void, std::string> AuthoritativeClient::Reconnect(uint64_t nowMs)
+{
+	Close();
+	pendingSnapshot_.reset();
+	if (auto result = ConnectTransport(true); !result.has_value())
+		return result;
+
+	for (auto &entry : pendingCommands_)
+		entry.second.sent = false;
+	return SendQueuedCommands(nowMs);
+}
+
+tl::expected<void, std::string> AuthoritativeClient::ConnectTransport(bool expectInitialSnapshot)
+{
 	asio::error_code error;
-	const auto endpoints = client->resolver_.resolve(configuration.host, std::to_string(configuration.port), error);
+	const auto endpoints = resolver_.resolve(configuration_.host, std::to_string(configuration_.port), error);
 	if (error)
 		return tl::make_unexpected("Resolving authoritative server: " + error.message());
-	asio::connect(client->socket_, endpoints, error);
+	asio::connect(socket_, endpoints, error);
 	if (error)
 		return tl::make_unexpected("Connecting to authoritative server: " + error.message());
 
 	protocol::Envelope hello;
 	auto *clientHello = hello.mutable_client_hello();
-	clientHello->set_client_build_id(configuration.clientBuildId);
-	clientHello->set_protocol_schema_version(configuration.protocolSchemaVersion);
-	clientHello->set_content_manifest_hash(configuration.contentManifestHash);
-	clientHello->set_resume_token(configuration.resumeToken);
-	if (auto result = client->WriteEnvelope(hello); !result.has_value())
+	clientHello->set_client_build_id(configuration_.clientBuildId);
+	clientHello->set_protocol_schema_version(configuration_.protocolSchemaVersion);
+	clientHello->set_content_manifest_hash(configuration_.contentManifestHash);
+	clientHello->set_resume_token(configuration_.resumeToken);
+	if (auto result = WriteEnvelope(hello); !result.has_value())
 		return tl::make_unexpected(result.error());
 
-	auto response = client->ReadEnvelope();
+	auto response = ReadEnvelope();
 	if (!response.has_value())
 		return tl::make_unexpected(response.error());
 	if (response->payload_case() != protocol::Envelope::kServerHello)
 		return tl::make_unexpected(ProtocolErrorMessage(*response));
-	if (response->server_hello().protocol_schema_version() != configuration.protocolSchemaVersion
-	    || response->server_hello().content_manifest_hash() != configuration.contentManifestHash)
+	if (response->server_hello().protocol_schema_version() != configuration_.protocolSchemaVersion
+	    || response->server_hello().content_manifest_hash() != configuration_.contentManifestHash)
 		return tl::make_unexpected(std::string("Authoritative server returned incompatible protocol or content identity."));
 
-	client->serverHello_ = response->server_hello();
-	if (configuration.expectInitialSnapshot) {
-		auto initialSnapshot = client->ReadEnvelope();
+	serverHello_ = response->server_hello();
+	if (!serverHello_.session_token().empty())
+		configuration_.resumeToken = serverHello_.session_token();
+	if (expectInitialSnapshot) {
+		auto initialSnapshot = ReadEnvelope();
 		if (!initialSnapshot.has_value())
 			return tl::make_unexpected(initialSnapshot.error());
 		if (initialSnapshot->payload_case() != protocol::Envelope::kSnapshot)
 			return tl::make_unexpected(ProtocolErrorMessage(*initialSnapshot));
-		client->pendingSnapshot_ = initialSnapshot->snapshot();
+		pendingSnapshot_ = initialSnapshot->snapshot();
 	}
-	return client;
+	return {};
 }
 
 tl::expected<protocol::CommandAck, std::string> AuthoritativeClient::Submit(const protocol::CommandBatch &batch)
