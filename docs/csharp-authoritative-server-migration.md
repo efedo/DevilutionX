@@ -144,8 +144,8 @@ The work is divided into six parallel but ordered workstreams:
 |---|---|---|---|
 | Phase 0: decisions and baseline | Mostly complete | Decisions, Lua inventory, C++ replay hashing, shared fixture format, command-delivery vector, deterministic initial replay checkpoint | Explicit mod-reload/Hellfire fixtures and full transition checkpoint parity |
 | Phase 1: C++ decoupling | Partial | `ModManager`, `GameDataManager`, typed events, Lua adapter, stable event IDs, canonical content-manifest hashing | Sound reload, declarative Hellfire metadata, debug registry, live data-manager manifest integration |
-| Phase 2: C# domain and protocol | Partial | Protobuf schema and C#/opt-in C++ generation, bounded framing, C# TCP sessions, native handshake/command/acknowledgement/snapshot client, tracker-backed sends/retries/acknowledgement resolution preserved across resume, command admission/deduplication, snapshots, state hashing, structured replay/vector loaders, matching C++/C# content-hash vectors, gameplay-module contract, fixed-point/RNG/ID primitives, reconnect ledger/entity/full-snapshot resumption | Stable ID catalogs and complete transition parity |
-| Phase 3: inventory and stores | Remote adapter started | External TSV store definitions, module-owned purchase/sale/repair/recharge/identification/movement rules, shared stock, wallet/inventory/vendor-stock snapshots, item-state projection, reconnect resynchronization, native store-stock projection, stable-slot commands, and protocol-free pending/rejection state | Runtime session lifecycle and UI application, legacy pricing/generation parity, full inventory/equipment semantics, and golden transaction parity |
+| Phase 2: C# domain and protocol | Partial | Protobuf schema and C#/opt-in C++ generation, bounded framing, C# TCP sessions, standalone C# host with a live authoritative clock, native handshake/command/acknowledgement/snapshot client, tracker-backed sends/retries/acknowledgement resolution preserved across resume, command admission/deduplication, snapshots, state hashing, structured replay/vector loaders, matching C++/C# content-hash vectors, gameplay-module contract, fixed-point/RNG/ID primitives, reconnect ledger/entity/full-snapshot resumption | Stable ID catalogs and complete transition parity |
+| Phase 3: inventory and stores | Remote adapter started | External TSV store definitions, module-owned purchase/sale/repair/recharge/identification/movement rules, shared stock, wallet/inventory/vendor-stock snapshots, item-state projection, reconnect resynchronization, native player/item projections, native server-backed session lifecycle, stable-slot and inventory commands, and protocol-free pending/rejection state | Runtime UI application, legacy pricing/generation parity, full inventory/equipment semantics, and golden transaction parity |
 | Phase 4: remaining authoritative systems | Not started | Protocol placeholders for movement, combat, spells, and events | Domain implementations and remote adapters |
 | Phase 5: Godot client | Not started | Target boundary documented | Godot project, connection, rendering, input, UI, and correction paths |
 | Phase 6: content/modules and Lua removal | Not started | Target data/domain/module layering, capability destinations, and removal gates documented | Implement replacement paths, externalize shipped content/rules, and remove Lua/sol2 |
@@ -154,7 +154,7 @@ The work is divided into six parallel but ordered workstreams:
 
 1. Extend `stores/basic-buy` through a normalized post-purchase checkpoint and
    compare the C++ legacy transition with the C# authoritative result.
-2. Add the opt-in C++ inventory/store session lifecycle and UI application using
+2. Apply the native server-backed session to the game loop and store UI using
    authoritative player and vendor-stock snapshots without changing the default
    local path.
 3. Complete legacy generation/pricing and transaction parity, including the
@@ -397,6 +397,11 @@ Implemented:
 - Native reconnect preserves tracked commands, retry timing, original client
   sequence numbers, and the negotiated resume token while accepting a complete
   resynchronization snapshot.
+- A standalone C# server host loads an external store-content pack, computes the
+  active ruleset identity, and exposes a live TCP listener with graceful
+  cancellation.
+- The C++ client has protocol-free player/item projections, reconnect-safe
+  server-backed session state, and command builders for inventory operations.
 
 Remaining before Phase 2 exit:
 
@@ -405,8 +410,8 @@ Remaining before Phase 2 exit:
   remaining tick-scheduling semantics.
 - Match the C++ TSV/content manifest identity and add stable symbolic ID
   catalogs for every protocol-visible content type.
-- Add reconnect/resynchronization and complete transition fixtures against both
-  implementations.
+- Complete transition fixtures and cross-language transition parity against
+  both implementations.
 
 ### Recommended C# Project Boundaries
 
@@ -528,7 +533,7 @@ mana-refill rule remain.
 
 ### Existing C++ Client Work
 
-1. Complete the remote-authority adapter lifecycle behind its feature flag.
+1. Apply the server-backed session lifecycle to the game loop behind its feature flag.
 2. Render inventory and store state received from the server.
 3. Convert UI actions into commands rather than direct mutations.
 4. Retain the local implementation for parity testing until the remote path passes all fixtures.
@@ -749,7 +754,7 @@ be silently evaluated against another.
 | Shipped Diablo gameplay module | `Dual test` | Match legacy store pricing/generation and move the remaining store rules |
 | Typed gameplay events | `C++ local` | Expand event coverage and replace the temporary Lua adapter |
 | Command delivery policy | `Dual test` | Preserve tracked commands and retry state across reconnects |
-| Protocol transport/server sessions | `Dual test` | Add reconnect and full snapshot resync around the initial C++ client |
+| Protocol transport/server sessions | `Dual test` | Integrate live session ownership and tick lifecycle with the gameplay loop |
 | Replay fixture infrastructure | `Dual test` | Add transition checkpoints and full C++/C# state projection parity |
 | Inventory/store authority | `Dual test` | Match legacy pricing/generation, complete placement semantics, and add C++ remote mode |
 | Remaining gameplay systems | `C++ local` | Migrate in the Phase 4 dependency order |

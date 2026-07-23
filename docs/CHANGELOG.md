@@ -89,6 +89,8 @@ All notable changes to this fork are documented below.
   state, and the server resume token across reconnects
 - Add opt-in server endpoint parsing, stable store-command construction,
   validated native vendor-stock projection, and reconnect-safe store UI state
+- Add standalone C# server host startup with external store content, live ticks,
+  native player/item projections, and server-backed inventory session commands
 
 ## 2026-06-24
 

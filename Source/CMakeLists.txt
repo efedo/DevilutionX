@@ -906,6 +906,9 @@ if(DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT)
     ${DEVILUTIONX_PROTOCOL_SRCS}
     network/authoritative/server_backed_client.cpp
     network/authoritative/server_backed_configuration.cpp
+    network/authoritative/item_snapshot.cpp
+    network/authoritative/player_snapshot.cpp
+    network/authoritative/server_backed_session.cpp
     network/authoritative/store_command.cpp
     network/authoritative/vendor_snapshot.cpp
     network/authoritative/server_backed_vendor_state.cpp)

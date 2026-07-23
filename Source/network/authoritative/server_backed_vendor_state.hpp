@@ -52,6 +52,9 @@ public:
 	/** Applies a validated snapshot and reconciles accepted purchases. */
 	[[nodiscard]] bool ApplySnapshot(ProjectedVendorSnapshot snapshot);
 
+	/** Drops the displayed vendor snapshot while preserving pending purchases. */
+	void ClearSnapshot() noexcept;
+
 	/** Applies a server result to an existing pending purchase. */
 	[[nodiscard]] bool ResolvePurchase(uint32_t storeId, uint32_t storeSlot, PurchaseResolution resolution);
 

@@ -107,6 +107,14 @@ bool ServerBackedVendorState::ApplySnapshot(ProjectedVendorSnapshot snapshot)
 	return true;
 }
 
+void ServerBackedVendorState::ClearSnapshot() noexcept
+{
+	pendingOpenStoreId_.reset();
+	snapshot_.reset();
+	itemIndexBySlot_.clear();
+	ready_ = false;
+}
+
 bool ServerBackedVendorState::ResolvePurchase(uint32_t storeId, uint32_t storeSlot, PurchaseResolution resolution)
 {
 	const auto it = pendingPurchases_.find({ storeId, storeSlot });

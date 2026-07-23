@@ -28,6 +28,17 @@ rejection, and command-delivery vector coverage.
 Snapshots now carry a deterministic hash of those authoritative fields;
 complete legacy-state parity and pricing parity remain future slices.
 
+Run the standalone server with the repository's first external store-content
+pack:
+
+```powershell
+dotnet run --project server/src/Devilution.Server/Devilution.Server.csproj
+```
+
+The default listener is `127.0.0.1:6113`. Override it with `--bind`, `--port`,
+or `--content-root`; the server prints the active content and ruleset hashes
+that clients must use during the handshake.
+
 Run the server unit tests with xUnit's native runner:
 
 ```powershell
