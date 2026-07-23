@@ -1,10 +1,10 @@
 /**
- * @file network/authoritative/store_snapshot.cpp
+ * @file network/authoritative/vendor_snapshot.cpp
  *
  * Native projection of authoritative vendor-stock snapshots.
  */
 
-#include "network/authoritative/store_snapshot.hpp"
+#include "network/authoritative/vendor_snapshot.hpp"
 
 #include <limits>
 #include <type_traits>
@@ -76,7 +76,7 @@ tl::expected<Item, std::string> ProjectItem(const protocol::StoreItemSnapshot &s
 	    || !AssignIfRepresentable(item._iMinMag, state.minimum_magic())
 	    || !AssignIfRepresentable(item._iMinDex, state.minimum_dexterity())
 	    || !AssignIfRepresentable(item._iDamAcFlags, state.hellfire_damage_armor_flags())) {
-		return tl::make_unexpected("Authoritative item state contains a value outside the native representation.");
+		return tl::make_unexpected("Server-backed item state contains a value outside the native representation.");
 	}
 	item.position = { state.position_x(), state.position_y() };
 	item._iDelFlag = state.deleted();
@@ -99,21 +99,21 @@ tl::expected<Item, std::string> ProjectItem(const protocol::StoreItemSnapshot &s
 
 } // namespace
 
-tl::expected<ProjectedStoreSnapshot, std::string> ProjectStoreSnapshot(const protocol::Snapshot &snapshot)
+tl::expected<ProjectedVendorSnapshot, std::string> ProjectVendorSnapshot(const protocol::Snapshot &snapshot)
 {
 	if (!snapshot.has_active_store())
-		return tl::make_unexpected("Authoritative snapshot has no active store.");
+		return tl::make_unexpected("Server-backed snapshot has no active vendor.");
 	if (snapshot.active_store().store_id() == 0)
-		return tl::make_unexpected("Authoritative store snapshot has an invalid store identifier.");
+		return tl::make_unexpected("Server-backed vendor snapshot has an invalid store identifier.");
 
-	ProjectedStoreSnapshot projected { .storeId = snapshot.active_store().store_id() };
+	ProjectedVendorSnapshot projected { .storeId = snapshot.active_store().store_id() };
 	std::unordered_set<uint32_t> slots;
 	projected.items.reserve(snapshot.active_store().items_size());
 	for (const protocol::StoreItemSnapshot &source : snapshot.active_store().items()) {
 		if (!slots.insert(source.store_slot()).second)
-			return tl::make_unexpected("Authoritative store snapshot contains a duplicate slot.");
+			return tl::make_unexpected("Server-backed vendor snapshot contains a duplicate slot.");
 		if (source.price() > static_cast<uint32_t>(std::numeric_limits<int>::max()))
-			return tl::make_unexpected("Authoritative store snapshot contains an unsupported price.");
+			return tl::make_unexpected("Server-backed vendor snapshot contains an unsupported price.");
 		auto item = ProjectItem(source);
 		if (!item.has_value())
 			return tl::make_unexpected(item.error());

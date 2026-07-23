@@ -3,27 +3,23 @@
 /**
  * @file network/authoritative/runtime_configuration.hpp
  *
- * Opt-in runtime configuration for the authoritative server connection.
+ * Compatibility include for the renamed server-backed configuration.
  */
 
-#include <cstdint>
-#include <string>
-#include <string_view>
-
-#include <expected.hpp>
+#include "network/authoritative/server_backed_configuration.hpp"
 
 namespace devilution::authoritative {
 
-struct RuntimeConfiguration {
-	bool enabled = false;
-	std::string host = "127.0.0.1";
-	uint16_t port = 6113;
-};
+using RuntimeConfiguration [[deprecated("Use ServerBackedRuntimeConfiguration")]] = ServerBackedRuntimeConfiguration;
 
-/** Returns the process-wide opt-in authoritative connection settings. */
-RuntimeConfiguration &GetRuntimeConfiguration();
+inline ServerBackedRuntimeConfiguration &GetRuntimeConfiguration()
+{
+	return GetServerBackedRuntimeConfiguration();
+}
 
-/** Parses a command-line endpoint and enables the authoritative connection. */
-tl::expected<RuntimeConfiguration, std::string> ParseAuthoritativeEndpoint(std::string_view endpoint);
+inline tl::expected<ServerBackedRuntimeConfiguration, std::string> ParseAuthoritativeEndpoint(std::string_view endpoint)
+{
+	return ParseServerEndpoint(endpoint);
+}
 
 } // namespace devilution::authoritative

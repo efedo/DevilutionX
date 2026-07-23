@@ -3,7 +3,7 @@
 /**
  * @file network/authoritative/store_command.hpp
  *
- * Authoritative store intent construction at the Protobuf boundary.
+ * Server-backed vendor intent construction at the Protobuf boundary.
  */
 
 #include <cstdint>

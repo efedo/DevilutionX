@@ -3,7 +3,7 @@
 include(functions/dependency_options)
 include(functions/emscripten_system_library)
 
-if(DEVILUTIONX_ENABLE_AUTHORITATIVE_CLIENT)
+if(DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT)
   find_package(Protobuf REQUIRED)
   if(NOT COMMAND protobuf_generate)
     message(FATAL_ERROR "The selected Protobuf package does not provide protobuf_generate")

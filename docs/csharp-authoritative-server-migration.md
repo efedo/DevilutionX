@@ -380,7 +380,7 @@ Implemented:
 
 - One versioned Protobuf schema with generated C# bindings.
 - Opt-in C++ Protobuf generation, bounded envelope framing, and an initial
-  C++ authoritative client for handshake, tracked command sends/retries,
+  C++ server-backed client for handshake, tracked command sends/retries,
   acknowledgement resolution, and snapshots.
 - Length-prefixed TCP envelopes, handshake validation, bounded payloads, and
   loopback integration tests.

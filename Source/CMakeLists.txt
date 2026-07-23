@@ -2,7 +2,7 @@ include(Definitions)
 include(functions/devilutionx_library)
 include(functions/genex)
 
-if(DEVILUTIONX_ENABLE_AUTHORITATIVE_CLIENT)
+if(DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT)
   protobuf_generate(
     APPEND_PATH
     LANGUAGE cpp
@@ -901,14 +901,14 @@ if(NOT NONET)
   endif()
 endif()
 
-if(DEVILUTIONX_ENABLE_AUTHORITATIVE_CLIENT)
+if(DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT)
   list(APPEND libdevilutionx_SRCS
     ${DEVILUTIONX_PROTOCOL_SRCS}
-    network/authoritative/authoritative_client.cpp
-    network/authoritative/runtime_configuration.cpp
+    network/authoritative/server_backed_client.cpp
+    network/authoritative/server_backed_configuration.cpp
     network/authoritative/store_command.cpp
-    network/authoritative/store_snapshot.cpp
-    network/authoritative/store_state.cpp)
+    network/authoritative/vendor_snapshot.cpp
+    network/authoritative/server_backed_vendor_state.cpp)
 endif()
 
 if(NOT USE_SDL1)
@@ -951,9 +951,9 @@ endif()
 
 add_devilutionx_object_library(libdevilutionx ${libdevilutionx_SRCS})
 target_include_directories(libdevilutionx PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-if(DEVILUTIONX_ENABLE_AUTHORITATIVE_CLIENT)
+if(DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT)
   target_include_directories(libdevilutionx PUBLIC ${CMAKE_BINARY_DIR} ${Protobuf_INCLUDE_DIRS})
-  target_compile_definitions(libdevilutionx PUBLIC DEVILUTIONX_ENABLE_AUTHORITATIVE_CLIENT)
+  target_compile_definitions(libdevilutionx PUBLIC DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT)
   if(WIN32 AND BUILD_TESTING)
     target_compile_definitions(libdevilutionx PRIVATE "DVL_PROTOBUF_EXPORT=__declspec(dllexport)")
   else()
@@ -1017,7 +1017,7 @@ target_link_dependencies(libdevilutionx PUBLIC
   libdevilutionx_utf8
   libdevilutionx_utils_console
 )
-if(DEVILUTIONX_ENABLE_AUTHORITATIVE_CLIENT)
+if(DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT)
   target_link_dependencies(libdevilutionx PUBLIC ${Protobuf_LIBRARIES})
 endif()
 if(NOT TARGET_PLATFORM STREQUAL "dos")

@@ -83,8 +83,8 @@
 #include "ui/movie.h"
 #include "network/protocol/multi.h"
 #include "network/protocol/network_ticks.h"
-#ifdef DEVILUTIONX_ENABLE_AUTHORITATIVE_CLIENT
-#include "network/authoritative/runtime_configuration.hpp"
+#ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
+#include "network/authoritative/server_backed_configuration.hpp"
 #endif
 #include "game/objects/objects.hpp"
 #include "persistence/options.h"
@@ -1028,7 +1028,7 @@ extern "C" void SdlLogToFile(void *userdata, int /*category*/, SDL_LogPriority p
 	PrintHelpOption("-n", _(/* TRANSLATORS: Commandline Option */ "Skip startup videos"));
 	PrintHelpOption("-f", _(/* TRANSLATORS: Commandline Option */ "Display frames per second"));
 	PrintHelpOption("--verbose", _(/* TRANSLATORS: Commandline Option */ "Enable verbose logging"));
-#ifdef DEVILUTIONX_ENABLE_AUTHORITATIVE_CLIENT
+#ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
 	PrintHelpOption("--authoritative-server <host:port>", _(/* TRANSLATORS: Commandline Option */ "Use the experimental authoritative server"));
 #endif
 #if SDL_VERSION_ATLEAST(2, 0, 0)
@@ -1166,18 +1166,18 @@ void DiabloParseFlags(int argc, char **argv)
 			gbVanilla = true;
 		} else if (arg == "--verbose") {
 			SDL_SetLogPriorities(SDL_LOG_PRIORITY_VERBOSE);
-#ifdef DEVILUTIONX_ENABLE_AUTHORITATIVE_CLIENT
+#ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
 		} else if (arg == "--authoritative-server") {
 			if (i + 1 == argc) {
 				PrintFlagRequiresArgument("--authoritative-server");
 				diablo_quit(64);
 			}
-			auto configuration = authoritative::ParseAuthoritativeEndpoint(argv[++i]);
+			auto configuration = authoritative::ParseServerEndpoint(argv[++i]);
 			if (!configuration.has_value()) {
 				PrintFlagMessage("--authoritative-server", ": " + configuration.error());
 				diablo_quit(64);
 			}
-			authoritative::GetRuntimeConfiguration() = std::move(*configuration);
+			authoritative::GetServerBackedRuntimeConfiguration() = std::move(*configuration);
 #endif
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 		} else if (arg == "--log-to-file") {

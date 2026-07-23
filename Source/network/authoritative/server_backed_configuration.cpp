@@ -1,4 +1,4 @@
-#include "network/authoritative/runtime_configuration.hpp"
+#include "network/authoritative/server_backed_configuration.hpp"
 
 #include <algorithm>
 #include <charconv>
@@ -102,13 +102,13 @@ tl::expected<uint16_t, std::string> ParsePort(std::string_view portText)
 
 } // namespace
 
-RuntimeConfiguration &GetRuntimeConfiguration()
+ServerBackedRuntimeConfiguration &GetServerBackedRuntimeConfiguration()
 {
-	static RuntimeConfiguration configuration;
+	static ServerBackedRuntimeConfiguration configuration;
 	return configuration;
 }
 
-tl::expected<RuntimeConfiguration, std::string> ParseAuthoritativeEndpoint(std::string_view endpoint)
+tl::expected<ServerBackedRuntimeConfiguration, std::string> ParseServerEndpoint(std::string_view endpoint)
 {
 	if (endpoint.empty())
 		return tl::make_unexpected(std::string("Authoritative server endpoint is empty."));
@@ -147,7 +147,7 @@ tl::expected<RuntimeConfiguration, std::string> ParseAuthoritativeEndpoint(std::
 	if (!port.has_value())
 		return tl::make_unexpected(port.error());
 
-	return RuntimeConfiguration {
+	return ServerBackedRuntimeConfiguration {
 		.enabled = true,
 		.host = std::string(host),
 		.port = *port,

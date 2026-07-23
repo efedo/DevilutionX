@@ -1,10 +1,10 @@
 /**
- * @file network/authoritative/authoritative_client.cpp
+ * @file network/authoritative/server_backed_client.cpp
  *
- * Implementation of the opt-in authoritative client.
+ * Implementation of the opt-in server-backed client.
  */
 
-#include "network/authoritative/authoritative_client.hpp"
+#include "network/authoritative/server_backed_client.hpp"
 
 #include <span>
 #include <utility>
@@ -50,23 +50,23 @@ tl::expected<CommandAckStatus, std::string> ToCommandAckStatus(protocol::Command
 
 } // namespace
 
-AuthoritativeClient::AuthoritativeClient() = default;
+ServerBackedClient::ServerBackedClient() = default;
 
-tl::expected<std::unique_ptr<AuthoritativeClient>, std::string> AuthoritativeClient::Connect(Configuration configuration)
+tl::expected<std::unique_ptr<ServerBackedClient>, std::string> ServerBackedClient::Connect(Configuration configuration)
 {
 	if (configuration.host.empty() || configuration.port == 0
 	    || configuration.clientBuildId.empty() || configuration.protocolSchemaVersion.empty()
 	    || configuration.contentManifestHash.empty())
-		return tl::make_unexpected(std::string("Authoritative client configuration is incomplete."));
+		return tl::make_unexpected(std::string("Server-backed client configuration is incomplete."));
 
-	auto client = std::unique_ptr<AuthoritativeClient>(new AuthoritativeClient());
+	auto client = std::unique_ptr<ServerBackedClient>(new ServerBackedClient());
 	client->configuration_ = std::move(configuration);
 	if (auto result = client->ConnectTransport(client->configuration_.expectInitialSnapshot); !result.has_value())
 		return tl::make_unexpected(result.error());
 	return client;
 }
 
-tl::expected<void, std::string> AuthoritativeClient::Reconnect(uint64_t nowMs)
+tl::expected<void, std::string> ServerBackedClient::Reconnect(uint64_t nowMs)
 {
 	Close();
 	pendingSnapshot_.reset();
@@ -78,7 +78,7 @@ tl::expected<void, std::string> AuthoritativeClient::Reconnect(uint64_t nowMs)
 	return SendQueuedCommands(nowMs);
 }
 
-tl::expected<void, std::string> AuthoritativeClient::ConnectTransport(bool expectInitialSnapshot)
+tl::expected<void, std::string> ServerBackedClient::ConnectTransport(bool expectInitialSnapshot)
 {
 	asio::error_code error;
 	const auto endpoints = resolver_.resolve(configuration_.host, std::to_string(configuration_.port), error);
@@ -120,7 +120,7 @@ tl::expected<void, std::string> AuthoritativeClient::ConnectTransport(bool expec
 	return {};
 }
 
-tl::expected<protocol::CommandAck, std::string> AuthoritativeClient::Submit(const protocol::CommandBatch &batch)
+tl::expected<protocol::CommandAck, std::string> ServerBackedClient::Submit(const protocol::CommandBatch &batch)
 {
 	protocol::Envelope request;
 	*request.mutable_command_batch() = batch;
@@ -135,7 +135,7 @@ tl::expected<protocol::CommandAck, std::string> AuthoritativeClient::Submit(cons
 	return response->command_ack();
 }
 
-tl::expected<protocol::Snapshot, std::string> AuthoritativeClient::ReadSnapshot()
+tl::expected<protocol::Snapshot, std::string> ServerBackedClient::ReadSnapshot()
 {
 	if (pendingSnapshot_.has_value()) {
 		protocol::Snapshot snapshot = std::move(*pendingSnapshot_);
@@ -151,7 +151,7 @@ tl::expected<protocol::Snapshot, std::string> AuthoritativeClient::ReadSnapshot(
 	return response->snapshot();
 }
 
-uint64_t AuthoritativeClient::QueueCommand(protocol::Command command)
+uint64_t ServerBackedClient::QueueCommand(protocol::Command command)
 {
 	const uint64_t sequence = deliveryTracker_.RegisterCommand();
 	command.set_client_sequence(sequence);
@@ -159,7 +159,7 @@ uint64_t AuthoritativeClient::QueueCommand(protocol::Command command)
 	return sequence;
 }
 
-tl::expected<void, std::string> AuthoritativeClient::SendQueuedCommands(uint64_t nowMs)
+tl::expected<void, std::string> ServerBackedClient::SendQueuedCommands(uint64_t nowMs)
 {
 	protocol::CommandBatch batch;
 	std::vector<uint64_t> sequences;
@@ -184,7 +184,7 @@ tl::expected<void, std::string> AuthoritativeClient::SendQueuedCommands(uint64_t
 	return {};
 }
 
-tl::expected<std::vector<uint64_t>, std::string> AuthoritativeClient::PrepareTrackedResubmissions(uint64_t nowMs)
+tl::expected<std::vector<uint64_t>, std::string> ServerBackedClient::PrepareTrackedResubmissions(uint64_t nowMs)
 {
 	const std::vector<uint64_t> sequences = deliveryTracker_.PrepareResubmissions(nowMs);
 	if (sequences.empty())
@@ -205,7 +205,7 @@ tl::expected<std::vector<uint64_t>, std::string> AuthoritativeClient::PrepareTra
 	return sequences;
 }
 
-tl::expected<protocol::CommandAck, std::string> AuthoritativeClient::ReceiveCommandAcknowledgement(uint64_t nowMs)
+tl::expected<protocol::CommandAck, std::string> ServerBackedClient::ReceiveCommandAcknowledgement(uint64_t nowMs)
 {
 	auto response = ReadEnvelope();
 	if (!response.has_value())
@@ -229,7 +229,7 @@ tl::expected<protocol::CommandAck, std::string> AuthoritativeClient::ReceiveComm
 	return response->command_ack();
 }
 
-void AuthoritativeClient::Close() noexcept
+void ServerBackedClient::Close() noexcept
 {
 	if (!socket_.is_open())
 		return;
@@ -238,12 +238,12 @@ void AuthoritativeClient::Close() noexcept
 	socket_.close(ignored);
 }
 
-AuthoritativeClient::~AuthoritativeClient()
+ServerBackedClient::~ServerBackedClient()
 {
 	Close();
 }
 
-tl::expected<protocol::Envelope, std::string> AuthoritativeClient::ReadEnvelope()
+tl::expected<protocol::Envelope, std::string> ServerBackedClient::ReadEnvelope()
 {
 	auto payload = EnvelopeCodec::Read(socket_);
 	if (!payload.has_value())
@@ -253,7 +253,7 @@ tl::expected<protocol::Envelope, std::string> AuthoritativeClient::ReadEnvelope(
 	return ParseEnvelope(payload->value());
 }
 
-tl::expected<void, std::string> AuthoritativeClient::WriteEnvelope(const protocol::Envelope &envelope)
+tl::expected<void, std::string> ServerBackedClient::WriteEnvelope(const protocol::Envelope &envelope)
 {
 	const std::string payload = envelope.SerializeAsString();
 	return EnvelopeCodec::Write(socket_, std::span<const uint8_t>(

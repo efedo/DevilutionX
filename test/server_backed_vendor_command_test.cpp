@@ -6,7 +6,7 @@
 namespace devilution::authoritative {
 namespace {
 
-TEST(AuthoritativeStoreCommand, BuildsOpenStoreIntent)
+TEST(ServerBackedVendorCommand, BuildsOpenStoreIntent)
 {
 	auto command = MakeOpenStoreCommand(4, 19);
 	ASSERT_TRUE(command.has_value()) << command.error();
@@ -16,7 +16,7 @@ TEST(AuthoritativeStoreCommand, BuildsOpenStoreIntent)
 	EXPECT_EQ(command->client_sequence(), 0U);
 }
 
-TEST(AuthoritativeStoreCommand, BuildsPurchaseIntentWithStableSlot)
+TEST(ServerBackedVendorCommand, BuildsPurchaseIntentWithStableSlot)
 {
 	auto command = MakePurchaseCommand(4, 12, 21);
 	ASSERT_TRUE(command.has_value()) << command.error();
@@ -26,7 +26,7 @@ TEST(AuthoritativeStoreCommand, BuildsPurchaseIntentWithStableSlot)
 	EXPECT_EQ(command->purchase_requested().store_slot(), 12U);
 }
 
-TEST(AuthoritativeStoreCommand, RejectsInvalidStoreIdentifier)
+TEST(ServerBackedVendorCommand, RejectsInvalidStoreIdentifier)
 {
 	EXPECT_FALSE(MakeOpenStoreCommand(0, 1).has_value());
 	EXPECT_FALSE(MakePurchaseCommand(0, 0, 1).has_value());

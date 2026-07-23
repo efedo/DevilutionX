@@ -8,7 +8,7 @@
 #include <gtest/gtest.h>
 
 #include "devilution.pb.h"
-#include "network/authoritative/authoritative_client.hpp"
+#include "network/authoritative/server_backed_client.hpp"
 #include "network/authoritative/envelope_codec.hpp"
 
 namespace devilution::authoritative {
@@ -25,7 +25,7 @@ void WriteEnvelope(tcp::socket &socket, const protocol::Envelope &envelope)
 	                .has_value());
 }
 
-TEST(AuthoritativeClient, CompletesHandshakeCommandAndSnapshotExchange)
+TEST(ServerBackedClient, CompletesHandshakeCommandAndSnapshotExchange)
 {
 	asio::io_context serverIo;
 	tcp::acceptor acceptor { serverIo, { tcp::v4(), 0 } };
@@ -82,7 +82,7 @@ TEST(AuthoritativeClient, CompletesHandshakeCommandAndSnapshotExchange)
 		serverObservedExpectedMessages = true;
 	});
 
-	AuthoritativeClient::Configuration configuration {
+	ServerBackedClient::Configuration configuration {
 		.host = "127.0.0.1",
 		.port = acceptor.local_endpoint().port(),
 		.clientBuildId = "client",
@@ -90,7 +90,7 @@ TEST(AuthoritativeClient, CompletesHandshakeCommandAndSnapshotExchange)
 		.contentManifestHash = "content",
 		.expectInitialSnapshot = true,
 	};
-	auto client = AuthoritativeClient::Connect(configuration);
+	auto client = ServerBackedClient::Connect(configuration);
 	ASSERT_TRUE(client.has_value()) << client.error();
 	ASSERT_EQ((*client)->ServerHello().session_token(), "session");
 	auto initialSnapshot = (*client)->ReadSnapshot();
@@ -118,7 +118,7 @@ TEST(AuthoritativeClient, CompletesHandshakeCommandAndSnapshotExchange)
 	EXPECT_TRUE(serverObservedExpectedMessages);
 }
 
-TEST(AuthoritativeClient, RetriesTrackedCommandsWithTheOriginalSequence)
+TEST(ServerBackedClient, RetriesTrackedCommandsWithTheOriginalSequence)
 {
 	asio::io_context serverIo;
 	tcp::acceptor acceptor { serverIo, { tcp::v4(), 0 } };
@@ -169,14 +169,14 @@ TEST(AuthoritativeClient, RetriesTrackedCommandsWithTheOriginalSequence)
 		serverObservedExpectedMessages = true;
 	});
 
-	AuthoritativeClient::Configuration configuration {
+	ServerBackedClient::Configuration configuration {
 		.host = "127.0.0.1",
 		.port = acceptor.local_endpoint().port(),
 		.clientBuildId = "client",
 		.protocolSchemaVersion = "1",
 		.contentManifestHash = "content",
 	};
-	auto client = AuthoritativeClient::Connect(configuration);
+	auto client = ServerBackedClient::Connect(configuration);
 	ASSERT_TRUE(client.has_value()) << client.error();
 
 	protocol::Command command;
@@ -202,7 +202,7 @@ TEST(AuthoritativeClient, RetriesTrackedCommandsWithTheOriginalSequence)
 	EXPECT_TRUE(serverObservedExpectedMessages);
 }
 
-TEST(AuthoritativeClient, ReconnectsWithSessionTokenAndResubmitsUnresolvedCommands)
+TEST(ServerBackedClient, ReconnectsWithSessionTokenAndResubmitsUnresolvedCommands)
 {
 	asio::io_context serverIo;
 	tcp::acceptor acceptor { serverIo, { tcp::v4(), 0 } };
@@ -283,14 +283,14 @@ TEST(AuthoritativeClient, ReconnectsWithSessionTokenAndResubmitsUnresolvedComman
 		serverObservedExpectedMessages = true;
 	});
 
-	AuthoritativeClient::Configuration configuration {
+	ServerBackedClient::Configuration configuration {
 		.host = "127.0.0.1",
 		.port = acceptor.local_endpoint().port(),
 		.clientBuildId = "client",
 		.protocolSchemaVersion = "1",
 		.contentManifestHash = "content",
 	};
-	auto client = AuthoritativeClient::Connect(configuration);
+	auto client = ServerBackedClient::Connect(configuration);
 	ASSERT_TRUE(client.has_value()) << client.error();
 
 	protocol::Command sentCommand;

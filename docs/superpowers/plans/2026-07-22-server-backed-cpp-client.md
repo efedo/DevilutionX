@@ -4,7 +4,7 @@
 
 **Goal:** Add an opt-in C++ TCP client that speaks the canonical Protobuf protocol to the C# authoritative server while leaving the legacy multiplayer transport unchanged by default.
 
-**Architecture:** Keep the new client in `Source/network/authoritative` with a small synchronous request/response API. CMake generates `devilution.proto` C++ bindings only when `DEVILUTIONX_ENABLE_AUTHORITATIVE_CLIENT=ON`; the generated files remain in the build tree. The client owns the four-byte little-endian envelope framing and exposes handshake, command-batch, acknowledgement, and snapshot operations without depending on the legacy packet types.
+**Architecture:** Keep the new client in `Source/network/authoritative` with a small synchronous request/response API. CMake generates `devilution.proto` C++ bindings only when `DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT=ON`; the generated files remain in the build tree. The client owns the four-byte little-endian envelope framing and exposes handshake, command-batch, acknowledgement, and snapshot operations without depending on the legacy packet types.
 
 **Tech Stack:** C++20, standalone Asio already vendored by the project, Protobuf C++ runtime/compiler, and the existing GTest/CMake test infrastructure.
 
@@ -31,17 +31,17 @@
 - Modify: `vcpkg.json`
 - Modify: `protocol/README.md`
 
-- [ ] Add `DEVILUTIONX_ENABLE_AUTHORITATIVE_CLIENT` defaulting to `OFF` and require Protobuf only when enabled.
+- [ ] Add `DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT` defaulting to `OFF` and require Protobuf only when enabled.
 - [ ] Generate `devilution.pb.h` and `devilution.pb.cc` from `protocol/devilution.proto` into the build tree.
 - [ ] Add a vcpkg feature that supplies the optional Protobuf dependency without changing the legacy dependency set.
 - [ ] Document the opt-in configure command and generated-binding ownership.
 
-### Task 3: Implement the opt-in authoritative client
+### Task 3: Implement the opt-in server-backed client
 
 **Files:**
-- Create: `Source/network/authoritative/authoritative_client.hpp`
-- Create: `Source/network/authoritative/authoritative_client.cpp`
-- Create: `test/authoritative_client_test.cpp`
+- Create: `Source/network/authoritative/server_backed_client.hpp`
+- Create: `Source/network/authoritative/server_backed_client.cpp`
+- Create: `test/server_backed_client_test.cpp`
 - Modify: `Source/CMakeLists.txt`
 - Modify: `CMake/Tests.cmake`
 
@@ -60,5 +60,5 @@
 
 - [ ] Mark C++ generation and the minimal client as complete, leaving gameplay adapter, full resync, and content-hash parity as remaining gates.
 - [ ] Run the default build/test configuration to prove legacy behavior is unchanged.
-- [ ] Run the opt-in authoritative-client configuration and focused GTests when Protobuf is available; record any environment limitation explicitly.
+- [ ] Run the opt-in server-backed-client configuration and focused GTests when Protobuf is available; record any environment limitation explicitly.
 

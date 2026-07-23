@@ -4,28 +4,28 @@
 
 #include <gtest/gtest.h>
 
-#include "network/authoritative/runtime_configuration.hpp"
+#include "network/authoritative/server_backed_configuration.hpp"
 
 namespace devilution::authoritative {
 namespace {
 
-TEST(AuthoritativeRuntimeConfiguration, IsDisabledByDefault)
+TEST(ServerBackedConfiguration, IsDisabledByDefault)
 {
-	const RuntimeConfiguration configuration;
+	const ServerBackedRuntimeConfiguration configuration;
 
 	EXPECT_FALSE(configuration.enabled);
 	EXPECT_EQ(configuration.host, "127.0.0.1");
 	EXPECT_EQ(configuration.port, 6113);
 }
 
-class ValidAuthoritativeEndpointTest : public testing::TestWithParam<std::tuple<std::string_view, std::string_view, uint16_t>> {
+class ValidServerEndpointTest : public testing::TestWithParam<std::tuple<std::string_view, std::string_view, uint16_t>> {
 };
 
-TEST_P(ValidAuthoritativeEndpointTest, ParsesAndEnablesConfiguration)
+TEST_P(ValidServerEndpointTest, ParsesAndEnablesConfiguration)
 {
 	const auto &[endpoint, expectedHost, expectedPort] = GetParam();
 
-	const auto configuration = ParseAuthoritativeEndpoint(endpoint);
+	const auto configuration = ParseServerEndpoint(endpoint);
 
 	ASSERT_TRUE(configuration.has_value()) << configuration.error();
 	EXPECT_TRUE(configuration->enabled);
@@ -35,7 +35,7 @@ TEST_P(ValidAuthoritativeEndpointTest, ParsesAndEnablesConfiguration)
 
 INSTANTIATE_TEST_SUITE_P(
     HostnameIPv4AndIPv6,
-    ValidAuthoritativeEndpointTest,
+    ValidServerEndpointTest,
     testing::Values(
         std::tuple { "localhost:6113", "localhost", 6113 },
         std::tuple { "server.example.com:1", "server.example.com", 1 },
@@ -46,12 +46,12 @@ INSTANTIATE_TEST_SUITE_P(
         std::tuple { "[2001:db8::1]:12345", "2001:db8::1", 12345 },
         std::tuple { "[fe80::1%3]:65535", "fe80::1%3", 65535 }));
 
-class InvalidAuthoritativeEndpointTest : public testing::TestWithParam<std::string_view> {
+class InvalidServerEndpointTest : public testing::TestWithParam<std::string_view> {
 };
 
-TEST_P(InvalidAuthoritativeEndpointTest, RejectsMalformedEndpoint)
+TEST_P(InvalidServerEndpointTest, RejectsMalformedEndpoint)
 {
-	const auto configuration = ParseAuthoritativeEndpoint(GetParam());
+	const auto configuration = ParseServerEndpoint(GetParam());
 
 	ASSERT_FALSE(configuration.has_value()) << GetParam();
 	EXPECT_FALSE(configuration.error().empty());
@@ -59,7 +59,7 @@ TEST_P(InvalidAuthoritativeEndpointTest, RejectsMalformedEndpoint)
 
 INSTANTIATE_TEST_SUITE_P(
     MissingOrInvalidComponents,
-    InvalidAuthoritativeEndpointTest,
+    InvalidServerEndpointTest,
     testing::Values(
         "",
         "localhost",

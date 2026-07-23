@@ -2,12 +2,12 @@
 
 #include <initializer_list>
 
-#include "network/authoritative/store_state.hpp"
+#include "network/authoritative/server_backed_vendor_state.hpp"
 
 namespace devilution::authoritative {
 namespace {
 
-ProjectedStoreItem StoreItem(uint32_t slot, uint32_t seed = 0, uint32_t price = 0)
+ProjectedVendorItem StoreItem(uint32_t slot, uint32_t seed = 0, uint32_t price = 0)
 {
 	return {
 		.storeSlot = slot,
@@ -16,55 +16,55 @@ ProjectedStoreItem StoreItem(uint32_t slot, uint32_t seed = 0, uint32_t price = 
 	};
 }
 
-ProjectedStoreSnapshot StoreSnapshot(uint32_t storeId, std::initializer_list<ProjectedStoreItem> items)
+ProjectedVendorSnapshot StoreSnapshot(uint32_t storeId, std::initializer_list<ProjectedVendorItem> items)
 {
 	return { .storeId = storeId, .items = items };
 }
 
-TEST(AuthoritativeStoreState, DefaultsToUnchangedLocalRouting)
+TEST(ServerBackedVendorState, DefaultsToUnchangedLocalRouting)
 {
-	AuthoritativeStoreState state;
+	ServerBackedVendorState state;
 
-	EXPECT_EQ(state.Phase(), AuthoritativeStorePhase::Disabled);
-	EXPECT_EQ(state.OpenStore(1), StoreIntentRoute::Local);
-	EXPECT_EQ(state.Purchase(1, 2), StoreIntentRoute::Local);
+	EXPECT_EQ(state.Phase(), ServerBackedVendorPhase::Disabled);
+	EXPECT_EQ(state.OpenStore(1), VendorIntentRoute::Local);
+	EXPECT_EQ(state.Purchase(1, 2), VendorIntentRoute::Local);
 	EXPECT_EQ(state.PendingPurchaseCount(), 0U);
 }
 
-TEST(AuthoritativeStoreState, EnabledDisconnectedStateBlocksRemoteIntents)
+TEST(ServerBackedVendorState, EnabledDisconnectedStateBlocksRemoteIntents)
 {
-	AuthoritativeStoreState state;
+	ServerBackedVendorState state;
 	state.SetEnabled(true);
 
-	EXPECT_EQ(state.Phase(), AuthoritativeStorePhase::Disconnected);
-	EXPECT_EQ(state.OpenStore(1), StoreIntentRoute::Blocked);
-	EXPECT_EQ(state.Purchase(1, 2), StoreIntentRoute::Blocked);
+	EXPECT_EQ(state.Phase(), ServerBackedVendorPhase::Disconnected);
+	EXPECT_EQ(state.OpenStore(1), VendorIntentRoute::Blocked);
+	EXPECT_EQ(state.Purchase(1, 2), VendorIntentRoute::Blocked);
 	EXPECT_FALSE(state.ApplySnapshot(StoreSnapshot(1, { StoreItem(2) })));
 }
 
-TEST(AuthoritativeStoreState, ConnectedOpenRemainsPendingUntilMatchingSnapshot)
+TEST(ServerBackedVendorState, ConnectedOpenRemainsPendingUntilMatchingSnapshot)
 {
-	AuthoritativeStoreState state;
+	ServerBackedVendorState state;
 	state.SetEnabled(true);
 	state.SetConnected(true);
 
-	EXPECT_EQ(state.Phase(), AuthoritativeStorePhase::AwaitingSnapshot);
-	EXPECT_EQ(state.OpenStore(7), StoreIntentRoute::Pending);
+	EXPECT_EQ(state.Phase(), ServerBackedVendorPhase::AwaitingSnapshot);
+	EXPECT_EQ(state.OpenStore(7), VendorIntentRoute::Pending);
 	EXPECT_EQ(state.PendingOpenStoreId(), 7U);
 	EXPECT_FALSE(state.ApplySnapshot(StoreSnapshot(8, { StoreItem(1) })));
-	EXPECT_EQ(state.Phase(), AuthoritativeStorePhase::AwaitingSnapshot);
+	EXPECT_EQ(state.Phase(), ServerBackedVendorPhase::AwaitingSnapshot);
 	EXPECT_EQ(state.PendingOpenStoreId(), 7U);
 
 	EXPECT_TRUE(state.ApplySnapshot(StoreSnapshot(7, { StoreItem(3, 42, 75) })));
-	EXPECT_EQ(state.Phase(), AuthoritativeStorePhase::Ready);
+	EXPECT_EQ(state.Phase(), ServerBackedVendorPhase::Ready);
 	EXPECT_FALSE(state.PendingOpenStoreId().has_value());
 	ASSERT_NE(state.FindItem(7, 3), nullptr);
 	EXPECT_EQ(state.FindItem(7, 3)->itemSeed, 42U);
 }
 
-TEST(AuthoritativeStoreState, StoreSlotsRemainStableWhenSnapshotOrderChanges)
+TEST(ServerBackedVendorState, StoreSlotsRemainStableWhenSnapshotOrderChanges)
 {
-	AuthoritativeStoreState state;
+	ServerBackedVendorState state;
 	state.SetEnabled(true);
 	state.SetConnected(true);
 	ASSERT_TRUE(state.ApplySnapshot(StoreSnapshot(4, {
@@ -83,43 +83,43 @@ TEST(AuthoritativeStoreState, StoreSlotsRemainStableWhenSnapshotOrderChanges)
 	EXPECT_EQ(state.FindItem(4, 10)->price, 21U);
 }
 
-TEST(AuthoritativeStoreState, PurchaseRequiresReadyMatchingStoreAndExistingSlot)
+TEST(ServerBackedVendorState, PurchaseRequiresReadyMatchingStoreAndExistingSlot)
 {
-	AuthoritativeStoreState state;
+	ServerBackedVendorState state;
 	state.SetEnabled(true);
 	state.SetConnected(true);
-	EXPECT_EQ(state.Purchase(5, 9), StoreIntentRoute::Blocked);
+	EXPECT_EQ(state.Purchase(5, 9), VendorIntentRoute::Blocked);
 	ASSERT_TRUE(state.ApplySnapshot(StoreSnapshot(5, { StoreItem(9) })));
 
-	EXPECT_EQ(state.Purchase(6, 9), StoreIntentRoute::Blocked);
-	EXPECT_EQ(state.Purchase(5, 8), StoreIntentRoute::Blocked);
-	EXPECT_EQ(state.Purchase(5, 9), StoreIntentRoute::Pending);
-	EXPECT_EQ(state.Purchase(5, 9), StoreIntentRoute::Blocked);
+	EXPECT_EQ(state.Purchase(6, 9), VendorIntentRoute::Blocked);
+	EXPECT_EQ(state.Purchase(5, 8), VendorIntentRoute::Blocked);
+	EXPECT_EQ(state.Purchase(5, 9), VendorIntentRoute::Pending);
+	EXPECT_EQ(state.Purchase(5, 9), VendorIntentRoute::Blocked);
 	EXPECT_TRUE(state.IsPurchasePending(5, 9));
 	EXPECT_EQ(state.PendingPurchaseCount(), 1U);
 }
 
-TEST(AuthoritativeStoreState, RejectedPurchaseImmediatelyClearsPendingState)
+TEST(ServerBackedVendorState, RejectedPurchaseImmediatelyClearsPendingState)
 {
-	AuthoritativeStoreState state;
+	ServerBackedVendorState state;
 	state.SetEnabled(true);
 	state.SetConnected(true);
 	ASSERT_TRUE(state.ApplySnapshot(StoreSnapshot(5, { StoreItem(9) })));
-	ASSERT_EQ(state.Purchase(5, 9), StoreIntentRoute::Pending);
+	ASSERT_EQ(state.Purchase(5, 9), VendorIntentRoute::Pending);
 
 	EXPECT_TRUE(state.ResolvePurchase(5, 9, PurchaseResolution::Rejected));
 	EXPECT_FALSE(state.IsPurchasePending(5, 9));
-	EXPECT_EQ(state.Purchase(5, 9), StoreIntentRoute::Pending);
+	EXPECT_EQ(state.Purchase(5, 9), VendorIntentRoute::Pending);
 	EXPECT_FALSE(state.ResolvePurchase(5, 8, PurchaseResolution::Rejected));
 }
 
-TEST(AuthoritativeStoreState, AcceptedPurchaseWaitsForSlotRemovalSnapshot)
+TEST(ServerBackedVendorState, AcceptedPurchaseWaitsForSlotRemovalSnapshot)
 {
-	AuthoritativeStoreState state;
+	ServerBackedVendorState state;
 	state.SetEnabled(true);
 	state.SetConnected(true);
 	ASSERT_TRUE(state.ApplySnapshot(StoreSnapshot(5, { StoreItem(9), StoreItem(10) })));
-	ASSERT_EQ(state.Purchase(5, 9), StoreIntentRoute::Pending);
+	ASSERT_EQ(state.Purchase(5, 9), VendorIntentRoute::Pending);
 
 	EXPECT_TRUE(state.ResolvePurchase(5, 9, PurchaseResolution::Accepted));
 	EXPECT_TRUE(state.IsPurchasePending(5, 9));
@@ -129,13 +129,13 @@ TEST(AuthoritativeStoreState, AcceptedPurchaseWaitsForSlotRemovalSnapshot)
 	EXPECT_FALSE(state.IsPurchasePending(5, 9));
 }
 
-TEST(AuthoritativeStoreState, UnacknowledgedPurchaseIsNotClearedBySnapshot)
+TEST(ServerBackedVendorState, UnacknowledgedPurchaseIsNotClearedBySnapshot)
 {
-	AuthoritativeStoreState state;
+	ServerBackedVendorState state;
 	state.SetEnabled(true);
 	state.SetConnected(true);
 	ASSERT_TRUE(state.ApplySnapshot(StoreSnapshot(5, { StoreItem(9) })));
-	ASSERT_EQ(state.Purchase(5, 9), StoreIntentRoute::Pending);
+	ASSERT_EQ(state.Purchase(5, 9), VendorIntentRoute::Pending);
 
 	ASSERT_TRUE(state.ApplySnapshot(StoreSnapshot(5, {})));
 	EXPECT_TRUE(state.IsPurchasePending(5, 9));
@@ -145,54 +145,54 @@ TEST(AuthoritativeStoreState, UnacknowledgedPurchaseIsNotClearedBySnapshot)
 	EXPECT_FALSE(state.IsPurchasePending(5, 9));
 }
 
-TEST(AuthoritativeStoreState, DisconnectPreservesPendingStateForReconnect)
+TEST(ServerBackedVendorState, DisconnectPreservesPendingStateForReconnect)
 {
-	AuthoritativeStoreState state;
+	ServerBackedVendorState state;
 	state.SetEnabled(true);
 	state.SetConnected(true);
 	ASSERT_TRUE(state.ApplySnapshot(StoreSnapshot(5, { StoreItem(9) })));
-	ASSERT_EQ(state.Purchase(5, 9), StoreIntentRoute::Pending);
+	ASSERT_EQ(state.Purchase(5, 9), VendorIntentRoute::Pending);
 	ASSERT_TRUE(state.ResolvePurchase(5, 9, PurchaseResolution::Accepted));
 
 	state.SetConnected(false);
-	EXPECT_EQ(state.Phase(), AuthoritativeStorePhase::Disconnected);
+	EXPECT_EQ(state.Phase(), ServerBackedVendorPhase::Disconnected);
 	EXPECT_TRUE(state.IsPurchasePending(5, 9));
-	EXPECT_EQ(state.Purchase(5, 9), StoreIntentRoute::Blocked);
+	EXPECT_EQ(state.Purchase(5, 9), VendorIntentRoute::Blocked);
 
 	state.SetConnected(true);
-	EXPECT_EQ(state.Phase(), AuthoritativeStorePhase::AwaitingSnapshot);
+	EXPECT_EQ(state.Phase(), ServerBackedVendorPhase::AwaitingSnapshot);
 	EXPECT_TRUE(state.IsPurchasePending(5, 9));
 	ASSERT_TRUE(state.ApplySnapshot(StoreSnapshot(5, {})));
-	EXPECT_EQ(state.Phase(), AuthoritativeStorePhase::Ready);
+	EXPECT_EQ(state.Phase(), ServerBackedVendorPhase::Ready);
 	EXPECT_FALSE(state.IsPurchasePending(5, 9));
 }
 
-TEST(AuthoritativeStoreState, InvalidSnapshotDoesNotReplaceReadyState)
+TEST(ServerBackedVendorState, InvalidSnapshotDoesNotReplaceReadyState)
 {
-	AuthoritativeStoreState state;
+	ServerBackedVendorState state;
 	state.SetEnabled(true);
 	state.SetConnected(true);
 	ASSERT_TRUE(state.ApplySnapshot(StoreSnapshot(5, { StoreItem(9, 90) })));
 
 	EXPECT_FALSE(state.ApplySnapshot(StoreSnapshot(5, { StoreItem(3), StoreItem(3) })));
-	EXPECT_EQ(state.Phase(), AuthoritativeStorePhase::Ready);
+	EXPECT_EQ(state.Phase(), ServerBackedVendorPhase::Ready);
 	ASSERT_NE(state.FindItem(5, 9), nullptr);
 	EXPECT_EQ(state.FindItem(5, 9)->itemSeed, 90U);
 	EXPECT_FALSE(state.ApplySnapshot(StoreSnapshot(0, {})));
 }
 
-TEST(AuthoritativeStoreState, DisablingReturnsToLocalRoutingAndClearsRemoteState)
+TEST(ServerBackedVendorState, DisablingReturnsToLocalRoutingAndClearsRemoteState)
 {
-	AuthoritativeStoreState state;
+	ServerBackedVendorState state;
 	state.SetEnabled(true);
 	state.SetConnected(true);
 	ASSERT_TRUE(state.ApplySnapshot(StoreSnapshot(5, { StoreItem(9) })));
-	ASSERT_EQ(state.Purchase(5, 9), StoreIntentRoute::Pending);
+	ASSERT_EQ(state.Purchase(5, 9), VendorIntentRoute::Pending);
 
 	state.SetEnabled(false);
-	EXPECT_EQ(state.Phase(), AuthoritativeStorePhase::Disabled);
-	EXPECT_EQ(state.Purchase(5, 9), StoreIntentRoute::Local);
-	EXPECT_EQ(state.OpenStore(5), StoreIntentRoute::Local);
+	EXPECT_EQ(state.Phase(), ServerBackedVendorPhase::Disabled);
+	EXPECT_EQ(state.Purchase(5, 9), VendorIntentRoute::Local);
+	EXPECT_EQ(state.OpenStore(5), VendorIntentRoute::Local);
 	EXPECT_EQ(state.PendingPurchaseCount(), 0U);
 	EXPECT_EQ(state.FindItem(5, 9), nullptr);
 }

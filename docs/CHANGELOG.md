@@ -62,6 +62,7 @@ All notable changes to this fork are documented below.
   replay checkpoint parity, fixed-point/RNG/ID primitives, and gameplay ruleset
   identity coverage
 - Add an executable JSON replay fixture baseline for player/store projection
+- Rename experimental C++ client-facing authoritative types and files to server-backed/vendor terminology with deprecated compatibility aliases
 
 - Add the initial transport-independent Protobuf protocol contract and compatibility rules
 - Add adaptive client command acknowledgement retries with duplicate and late-command outcomes
@@ -70,7 +71,7 @@ All notable changes to this fork are documented below.
 - Add bounded TCP Protobuf sessions with handshake validation and command routing
 - Add the first C# authoritative store executor with retry-safe purchases and shared stock
 - Add opt-in C++ Protobuf generation, bounded envelope framing, and a minimal
-  authoritative client covering handshake, command acknowledgement, and snapshots
+  server-backed client covering handshake, command acknowledgement, and snapshots
 - Wire the C++ command-delivery tracker into queued authoritative sends,
   adaptive resubmissions, and acknowledgement resolution
 - Fix native authoritative builds by generating Protobuf sources in the consuming
@@ -86,7 +87,7 @@ All notable changes to this fork are documented below.
   player experience tables are initialized
 - Preserve native queued and in-flight authoritative commands, adaptive retry
   state, and the server resume token across reconnects
-- Add opt-in authoritative endpoint parsing, stable store-command construction,
+- Add opt-in server endpoint parsing, stable store-command construction,
   validated native vendor-stock projection, and reconnect-safe store UI state
 
 ## 2026-06-24
