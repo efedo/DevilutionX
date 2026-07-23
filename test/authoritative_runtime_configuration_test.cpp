@@ -1,0 +1,100 @@
+#include <string>
+#include <string_view>
+#include <tuple>
+
+#include <gtest/gtest.h>
+
+#include "network/authoritative/runtime_configuration.hpp"
+
+namespace devilution::authoritative {
+namespace {
+
+TEST(AuthoritativeRuntimeConfiguration, IsDisabledByDefault)
+{
+	const RuntimeConfiguration configuration;
+
+	EXPECT_FALSE(configuration.enabled);
+	EXPECT_EQ(configuration.host, "127.0.0.1");
+	EXPECT_EQ(configuration.port, 6113);
+}
+
+class ValidAuthoritativeEndpointTest : public testing::TestWithParam<std::tuple<std::string_view, std::string_view, uint16_t>> {
+};
+
+TEST_P(ValidAuthoritativeEndpointTest, ParsesAndEnablesConfiguration)
+{
+	const auto &[endpoint, expectedHost, expectedPort] = GetParam();
+
+	const auto configuration = ParseAuthoritativeEndpoint(endpoint);
+
+	ASSERT_TRUE(configuration.has_value()) << configuration.error();
+	EXPECT_TRUE(configuration->enabled);
+	EXPECT_EQ(configuration->host, expectedHost);
+	EXPECT_EQ(configuration->port, expectedPort);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    HostnameIPv4AndIPv6,
+    ValidAuthoritativeEndpointTest,
+    testing::Values(
+        std::tuple { "localhost:6113", "localhost", 6113 },
+        std::tuple { "server.example.com:1", "server.example.com", 1 },
+        std::tuple { "game-server.internal:65535", "game-server.internal", 65535 },
+        std::tuple { "127.0.0.1:6113", "127.0.0.1", 6113 },
+        std::tuple { "192.168.10.25:443", "192.168.10.25", 443 },
+        std::tuple { "[::1]:6113", "::1", 6113 },
+        std::tuple { "[2001:db8::1]:12345", "2001:db8::1", 12345 },
+        std::tuple { "[fe80::1%3]:65535", "fe80::1%3", 65535 }));
+
+class InvalidAuthoritativeEndpointTest : public testing::TestWithParam<std::string_view> {
+};
+
+TEST_P(InvalidAuthoritativeEndpointTest, RejectsMalformedEndpoint)
+{
+	const auto configuration = ParseAuthoritativeEndpoint(GetParam());
+
+	ASSERT_FALSE(configuration.has_value()) << GetParam();
+	EXPECT_FALSE(configuration.error().empty());
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    MissingOrInvalidComponents,
+    InvalidAuthoritativeEndpointTest,
+    testing::Values(
+        "",
+        "localhost",
+        "localhost:",
+        ":6113",
+        "localhost:0",
+        "localhost:65536",
+        "localhost:-1",
+        "localhost:+6113",
+        "localhost:abc",
+        "localhost:61x3",
+        "localhost:6113extra",
+        "localhost: 6113",
+        "localhost:6113 ",
+        "local host:6113",
+        "-localhost:6113",
+        "localhost-:6113",
+        "host..example:6113",
+        ".localhost:6113",
+        "localhost.:6113",
+        "127.0.0:6113",
+        "127.0.0.256:6113",
+        "127..0.1:6113",
+        "127.0.0.1:6113:7",
+        "::1:6113",
+        "[::1]",
+        "[::1]:",
+        "[::1]6113",
+        "[::1:6113",
+        "[]:6113",
+        "[not-ipv6]:6113",
+        "[2001:db8::1]]:6113",
+        "[2001:db8::1]:6113:7",
+        "[2001:db8::1]:0",
+        "[2001:db8::1]:65536"));
+
+} // namespace
+} // namespace devilution::authoritative

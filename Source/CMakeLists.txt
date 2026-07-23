@@ -904,7 +904,11 @@ endif()
 if(DEVILUTIONX_ENABLE_AUTHORITATIVE_CLIENT)
   list(APPEND libdevilutionx_SRCS
     ${DEVILUTIONX_PROTOCOL_SRCS}
-    network/authoritative/authoritative_client.cpp)
+    network/authoritative/authoritative_client.cpp
+    network/authoritative/runtime_configuration.cpp
+    network/authoritative/store_command.cpp
+    network/authoritative/store_snapshot.cpp
+    network/authoritative/store_state.cpp)
 endif()
 
 if(NOT USE_SDL1)
@@ -949,6 +953,7 @@ add_devilutionx_object_library(libdevilutionx ${libdevilutionx_SRCS})
 target_include_directories(libdevilutionx PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 if(DEVILUTIONX_ENABLE_AUTHORITATIVE_CLIENT)
   target_include_directories(libdevilutionx PUBLIC ${CMAKE_BINARY_DIR} ${Protobuf_INCLUDE_DIRS})
+  target_compile_definitions(libdevilutionx PUBLIC DEVILUTIONX_ENABLE_AUTHORITATIVE_CLIENT)
   if(WIN32 AND BUILD_TESTING)
     target_compile_definitions(libdevilutionx PRIVATE "DVL_PROTOBUF_EXPORT=__declspec(dllexport)")
   else()

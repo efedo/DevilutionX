@@ -144,8 +144,8 @@ The work is divided into six parallel but ordered workstreams:
 |---|---|---|---|
 | Phase 0: decisions and baseline | Mostly complete | Decisions, Lua inventory, C++ replay hashing, shared fixture format, command-delivery vector, deterministic initial replay checkpoint | Explicit mod-reload/Hellfire fixtures and full transition checkpoint parity |
 | Phase 1: C++ decoupling | Partial | `ModManager`, `GameDataManager`, typed events, Lua adapter, stable event IDs, canonical content-manifest hashing | Sound reload, declarative Hellfire metadata, debug registry, live data-manager manifest integration |
-| Phase 2: C# domain and protocol | Partial | Protobuf schema and C#/opt-in C++ generation, bounded framing, C# TCP sessions, initial C++ handshake/command/acknowledgement/snapshot client, tracker-backed sends/retries/acknowledgement resolution, command admission/deduplication, snapshots, state hashing, structured replay/vector loaders, matching C++/C# content-hash vectors, gameplay-module contract, fixed-point/RNG/ID primitives, reconnect ledger/entity/full-snapshot resumption | Preserve native tracked commands across reconnect, stable ID catalogs, and complete transition parity |
-| Phase 3: inventory and stores | Server side started | External TSV store definitions, module-owned purchase/sale/repair/recharge/identification/movement rules, shared stock, wallet/inventory/vendor-stock snapshots, item-state projection, reconnect resynchronization | Legacy pricing/generation parity, full inventory/equipment semantics, C++ remote adapter, golden transaction parity |
+| Phase 2: C# domain and protocol | Partial | Protobuf schema and C#/opt-in C++ generation, bounded framing, C# TCP sessions, native handshake/command/acknowledgement/snapshot client, tracker-backed sends/retries/acknowledgement resolution preserved across resume, command admission/deduplication, snapshots, state hashing, structured replay/vector loaders, matching C++/C# content-hash vectors, gameplay-module contract, fixed-point/RNG/ID primitives, reconnect ledger/entity/full-snapshot resumption | Stable ID catalogs and complete transition parity |
+| Phase 3: inventory and stores | Remote adapter started | External TSV store definitions, module-owned purchase/sale/repair/recharge/identification/movement rules, shared stock, wallet/inventory/vendor-stock snapshots, item-state projection, reconnect resynchronization, native store-stock projection, stable-slot commands, and protocol-free pending/rejection state | Runtime session lifecycle and UI application, legacy pricing/generation parity, full inventory/equipment semantics, and golden transaction parity |
 | Phase 4: remaining authoritative systems | Not started | Protocol placeholders for movement, combat, spells, and events | Domain implementations and remote adapters |
 | Phase 5: Godot client | Not started | Target boundary documented | Godot project, connection, rendering, input, UI, and correction paths |
 | Phase 6: content/modules and Lua removal | Not started | Target data/domain/module layering, capability destinations, and removal gates documented | Implement replacement paths, externalize shipped content/rules, and remove Lua/sol2 |
@@ -154,12 +154,13 @@ The work is divided into six parallel but ordered workstreams:
 
 1. Extend `stores/basic-buy` through a normalized post-purchase checkpoint and
    compare the C++ legacy transition with the C# authoritative result.
-2. Preserve native tracked commands and the resume token across reconnect, then
-   validate complete snapshot resynchronization against the existing C# host.
-3. Add the opt-in C++ inventory/store adapter using authoritative player and
-   vendor-stock snapshots without changing the default local path.
-4. Complete legacy generation/pricing and transaction parity, including the
+2. Add the opt-in C++ inventory/store session lifecycle and UI application using
+   authoritative player and vendor-stock snapshots without changing the default
+   local path.
+3. Complete legacy generation/pricing and transaction parity, including the
    Adria mana-refill rule, before switching stores to `C# remote` by default.
+4. Define shared stable content identifiers before expanding the protocol to
+   additional inventory and world systems.
 
 ## Phase 0: Decisions and Behavioral Baseline
 
@@ -393,12 +394,13 @@ Implemented:
   dependency validation, combined ruleset identity, legacy Q6 fixed-point
   arithmetic, Borland-compatible LCG behavior, and stable entity allocation.
 - Exact initial `stores/basic-buy` parity with the deterministic C++ projection.
+- Native reconnect preserves tracked commands, retry timing, original client
+  sequence numbers, and the negotiated resume token while accepting a complete
+  resynchronization snapshot.
 
 Remaining before Phase 2 exit:
 
-- Preserve `CommandDeliveryTracker` state across reconnects and validate a
-  complete snapshot resynchronization after resume.
-- Define stable session/player/level/item IDs and reconnect/resynchronization.
+- Define stable session/player/level/item IDs.
 - Add fixed-point/RNG golden vectors from the C++ implementation and port
   remaining tick-scheduling semantics.
 - Match the C++ TSV/content manifest identity and add stable symbolic ID
@@ -497,9 +499,13 @@ rules, and snapshots for baseline player resources, attributes, equipment
 slots, inventory layout, and legacy item fields. It rejects invalid,
 disallowed, or unaffordable transactions and sends updated snapshots over TCP.
 
-This subsystem remains `Dual test`, not `C# remote`: legacy store generation,
-pricing parity, complete inventory placement/equipment semantics, Adria's
-mana-refill rule, and the C++ remote-authority adapter are not implemented.
+This subsystem remains `Dual test`, not `C# remote`: the opt-in C++ adapter now
+parses an explicit endpoint, constructs stable-slot store commands, projects
+validated vendor stock into native items, and tracks pending/rejected intent
+state without exposing Protobuf types to the UI. Runtime session ownership,
+game-loop polling, visual-store application, legacy store generation/pricing
+parity, complete inventory placement/equipment semantics, and Adria's
+mana-refill rule remain.
 
 ### Server Work
 
@@ -522,7 +528,7 @@ mana-refill rule, and the C++ remote-authority adapter are not implemented.
 
 ### Existing C++ Client Work
 
-1. Add a remote-authority adapter behind a feature flag.
+1. Complete the remote-authority adapter lifecycle behind its feature flag.
 2. Render inventory and store state received from the server.
 3. Convert UI actions into commands rather than direct mutations.
 4. Retain the local implementation for parity testing until the remote path passes all fixtures.

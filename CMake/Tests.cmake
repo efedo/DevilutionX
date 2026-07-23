@@ -64,7 +64,12 @@ if(NOT NONET AND NOT DISABLE_TCP)
   list(APPEND tests authoritative_envelope_codec_test)
 endif()
 if(DEVILUTIONX_ENABLE_AUTHORITATIVE_CLIENT)
-  list(APPEND tests authoritative_client_test)
+  list(APPEND tests
+    authoritative_client_test
+    authoritative_runtime_configuration_test
+    authoritative_store_command_test
+    authoritative_store_snapshot_test
+    authoritative_store_state_test)
 endif()
 set(standalone_tests
   content_manifest_test
@@ -108,11 +113,13 @@ foreach(test_target ${tests} ${standalone_tests} ${benchmarks})
 endforeach()
 
 if(DEVILUTIONX_ENABLE_AUTHORITATIVE_CLIENT)
-  if(WIN32)
-    target_compile_definitions(authoritative_client_test PRIVATE "DVL_PROTOBUF_EXPORT=__declspec(dllimport)")
-  else()
-    target_compile_definitions(authoritative_client_test PRIVATE DVL_PROTOBUF_EXPORT=)
-  endif()
+  foreach(authoritative_test authoritative_client_test authoritative_runtime_configuration_test authoritative_store_command_test authoritative_store_snapshot_test authoritative_store_state_test)
+    if(WIN32)
+      target_compile_definitions(${authoritative_test} PRIVATE "DVL_PROTOBUF_EXPORT=__declspec(dllimport)")
+    else()
+      target_compile_definitions(${authoritative_test} PRIVATE DVL_PROTOBUF_EXPORT=)
+    endif()
+  endforeach()
 endif()
 
 foreach(test_target ${tests} ${standalone_tests})

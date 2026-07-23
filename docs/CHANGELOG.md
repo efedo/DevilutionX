@@ -84,6 +84,10 @@ All notable changes to this fork are documented below.
   checkpoints, store command payloads, and optional final snapshot validation
 - Fix the native replay fixture test to avoid character-level validation before
   player experience tables are initialized
+- Preserve native queued and in-flight authoritative commands, adaptive retry
+  state, and the server resume token across reconnects
+- Add opt-in authoritative endpoint parsing, stable store-command construction,
+  validated native vendor-stock projection, and reconnect-safe store UI state
 
 ## 2026-06-24
 
