@@ -145,7 +145,7 @@ The work is divided into six parallel but ordered workstreams:
 | Phase 0: decisions and baseline | Mostly complete | Decisions, Lua inventory, C++ replay hashing, shared fixture format, command-delivery vector, deterministic initial replay checkpoint | Explicit mod-reload/Hellfire fixtures and full transition checkpoint parity |
 | Phase 1: C++ decoupling | Partial | `ModManager`, `GameDataManager`, typed events, Lua adapter, stable event IDs, canonical content-manifest hashing | Sound reload, declarative Hellfire metadata, debug registry, live data-manager manifest integration |
 | Phase 2: C# domain and protocol | Partial | Protobuf schema and C#/opt-in C++ generation, bounded framing, C# TCP sessions, standalone C# host with a live authoritative clock, native handshake/command/acknowledgement/snapshot client, tracker-backed sends/retries/acknowledgement resolution preserved across resume, command admission/deduplication, snapshots, state hashing, structured replay/vector loaders, matching C++/C# content-hash vectors, gameplay-module contract, fixed-point/RNG/ID primitives, reconnect ledger/entity/full-snapshot resumption | Stable ID catalogs and complete transition parity |
-| Phase 3: inventory and stores | Remote adapter started | External TSV store definitions, module-owned purchase/sale/repair/recharge/identification/movement rules, shared stock, wallet/inventory/vendor-stock snapshots, item-state projection, reconnect resynchronization, native player/item projections, native server-backed session lifecycle, stable-slot and inventory commands, and protocol-free pending/rejection state | Runtime UI application, legacy pricing/generation parity, full inventory/equipment semantics, and golden transaction parity |
+| Phase 3: inventory and stores | Remote adapter started | External TSV store definitions, module-owned purchase/sale/repair/recharge/identification/movement rules, shared stock, wallet/inventory/vendor-stock snapshots, item-state projection, reconnect resynchronization, native player/item projections, native server-backed session lifecycle, stable-slot and inventory commands, protocol-free pending/rejection state, destination-explicit legacy store UI adapter, and opt-in game/store lifecycle wiring for Smith stock | Remote purchase/player-state application, legacy pricing/generation parity, full inventory/equipment semantics, and golden transaction parity |
 | Phase 4: remaining authoritative systems | Not started | Protocol placeholders for movement, combat, spells, and events | Domain implementations and remote adapters |
 | Phase 5: Godot client | Not started | Target boundary documented | Godot project, connection, rendering, input, UI, and correction paths |
 | Phase 6: content/modules and Lua removal | Not started | Target data/domain/module layering, capability destinations, and removal gates documented | Implement replacement paths, externalize shipped content/rules, and remove Lua/sol2 |
@@ -156,7 +156,10 @@ The work is divided into six parallel but ordered workstreams:
    compare the C++ legacy transition with the C# authoritative result.
 2. Apply the native server-backed session to the game loop and store UI using
    authoritative player and vendor-stock snapshots without changing the default
-   local path.
+   local path. The opt-in runtime now owns session startup/cleanup and requests
+   the Smith stock snapshot before the legacy Smith dialog proceeds. Purchase
+   and player-state application remain blocked until their projections are
+   wired.
 3. Complete legacy generation/pricing and transaction parity, including the
    Adria mana-refill rule, before switching stores to `C# remote` by default.
 4. Define shared stable content identifiers before expanding the protocol to

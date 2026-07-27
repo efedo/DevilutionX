@@ -85,6 +85,7 @@
 #include "network/protocol/network_ticks.h"
 #ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
 #include "network/authoritative/server_backed_configuration.hpp"
+#include "network/authoritative/server_backed_runtime.hpp"
 #endif
 #include "game/objects/objects.hpp"
 #include "persistence/options.h"
@@ -207,6 +208,9 @@ void StartGame(interface_mode uMsg)
 
 void FreeGame()
 {
+#ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
+	authoritative::GetServerBackedRuntime().Stop();
+#endif
 	FreeMonsterHealthBar();
 	FreeXPBar();
 	FreeControlPan();
@@ -1030,6 +1034,7 @@ extern "C" void SdlLogToFile(void *userdata, int /*category*/, SDL_LogPriority p
 	PrintHelpOption("--verbose", _(/* TRANSLATORS: Commandline Option */ "Enable verbose logging"));
 #ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
 	PrintHelpOption("--authoritative-server <host:port>", _(/* TRANSLATORS: Commandline Option */ "Use the experimental authoritative server"));
+	PrintHelpOption("--authoritative-content-hash <sha256>", _(/* TRANSLATORS: Commandline Option */ "Content hash advertised by the experimental authoritative server"));
 #endif
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	PrintHelpOption("--log-to-file <path>", _(/* TRANSLATORS: Commandline Option */ "Log to a file instead of stderr"));
@@ -1177,7 +1182,16 @@ void DiabloParseFlags(int argc, char **argv)
 				PrintFlagMessage("--authoritative-server", ": " + configuration.error());
 				diablo_quit(64);
 			}
-			authoritative::GetServerBackedRuntimeConfiguration() = std::move(*configuration);
+			auto &runtimeConfiguration = authoritative::GetServerBackedRuntimeConfiguration();
+		const std::string contentManifestHash = std::move(runtimeConfiguration.contentManifestHash);
+		runtimeConfiguration = std::move(*configuration);
+		runtimeConfiguration.contentManifestHash = contentManifestHash;
+		} else if (arg == "--authoritative-content-hash") {
+			if (i + 1 == argc) {
+				PrintFlagRequiresArgument("--authoritative-content-hash");
+				diablo_quit(64);
+			}
+			authoritative::GetServerBackedRuntimeConfiguration().contentManifestHash = argv[++i];
 #endif
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 		} else if (arg == "--log-to-file") {
@@ -2694,6 +2708,16 @@ bool StartGame(bool bNewGame, bool bSinglePlayer)
 			gbRunGameResult = true;
 			break;
 		}
+
+#ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
+		if (auto result = authoritative::GetServerBackedRuntime().Start(authoritative::GetServerBackedRuntimeConfiguration(), CurrentStoreManager); !result.has_value()) {
+			printInConsole("Failed to start the server-backed runtime: " + result.error());
+			printNewlineInConsole();
+			NetClose();
+			gbRunGameResult = false;
+			break;
+		}
+#endif
 
 		// Save 2.8 MiB of RAM by freeing all main menu resources
 		// before starting the game.

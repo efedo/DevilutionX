@@ -18,6 +18,10 @@ struct ServerBackedRuntimeConfiguration {
 	bool enabled = false;
 	std::string host = "127.0.0.1";
 	uint16_t port = 6113;
+	std::string clientBuildId = "devilutionx-client";
+	std::string protocolSchemaVersion = "0.1.0";
+	std::string contentManifestHash;
+	std::string resumeToken;
 };
 
 /** Returns the process-wide opt-in server-backed connection settings. */

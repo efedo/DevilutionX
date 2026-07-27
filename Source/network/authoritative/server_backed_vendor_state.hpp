@@ -59,6 +59,7 @@ public:
 	[[nodiscard]] bool ResolvePurchase(uint32_t storeId, uint32_t storeSlot, PurchaseResolution resolution);
 
 	[[nodiscard]] const ProjectedVendorItem *FindItem(uint32_t storeId, uint32_t storeSlot) const noexcept;
+	[[nodiscard]] const ProjectedVendorSnapshot *Snapshot() const noexcept { return snapshot_ ? &*snapshot_ : nullptr; }
 	[[nodiscard]] bool IsPurchasePending(uint32_t storeId, uint32_t storeSlot) const noexcept;
 	[[nodiscard]] std::size_t PendingPurchaseCount() const noexcept { return pendingPurchases_.size(); }
 	[[nodiscard]] std::optional<uint32_t> PendingOpenStoreId() const noexcept { return pendingOpenStoreId_; }

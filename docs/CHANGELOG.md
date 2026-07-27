@@ -91,6 +91,10 @@ All notable changes to this fork are documented below.
   validated native vendor-stock projection, and reconnect-safe store UI state
 - Add standalone C# server host startup with external store content, live ticks,
   native player/item projections, and server-backed inventory session commands
+- Add a destination-explicit legacy store UI adapter that preserves stable
+  authoritative vendor slots while applying validated snapshots
+- Wire the opt-in server-backed runtime into game lifecycle and Smith-store
+  opening, with content identity validation and local-mode preservation
 
 ## 2026-06-24
 

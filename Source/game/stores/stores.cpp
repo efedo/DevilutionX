@@ -28,6 +28,9 @@
 #include "game/events/event_bus.hpp"
 #include "ui/minitext.h"
 #include "network/protocol/multi.h"
+#ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
+#include "network/authoritative/server_backed_runtime.hpp"
+#endif
 #include "persistence/options.h"
 #include "ui/panel/info_box.hpp"
 #include "qol/stash.h"
@@ -2650,7 +2653,6 @@ void StoreManager::StoreEnter()
 	}
 
 	PlaySFX(SfxID::MenuSelect);
-
 	if (CurrentStoreManager.currentTextLine() >= 0 && CurrentStoreManager.currentTextLine() < NumStoreLines && CurrentExtraOptionIndices[CurrentStoreManager.currentTextLine()].has_value()) {
 		size_t optIdx = *CurrentExtraOptionIndices[CurrentStoreManager.currentTextLine()];
 		if (std::optional<std::string_view> townerName = TownerNameForTalkID(CurrentStoreManager.activeStore()); townerName.has_value()) {
@@ -2665,6 +2667,16 @@ void StoreManager::StoreEnter()
 		CurrentStoreManager.activeStore() = TalkID::None;
 		return;
 	}
+
+#ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
+	if (activeStore_ == TalkID::Smith && authoritative::GetServerBackedRuntime().IsConnected()) {
+		if (auto result = authoritative::GetServerBackedRuntime().OpenSmithStore(/*requestedTick=*/0, SDL_GetTicks()); !result.has_value()) {
+			LogError("Failed to open the server-backed Smith store: {}", result.error());
+			activeStore_ = TalkID::None;
+			return;
+		}
+	}
+#endif
 
 	switch (CurrentStoreManager.activeStore()) {
 	case TalkID::Smith:

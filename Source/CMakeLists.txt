@@ -909,9 +909,11 @@ if(DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT)
     network/authoritative/item_snapshot.cpp
     network/authoritative/player_snapshot.cpp
     network/authoritative/server_backed_session.cpp
+    network/authoritative/server_backed_runtime.cpp
     network/authoritative/store_command.cpp
     network/authoritative/vendor_snapshot.cpp
-    network/authoritative/server_backed_vendor_state.cpp)
+    network/authoritative/server_backed_vendor_state.cpp
+    network/authoritative/server_backed_vendor_ui.cpp)
 endif()
 
 if(NOT USE_SDL1)

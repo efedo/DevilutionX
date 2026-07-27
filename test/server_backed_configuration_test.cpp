@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 
 #include "network/authoritative/server_backed_configuration.hpp"
+#include "network/authoritative/server_backed_runtime.hpp"
 
 namespace devilution::authoritative {
 namespace {
@@ -16,6 +17,33 @@ TEST(ServerBackedConfiguration, IsDisabledByDefault)
 	EXPECT_FALSE(configuration.enabled);
 	EXPECT_EQ(configuration.host, "127.0.0.1");
 	EXPECT_EQ(configuration.port, 6113);
+	EXPECT_EQ(configuration.clientBuildId, "devilutionx-client");
+	EXPECT_EQ(configuration.protocolSchemaVersion, "0.1.0");
+	EXPECT_TRUE(configuration.contentManifestHash.empty());
+}
+
+TEST(ServerBackedRuntime, DisabledStartPreservesLocalPath)
+{
+	StoreManager store;
+	ServerBackedRuntime runtime;
+	ServerBackedRuntimeConfiguration configuration;
+
+	auto result = runtime.Start(configuration, store);
+	ASSERT_TRUE(result.has_value()) << result.error();
+	EXPECT_FALSE(runtime.IsConnected());
+}
+
+TEST(ServerBackedRuntime, MissingContentIdentityFailsBeforeConnecting)
+{
+	StoreManager store;
+	ServerBackedRuntime runtime;
+	ServerBackedRuntimeConfiguration configuration;
+	configuration.enabled = true;
+
+	auto result = runtime.Start(configuration, store);
+	ASSERT_FALSE(result.has_value());
+	EXPECT_NE(result.error().find("content identity"), std::string::npos);
+	EXPECT_FALSE(runtime.IsConnected());
 }
 
 class ValidServerEndpointTest : public testing::TestWithParam<std::tuple<std::string_view, std::string_view, uint16_t>> {
