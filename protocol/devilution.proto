@@ -51,8 +51,10 @@ message Command {
 		SellItemRequested sell_item_requested = 15;
 		RepairItemRequested repair_item_requested = 16;
 		RechargeItemRequested recharge_item_requested = 17;
-		IdentifyItemRequested identify_item_requested = 18;
-		MoveInventoryItemRequested move_inventory_item_requested = 19;
+	IdentifyItemRequested identify_item_requested = 18;
+	MoveInventoryItemRequested move_inventory_item_requested = 19;
+	RefillManaRequested refill_mana_requested = 20;
+	MoveItemRequested move_item_requested = 21;
 	}
 }
 
@@ -83,23 +85,47 @@ message PurchaseRequested {
 
 message SellItemRequested {
 	uint32 inventory_index = 1;
+	PlayerItemReference item = 2;
 }
 
 message RepairItemRequested {
 	uint32 inventory_index = 1;
+	PlayerItemReference item = 2;
 }
 
 message RechargeItemRequested {
 	uint32 inventory_index = 1;
+	PlayerItemReference item = 2;
 }
 
 message IdentifyItemRequested {
 	uint32 inventory_index = 1;
+	PlayerItemReference item = 2;
 }
 
 message MoveInventoryItemRequested {
 	uint32 inventory_index = 1;
 	uint32 target_cell = 2;
+}
+
+message RefillManaRequested {}
+
+// Explicit source/destination transfer. Inventory destinations use slot as
+// the target grid cell; belt and equipment destinations use their slot.
+message MoveItemRequested {
+	PlayerItemReference item = 1;
+	PlayerItemReference destination = 2;
+}
+
+message PlayerItemReference {
+	PlayerItemLocation location = 1;
+	uint32 slot = 2;
+}
+
+enum PlayerItemLocation {
+	PLAYER_ITEM_LOCATION_INVENTORY = 0;
+	PLAYER_ITEM_LOCATION_BELT = 1;
+	PLAYER_ITEM_LOCATION_EQUIPMENT = 2;
 }
 
 message CommandAck {
@@ -166,6 +192,8 @@ message PlayerSnapshot {
 	PlayerAttributesSnapshot attributes = 10;
 	repeated EquippedItemSnapshot equipment = 11;
 	repeated int32 inventory_grid = 12;
+	repeated BeltItemSnapshot belt = 13;
+	int32 mana_maximum = 14;
 }
 
 message ItemSnapshot {
@@ -249,6 +277,12 @@ message AttributeSnapshot {
 }
 
 message EquippedItemSnapshot {
+	uint32 slot = 1;
+	uint32 item_seed = 2;
+	ItemStateSnapshot state = 3;
+}
+
+message BeltItemSnapshot {
 	uint32 slot = 1;
 	uint32 item_seed = 2;
 	ItemStateSnapshot state = 3;

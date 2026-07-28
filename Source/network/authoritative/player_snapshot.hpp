@@ -41,12 +41,19 @@ struct ProjectedEquippedItem {
 	Item item;
 };
 
+struct ProjectedBeltItem {
+	uint32_t slot = 0;
+	uint32_t itemSeed = 0;
+	Item item;
+};
+
 struct ProjectedPlayerSnapshot {
 	uint32_t entityId = 0;
 	int32_t positionX = 0;
 	int32_t positionY = 0;
 	int32_t life = 0;
 	int32_t mana = 0;
+	int32_t manaMaximum = 0;
 	uint32_t gold = 0;
 	uint32_t experience = 0;
 	ProjectedPlayerAttribute strength;
@@ -56,6 +63,7 @@ struct ProjectedPlayerSnapshot {
 	std::optional<uint32_t> activeStoreId;
 	std::vector<ProjectedInventoryItem> inventory;
 	std::vector<ProjectedEquippedItem> equipment;
+	std::vector<ProjectedBeltItem> belt;
 	std::vector<int32_t> inventoryGrid;
 };
 

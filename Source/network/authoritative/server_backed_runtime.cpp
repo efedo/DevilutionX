@@ -1,15 +1,27 @@
 #include "network/authoritative/server_backed_runtime.hpp"
 
+#include "network/authoritative/server_backed_player_ui.hpp"
 #include <utility>
 
 namespace devilution::authoritative {
 namespace {
 
 constexpr uint32_t SmithStoreId = 1;
+constexpr uint32_t AdriaStoreId = 10;
 
 } // namespace
 
 tl::expected<void, std::string> ServerBackedRuntime::Start(const ServerBackedRuntimeConfiguration &configuration, StoreManager &storeManager)
+{
+	return StartImpl(configuration, storeManager, nullptr);
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::Start(const ServerBackedRuntimeConfiguration &configuration, StoreManager &storeManager, Player &player)
+{
+	return StartImpl(configuration, storeManager, &player);
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::StartImpl(const ServerBackedRuntimeConfiguration &configuration, StoreManager &storeManager, Player *player)
 {
 	Stop();
 	if (!configuration.enabled)
@@ -34,6 +46,13 @@ tl::expected<void, std::string> ServerBackedRuntime::Start(const ServerBackedRun
 
 	session_ = std::move(*session);
 	vendorUiAdapter_ = std::make_unique<ServerBackedVendorUiAdapter>(storeManager);
+	player_ = player;
+	if (player_ != nullptr) {
+		if (auto result = ApplyCurrentPlayerSnapshot(); !result.has_value()) {
+			Stop();
+			return result;
+		}
+	}
 	return {};
 }
 
@@ -43,6 +62,7 @@ void ServerBackedRuntime::Stop() noexcept
 		session_->Close();
 	vendorUiAdapter_.reset();
 	session_.reset();
+	player_ = nullptr;
 }
 
 tl::expected<void, std::string> ServerBackedRuntime::OpenSmithStore(uint64_t requestedTick, uint64_t nowMs)
@@ -51,10 +71,203 @@ tl::expected<void, std::string> ServerBackedRuntime::OpenSmithStore(uint64_t req
 		return tl::make_unexpected("The server-backed runtime is not connected.");
 	if (auto result = session_->OpenVendor(SmithStoreId, requestedTick, nowMs); !result.has_value())
 		return result;
+	if (auto result = EnsureCommandAccepted(); !result.has_value())
+		return result;
 	const ProjectedVendorSnapshot *snapshot = session_->VendorState().Snapshot();
 	if (snapshot == nullptr)
 		return tl::make_unexpected("The server-backed Smith store returned no stock snapshot.");
 	return vendorUiAdapter_->Apply(*snapshot, ServerBackedVendorDestination::Smith, SmithStoreId);
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::OpenAdriaStore(uint64_t requestedTick, uint64_t nowMs)
+{
+	if (!session_)
+		return tl::make_unexpected("The server-backed runtime is not connected.");
+	if (auto result = session_->OpenVendor(AdriaStoreId, requestedTick, nowMs); !result.has_value())
+		return result;
+	return EnsureCommandAccepted();
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::PurchaseSmith(uint32_t storeSlot, uint64_t requestedTick, uint64_t nowMs)
+{
+	if (!session_ || !vendorUiAdapter_)
+		return tl::make_unexpected("The server-backed runtime is not connected.");
+	if (auto result = session_->Purchase(SmithStoreId, storeSlot, requestedTick, nowMs); !result.has_value())
+		return result;
+	if (auto result = EnsureCommandAccepted(); !result.has_value())
+		return result;
+	if (auto result = ApplyCurrentPlayerSnapshot(); !result.has_value())
+		return result;
+	const ProjectedVendorSnapshot *snapshot = session_->VendorState().Snapshot();
+	if (snapshot == nullptr)
+		return tl::make_unexpected("The server-backed Smith purchase returned no stock snapshot.");
+	return vendorUiAdapter_->Apply(*snapshot, ServerBackedVendorDestination::Smith, SmithStoreId);
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::SellItem(uint32_t inventoryIndex, uint64_t requestedTick, uint64_t nowMs)
+{
+	return SellItem({ .location = ServerBackedItemLocation::Inventory, .slot = inventoryIndex }, requestedTick, nowMs);
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::SellItem(ServerBackedItemReference item, uint64_t requestedTick, uint64_t nowMs)
+{
+	if (!session_)
+		return tl::make_unexpected("The server-backed runtime is not connected.");
+	if (auto result = session_->SellItem(item, requestedTick, nowMs); !result.has_value())
+		return result;
+	if (auto result = EnsureCommandAccepted(); !result.has_value())
+		return result;
+	return ApplyCurrentPlayerSnapshot();
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::RepairItem(uint32_t inventoryIndex, uint64_t requestedTick, uint64_t nowMs)
+{
+	return RepairItem({ .location = ServerBackedItemLocation::Inventory, .slot = inventoryIndex }, requestedTick, nowMs);
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::RepairItem(ServerBackedItemReference item, uint64_t requestedTick, uint64_t nowMs)
+{
+	if (!session_)
+		return tl::make_unexpected("The server-backed runtime is not connected.");
+	if (auto result = session_->RepairItem(item, requestedTick, nowMs); !result.has_value())
+		return result;
+	if (auto result = EnsureCommandAccepted(); !result.has_value())
+		return result;
+	return ApplyCurrentPlayerSnapshot();
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::RechargeItem(uint32_t inventoryIndex, uint64_t requestedTick, uint64_t nowMs)
+{
+	return RechargeItem({ .location = ServerBackedItemLocation::Inventory, .slot = inventoryIndex }, requestedTick, nowMs);
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::RechargeItem(ServerBackedItemReference item, uint64_t requestedTick, uint64_t nowMs)
+{
+	if (!session_)
+		return tl::make_unexpected("The server-backed runtime is not connected.");
+	if (auto result = session_->RechargeItem(item, requestedTick, nowMs); !result.has_value())
+		return result;
+	if (auto result = EnsureCommandAccepted(); !result.has_value())
+		return result;
+	return ApplyCurrentPlayerSnapshot();
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::IdentifyItem(uint32_t inventoryIndex, uint64_t requestedTick, uint64_t nowMs)
+{
+	return IdentifyItem({ .location = ServerBackedItemLocation::Inventory, .slot = inventoryIndex }, requestedTick, nowMs);
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::IdentifyItem(ServerBackedItemReference item, uint64_t requestedTick, uint64_t nowMs)
+{
+	if (!session_)
+		return tl::make_unexpected("The server-backed runtime is not connected.");
+	if (auto result = session_->IdentifyItem(item, requestedTick, nowMs); !result.has_value())
+		return result;
+	if (auto result = EnsureCommandAccepted(); !result.has_value())
+		return result;
+	return ApplyCurrentPlayerSnapshot();
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::RefillMana(uint64_t requestedTick, uint64_t nowMs)
+{
+	if (!session_)
+		return tl::make_unexpected("The server-backed runtime is not connected.");
+	if (auto result = session_->RefillMana(requestedTick, nowMs); !result.has_value())
+		return result;
+	if (auto result = EnsureCommandAccepted(); !result.has_value())
+		return result;
+	return ApplyCurrentPlayerSnapshot();
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::MoveInventoryItem(uint32_t inventoryIndex, uint32_t targetCell, uint64_t requestedTick, uint64_t nowMs)
+{
+	if (!session_)
+		return tl::make_unexpected("The server-backed runtime is not connected.");
+	if (auto result = session_->MoveInventoryItem(inventoryIndex, targetCell, requestedTick, nowMs); !result.has_value())
+		return result;
+	if (auto result = EnsureCommandAccepted(); !result.has_value())
+		return result;
+	return ApplyCurrentPlayerSnapshot();
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::MoveItem(ServerBackedItemReference item, ServerBackedItemReference destination, uint64_t requestedTick, uint64_t nowMs)
+{
+	if (!session_)
+		return tl::make_unexpected("The server-backed runtime is not connected.");
+	if (auto result = session_->MoveItem(item, destination, requestedTick, nowMs); !result.has_value())
+		return result;
+	if (auto result = EnsureCommandAccepted(); !result.has_value())
+		return result;
+	return ApplyCurrentPlayerSnapshot();
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::Poll(uint64_t nowMs)
+{
+	if (!session_)
+		return {};
+	const std::size_t pendingCommands = session_->Client().PendingTrackedCommandCount();
+	if (auto result = session_->Poll(nowMs); !result.has_value())
+		return result;
+	if (session_->Client().PendingTrackedCommandCount() == pendingCommands)
+		return {};
+	return ApplyCurrentPlayerSnapshot();
+}
+
+std::optional<uint32_t> ServerBackedRuntime::SmithStoreSlotAt(std::size_t index) const noexcept
+{
+	if (!vendorUiAdapter_)
+		return std::nullopt;
+	return vendorUiAdapter_->StoreSlotAt(index);
+}
+
+std::optional<ServerBackedItemReference> ServerBackedRuntime::PlayerItemReferenceForSeed(uint32_t itemSeed) const noexcept
+{
+	if (!session_ || itemSeed == 0)
+		return std::nullopt;
+	const ProjectedPlayerSnapshot *snapshot = session_->PlayerState().Snapshot();
+	if (snapshot == nullptr)
+		return std::nullopt;
+	for (std::size_t index = 0; index < snapshot->inventory.size(); ++index) {
+		if (snapshot->inventory[index].itemSeed == itemSeed)
+			return ServerBackedItemReference { .location = ServerBackedItemLocation::Inventory, .slot = static_cast<uint32_t>(index) };
+	}
+	for (const auto &beltItem : snapshot->belt) {
+		if (beltItem.itemSeed == itemSeed)
+			return ServerBackedItemReference { .location = ServerBackedItemLocation::Belt, .slot = beltItem.slot };
+	}
+	for (const auto &equipment : snapshot->equipment) {
+		if (equipment.itemSeed == itemSeed)
+			return ServerBackedItemReference { .location = ServerBackedItemLocation::Equipment, .slot = equipment.slot };
+	}
+	return std::nullopt;
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::ApplyCurrentPlayerSnapshot()
+{
+	if (!session_ || player_ == nullptr)
+		return {};
+	const ProjectedPlayerSnapshot *snapshot = session_->PlayerState().Snapshot();
+	if (snapshot == nullptr)
+		return tl::make_unexpected("The server-backed session has no player snapshot.");
+	return ApplyServerBackedPlayerSnapshot(*player_, *snapshot);
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::EnsureCommandAccepted() const
+{
+	if (!session_)
+		return tl::make_unexpected("The server-backed runtime is not connected.");
+	switch (session_->LastCommandResolution()) {
+	case ServerBackedSession::CommandResolution::Accepted:
+	case ServerBackedSession::CommandResolution::Duplicate:
+		return {};
+	case ServerBackedSession::CommandResolution::Rejected:
+		return tl::make_unexpected("The authoritative server rejected the store command.");
+	case ServerBackedSession::CommandResolution::Rescheduled:
+		return tl::make_unexpected("The authoritative server rescheduled the store command; it was not applied locally.");
+	case ServerBackedSession::CommandResolution::None:
+		return tl::make_unexpected("The authoritative server did not resolve the store command.");
+	}
+	return tl::make_unexpected("The authoritative server returned an unknown command status.");
 }
 
 ServerBackedRuntime &GetServerBackedRuntime()

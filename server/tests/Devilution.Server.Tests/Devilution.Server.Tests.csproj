@@ -6,6 +6,9 @@
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
     <OutputType>Exe</OutputType>
+    <!-- xUnit v3's in-process runner keeps this test project independent of the
+         machine-wide VSTest/testhost package installation. -->
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,6 +21,7 @@
 
   <ItemGroup>
     <None Include="../../../test/fixtures/replay/stores/basic-buy.json" Link="Fixtures/basic-buy.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../../test/fixtures/replay/stores/transaction-parity.json" Link="Fixtures/transaction-parity.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../../protocol/test-vectors/command-delivery-retry.json" Link="Vectors/command-delivery-retry.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

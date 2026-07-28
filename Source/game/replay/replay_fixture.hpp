@@ -41,6 +41,7 @@ struct ReplayFixtureInitialState {
 	uint32_t experience = 0;
 	int32_t life = 0;
 	int32_t mana = 0;
+	int32_t manaMaximum = 0;
 	int32_t characterClass = 0;
 	uint8_t characterLevel = 1;
 };

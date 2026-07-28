@@ -23,6 +23,7 @@ tl::expected<std::unique_ptr<ServerBackedSession>, std::string> ServerBackedSess
 
 tl::expected<void, std::string> ServerBackedSession::OpenVendor(uint32_t storeId, uint64_t requestedTick, uint64_t nowMs)
 {
+	lastCommandResolution_ = CommandResolution::None;
 	if (vendorState_.OpenStore(storeId) != VendorIntentRoute::Pending)
 		return tl::make_unexpected("The server-backed vendor is not ready to open.");
 	auto command = MakeOpenStoreCommand(storeId, requestedTick);
@@ -30,11 +31,12 @@ tl::expected<void, std::string> ServerBackedSession::OpenVendor(uint32_t storeId
 		return tl::make_unexpected(command.error());
 	const uint64_t sequence = client_->QueueCommand(std::move(*command));
 	pendingIntents_.emplace(sequence, PendingIntent { .kind = PendingIntent::Kind::OpenVendor, .storeId = storeId });
-	return Flush(nowMs);
+	return Flush(nowMs, sequence);
 }
 
 tl::expected<void, std::string> ServerBackedSession::Purchase(uint32_t storeId, uint32_t storeSlot, uint64_t requestedTick, uint64_t nowMs)
 {
+	lastCommandResolution_ = CommandResolution::None;
 	if (vendorState_.Purchase(storeId, storeSlot) != VendorIntentRoute::Pending)
 		return tl::make_unexpected("The server-backed vendor cannot accept this purchase.");
 	auto command = MakePurchaseCommand(storeId, storeSlot, requestedTick);
@@ -42,27 +44,52 @@ tl::expected<void, std::string> ServerBackedSession::Purchase(uint32_t storeId, 
 		return tl::make_unexpected(command.error());
 	const uint64_t sequence = client_->QueueCommand(std::move(*command));
 	pendingIntents_.emplace(sequence, PendingIntent { .kind = PendingIntent::Kind::Purchase, .storeId = storeId, .storeSlot = storeSlot });
-	return Flush(nowMs);
+	return Flush(nowMs, sequence);
 }
 
 tl::expected<void, std::string> ServerBackedSession::SellItem(uint32_t inventoryIndex, uint64_t requestedTick, uint64_t nowMs)
 {
-	return SubmitInventoryCommand(MakeSellItemCommand(inventoryIndex, requestedTick), nowMs);
+	return SellItem({ .location = ServerBackedItemLocation::Inventory, .slot = inventoryIndex }, requestedTick, nowMs);
+}
+
+tl::expected<void, std::string> ServerBackedSession::SellItem(ServerBackedItemReference item, uint64_t requestedTick, uint64_t nowMs)
+{
+	return SubmitInventoryCommand(MakeSellItemCommand(item, requestedTick), nowMs);
 }
 
 tl::expected<void, std::string> ServerBackedSession::RepairItem(uint32_t inventoryIndex, uint64_t requestedTick, uint64_t nowMs)
 {
-	return SubmitInventoryCommand(MakeRepairItemCommand(inventoryIndex, requestedTick), nowMs);
+	return RepairItem({ .location = ServerBackedItemLocation::Inventory, .slot = inventoryIndex }, requestedTick, nowMs);
+}
+
+tl::expected<void, std::string> ServerBackedSession::RepairItem(ServerBackedItemReference item, uint64_t requestedTick, uint64_t nowMs)
+{
+	return SubmitInventoryCommand(MakeRepairItemCommand(item, requestedTick), nowMs);
 }
 
 tl::expected<void, std::string> ServerBackedSession::RechargeItem(uint32_t inventoryIndex, uint64_t requestedTick, uint64_t nowMs)
 {
-	return SubmitInventoryCommand(MakeRechargeItemCommand(inventoryIndex, requestedTick), nowMs);
+	return RechargeItem({ .location = ServerBackedItemLocation::Inventory, .slot = inventoryIndex }, requestedTick, nowMs);
+}
+
+tl::expected<void, std::string> ServerBackedSession::RechargeItem(ServerBackedItemReference item, uint64_t requestedTick, uint64_t nowMs)
+{
+	return SubmitInventoryCommand(MakeRechargeItemCommand(item, requestedTick), nowMs);
 }
 
 tl::expected<void, std::string> ServerBackedSession::IdentifyItem(uint32_t inventoryIndex, uint64_t requestedTick, uint64_t nowMs)
 {
-	return SubmitInventoryCommand(MakeIdentifyItemCommand(inventoryIndex, requestedTick), nowMs);
+	return IdentifyItem({ .location = ServerBackedItemLocation::Inventory, .slot = inventoryIndex }, requestedTick, nowMs);
+}
+
+tl::expected<void, std::string> ServerBackedSession::IdentifyItem(ServerBackedItemReference item, uint64_t requestedTick, uint64_t nowMs)
+{
+	return SubmitInventoryCommand(MakeIdentifyItemCommand(item, requestedTick), nowMs);
+}
+
+tl::expected<void, std::string> ServerBackedSession::RefillMana(uint64_t requestedTick, uint64_t nowMs)
+{
+	return SubmitInventoryCommand(MakeRefillManaCommand(requestedTick), nowMs);
 }
 
 tl::expected<void, std::string> ServerBackedSession::MoveInventoryItem(uint32_t inventoryIndex, uint32_t targetCell, uint64_t requestedTick, uint64_t nowMs)
@@ -70,13 +97,38 @@ tl::expected<void, std::string> ServerBackedSession::MoveInventoryItem(uint32_t 
 	return SubmitInventoryCommand(MakeMoveInventoryItemCommand(inventoryIndex, targetCell, requestedTick), nowMs);
 }
 
+tl::expected<void, std::string> ServerBackedSession::MoveItem(ServerBackedItemReference item, ServerBackedItemReference destination, uint64_t requestedTick, uint64_t nowMs)
+{
+	return SubmitInventoryCommand(MakeMoveItemCommand(item, destination, requestedTick), nowMs);
+}
+
 tl::expected<void, std::string> ServerBackedSession::SubmitInventoryCommand(tl::expected<protocol::Command, std::string> command, uint64_t nowMs)
 {
+	lastCommandResolution_ = CommandResolution::None;
 	if (!command.has_value())
 		return tl::make_unexpected(command.error());
 	const uint64_t sequence = client_->QueueCommand(std::move(*command));
 	pendingIntents_.emplace(sequence, PendingIntent { .kind = PendingIntent::Kind::Inventory });
-	return Flush(nowMs);
+	return Flush(nowMs, sequence);
+}
+
+tl::expected<void, std::string> ServerBackedSession::Poll(uint64_t nowMs)
+{
+	if (client_->PendingTrackedCommandCount() == 0)
+		return {};
+	auto resubmissions = client_->PrepareTrackedResubmissions(nowMs);
+	if (!resubmissions.has_value())
+		return tl::make_unexpected(resubmissions.error());
+	if (resubmissions->empty())
+		return {};
+	auto acknowledgement = client_->ReceiveCommandAcknowledgement(nowMs);
+	if (!acknowledgement.has_value())
+		return tl::make_unexpected(acknowledgement.error());
+	ApplyAcknowledgements(*acknowledgement);
+	auto snapshot = client_->ReadSnapshot();
+	if (!snapshot.has_value())
+		return tl::make_unexpected(snapshot.error());
+	return ApplySnapshot(*snapshot);
 }
 
 tl::expected<void, std::string> ServerBackedSession::Reconnect(uint64_t nowMs)
@@ -128,7 +180,7 @@ tl::expected<void, std::string> ServerBackedSession::ApplySnapshot(const protoco
 	return {};
 }
 
-tl::expected<void, std::string> ServerBackedSession::Flush(uint64_t nowMs)
+tl::expected<void, std::string> ServerBackedSession::Flush(uint64_t nowMs, std::optional<uint64_t> focusSequence)
 {
 	if (pendingIntents_.empty())
 		return {};
@@ -137,14 +189,14 @@ tl::expected<void, std::string> ServerBackedSession::Flush(uint64_t nowMs)
 	auto acknowledgement = client_->ReceiveCommandAcknowledgement(nowMs);
 	if (!acknowledgement.has_value())
 		return tl::make_unexpected(acknowledgement.error());
-	ApplyAcknowledgements(*acknowledgement);
+	ApplyAcknowledgements(*acknowledgement, focusSequence);
 	auto snapshot = client_->ReadSnapshot();
 	if (!snapshot.has_value())
 		return tl::make_unexpected(snapshot.error());
 	return ApplySnapshot(*snapshot);
 }
 
-void ServerBackedSession::ApplyAcknowledgements(const protocol::CommandAck &acknowledgement)
+void ServerBackedSession::ApplyAcknowledgements(const protocol::CommandAck &acknowledgement, std::optional<uint64_t> focusSequence)
 {
 	for (const auto &result : acknowledgement.results()) {
 		const auto pending = pendingIntents_.find(result.client_sequence());
@@ -156,8 +208,29 @@ void ServerBackedSession::ApplyAcknowledgements(const protocol::CommandAck &ackn
 			else if (result.status() == protocol::COMMAND_STATUS_ACCEPTED || result.status() == protocol::COMMAND_STATUS_DUPLICATE)
 				(void)vendorState_.ResolvePurchase(pending->second.storeId, pending->second.storeSlot, PurchaseResolution::Accepted);
 		}
-		if (result.status() != protocol::COMMAND_STATUS_RESCHEDULED)
-			pendingIntents_.erase(pending);
+		if (!focusSequence.has_value() || *focusSequence == result.client_sequence()) {
+			switch (result.status()) {
+			case protocol::COMMAND_STATUS_ACCEPTED:
+				lastCommandResolution_ = CommandResolution::Accepted;
+				break;
+			case protocol::COMMAND_STATUS_REJECTED:
+				lastCommandResolution_ = CommandResolution::Rejected;
+				break;
+			case protocol::COMMAND_STATUS_RESCHEDULED:
+				lastCommandResolution_ = CommandResolution::Rescheduled;
+				break;
+			case protocol::COMMAND_STATUS_DUPLICATE:
+				lastCommandResolution_ = CommandResolution::Duplicate;
+				break;
+			default:
+				lastCommandResolution_ = CommandResolution::None;
+				break;
+			}
+		}
+		// The delivery tracker treats every acknowledgement status as terminal.
+		// Keep the session intent map consistent so a reconnect cannot replay a
+		// command that the server has already resolved.
+		pendingIntents_.erase(pending);
 	}
 }
 

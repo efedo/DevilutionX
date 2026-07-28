@@ -47,6 +47,8 @@ namespace devilution {
 
 StoreManager CurrentStoreManager;
 
+void WitchRefillManaEnter();
+
 std::optional<std::string_view> StoreManager::TownerNameForTalkID(TalkID s)
 {
 	switch (s) {
@@ -669,14 +671,16 @@ void StartWitch()
 	if (*GetOptions().Gameplay.visualStoreUI) {
 		AddSText(0, 14, _("Buy / Sell"), UiFlags::ColorWhite | UiFlags::AlignCenter, true);
 		AddSText(0, 16, _("Recharge staves"), UiFlags::ColorWhite | UiFlags::AlignCenter, true);
-		AddSText(0, 18, _("Leave the shack"), UiFlags::ColorWhite | UiFlags::AlignCenter, true);
-		AddSLine(4);
+		AddSText(0, 18, _("Restore mana"), UiFlags::ColorWhite | UiFlags::AlignCenter, true);
+		AddSText(0, 20, _("Leave the shack"), UiFlags::ColorWhite | UiFlags::AlignCenter, true);
+		AddSLine(5);
 	} else {
 		AddSText(0, 14, _("Buy items"), UiFlags::ColorWhite | UiFlags::AlignCenter, true);
 		AddSText(0, 16, _("Sell items"), UiFlags::ColorWhite | UiFlags::AlignCenter, true);
 		AddSText(0, 18, _("Recharge staves"), UiFlags::ColorWhite | UiFlags::AlignCenter, true);
-		AddSText(0, 20, _("Leave the shack"), UiFlags::ColorWhite | UiFlags::AlignCenter, true);
-		AddSLine(5);
+		AddSText(0, 20, _("Restore mana"), UiFlags::ColorWhite | UiFlags::AlignCenter, true);
+		AddSText(0, 22, _("Leave the shack"), UiFlags::ColorWhite | UiFlags::AlignCenter, true);
+		AddSLine(6);
 	}
 
 	CurrentStoreManager.currentItemIndex() = 20;
@@ -1518,6 +1522,9 @@ void WitchEnter()
 			CurrentStoreManager.StartStore(TalkID::WitchRecharge);
 			break;
 		case 18:
+			CurrentStoreManager.StartStore(TalkID::WitchRefillMana);
+			break;
+		case 20:
 			CurrentStoreManager.activeStore() = TalkID::None;
 			break;
 		}
@@ -1541,6 +1548,9 @@ void WitchEnter()
 		CurrentStoreManager.StartStore(TalkID::WitchRecharge);
 		break;
 	case 20:
+		CurrentStoreManager.StartStore(TalkID::WitchRefillMana);
+		break;
+	case 22:
 		CurrentStoreManager.activeStore() = TalkID::None;
 		break;
 	}
@@ -1661,6 +1671,26 @@ void WitchRechargeEnter()
 
 	CurrentStoreManager.tempItem() = CurrentStoreManager.playerItems()[idx];
 	CurrentStoreManager.StartStore(TalkID::Confirm);
+}
+
+void WitchRefillManaEnterImpl()
+{
+#ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
+	if (authoritative::GetServerBackedRuntime().IsConnected()) {
+		const auto now = SDL_GetTicks();
+		if (auto result = authoritative::GetServerBackedRuntime().OpenAdriaStore(0, now); !result.has_value()) {
+			LogError("Failed to open the server-backed Adria service: {}", result.error());
+		} else if (auto result = authoritative::GetServerBackedRuntime().RefillMana(0, now); !result.has_value()) {
+			LogError("Failed to refill mana through Adria: {}", result.error());
+		} else {
+			CurrentStoreManager.activeStore() = TalkID::None;
+			return;
+		}
+	}
+#endif
+	// The legacy client deliberately does not resurrect the removed free-refill
+	// behavior; only the authoritative server-backed service owns this action.
+	CurrentStoreManager.activeStore() = TalkID::None;
 }
 
 void BoyEnter()
@@ -1794,9 +1824,102 @@ void StorytellerIdentifyItem(Item &item)
 	CalcPlrInv(myPlayer, true);
 }
 
+#ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
+std::optional<authoritative::ServerBackedItemReference> MakeServerBackedItemReference(TalkID store, int8_t index)
+{
+	if (index >= 0)
+		return authoritative::ServerBackedItemReference { .location = authoritative::ServerBackedItemLocation::Inventory, .slot = static_cast<uint32_t>(index) };
+	if (store == TalkID::SmithSell || store == TalkID::WitchSell)
+		return authoritative::ServerBackedItemReference { .location = authoritative::ServerBackedItemLocation::Belt, .slot = static_cast<uint32_t>(-(index + 1)) };
+
+	const auto equipmentSlot = [&](int8_t negativeIndex) -> std::optional<uint32_t> {
+		switch (negativeIndex) {
+		case -1: return INVLOC_HEAD;
+		case -2: return INVLOC_CHEST;
+		case -3: return INVLOC_HAND_LEFT;
+		case -4: return INVLOC_HAND_RIGHT;
+		case -5: return INVLOC_RING_LEFT;
+		case -6: return INVLOC_RING_RIGHT;
+		case -7: return INVLOC_AMULET;
+		default: return std::nullopt;
+		}
+	};
+	const auto slot = equipmentSlot(index);
+	if (!slot.has_value())
+		return std::nullopt;
+	return authoritative::ServerBackedItemReference { .location = authoritative::ServerBackedItemLocation::Equipment, .slot = *slot };
+}
+#endif
+
 void ConfirmEnter(Item &item)
 {
 	if (CurrentStoreManager.currentTextLine() == 18) {
+#ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
+		if (authoritative::GetServerBackedRuntime().IsConnected()) {
+			const int idx = CurrentStoreManager.oldScrollPos() + ((CurrentStoreManager.oldTextLine() - PreviousScrollPos) / 4);
+			auto refresh = [] {
+				CurrentStoreManager.StartStore(CurrentStoreManager.oldActiveStore());
+			};
+			auto fail = [&](const std::string &error) {
+				LogError("Server-backed store command failed: {}", error);
+				refresh();
+			};
+			if (idx < 0 || idx >= 48) {
+				fail("The selected store item index is outside the legacy store buffer.");
+				return;
+			}
+
+			switch (CurrentStoreManager.oldActiveStore()) {
+			case TalkID::SmithBuy: {
+				const auto storeSlot = authoritative::GetServerBackedRuntime().SmithStoreSlotAt(static_cast<std::size_t>(idx));
+				if (!storeSlot.has_value()) {
+					fail("The selected Smith item has no authoritative store slot.");
+					return;
+				}
+				if (auto result = authoritative::GetServerBackedRuntime().PurchaseSmith(*storeSlot, 0, SDL_GetTicks()); !result.has_value()) {
+					fail(result.error());
+					return;
+				}
+				refresh();
+				return;
+			}
+			case TalkID::SmithSell:
+			case TalkID::WitchSell:
+			case TalkID::SmithRepair:
+			case TalkID::WitchRecharge:
+			case TalkID::StorytellerIdentify: {
+				const auto itemReference = MakeServerBackedItemReference(CurrentStoreManager.oldActiveStore(), CurrentStoreManager.playerItemIndexes()[idx]);
+				if (!itemReference.has_value()) {
+					fail("The selected item has no valid authoritative location.");
+					return;
+				}
+				tl::expected<void, std::string> result = [&] {
+					switch (CurrentStoreManager.oldActiveStore()) {
+					case TalkID::SmithSell:
+					case TalkID::WitchSell:
+						return authoritative::GetServerBackedRuntime().SellItem(*itemReference, 0, SDL_GetTicks());
+					case TalkID::SmithRepair:
+						return authoritative::GetServerBackedRuntime().RepairItem(*itemReference, 0, SDL_GetTicks());
+					case TalkID::WitchRecharge:
+						return authoritative::GetServerBackedRuntime().RechargeItem(*itemReference, 0, SDL_GetTicks());
+					case TalkID::StorytellerIdentify:
+						return authoritative::GetServerBackedRuntime().IdentifyItem(*itemReference, 0, SDL_GetTicks());
+					default:
+						return tl::expected<void, std::string> {};
+					}
+				}();
+				if (!result.has_value()) {
+					fail(result.error());
+					return;
+				}
+				refresh();
+				return;
+			}
+			default:
+				break;
+			}
+		}
+#endif
 		switch (CurrentStoreManager.oldActiveStore()) {
 		case TalkID::SmithBuy:
 			SmithBuyItem(item);
@@ -2071,6 +2194,11 @@ void DrawSelector(const Surface &out, const Rectangle &rect, std::string_view te
 
 } // namespace
 
+void WitchRefillManaEnter()
+{
+	WitchRefillManaEnterImpl();
+}
+
 bool StoreManager::StoreAutoPlace(Item &item, bool persistItem)
 {
 	Player &player = *MyPlayer;
@@ -2308,6 +2436,8 @@ void StoreManager::StartStore(TalkID s)
 	case TalkID::WitchRecharge:
 		StartWitchRecharge();
 		break;
+	case TalkID::WitchRefillMana:
+		break;
 	case TalkID::NoMoney:
 		StoreNoMoney();
 		break;
@@ -2502,6 +2632,10 @@ void StoreManager::StoreESC()
 	case TalkID::WitchRecharge:
 		CurrentStoreManager.StartStore(TalkID::Witch);
 		CurrentStoreManager.currentTextLine() = *GetOptions().Gameplay.visualStoreUI ? 16 : 18;
+		break;
+	case TalkID::WitchRefillMana:
+		CurrentStoreManager.StartStore(TalkID::Witch);
+		CurrentStoreManager.currentTextLine() = *GetOptions().Gameplay.visualStoreUI ? 18 : 20;
 		break;
 	case TalkID::HealerBuy:
 		CurrentStoreManager.StartStore(TalkID::Healer);
@@ -2705,6 +2839,9 @@ void StoreManager::StoreEnter()
 		break;
 	case TalkID::WitchRecharge:
 		WitchRechargeEnter();
+		break;
+	case TalkID::WitchRefillMana:
+		WitchRefillManaEnter();
 		break;
 	case TalkID::NoMoney:
 	case TalkID::NoRoom:

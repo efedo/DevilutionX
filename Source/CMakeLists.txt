@@ -908,6 +908,7 @@ if(DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT)
     network/authoritative/server_backed_configuration.cpp
     network/authoritative/item_snapshot.cpp
     network/authoritative/player_snapshot.cpp
+    network/authoritative/server_backed_player_ui.cpp
     network/authoritative/server_backed_session.cpp
     network/authoritative/server_backed_runtime.cpp
     network/authoritative/store_command.cpp

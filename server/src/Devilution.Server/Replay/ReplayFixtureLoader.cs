@@ -66,6 +66,7 @@ public static class ReplayFixtureLoader
             RequiredUInt(value, "experience"),
             RequiredInt(value, "life"),
             value.TryGetProperty("mana", out var mana) ? mana.GetInt32() : 0) {
+            ManaMaximum = value.TryGetProperty("mana_maximum", out var manaMaximum) ? manaMaximum.GetInt32() : 0,
             CharacterClass = value.TryGetProperty("character_class", out var characterClass) ? characterClass.GetInt32() : 0,
             CharacterLevel = value.TryGetProperty("character_level", out var characterLevel) ? characterLevel.GetByte() : (byte)1,
         };
@@ -106,9 +107,11 @@ public static class ReplayFixtureLoader
                 ? item.GetUInt32()
                 : payload.ValueKind == JsonValueKind.Object && payload.TryGetProperty("store_slot", out var slot)
                     ? slot.GetUInt32()
-                    : 0U;
+                    : payload.ValueKind == JsonValueKind.Object && payload.TryGetProperty("inventory_index", out var inventory)
+                        ? inventory.GetUInt32()
+                        : 0U;
 
-            if (kind is not ("OpenStore" or "BuyItem"))
+            if (kind is not ("OpenStore" or "BuyItem" or "SellItem" or "RefillMana"))
                 throw new InvalidDataException($"Unsupported replay command kind '{kind}'.");
 
             commands.Add(new ReplayFixtureCommand(

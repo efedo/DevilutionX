@@ -4,6 +4,8 @@ namespace Devilution.Server.Replay;
 
 public sealed record ReplayInitialState(string Player, uint Gold, uint Experience, int Life, int Mana)
 {
+    public int ManaMaximum { get; init; }
+
     public int CharacterClass { get; init; }
 
     public byte CharacterLevel { get; init; } = 1;

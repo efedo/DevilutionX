@@ -931,6 +931,15 @@ void RunGameLoop(interface_mode uMsg)
 		if (!gbRunGame)
 			break;
 
+#ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
+		if (authoritative::GetServerBackedRuntime().IsConnected()) {
+			if (auto result = authoritative::GetServerBackedRuntime().Poll(SDL_GetTicks()); !result.has_value()) {
+				LogError("Server-backed session polling failed: {}", result.error());
+				authoritative::GetServerBackedRuntime().Stop();
+			}
+		}
+#endif
+
 		bool drawGame = true;
 		bool processInput = true;
 		const bool runGameLoop = demo::IsRunning() ? demo::GetRunGameLoop(drawGame, processInput) : nthread_has_500ms_passed(&drawGame);
@@ -2710,7 +2719,7 @@ bool StartGame(bool bNewGame, bool bSinglePlayer)
 		}
 
 #ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
-		if (auto result = authoritative::GetServerBackedRuntime().Start(authoritative::GetServerBackedRuntimeConfiguration(), CurrentStoreManager); !result.has_value()) {
+		if (auto result = authoritative::GetServerBackedRuntime().Start(authoritative::GetServerBackedRuntimeConfiguration(), CurrentStoreManager, *MyPlayer); !result.has_value()) {
 			printInConsole("Failed to start the server-backed runtime: " + result.error());
 			printNewlineInConsole();
 			NetClose();

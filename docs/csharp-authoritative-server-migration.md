@@ -138,30 +138,36 @@ The work is divided into six parallel but ordered workstreams:
 | External content | Move game-specific definitions and tuning into versioned data packs |
 | C# gameplay modules and mods | Move non-declarative game rules into versioned server modules and split them from client presentation extensions |
 
-## Progress Snapshot (2026-07-22)
+## Progress Snapshot (2026-07-26)
 
 | Phase | State | Implemented | Remaining gate |
 |---|---|---|---|
 | Phase 0: decisions and baseline | Mostly complete | Decisions, Lua inventory, C++ replay hashing, shared fixture format, command-delivery vector, deterministic initial replay checkpoint | Explicit mod-reload/Hellfire fixtures and full transition checkpoint parity |
 | Phase 1: C++ decoupling | Partial | `ModManager`, `GameDataManager`, typed events, Lua adapter, stable event IDs, canonical content-manifest hashing | Sound reload, declarative Hellfire metadata, debug registry, live data-manager manifest integration |
 | Phase 2: C# domain and protocol | Partial | Protobuf schema and C#/opt-in C++ generation, bounded framing, C# TCP sessions, standalone C# host with a live authoritative clock, native handshake/command/acknowledgement/snapshot client, tracker-backed sends/retries/acknowledgement resolution preserved across resume, command admission/deduplication, snapshots, state hashing, structured replay/vector loaders, matching C++/C# content-hash vectors, gameplay-module contract, fixed-point/RNG/ID primitives, reconnect ledger/entity/full-snapshot resumption | Stable ID catalogs and complete transition parity |
-| Phase 3: inventory and stores | Remote adapter started | External TSV store definitions, module-owned purchase/sale/repair/recharge/identification/movement rules, shared stock, wallet/inventory/vendor-stock snapshots, item-state projection, reconnect resynchronization, native player/item projections, native server-backed session lifecycle, stable-slot and inventory commands, protocol-free pending/rejection state, destination-explicit legacy store UI adapter, and opt-in game/store lifecycle wiring for Smith stock | Remote purchase/player-state application, legacy pricing/generation parity, full inventory/equipment semantics, and golden transaction parity |
+| Phase 3: inventory and stores | Remote adapter started | External TSV store definitions and service pricing, module-owned purchase/sale/repair/recharge/identification/movement rules, shared stock, wallet/inventory/vendor-stock snapshots, item-state projection, reconnect resynchronization, validated native player/equipment/inventory/belt application, native server-backed session lifecycle, adaptive retry polling, stable location references, explicit inventory/belt/equipment transfer commands, protocol-free command resolution, destination-explicit legacy store UI adapter, opt-in game/store lifecycle wiring for Smith stock and visual-store transactions, Adria mana-refill UI/service, and shared per-command store checkpoints | Legacy item generation parity, equipment swaps and multi-cell placement semantics, native transition execution against the C# checkpoint hashes, and broader golden state-hash parity |
 | Phase 4: remaining authoritative systems | Not started | Protocol placeholders for movement, combat, spells, and events | Domain implementations and remote adapters |
 | Phase 5: Godot client | Not started | Target boundary documented | Godot project, connection, rendering, input, UI, and correction paths |
 | Phase 6: content/modules and Lua removal | Not started | Target data/domain/module layering, capability destinations, and removal gates documented | Implement replacement paths, externalize shipped content/rules, and remove Lua/sol2 |
 
 ### Current Critical Path
 
-1. Extend `stores/basic-buy` through a normalized post-purchase checkpoint and
-   compare the C++ legacy transition with the C# authoritative result.
+1. Extend the shared store transaction fixtures through normalized purchase,
+   sale, and mana-refill checkpoints and compare the C++ legacy transition with
+   the C# authoritative result. The C# executor now validates each command-tick
+   SHA-256 checkpoint; the native loader verifies the same checkpoint envelope,
+   while native command execution remains the next parity gate.
 2. Apply the native server-backed session to the game loop and store UI using
    authoritative player and vendor-stock snapshots without changing the default
-   local path. The opt-in runtime now owns session startup/cleanup and requests
-   the Smith stock snapshot before the legacy Smith dialog proceeds. Purchase
-   and player-state application remain blocked until their projections are
-   wired.
-3. Complete legacy generation/pricing and transaction parity, including the
-   Adria mana-refill rule, before switching stores to `C# remote` by default.
+   local path. The opt-in runtime owns session startup/cleanup, applies the
+   initial player snapshot, polls adaptive command retries, requests Smith stock,
+   and routes Smith purchase/sale/repair plus inventory, body, and belt
+   service operations through acknowledged commands. The visual store now
+   refreshes from authoritative snapshots after remote transactions.
+3. Complete legacy generation/pricing and transaction parity, including
+   external spell-aware recharge pricing and exact equipment-swap/multi-cell
+   placement semantics, before
+   switching stores to `C# remote` by default.
 4. Define shared stable content identifiers before expanding the protocol to
    additional inventory and world systems.
 
@@ -504,16 +510,19 @@ The C# server currently owns a test-only store simulation with external TSV
 definitions, shared stock, per-session wallets, open-store/purchase validation,
 retry-safe execution, module-owned sale/repair/recharge/identification/movement
 rules, and snapshots for baseline player resources, attributes, equipment
-slots, inventory layout, and legacy item fields. It rejects invalid,
+slots, inventory layout, belt contents, mana maximum, and legacy item fields.
+It rejects invalid,
 disallowed, or unaffordable transactions and sends updated snapshots over TCP.
 
 This subsystem remains `Dual test`, not `C# remote`: the opt-in C++ adapter now
-parses an explicit endpoint, constructs stable-slot store commands, projects
-validated vendor stock into native items, and tracks pending/rejected intent
-state without exposing Protobuf types to the UI. Runtime session ownership,
-game-loop polling, visual-store application, legacy store generation/pricing
-parity, complete inventory placement/equipment semantics, and Adria's
-mana-refill rule remain.
+parses an explicit endpoint, constructs stable-slot store commands, applies
+validated player and vendor snapshots into native state, polls adaptive retries,
+projects validated vendor stock into native items, and tracks accepted/rejected
+command resolution state without exposing Protobuf types to the UI. Runtime
+session ownership and game-loop polling are implemented; visual-store
+application routes Smith transactions through the server, body/belt locations
+use explicit references, and Adria's refill rule is implemented in the Diablo
+module. Exact generation parity and spell-aware recharge data remain.
 
 ### Server Work
 
@@ -536,9 +545,9 @@ mana-refill rule remain.
 
 ### Existing C++ Client Work
 
-1. Apply the server-backed session lifecycle to the game loop behind its feature flag.
-2. Render inventory and store state received from the server.
-3. Convert UI actions into commands rather than direct mutations.
+1. Apply the server-backed session lifecycle to the game loop behind its feature flag. **Done.**
+2. Render inventory and store state received from the server. **Started:** native player, belt, and Smith buffers are projected from snapshots and refreshed after visual-store transactions.
+3. Convert UI actions into commands rather than direct mutations. **Done for Smith visual-store and legacy service paths, including body/belt references; non-Smith vendors remain local until their catalogs are authoritative.**
 4. Retain the local implementation for parity testing until the remote path passes all fixtures.
 
 ### Comparison Strategy
@@ -693,14 +702,14 @@ Client extensions must not receive APIs that mutate authoritative state. They ma
 | Extract `GameDataManager` | Partial | Reload ordering moved; content identity and validation remain |
 | Add typed engine-neutral events | Complete for initial events | Damage and experience paths use stable IDs |
 | Add `LuaEventAdapter` | Complete for initial events | Lua remains the temporary consumer |
-| Replace pointer-derived IDs | Partial | Event IDs are stable; protocol-wide ID catalogs remain |
+| Replace pointer-derived IDs | Partial | Event IDs and item locations are stable; protocol-wide ID catalogs remain |
 | Replace Hellfire Lua bootstrap | Not started | Requires declarative content metadata |
 | Add protocol schema, handshake, IDs, and bindings | Partial | Schema, handshake, C# bindings, and opt-in initial C++ bindings/client exist; complete IDs remain |
 | Add C# deterministic primitives, TSV loader, and parity tests | Partial | Fixed-point, LCG, TSV, hashing, and matching C++/C# content-manifest vectors exist; live C++ data-manager identity and complete transition parity remain |
 | Define gameplay-module contract and ruleset identity | Started | Explicit module registry, Diablo store rules, and combined identity exist; full module API remains |
 | Extract first store/item data and Diablo rules module | Partial | External store data and transactions are module-owned; legacy pricing/generation remains |
 | Add minimal C++ server connection | Complete for initial slice | Opt-in client proves handshake, command acknowledgement, and snapshot exchange; retry wiring and remote gameplay remain |
-| Implement remote inventory/store slice | Started server-side | Authoritative player and vendor-stock snapshots exist; C++ runtime adapter and legacy transaction parity remain |
+| Implement remote inventory/store slice | Started server-side | Authoritative player, belt, and vendor-stock snapshots exist; C++ Smith visual-store routing and shared transaction fixtures are active; legacy generation and full pricing parity remain |
 
 Each delivery should include tests and update this document if it changes a
 decision, dependency, milestone, or ownership state.

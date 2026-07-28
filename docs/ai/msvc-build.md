@@ -54,3 +54,12 @@ git -c safe.directory=D:/Programming/DevilutionX status --short
 
 If vcpkg reports permission errors under `%LOCALAPPDATA%\vcpkg`, the command
 must run with permission to access the user vcpkg registry cache.
+
+The C# xUnit project is an executable Microsoft Testing Platform runner. Run
+it directly when `dotnet test` selects a machine-wide VSTest host whose
+`testhost` package is unavailable:
+
+```bat
+dotnet build server/tests/Devilution.Server.Tests/Devilution.Server.Tests.csproj --no-restore
+server\tests\Devilution.Server.Tests\bin\Debug\net10.0\Devilution.Server.Tests.exe --no-ansi
+```

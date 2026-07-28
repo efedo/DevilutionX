@@ -22,6 +22,17 @@ public sealed class ContentAndGameplayModuleTests
     }
 
     [Fact]
+    public void StoreServicePricingLoadsOverridesAndSpellStaffCosts()
+    {
+        var pricing = StoreServicePricing.LoadTsv("store_services.tsv", "key\tspell_id\tvalue\nsale_divisor\t\t5\nspell_staff_cost\t7\t12\n");
+
+        Assert.Equal(5, pricing.SaleDivisor);
+        Assert.Equal(12U, pricing.GetSpellStaffCost(7));
+        Assert.Equal(0U, pricing.GetSpellStaffCost(8));
+        Assert.Equal(StoreServicePricing.Default.ManaChunk, pricing.ManaChunk);
+    }
+
+    [Fact]
     public void ContentManifestHashMatchesNativeGoldenVectors()
     {
         var items = TsvTable.Parse("items.tsv", "id\tname\nshort-sword\tShort Sword\nbuckler\tBuckler\n");
@@ -113,6 +124,31 @@ public sealed class ContentAndGameplayModuleTests
         var item = Assert.Single(executor.GetPlayerState("player").Inventory);
         Assert.Equal(1, item.State.ItemType);
         Assert.True(item.State.Identified);
+    }
+
+    [Fact]
+    public void DiabloStoreRulesMatchLegacySaleServiceAndRefillPricing()
+    {
+        var state = AuthoritativeItemState.Empty with {
+            ItemType = 10,
+            Magical = 1,
+            Identified = true,
+            Value = 100,
+            IdentifiedValue = 100,
+            Charges = 0,
+            MaxCharges = 1,
+            Durability = 5,
+            MaxDurability = 20,
+        };
+        var item = new OwnedStoreItem(1, 0, 42, 75, 0, state);
+        var rules = DiabloGameplayModule.Instance;
+
+        Assert.Equal(25U, rules.GetSalePrice(item));
+        Assert.Equal(11U, rules.GetRepairPrice(item));
+        Assert.Equal(50U, rules.GetRechargePrice(item));
+        Assert.Equal(100U, rules.GetIdentificationPrice(item));
+        Assert.Null(rules.ValidateManaRefill(32, 640, 10));
+        Assert.Equal(10U, rules.GetManaRefillPrice(32, 640));
     }
 
     private sealed class TestGameplayModule(GameplayModuleIdentity identity) : IGameplayModule

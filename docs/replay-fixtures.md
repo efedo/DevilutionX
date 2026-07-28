@@ -93,6 +93,14 @@ The first fixtures should cover one narrow behavior each:
 7. Quest selection and quest-pool state transitions.
 8. Mod reload ordering and Hellfire activation.
 
+`test/fixtures/replay/stores/transaction-parity.json` is the first shared
+transaction fixture. It exercises open-store, purchase, sale, and mana-refill
+commands in both language loaders. Its four transaction checkpoints are now
+real C# snapshot SHA-256 values. The C# executor validates each checkpoint
+after the corresponding command; the C++ loader validates the same checkpoint
+ticks and hashes while native transition execution is still the next parity
+gate.
+
 The C++ replay primitives now provide canonical field encoding, SHA-256
 digests, command ordering, and an initial player/store state projection. The
 strict envelope parser and `stores/basic-buy` fixture exercise that projection

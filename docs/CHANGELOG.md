@@ -2,6 +2,14 @@
 
 All notable changes to this fork are documented below.
 
+## 2026-07-28
+
+- Add external `store_services.tsv` pricing data, including spell staff-cost overrides and legacy-compatible service formulas
+- Add explicit authoritative inventory-to-belt/equipment transfer commands while retaining the legacy inventory-grid command
+- Add the server-backed Adria mana-refill menu action and service-only store scope
+- Make C# replay execution validate SHA-256 state checkpoints after every transaction command; extend native fixture coverage
+- Configure the C# test project to build a self-contained Microsoft Testing Platform runner; direct execution avoids a missing machine-wide VSTest `testhost` package
+
 ## 2026-07-01
 
 - Refactor engine/lighting into `LightManager` class with singleton `CurrentLightManager`; update ~22 caller files
@@ -74,6 +82,7 @@ All notable changes to this fork are documented below.
   server-backed client covering handshake, command acknowledgement, and snapshots
 - Wire the C++ command-delivery tracker into queued authoritative sends,
   adaptive resubmissions, and acknowledgement resolution
+
 - Fix native authoritative builds by generating Protobuf sources in the consuming
   CMake directory and exporting generated message data to C++ DLL tests
 - Fix C++ authoritative connection includes and invalid-frame boundary coverage
@@ -95,6 +104,21 @@ All notable changes to this fork are documented below.
   authoritative vendor slots while applying validated snapshots
 - Wire the opt-in server-backed runtime into game lifecycle and Smith-store
   opening, with content identity validation and local-mode preservation
+- Apply authoritative player snapshots to native state, poll adaptive command
+  retries, and route acknowledged Smith/inventory store transactions through
+  the server-backed runtime without mutating locally before acknowledgement
+
+## 2026-07-26
+
+- Add authoritative belt snapshots and stable inventory, belt, and equipment
+  references for server-backed service commands
+- Add C# Adria mana-refill validation and deterministic refill pricing
+- Match server-backed sale, repair, recharge, and identification rules more
+  closely to legacy vendor pricing semantics
+- Route the opt-in Smith visual store through acknowledged authoritative
+  purchase, sale, repair, and refresh operations
+- Add shared C++/C# transaction-parity replay coverage for purchase, sale, and
+  mana refill
 
 ## 2026-06-24
 

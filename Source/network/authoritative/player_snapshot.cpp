@@ -27,6 +27,7 @@ tl::expected<ProjectedPlayerSnapshot, std::string> ProjectPlayerSnapshot(const p
 		.positionY = player->position_y(),
 		.life = player->life(),
 		.mana = player->mana(),
+		.manaMaximum = player->mana_maximum(),
 		.gold = player->gold(),
 		.experience = player->experience(),
 		.strength = { player->attributes().strength().base(), player->attributes().strength().current() },
@@ -55,6 +56,13 @@ tl::expected<ProjectedPlayerSnapshot, std::string> ProjectPlayerSnapshot(const p
 		if (!item.has_value())
 			return tl::make_unexpected(item.error());
 		projected.equipment.push_back({ .slot = source.slot(), .itemSeed = source.item_seed(), .item = std::move(*item) });
+	}
+	projected.belt.reserve(player->belt_size());
+	for (const auto &source : player->belt()) {
+		auto item = ProjectNativeItem(source.state(), source.item_seed(), 0);
+		if (!item.has_value())
+			return tl::make_unexpected(item.error());
+		projected.belt.push_back({ .slot = source.slot(), .itemSeed = source.item_seed(), .item = std::move(*item) });
 	}
 	projected.inventoryGrid.assign(player->inventory_grid().begin(), player->inventory_grid().end());
 	return projected;

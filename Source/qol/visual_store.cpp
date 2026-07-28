@@ -7,7 +7,10 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <optional>
 #include <span>
+
+#include <SDL.h>
 
 #include "ui/panel/control.hpp"
 #include "controls/player_controls.h"
@@ -34,6 +37,10 @@
 #include "utils/string/format_int.hpp"
 #include "utils/language.h"
 #include "utils/string/str_cat.hpp"
+
+#ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
+#include "network/authoritative/server_backed_runtime.hpp"
+#endif
 
 namespace devilution {
 
@@ -313,6 +320,36 @@ int GetRepairCost(const Item &item)
 void VisualStoreRepairAll()
 {
 	Player &myPlayer = *MyPlayer;
+
+#ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
+	if (authoritative::GetServerBackedRuntime().IsConnected()) {
+		if (VisualStore.vendor != VisualStoreVendor::Smith)
+			return;
+		bool repaired = false;
+		for (uint32_t slot = 0; slot < NUM_INVLOC; ++slot) {
+			if (GetRepairCost(myPlayer.InvBody[slot]) == 0)
+				continue;
+			if (auto result = authoritative::GetServerBackedRuntime().RepairItem(
+			        { .location = authoritative::ServerBackedItemLocation::Equipment, .slot = slot }, 0, SDL_GetTicks()); !result.has_value())
+				return;
+			repaired = true;
+		}
+		for (int index = 0; index < myPlayer._pNumInv; ++index) {
+			if (GetRepairCost(myPlayer.InvList[index]) == 0)
+				continue;
+			if (auto result = authoritative::GetServerBackedRuntime().RepairItem(
+			        { .location = authoritative::ServerBackedItemLocation::Inventory, .slot = static_cast<uint32_t>(index) }, 0, SDL_GetTicks()); !result.has_value())
+				return;
+			repaired = true;
+		}
+		if (repaired) {
+			PlaySFX(SfxID::ItemGold);
+			RefreshVisualStoreLayout();
+		}
+		return;
+	}
+#endif
+
 	int totalCost = 0;
 
 	// Check body items
@@ -360,6 +397,30 @@ void VisualStoreRepairItem(int invIndex)
 {
 	Player &myPlayer = *MyPlayer;
 	Item *item = nullptr;
+
+#ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
+	if (authoritative::GetServerBackedRuntime().IsConnected()) {
+		std::optional<authoritative::ServerBackedItemReference> reference;
+		if (invIndex >= 0 && invIndex < INVITEM_INV_FIRST) {
+			reference = authoritative::ServerBackedItemReference {
+				.location = authoritative::ServerBackedItemLocation::Equipment,
+				.slot = static_cast<uint32_t>(invIndex),
+			};
+		} else if (invIndex >= INVITEM_INV_FIRST && invIndex <= INVITEM_INV_LAST) {
+			reference = authoritative::ServerBackedItemReference {
+				.location = authoritative::ServerBackedItemLocation::Inventory,
+				.slot = static_cast<uint32_t>(invIndex - INVITEM_INV_FIRST),
+			};
+		}
+		if (!reference.has_value())
+			return;
+		if (auto result = authoritative::GetServerBackedRuntime().RepairItem(*reference, 0, SDL_GetTicks()); result.has_value()) {
+			PlaySFX(SfxID::ItemGold);
+			RefreshVisualStoreLayout();
+		}
+		return;
+	}
+#endif
 
 	if (invIndex < INVITEM_INV_FIRST) {
 		item = &myPlayer.InvBody[invIndex];
@@ -641,6 +702,25 @@ void CheckVisualStoreItem(Point mousePosition, bool isCtrlHeld, bool isShiftHeld
 	if (item.isEmpty())
 		return;
 
+#ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
+	if (authoritative::GetServerBackedRuntime().IsConnected()) {
+		if (VisualStore.vendor != VisualStoreVendor::Smith || VisualStore.activeTab != VisualStoreTab::Basic)
+			return;
+		if (!CurrentStoreManager.StoreAutoPlace(item, false))
+			return;
+		const auto purchaseSound = ItemInvSnds[ItemCAnimTbl[item._iCurs]];
+		const auto storeSlot = authoritative::GetServerBackedRuntime().SmithStoreSlotAt(static_cast<std::size_t>(itemIndex));
+		if (!storeSlot.has_value())
+			return;
+		if (auto result = authoritative::GetServerBackedRuntime().PurchaseSmith(*storeSlot, 0, SDL_GetTicks()); !result.has_value())
+			return;
+		PlaySFX(purchaseSound);
+		pcursstoreitem = -1;
+		RefreshVisualStoreLayout();
+		return;
+	}
+#endif
+
 	// Check if player can afford the item
 	int price = item._iIvalue;
 	uint32_t totalGold = MyPlayer->_pGold + Stash.gold;
@@ -712,6 +792,23 @@ void CheckVisualStorePaste(Point mousePosition)
 		return;
 	}
 
+#ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
+	if (authoritative::GetServerBackedRuntime().IsConnected()) {
+		if (VisualStore.vendor != VisualStoreVendor::Smith)
+			return;
+		const auto reference = authoritative::GetServerBackedRuntime().PlayerItemReferenceForSeed(player.HoldItem._iSeed);
+		if (!reference.has_value())
+			return;
+		if (auto result = authoritative::GetServerBackedRuntime().SellItem(*reference, 0, SDL_GetTicks()); !result.has_value())
+			return;
+		player.HoldItem.clear();
+		NewCursor(CURSOR_HAND);
+		PlaySFX(SfxID::ItemGold);
+		RefreshVisualStoreLayout();
+		return;
+	}
+#endif
+
 	// Calculate sell price
 	int sellPrice = GetSellPrice(player.HoldItem);
 
@@ -750,12 +847,27 @@ void SellItemToVisualStore(int invIndex)
 		return;
 
 	Player &player = *MyPlayer;
+	if (invIndex < 0 || invIndex >= player._pNumInv)
+		return;
 	Item &item = player.InvList[invIndex];
 
 	if (!CanSellToCurrentVendor(item)) {
 		player.SaySpecific(HeroSpeech::ICantDoThat);
 		return;
 	}
+
+#ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
+	if (authoritative::GetServerBackedRuntime().IsConnected()) {
+		if (VisualStore.vendor != VisualStoreVendor::Smith)
+			return;
+		if (auto result = authoritative::GetServerBackedRuntime().SellItem(
+			        { .location = authoritative::ServerBackedItemLocation::Inventory, .slot = static_cast<uint32_t>(invIndex) }, 0, SDL_GetTicks()); !result.has_value())
+			return;
+		PlaySFX(SfxID::ItemGold);
+		RefreshVisualStoreLayout();
+		return;
+	}
+#endif
 
 	// Calculate sell price
 	int sellPrice = GetSellPrice(item);

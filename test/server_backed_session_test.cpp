@@ -88,9 +88,71 @@ TEST(ServerBackedSession, ConnectsOpensVendorAndAppliesAuthoritativeState)
 	ASSERT_TRUE(open.has_value()) << open.error();
 	EXPECT_EQ((*session)->EntityId(), 7U);
 	EXPECT_EQ((*session)->VendorState().Phase(), ServerBackedVendorPhase::Ready);
+	EXPECT_EQ((*session)->LastCommandResolution(), ServerBackedSession::CommandResolution::Accepted);
 	const auto *item = (*session)->VendorState().FindItem(1, 0);
 	ASSERT_NE(item, nullptr);
 	EXPECT_EQ(item->itemSeed, 42U);
+	(*session)->Close();
+	server.join();
+	EXPECT_TRUE(observed);
+}
+
+TEST(ServerBackedSession, DoesNotTreatRejectedCommandAsLocalSuccess)
+{
+	asio::io_context serverIo;
+	tcp::acceptor acceptor { serverIo, { tcp::v4(), 0 } };
+	std::atomic_bool observed = false;
+	std::thread server([&]() {
+		tcp::socket socket(serverIo);
+		acceptor.accept(socket);
+		auto helloPayload = EnvelopeCodec::Read(socket);
+		if (!helloPayload.has_value() || !helloPayload->has_value())
+			return;
+		protocol::Envelope hello;
+		if (!hello.ParseFromArray(helloPayload->value().data(), static_cast<int>(helloPayload->value().size())))
+			return;
+		protocol::Envelope serverHello;
+		serverHello.mutable_server_hello()->set_protocol_schema_version("1");
+		serverHello.mutable_server_hello()->set_content_manifest_hash("content");
+		serverHello.mutable_server_hello()->set_session_token("session");
+		WriteEnvelope(socket, serverHello);
+		protocol::Envelope initial;
+		initial.mutable_snapshot()->add_players()->set_entity_id(7);
+		WriteEnvelope(socket, initial);
+
+		auto commandPayload = EnvelopeCodec::Read(socket);
+		if (!commandPayload.has_value() || !commandPayload->has_value())
+			return;
+		protocol::Envelope command;
+		if (!command.ParseFromArray(commandPayload->value().data(), static_cast<int>(commandPayload->value().size()))
+		    || command.command_batch().commands_size() != 1
+		    || !command.command_batch().commands(0).has_sell_item_requested())
+			return;
+		protocol::Envelope ack;
+		auto *result = ack.mutable_command_ack()->add_results();
+		result->set_client_sequence(1);
+		result->set_status(protocol::COMMAND_STATUS_REJECTED);
+		WriteEnvelope(socket, ack);
+		protocol::Envelope snapshot;
+		snapshot.mutable_snapshot()->add_players()->set_entity_id(7);
+		WriteEnvelope(socket, snapshot);
+		observed = true;
+	});
+
+	ServerBackedSession::Configuration configuration {
+		.client = {
+			.host = "127.0.0.1",
+			.port = acceptor.local_endpoint().port(),
+			.clientBuildId = "client",
+			.protocolSchemaVersion = "1",
+			.contentManifestHash = "content",
+		},
+	};
+	auto session = ServerBackedSession::Connect(configuration);
+	ASSERT_TRUE(session.has_value()) << session.error();
+	auto sell = (*session)->SellItem(0, 10, 0);
+	ASSERT_TRUE(sell.has_value()) << sell.error();
+	EXPECT_EQ((*session)->LastCommandResolution(), ServerBackedSession::CommandResolution::Rejected);
 	(*session)->Close();
 	server.join();
 	EXPECT_TRUE(observed);

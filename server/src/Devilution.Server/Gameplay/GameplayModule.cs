@@ -64,6 +64,8 @@ public interface IStoreGameplayRules
 
     CommandRejectReason? ValidateIdentification(OwnedStoreItem item, uint playerGold);
 
+    CommandRejectReason? ValidateManaRefill(int currentMana, int maximumMana, uint playerGold);
+
     uint GetSalePrice(OwnedStoreItem item);
 
     uint GetRepairPrice(OwnedStoreItem item);
@@ -71,6 +73,8 @@ public interface IStoreGameplayRules
     uint GetRechargePrice(OwnedStoreItem item);
 
     uint GetIdentificationPrice(OwnedStoreItem item);
+
+    uint GetManaRefillPrice(int currentMana, int maximumMana);
 }
 
 /** Registry for explicit, deterministic module registrations. */
@@ -187,6 +191,13 @@ public sealed class DiabloGameplayModule : IGameplayModule, IStoreGameplayRules
 {
     public static DiabloGameplayModule Instance { get; } = new();
 
+    public DiabloGameplayModule(StoreServicePricing? pricing = null)
+    {
+        Pricing = pricing ?? StoreServicePricing.Default;
+    }
+
+    public StoreServicePricing Pricing { get; }
+
     public GameplayModuleIdentity Identity { get; } = new(
         "devilution.diablo",
         "0.1.0",
@@ -219,40 +230,76 @@ public sealed class DiabloGameplayModule : IGameplayModule, IStoreGameplayRules
             return CommandRejectReason.InvalidTarget;
         if (item.State.MaxDurability <= item.State.Durability)
             return CommandRejectReason.NotAllowed;
-        return playerGold < GetRepairPrice(item) ? CommandRejectReason.InsufficientResources : null;
+        var price = GetRepairPrice(item);
+        if (price == 0)
+            return CommandRejectReason.NotAllowed;
+        return playerGold < price ? CommandRejectReason.InsufficientResources : null;
     }
 
     public CommandRejectReason? ValidateRecharge(OwnedStoreItem item, uint playerGold)
     {
         if (item.State.Deleted)
             return CommandRejectReason.InvalidTarget;
+        if (item.State.ItemType != 10 && item.State.MiscId is not (23 or 27))
+            return CommandRejectReason.InvalidTarget;
         if (item.State.MaxCharges <= item.State.Charges)
             return CommandRejectReason.NotAllowed;
-        return playerGold < GetRechargePrice(item) ? CommandRejectReason.InsufficientResources : null;
+        var price = GetRechargePrice(item);
+        if (price == 0)
+            return CommandRejectReason.NotAllowed;
+        return playerGold < price ? CommandRejectReason.InsufficientResources : null;
     }
 
     public CommandRejectReason? ValidateIdentification(OwnedStoreItem item, uint playerGold)
     {
         if (item.State.Deleted)
             return CommandRejectReason.InvalidTarget;
+        if (item.State.Magical == 0)
+            return CommandRejectReason.InvalidTarget;
         if (item.State.Identified)
             return CommandRejectReason.NotAllowed;
         return playerGold < GetIdentificationPrice(item) ? CommandRejectReason.InsufficientResources : null;
     }
 
-    public uint GetSalePrice(OwnedStoreItem item) => Math.Max(1U, item.Price / 2);
+    public CommandRejectReason? ValidateManaRefill(int currentMana, int maximumMana, uint playerGold)
+    {
+        if (currentMana < 0 || maximumMana < 0 || currentMana > maximumMana)
+            return CommandRejectReason.InvalidTarget;
+        if (currentMana == maximumMana)
+            return CommandRejectReason.NotAllowed;
+        return playerGold < GetManaRefillPrice(currentMana, maximumMana) ? CommandRejectReason.InsufficientResources : null;
+    }
+
+    public uint GetSalePrice(OwnedStoreItem item)
+    {
+        var value = item.State.Magical != 0 && item.State.Identified ? item.State.IdentifiedValue : item.State.Value;
+        return (uint)Math.Max(value / Pricing.SaleDivisor, 1);
+    }
 
     public uint GetRepairPrice(OwnedStoreItem item)
     {
-        var unitPrice = Math.Max(1U, item.Price / 10);
-        return checked(unitPrice * (uint)(item.State.MaxDurability - item.State.Durability));
+        var due = item.State.MaxDurability - item.State.Durability;
+        if (due <= 0 || item.State.MaxDurability <= 0)
+            return 0;
+        if (item.State.Magical != 0 && item.State.Identified)
+            return (uint)Math.Max(0, Pricing.MagicalRepairPercent * item.State.IdentifiedValue * due / (item.State.MaxDurability * Pricing.MagicalRepairDivisor));
+        return (uint)Math.Max(item.State.Value * due / (item.State.MaxDurability * Pricing.NormalRepairDivisor), 1);
     }
 
     public uint GetRechargePrice(OwnedStoreItem item)
     {
-        var unitPrice = Math.Max(1U, item.Price / (uint)Math.Max(1, item.State.MaxCharges));
-        return checked(unitPrice * (uint)(item.State.MaxCharges - item.State.Charges));
+        var due = item.State.MaxCharges - item.State.Charges;
+        if (due <= 0 || item.State.MaxCharges <= 0)
+            return 0;
+        var baseValue = checked(item.State.Value + (int)Pricing.GetSpellStaffCost(item.State.SpellId));
+        return (uint)Math.Max(0, baseValue * due / (item.State.MaxCharges * Pricing.RechargeDivisor));
     }
 
-    public uint GetIdentificationPrice(OwnedStoreItem item) => Math.Max(1U, item.Price / 10);
+    public uint GetIdentificationPrice(OwnedStoreItem item) => Pricing.IdentificationPrice;
+
+    public uint GetManaRefillPrice(int currentMana, int maximumMana)
+    {
+        var missingWholeMana = Math.Max(1, (maximumMana - currentMana + Pricing.ManaChunk - 1) / Pricing.ManaChunk);
+        return (uint)missingWholeMana;
+    }
 }

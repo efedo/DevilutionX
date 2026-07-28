@@ -139,6 +139,8 @@ private:
 				return ParseSigned(fixture_.initialState.life);
 			if (key == "mana")
 				return ParseSigned(fixture_.initialState.mana);
+			if (key == "mana_maximum")
+				return ParseSigned(fixture_.initialState.manaMaximum);
 			if (key == "character_class")
 				return ParseSigned(fixture_.initialState.characterClass);
 			if (key == "character_level")
@@ -225,7 +227,7 @@ private:
 		return ParseObject([this, &command](std::string_view key) {
 			if (key == "store_id")
 				return ParseUnsigned(command.storeId);
-			if (key == "store_slot" || key == "item_index")
+			if (key == "store_slot" || key == "item_index" || key == "inventory_index")
 				return ParseUnsigned(command.storeSlot);
 			return SkipValue();
 		});

@@ -1,0 +1,36 @@
+{
+  "format_version": 1,
+  "fixture_id": "stores/transaction-parity",
+  "protocol_schema_version": "0.1.0",
+  "tick_rate_hz": 20,
+  "rng_seed": 305419896,
+  "initial_state": {
+    "player": "A",
+    "gold": 100,
+    "experience": 200,
+    "life": 640,
+    "mana": 32,
+    "mana_maximum": 640,
+    "character_class": 0,
+    "character_level": 1
+  },
+  "content_manifest": {
+    "id": "baseline-store-content",
+    "version": "1",
+    "sha256": "a4f2d11cb54e18c5df07eae670a7ab9ab739f5efbd83dc84d5fcefe956315e97"
+  },
+  "commands": [
+    { "client_sequence": 1, "target_tick": 10, "server_receipt_sequence": 1, "kind": "OpenStore", "payload": { "store_id": 1 } },
+    { "client_sequence": 2, "target_tick": 12, "server_receipt_sequence": 2, "kind": "BuyItem", "payload": { "store_id": 1, "store_slot": 0 } },
+    { "client_sequence": 3, "target_tick": 14, "server_receipt_sequence": 3, "kind": "SellItem", "payload": { "inventory_index": 0 } },
+    { "client_sequence": 4, "target_tick": 15, "server_receipt_sequence": 4, "kind": "OpenStore", "payload": { "store_id": 10 } },
+    { "client_sequence": 5, "target_tick": 16, "server_receipt_sequence": 5, "kind": "RefillMana" }
+  ],
+  "checkpoints": [
+    { "tick": 10, "state_sha256": "0babdd719bddc6200b919a9023b7016b58d67153e4159f30b6fb176d58adcaa8" },
+    { "tick": 12, "state_sha256": "008315cf6f028890f87cde4c9acb1ca95418590f40bf18ec98215f8fcb162a7b" },
+    { "tick": 14, "state_sha256": "91e0816bef79f7f0c101480834fa9f70d702cd84dde152f0e44eb7ee57ede388" },
+    { "tick": 15, "state_sha256": "4eb801105a8e25ad511498cbc18bdf3437f22c98492ae4cc9885db38ada6abdd" },
+    { "tick": 16, "state_sha256": "b4174cab0d5255716cb40071f2fe9e31794cef76fc5b73759ffa36ef4a529630" }
+  ]
+}

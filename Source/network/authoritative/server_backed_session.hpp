@@ -9,18 +9,28 @@
 #include <cstdint>
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 
 #include <expected.hpp>
 
 #include "network/authoritative/server_backed_client.hpp"
 #include "network/authoritative/player_snapshot.hpp"
+#include "network/authoritative/store_command.hpp"
 #include "network/authoritative/server_backed_vendor_state.hpp"
 
 namespace devilution::authoritative {
 
 class ServerBackedSession {
 public:
+	enum class CommandResolution {
+		None,
+		Accepted,
+		Rejected,
+		Rescheduled,
+		Duplicate,
+	};
+
 	struct Configuration {
 		ServerBackedClient::Configuration client;
 	};
@@ -41,7 +51,18 @@ public:
 	tl::expected<void, std::string> RepairItem(uint32_t inventoryIndex, uint64_t requestedTick, uint64_t nowMs);
 	tl::expected<void, std::string> RechargeItem(uint32_t inventoryIndex, uint64_t requestedTick, uint64_t nowMs);
 	tl::expected<void, std::string> IdentifyItem(uint32_t inventoryIndex, uint64_t requestedTick, uint64_t nowMs);
+	tl::expected<void, std::string> SellItem(ServerBackedItemReference item, uint64_t requestedTick, uint64_t nowMs);
+	tl::expected<void, std::string> RepairItem(ServerBackedItemReference item, uint64_t requestedTick, uint64_t nowMs);
+	tl::expected<void, std::string> RechargeItem(ServerBackedItemReference item, uint64_t requestedTick, uint64_t nowMs);
+	tl::expected<void, std::string> IdentifyItem(ServerBackedItemReference item, uint64_t requestedTick, uint64_t nowMs);
+	tl::expected<void, std::string> RefillMana(uint64_t requestedTick, uint64_t nowMs);
 	tl::expected<void, std::string> MoveInventoryItem(uint32_t inventoryIndex, uint32_t targetCell, uint64_t requestedTick, uint64_t nowMs);
+	tl::expected<void, std::string> MoveItem(ServerBackedItemReference item, ServerBackedItemReference destination, uint64_t requestedTick, uint64_t nowMs);
+
+	/** Polls for commands whose adaptive acknowledgement timeout has elapsed. */
+	tl::expected<void, std::string> Poll(uint64_t nowMs);
+
+	[[nodiscard]] CommandResolution LastCommandResolution() const noexcept { return lastCommandResolution_; }
 
 	/** Reconnects, applies the resynchronization snapshot, and resolves retries. */
 	tl::expected<void, std::string> Reconnect(uint64_t nowMs);
@@ -63,15 +84,16 @@ private:
 	ServerBackedSession() = default;
 
 	tl::expected<void, std::string> ApplySnapshot(const protocol::Snapshot &snapshot);
-	tl::expected<void, std::string> Flush(uint64_t nowMs);
+	tl::expected<void, std::string> Flush(uint64_t nowMs, std::optional<uint64_t> focusSequence = std::nullopt);
 	tl::expected<void, std::string> SubmitInventoryCommand(tl::expected<protocol::Command, std::string> command, uint64_t nowMs);
-	void ApplyAcknowledgements(const protocol::CommandAck &acknowledgement);
+	void ApplyAcknowledgements(const protocol::CommandAck &acknowledgement, std::optional<uint64_t> focusSequence = std::nullopt);
 
 	std::unique_ptr<ServerBackedClient> client_;
 	uint32_t entityId_ = 0;
 	ServerBackedPlayerState playerState_;
 	ServerBackedVendorState vendorState_;
 	std::map<uint64_t, PendingIntent> pendingIntents_;
+	CommandResolution lastCommandResolution_ = CommandResolution::None;
 };
 
 } // namespace devilution::authoritative

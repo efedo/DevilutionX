@@ -32,7 +32,8 @@ public sealed class ReplayFixtureTests
             fixture.InitialState.Gold,
             fixture.InitialState.Experience,
             fixture.InitialState.Life,
-            fixture.InitialState.Mana);
+            fixture.InitialState.Mana,
+            startingManaMaximum: fixture.InitialState.ManaMaximum);
         var commandServer = new AuthoritativeCommandServer(executor);
 
         var result = ReplayFixtureExecutor.Execute(fixture, executor, commandServer);
@@ -44,6 +45,29 @@ public sealed class ReplayFixtureTests
         Assert.Equal(0UL, checkpoint.Tick);
         Assert.Equal(checkpoint.StateSha256, LegacyReplayStateHasher.Compute(fixture));
         Assert.NotEqual(checkpoint.StateSha256, result.InitialSnapshot.StateSha256);
+    }
+
+    [Fact]
+    public void TransactionParityFixtureExecutesPurchaseSaleAndManaRefill()
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "Fixtures", "transaction-parity.json");
+        var fixture = ReplayFixtureLoader.Load(File.ReadAllText(path));
+        var catalog = new StoreCatalog();
+        catalog.AddStore(1, [new StoreItem(0, 42, 75, AuthoritativeItemState.Empty with { ItemType = 1, Value = 75, IdentifiedValue = 75, Durability = 1, MaxDurability = 1 })]);
+        var executor = new StoreSimulationExecutor(
+            catalog,
+            fixture.InitialState.Gold,
+            fixture.InitialState.Experience,
+            fixture.InitialState.Life,
+            fixture.InitialState.Mana,
+            startingManaMaximum: fixture.InitialState.ManaMaximum);
+        var result = ReplayFixtureExecutor.Execute(fixture, executor, new AuthoritativeCommandServer(executor));
+
+        Assert.Equal([CommandStatus.Accepted, CommandStatus.Accepted, CommandStatus.Accepted, CommandStatus.Accepted, CommandStatus.Accepted], result.Results.Select(command => command.Status));
+        var player = Assert.Single(result.FinalSnapshot.Players);
+        Assert.Equal(33U, player.Gold);
+        Assert.Equal(640, player.Mana);
+        Assert.Empty(player.Inventory);
     }
 
     [Fact]

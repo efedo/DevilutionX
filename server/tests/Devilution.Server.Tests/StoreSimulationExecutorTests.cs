@@ -208,7 +208,7 @@ public sealed class StoreSimulationExecutorTests
     {
         var itemState = new AuthoritativeItemState(
             1,
-            1,
+            10,
             0,
             0,
             false,
@@ -273,7 +273,150 @@ public sealed class StoreSimulationExecutorTests
 
         Assert.Equal(CommandStatus.Accepted, sale.Status);
         Assert.Empty(executor.GetPlayerState("player-a").Inventory);
-        Assert.Equal(835U, executor.GetPlayerState("player-a").Gold);
+        Assert.Equal(810U, executor.GetPlayerState("player-a").Gold);
+    }
+
+    [Fact]
+    public void ServiceCommandsCanTargetBeltAndEquipmentSlots()
+    {
+        var executor = new StoreSimulationExecutor(
+            CreateCatalog(),
+            startingGold: 100,
+            startingBelt: [new BeltStoreItem(2, 101)],
+            startingEquipment: [new EquippedStoreItem(3, 102)]);
+        var server = new AuthoritativeCommandServer(executor);
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", OpenStore(1), 0).Status);
+
+        var beltSale = new Command {
+            ClientSequence = 2,
+            RequestedTick = 1,
+            SellItemRequested = new SellItemRequested {
+                Item = new PlayerItemReference { Location = PlayerItemLocation.Belt, Slot = 2 },
+            },
+        };
+        var equipmentSale = new Command {
+            ClientSequence = 3,
+            RequestedTick = 2,
+            SellItemRequested = new SellItemRequested {
+                Item = new PlayerItemReference { Location = PlayerItemLocation.Equipment, Slot = 3 },
+            },
+        };
+
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", beltSale, 1).Status);
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", equipmentSale, 2).Status);
+        var state = executor.GetPlayerState("player-a");
+        Assert.Empty(state.Belt);
+        Assert.Empty(state.Equipment);
+        Assert.Equal(102U, state.Gold);
+    }
+
+    [Fact]
+    public void ManaRefillUsesConfiguredMaximumAndDeductsDeterministicPrice()
+    {
+        var executor = new StoreSimulationExecutor(CreateCatalog(), startingGold: 100, startingMana: 32, startingManaMaximum: 640);
+        var server = new AuthoritativeCommandServer(executor);
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", OpenStore(1, 10), 0).Status);
+
+        var refill = new Command {
+            ClientSequence = 2,
+            RequestedTick = 10,
+            RefillManaRequested = new RefillManaRequested(),
+        };
+        var result = server.Process("player-a", refill, 10);
+        var state = executor.GetPlayerState("player-a");
+
+        Assert.Equal(CommandStatus.Accepted, result.Status);
+        Assert.Equal(640, state.Mana);
+        Assert.Equal(90U, state.Gold);
+        Assert.Equal(640, executor.CreateSnapshot("player-a", 1, 10).Players[0].ManaMaximum);
+
+        var alreadyFull = server.Process("player-a", new Command {
+            ClientSequence = 3,
+            RequestedTick = 11,
+            RefillManaRequested = new RefillManaRequested(),
+        }, 11);
+        Assert.Equal(CommandStatus.Rejected, alreadyFull.Status);
+        Assert.Equal(CommandRejectReason.NotAllowed, alreadyFull.RejectReason);
+    }
+
+    [Fact]
+    public void RemovingInventoryItemCompactsGridReferences()
+    {
+        var catalog = CreateCatalog(new StoreItem(0, 42, 10), new StoreItem(1, 43, 10));
+        var executor = new StoreSimulationExecutor(catalog, startingGold: 100, startingInventoryGrid: [0, 1, 1, -1]);
+        var server = new AuthoritativeCommandServer(executor);
+        server.Process("player-a", OpenStore(1), 0);
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", Purchase(2, 0), 1).Status);
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", Purchase(3, 1), 2).Status);
+
+        var sale = new Command {
+            ClientSequence = 4,
+            RequestedTick = 3,
+            SellItemRequested = new SellItemRequested { InventoryIndex = 0 },
+        };
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", sale, 3).Status);
+
+        Assert.Equal(new[] { -1, 0, 0, -1 }, executor.GetPlayerState("player-a").InventoryGrid);
+    }
+
+    [Fact]
+    public void ExplicitMoveTransfersInventoryAndBeltItemsAuthoritatively()
+    {
+        var executor = new StoreSimulationExecutor(CreateCatalog(new StoreItem(0, 42, 10)), startingGold: 100, startingInventoryGrid: [0]);
+        var server = new AuthoritativeCommandServer(executor);
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", OpenStore(1), 10).Status);
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", Purchase(2, 0), 12).Status);
+
+        var toBelt = new Command {
+            ClientSequence = 3,
+            RequestedTick = 13,
+            MoveItemRequested = new MoveItemRequested {
+                Item = new PlayerItemReference { Location = PlayerItemLocation.Inventory, Slot = 0 },
+                Destination = new PlayerItemReference { Location = PlayerItemLocation.Belt, Slot = 0 },
+            },
+        };
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", toBelt, 13).Status);
+        Assert.Empty(executor.GetPlayerState("player-a").Inventory);
+        Assert.Equal(42U, Assert.Single(executor.GetPlayerState("player-a").Belt).ItemSeed);
+
+        var toInventory = new Command {
+            ClientSequence = 4,
+            RequestedTick = 14,
+            MoveItemRequested = new MoveItemRequested {
+                Item = new PlayerItemReference { Location = PlayerItemLocation.Belt, Slot = 0 },
+                Destination = new PlayerItemReference { Location = PlayerItemLocation.Inventory, Slot = 0 },
+            },
+        };
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", toInventory, 14).Status);
+        Assert.Equal(42U, Assert.Single(executor.GetPlayerState("player-a").Inventory).ItemSeed);
+        Assert.Equal(new[] { 0 }, executor.GetPlayerState("player-a").InventoryGrid);
+        Assert.Empty(executor.GetPlayerState("player-a").Belt);
+    }
+
+    [Fact]
+    public void ExplicitMoveSwapsInventoryAndEquipmentItemsAtomically()
+    {
+        var executor = new StoreSimulationExecutor(
+            CreateCatalog(new StoreItem(0, 42, 10)),
+            startingGold: 100,
+            startingInventoryGrid: [0],
+            startingEquipment: [new EquippedStoreItem(3, 99)]);
+        var server = new AuthoritativeCommandServer(executor);
+        server.Process("player-a", OpenStore(1), 10);
+        server.Process("player-a", Purchase(2, 0), 12);
+
+        var swap = new Command {
+            ClientSequence = 3,
+            RequestedTick = 13,
+            MoveItemRequested = new MoveItemRequested {
+                Item = new PlayerItemReference { Location = PlayerItemLocation.Inventory, Slot = 0 },
+                Destination = new PlayerItemReference { Location = PlayerItemLocation.Equipment, Slot = 3 },
+            },
+        };
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", swap, 13).Status);
+        Assert.Equal(99U, Assert.Single(executor.GetPlayerState("player-a").Inventory).ItemSeed);
+        Assert.Equal(42U, Assert.Single(executor.GetPlayerState("player-a").Equipment).ItemSeed);
+        Assert.Equal(new[] { 0 }, executor.GetPlayerState("player-a").InventoryGrid);
     }
 
     private static StoreCatalog CreateCatalog(params StoreItem[] items)

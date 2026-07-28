@@ -35,7 +35,11 @@ internal static class Program
         var contentManifest = new ContentManifest(options.ContentId, options.ContentVersion, [contentPack]);
         var registry = new GameplayModuleRegistry();
         var clock = new RealtimeAuthoritativeClock(options.TickRateHz);
-        registry.Load([DiabloGameplayModule.Instance], new GameplayModuleContext(contentManifest, clock));
+        var pricingTablePath = Path.Combine(contentRoot, "store_services.tsv");
+        var pricing = File.Exists(pricingTablePath)
+            ? StoreServicePricing.LoadTsv(pricingTablePath, await File.ReadAllTextAsync(pricingTablePath))
+            : StoreServicePricing.Default;
+        registry.Load([new DiabloGameplayModule(pricing)], new GameplayModuleContext(contentManifest, clock));
         var ruleset = new GameplayRulesetIdentity(contentManifest, registry.Modules.Select(module => module.Identity));
 
         var storeTablePath = Path.Combine(contentRoot, "stores.tsv");

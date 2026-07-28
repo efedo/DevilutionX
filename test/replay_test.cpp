@@ -256,6 +256,31 @@ TEST(ReplayFixture, ParsesStructuredManifestCheckpointAndStorePayloads)
 	EXPECT_EQ(fixture.initialStateSha256, "initial-hash");
 }
 
+TEST(ReplayFixture, ParsesTransactionParityCommands)
+{
+	std::ifstream file("test/fixtures/replay/stores/transaction-parity.json");
+	ASSERT_TRUE(file.good());
+	const std::string json((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+	ReplayFixture fixture;
+	std::string error;
+	ASSERT_TRUE(ParseReplayFixture(json, fixture, error)) << error;
+	EXPECT_EQ(fixture.initialState.manaMaximum, 640);
+	ASSERT_EQ(fixture.commands.size(), 5U);
+	ASSERT_EQ(fixture.checkpoints.size(), 5U);
+	EXPECT_EQ(fixture.checkpoints[0].tick, 10U);
+	EXPECT_EQ(fixture.checkpoints[1].tick, 12U);
+	EXPECT_EQ(fixture.checkpoints[2].tick, 14U);
+	EXPECT_EQ(fixture.checkpoints[3].tick, 15U);
+	EXPECT_EQ(fixture.checkpoints[4].tick, 16U);
+	EXPECT_EQ(fixture.checkpoints[0].stateSha256, "0babdd719bddc6200b919a9023b7016b58d67153e4159f30b6fb176d58adcaa8");
+	EXPECT_EQ(fixture.checkpoints[4].stateSha256, "b4174cab0d5255716cb40071f2fe9e31794cef76fc5b73759ffa36ef4a529630");
+	EXPECT_EQ(fixture.commands[2].kind, "SellItem");
+	EXPECT_EQ(fixture.commands[2].storeSlot, 0U);
+	EXPECT_EQ(fixture.commands[3].kind, "OpenStore");
+	EXPECT_EQ(fixture.commands[3].storeId, 10U);
+	EXPECT_EQ(fixture.commands[4].kind, "RefillMana");
+}
+
 TEST(ReplayFixture, RejectsMalformedJson)
 {
 	ReplayFixture fixture;
