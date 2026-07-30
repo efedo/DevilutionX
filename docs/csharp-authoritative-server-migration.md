@@ -138,36 +138,36 @@ The work is divided into six parallel but ordered workstreams:
 | External content | Move game-specific definitions and tuning into versioned data packs |
 | C# gameplay modules and mods | Move non-declarative game rules into versioned server modules and split them from client presentation extensions |
 
-## Progress Snapshot (2026-07-26)
+## Progress Snapshot (2026-07-28)
 
 | Phase | State | Implemented | Remaining gate |
 |---|---|---|---|
-| Phase 0: decisions and baseline | Mostly complete | Decisions, Lua inventory, C++ replay hashing, shared fixture format, command-delivery vector, deterministic initial replay checkpoint | Explicit mod-reload/Hellfire fixtures and full transition checkpoint parity |
+| Phase 0: decisions and baseline | Mostly complete | Decisions, Lua inventory, C++ replay hashing, shared fixture format, command-delivery vector, deterministic initial replay checkpoint, native transaction execution and per-command C++/C# hash parity | Explicit mod-reload/Hellfire fixtures and broader gameplay transition fixtures |
 | Phase 1: C++ decoupling | Partial | `ModManager`, `GameDataManager`, typed events, Lua adapter, stable event IDs, canonical content-manifest hashing | Sound reload, declarative Hellfire metadata, debug registry, live data-manager manifest integration |
 | Phase 2: C# domain and protocol | Partial | Protobuf schema and C#/opt-in C++ generation, bounded framing, C# TCP sessions, standalone C# host with a live authoritative clock, native handshake/command/acknowledgement/snapshot client, tracker-backed sends/retries/acknowledgement resolution preserved across resume, command admission/deduplication, snapshots, state hashing, structured replay/vector loaders, matching C++/C# content-hash vectors, gameplay-module contract, fixed-point/RNG/ID primitives, reconnect ledger/entity/full-snapshot resumption | Stable ID catalogs and complete transition parity |
-| Phase 3: inventory and stores | Remote adapter started | External TSV store definitions and service pricing, module-owned purchase/sale/repair/recharge/identification/movement rules, shared stock, wallet/inventory/vendor-stock snapshots, item-state projection, reconnect resynchronization, validated native player/equipment/inventory/belt application, native server-backed session lifecycle, adaptive retry polling, stable location references, explicit inventory/belt/equipment transfer commands, protocol-free command resolution, destination-explicit legacy store UI adapter, opt-in game/store lifecycle wiring for Smith stock and visual-store transactions, Adria mana-refill UI/service, and shared per-command store checkpoints | Legacy item generation parity, equipment swaps and multi-cell placement semantics, native transition execution against the C# checkpoint hashes, and broader golden state-hash parity |
-| Phase 4: remaining authoritative systems | Not started | Protocol placeholders for movement, combat, spells, and events | Domain implementations and remote adapters |
+| Phase 3: inventory and stores | Remote adapter started | External TSV store definitions and service pricing, module-owned purchase/sale/repair/recharge/identification/movement rules, shared stock, wallet/inventory/vendor-stock snapshots, item-state projection, reconnect resynchronization, validated native player/equipment/inventory/belt application, native server-backed session lifecycle, adaptive retry polling, stable location references, explicit inventory/belt/equipment transfer commands, protocol-free command resolution, destination-explicit legacy store UI adapter, opt-in game/store lifecycle wiring for Smith stock and visual-store transactions, Adria mana-refill UI/service, shared per-command store checkpoints, native replay transition execution, multi-cell placement and shape-aware swaps, and broader C++/C# state-hash parity | Legacy item generation parity, complete catalog dimensions for shipped item data, and additional equipment/store fixtures |
+| Phase 4: remaining authoritative systems | Initial boundary implemented | Server-owned movement, bounded coordinates, life/mana maxima, character level, healing, adjacent combat damage, defeat experience, event-batch transport, and native snapshot projection | Full level occupancy/portals, legacy combat/spell parity, monsters, drops, objects, quests, persistence, and gameplay replay fixtures |
 | Phase 5: Godot client | Not started | Target boundary documented | Godot project, connection, rendering, input, UI, and correction paths |
 | Phase 6: content/modules and Lua removal | Not started | Target data/domain/module layering, capability destinations, and removal gates documented | Implement replacement paths, externalize shipped content/rules, and remove Lua/sol2 |
 
 ### Current Critical Path
 
-1. Extend the shared store transaction fixtures through normalized purchase,
-   sale, and mana-refill checkpoints and compare the C++ legacy transition with
-   the C# authoritative result. The C# executor now validates each command-tick
-   SHA-256 checkpoint; the native loader verifies the same checkpoint envelope,
-   while native command execution remains the next parity gate.
+1. Extend the shared replay fixtures beyond stores into player resources,
+   movement, combat, and content-reload transitions. The native and C# store
+   executors now validate the same per-command SHA-256 checkpoints, while the
+   first movement/combat rules are covered by server tests and event batches.
 2. Apply the native server-backed session to the game loop and store UI using
    authoritative player and vendor-stock snapshots without changing the default
    local path. The opt-in runtime owns session startup/cleanup, applies the
    initial player snapshot, polls adaptive command retries, requests Smith stock,
    and routes Smith purchase/sale/repair plus inventory, body, and belt
    service operations through acknowledged commands. The visual store now
-   refreshes from authoritative snapshots after remote transactions.
+   refreshes from authoritative snapshots after remote transactions. Generic
+   vendor open/purchase routing is now available; remaining vendor defaults
+   still require catalog and legacy-generation parity.
 3. Complete legacy generation/pricing and transaction parity, including
-   external spell-aware recharge pricing and exact equipment-swap/multi-cell
-   placement semantics, before
-   switching stores to `C# remote` by default.
+   external spell-aware recharge pricing and catalog dimensions for all shipped
+   item definitions, before switching stores to `C# remote` by default.
 4. Define shared stable content identifiers before expanding the protocol to
    additional inventory and world systems.
 

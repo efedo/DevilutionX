@@ -70,6 +70,7 @@ tl::expected<void, std::string> ServerBackedClient::Reconnect(uint64_t nowMs)
 {
 	Close();
 	pendingSnapshot_.reset();
+	pendingEventBatches_.clear();
 	if (auto result = ConnectTransport(true); !result.has_value())
 		return result;
 
@@ -143,12 +144,25 @@ tl::expected<protocol::Snapshot, std::string> ServerBackedClient::ReadSnapshot()
 		return snapshot;
 	}
 
-	auto response = ReadEnvelope();
-	if (!response.has_value())
-		return tl::make_unexpected(response.error());
-	if (response->payload_case() != protocol::Envelope::kSnapshot)
-		return tl::make_unexpected(ProtocolErrorMessage(*response));
-	return response->snapshot();
+	for (;;) {
+		auto response = ReadEnvelope();
+		if (!response.has_value())
+			return tl::make_unexpected(response.error());
+		if (response->payload_case() == protocol::Envelope::kEventBatch) {
+			pendingEventBatches_.push_back(response->event_batch());
+			continue;
+		}
+		if (response->payload_case() != protocol::Envelope::kSnapshot)
+			return tl::make_unexpected(ProtocolErrorMessage(*response));
+		return response->snapshot();
+	}
+}
+
+std::vector<protocol::EventBatch> ServerBackedClient::TakePendingEventBatches()
+{
+	std::vector<protocol::EventBatch> events = std::move(pendingEventBatches_);
+	pendingEventBatches_.clear();
+	return events;
 }
 
 uint64_t ServerBackedClient::QueueCommand(protocol::Command command)

@@ -68,7 +68,7 @@ public static class ReplayFixtureExecutor
                 var snapshot = executor.CreateSnapshot(sessionId, entityId, fixtureCommand.TargetTick);
                 if (IsSha256(checkpoint.StateSha256)
                     && !string.Equals(checkpoint.StateSha256, snapshot.StateSha256, StringComparison.OrdinalIgnoreCase))
-                    throw new InvalidDataException($"Replay checkpoint hash mismatch at tick {checkpoint.Tick}.");
+                    throw new InvalidDataException($"Replay checkpoint hash mismatch at tick {checkpoint.Tick}: expected {checkpoint.StateSha256}, actual {snapshot.StateSha256}.");
                 checkpoints.Add(new ReplayCheckpointResult(checkpoint.Tick, checkpoint.StateSha256, snapshot.StateSha256));
             }
         }

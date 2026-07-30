@@ -8,6 +8,8 @@ All notable changes to this fork are documented below.
 - Add explicit authoritative inventory-to-belt/equipment transfer commands while retaining the legacy inventory-grid command
 - Add the server-backed Adria mana-refill menu action and service-only store scope
 - Make C# replay execution validate SHA-256 state checkpoints after every transaction command; extend native fixture coverage
+- Execute the shared transaction replay natively, add shape-aware multi-cell inventory placement and swaps, and align C++/C# hashes for resources, belts, item footprints, and protocol item state
+- Add the first authoritative gameplay boundary: bounded movement, life/mana maxima, character level, healing, adjacent combat damage, defeat experience, event-batch transport, native player projection, and generic vendor routing
 - Configure the C# test project to build a self-contained Microsoft Testing Platform runner; direct execution avoids a missing machine-wide VSTest `testhost` package
 
 ## 2026-07-01

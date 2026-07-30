@@ -67,16 +67,37 @@ void ServerBackedRuntime::Stop() noexcept
 
 tl::expected<void, std::string> ServerBackedRuntime::OpenSmithStore(uint64_t requestedTick, uint64_t nowMs)
 {
+	return OpenVendor(SmithStoreId, ServerBackedVendorDestination::Smith, requestedTick, nowMs);
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::OpenVendor(uint32_t storeId, ServerBackedVendorDestination destination, uint64_t requestedTick, uint64_t nowMs)
+{
 	if (!session_ || !vendorUiAdapter_)
 		return tl::make_unexpected("The server-backed runtime is not connected.");
-	if (auto result = session_->OpenVendor(SmithStoreId, requestedTick, nowMs); !result.has_value())
+	if (auto result = session_->OpenVendor(storeId, requestedTick, nowMs); !result.has_value())
 		return result;
 	if (auto result = EnsureCommandAccepted(); !result.has_value())
 		return result;
 	const ProjectedVendorSnapshot *snapshot = session_->VendorState().Snapshot();
 	if (snapshot == nullptr)
-		return tl::make_unexpected("The server-backed Smith store returned no stock snapshot.");
-	return vendorUiAdapter_->Apply(*snapshot, ServerBackedVendorDestination::Smith, SmithStoreId);
+		return tl::make_unexpected("The authoritative vendor returned no stock snapshot.");
+	return vendorUiAdapter_->Apply(*snapshot, destination, storeId);
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::PurchaseVendor(uint32_t storeId, uint32_t storeSlot, ServerBackedVendorDestination destination, uint64_t requestedTick, uint64_t nowMs)
+{
+	if (!session_ || !vendorUiAdapter_)
+		return tl::make_unexpected("The server-backed runtime is not connected.");
+	if (auto result = session_->Purchase(storeId, storeSlot, requestedTick, nowMs); !result.has_value())
+		return result;
+	if (auto result = EnsureCommandAccepted(); !result.has_value())
+		return result;
+	if (auto result = ApplyCurrentPlayerSnapshot(); !result.has_value())
+		return result;
+	const ProjectedVendorSnapshot *snapshot = session_->VendorState().Snapshot();
+	if (snapshot == nullptr)
+		return tl::make_unexpected("The authoritative vendor purchase returned no stock snapshot.");
+	return vendorUiAdapter_->Apply(*snapshot, destination, storeId);
 }
 
 tl::expected<void, std::string> ServerBackedRuntime::OpenAdriaStore(uint64_t requestedTick, uint64_t nowMs)
@@ -90,18 +111,7 @@ tl::expected<void, std::string> ServerBackedRuntime::OpenAdriaStore(uint64_t req
 
 tl::expected<void, std::string> ServerBackedRuntime::PurchaseSmith(uint32_t storeSlot, uint64_t requestedTick, uint64_t nowMs)
 {
-	if (!session_ || !vendorUiAdapter_)
-		return tl::make_unexpected("The server-backed runtime is not connected.");
-	if (auto result = session_->Purchase(SmithStoreId, storeSlot, requestedTick, nowMs); !result.has_value())
-		return result;
-	if (auto result = EnsureCommandAccepted(); !result.has_value())
-		return result;
-	if (auto result = ApplyCurrentPlayerSnapshot(); !result.has_value())
-		return result;
-	const ProjectedVendorSnapshot *snapshot = session_->VendorState().Snapshot();
-	if (snapshot == nullptr)
-		return tl::make_unexpected("The server-backed Smith purchase returned no stock snapshot.");
-	return vendorUiAdapter_->Apply(*snapshot, ServerBackedVendorDestination::Smith, SmithStoreId);
+	return PurchaseVendor(SmithStoreId, storeSlot, ServerBackedVendorDestination::Smith, requestedTick, nowMs);
 }
 
 tl::expected<void, std::string> ServerBackedRuntime::SellItem(uint32_t inventoryIndex, uint64_t requestedTick, uint64_t nowMs)

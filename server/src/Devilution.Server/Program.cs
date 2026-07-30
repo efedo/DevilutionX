@@ -58,6 +58,7 @@ internal static class Program
             clock,
             options.Port,
             options.BindAddress,
+            executor,
             executor);
         server.Start();
         Console.WriteLine($"Devilution authoritative server listening on {options.BindAddress}:{server.Port}");

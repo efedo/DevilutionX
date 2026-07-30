@@ -194,6 +194,8 @@ message PlayerSnapshot {
 	repeated int32 inventory_grid = 12;
 	repeated BeltItemSnapshot belt = 13;
 	int32 mana_maximum = 14;
+	int32 life_maximum = 15;
+	uint32 character_level = 16;
 }
 
 message ItemSnapshot {
@@ -262,6 +264,10 @@ message ItemStateSnapshot {
 	bool stat_flag = 54;
 	int32 hellfire_damage_armor_flags = 55;
 	uint32 buff = 56;
+	// Inventory footprint in grid cells. Missing values retain the legacy
+	// one-cell default for older clients and content tables.
+	uint32 inventory_width = 57;
+	uint32 inventory_height = 58;
 }
 
 message PlayerAttributesSnapshot {

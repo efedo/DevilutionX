@@ -51,6 +51,9 @@ public:
 	tl::expected<protocol::CommandAck, std::string> Submit(const protocol::CommandBatch &batch);
 	tl::expected<protocol::Snapshot, std::string> ReadSnapshot();
 
+	/** Returns transient gameplay events received before the latest snapshot. */
+	std::vector<protocol::EventBatch> TakePendingEventBatches();
+
 	/** Adds a command and assigns its session-scoped retry sequence. */
 	uint64_t QueueCommand(protocol::Command command);
 
@@ -80,6 +83,7 @@ private:
 	Configuration configuration_;
 	protocol::ServerHello serverHello_;
 	std::optional<protocol::Snapshot> pendingSnapshot_;
+	std::vector<protocol::EventBatch> pendingEventBatches_;
 	CommandDeliveryTracker deliveryTracker_;
 	struct PendingCommand {
 		protocol::Command command;

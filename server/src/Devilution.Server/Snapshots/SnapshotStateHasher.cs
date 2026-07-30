@@ -18,6 +18,9 @@ public static class SnapshotStateHasher
             hasher.AppendInt32(player.PositionY);
             hasher.AppendInt32(player.Life);
             hasher.AppendInt32(player.Mana);
+            hasher.AppendInt32(player.ManaMaximum);
+            hasher.AppendInt32(player.LifeMaximum);
+            hasher.AppendUInt32(player.CharacterLevel);
             hasher.AppendUInt32(player.Gold);
             hasher.AppendUInt32(player.Experience);
             hasher.AppendUInt32(player.ActiveStoreId);
@@ -34,6 +37,17 @@ public static class SnapshotStateHasher
                 .ToArray();
             hasher.AppendUInt64((ulong)equipment.Length);
             foreach (var item in equipment) {
+                hasher.AppendUInt32(item.Slot);
+                hasher.AppendUInt32(item.ItemSeed);
+                AppendItemState(hasher, item.State);
+            }
+
+            var belt = player.Belt
+                .OrderBy(item => item.Slot)
+                .ThenBy(item => item.ItemSeed)
+                .ToArray();
+            hasher.AppendUInt64((ulong)belt.Length);
+            foreach (var item in belt) {
                 hasher.AppendUInt32(item.Slot);
                 hasher.AppendUInt32(item.ItemSeed);
                 AppendItemState(hasher, item.State);
@@ -146,5 +160,7 @@ public static class SnapshotStateHasher
         hasher.AppendBool(state.StatFlag);
         hasher.AppendInt32(state.HellfireDamageArmorFlags);
         hasher.AppendUInt32(state.Buff);
+        hasher.AppendUInt32(state.InventoryWidth == 0 ? 1U : state.InventoryWidth);
+        hasher.AppendUInt32(state.InventoryHeight == 0 ? 1U : state.InventoryHeight);
     }
 }

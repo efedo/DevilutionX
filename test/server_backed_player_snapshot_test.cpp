@@ -16,10 +16,12 @@ TEST(ServerBackedPlayerSnapshot, ProjectsResourcesInventoryAndEquipment)
 	player->set_position_x(11);
 	player->set_position_y(-4);
 	player->set_life(640);
+	player->set_life_maximum(800);
 	player->set_mana(32);
 	player->set_mana_maximum(640);
 	player->set_gold(125);
 	player->set_experience(99);
+	player->set_character_level(3);
 	player->mutable_attributes()->mutable_strength()->set_current(12);
 	player->mutable_attributes()->mutable_strength()->set_base(10);
 	player->mutable_inventory_grid()->Add(0);
@@ -45,8 +47,10 @@ TEST(ServerBackedPlayerSnapshot, ProjectsResourcesInventoryAndEquipment)
 	EXPECT_EQ(projected->entityId, 7U);
 	EXPECT_EQ(projected->positionX, 11);
 	EXPECT_EQ(projected->life, 640);
+	EXPECT_EQ(projected->lifeMaximum, 800);
 	EXPECT_EQ(projected->manaMaximum, 640);
 	EXPECT_EQ(projected->gold, 125U);
+	EXPECT_EQ(projected->characterLevel, 3U);
 	EXPECT_EQ(projected->strength.base, 10);
 	EXPECT_EQ(projected->strength.current, 12);
 	ASSERT_EQ(projected->inventory.size(), 1U);
@@ -101,10 +105,12 @@ TEST(ServerBackedPlayerSnapshot, AppliesResourcesEquipmentInventoryAndGrid)
 	snapshot.positionX = 12;
 	snapshot.positionY = 13;
 	snapshot.life = 800;
+	snapshot.lifeMaximum = 1000;
 	snapshot.mana = 125;
 	snapshot.manaMaximum = 750;
 	snapshot.gold = 450;
 	snapshot.experience = 99;
+	snapshot.characterLevel = 4;
 	snapshot.strength = { 10, 12 };
 	snapshot.inventoryGrid.assign(InventoryGridCells, -1);
 	Item inventoryItem;
@@ -126,6 +132,7 @@ TEST(ServerBackedPlayerSnapshot, AppliesResourcesEquipmentInventoryAndGrid)
 	EXPECT_EQ(player.attributes.strength.base, 10);
 	EXPECT_EQ(player.attributes.strength.current, 12);
 	EXPECT_EQ(player.life.current, 800);
+	EXPECT_EQ(player.life.maximum, 1000);
 	EXPECT_EQ(player.mana.current, 125);
 	EXPECT_EQ(player.mana.maximum, 750);
 	EXPECT_EQ(player.SpdList[2]._itype, ItemType::Misc);

@@ -1,5 +1,6 @@
 using Devilution.Protocol.V1;
 using Devilution.Server.Commands;
+using Devilution.Server.Gameplay;
 using Devilution.Server.Snapshots;
 using Devilution.Server.Stores;
 using Xunit;
@@ -136,7 +137,7 @@ public sealed class StoreSimulationExecutorTests
         Assert.Equal(7U, player.EntityId);
         Assert.Equal(25U, player.Gold);
         Assert.Equal(1U, player.ActiveStoreId);
-        Assert.Equal("b4ca80780c2ea293cfa2cc09277eab13688e158e4f120adc9819a0d787368dd9", snapshot.StateSha256);
+        Assert.Equal("ca8eabaa692a972f3e23c7611aec60c411ea34210b6e420d6ffdcf35dfad3e94", snapshot.StateSha256);
         Assert.Equal(SnapshotStateHasher.Compute(snapshot), snapshot.StateSha256);
         Assert.Equal(1U, item.StoreId);
         Assert.Equal(0U, item.StoreSlot);
@@ -417,6 +418,219 @@ public sealed class StoreSimulationExecutorTests
         Assert.Equal(99U, Assert.Single(executor.GetPlayerState("player-a").Inventory).ItemSeed);
         Assert.Equal(42U, Assert.Single(executor.GetPlayerState("player-a").Equipment).ItemSeed);
         Assert.Equal(new[] { 0 }, executor.GetPlayerState("player-a").InventoryGrid);
+    }
+
+    [Fact]
+    public void InventoryPlacementHonorsMultiCellItemFootprints()
+    {
+        var itemState = AuthoritativeItemState.Empty with { ItemType = 1, InventoryWidth = 2, InventoryHeight = 2 };
+        var executor = new StoreSimulationExecutor(
+            CreateCatalog(new StoreItem(0, 42, 10, itemState)),
+            startingGold: 100,
+            startingInventoryGrid: Enumerable.Repeat(-1, 40).ToArray());
+        var server = new AuthoritativeCommandServer(executor);
+        server.Process("player-a", OpenStore(1), 10);
+        server.Process("player-a", Purchase(2, 0), 12);
+
+        var move = new Command {
+            ClientSequence = 3,
+            RequestedTick = 13,
+            MoveInventoryItemRequested = new MoveInventoryItemRequested { InventoryIndex = 0, TargetCell = 8 },
+        };
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", move, 13).Status);
+        var grid = executor.GetPlayerState("player-a").InventoryGrid;
+        Assert.Equal(0, grid[8]);
+        Assert.Equal(0, grid[9]);
+        Assert.Equal(0, grid[18]);
+        Assert.Equal(0, grid[19]);
+    }
+
+    [Fact]
+    public void MultiCellPlacementRejectsEdgeAndCollisionTargets()
+    {
+        var large = AuthoritativeItemState.Empty with { ItemType = 1, InventoryWidth = 2, InventoryHeight = 1 };
+        var small = AuthoritativeItemState.Empty with { ItemType = 2 };
+        var executor = new StoreSimulationExecutor(
+            CreateCatalog(new StoreItem(0, 42, 10, large), new StoreItem(1, 43, 10, small)),
+            startingGold: 100,
+            startingInventoryGrid: Enumerable.Repeat(-1, 40).ToArray());
+        var server = new AuthoritativeCommandServer(executor);
+        server.Process("player-a", OpenStore(1), 10);
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", Purchase(2, 0), 12).Status);
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", Purchase(3, 1), 12).Status);
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", new Command {
+            ClientSequence = 4,
+            RequestedTick = 14,
+            MoveInventoryItemRequested = new MoveInventoryItemRequested { InventoryIndex = 0, TargetCell = 8 },
+        }, 14).Status);
+
+        Assert.Equal(CommandStatus.Rejected, server.Process("player-a", new Command {
+            ClientSequence = 5,
+            RequestedTick = 15,
+            MoveInventoryItemRequested = new MoveInventoryItemRequested { InventoryIndex = 0, TargetCell = 9 },
+        }, 15).Status);
+        Assert.Equal(CommandStatus.Rejected, server.Process("player-a", new Command {
+            ClientSequence = 6,
+            RequestedTick = 16,
+            MoveInventoryItemRequested = new MoveInventoryItemRequested { InventoryIndex = 1, TargetCell = 9 },
+        }, 16).Status);
+    }
+
+    [Fact]
+    public void MultiCellInventoryItemsSwapOnlyWhenBothFootprintsFit()
+    {
+        var large = AuthoritativeItemState.Empty with { ItemType = 1, InventoryWidth = 2, InventoryHeight = 1 };
+        var small = AuthoritativeItemState.Empty with { ItemType = 2 };
+        var executor = new StoreSimulationExecutor(
+            CreateCatalog(new StoreItem(0, 42, 10, large), new StoreItem(1, 43, 10, small)),
+            startingGold: 100,
+            startingInventoryGrid: Enumerable.Repeat(-1, 40).ToArray());
+        var server = new AuthoritativeCommandServer(executor);
+        server.Process("player-a", OpenStore(1), 10);
+        server.Process("player-a", Purchase(2, 0), 12);
+        server.Process("player-a", Purchase(3, 1), 12);
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", new Command {
+            ClientSequence = 4,
+            RequestedTick = 14,
+            MoveInventoryItemRequested = new MoveInventoryItemRequested { InventoryIndex = 0, TargetCell = 8 },
+        }, 14).Status);
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", new Command {
+            ClientSequence = 5,
+            RequestedTick = 15,
+            MoveInventoryItemRequested = new MoveInventoryItemRequested { InventoryIndex = 1, TargetCell = 20 },
+        }, 15).Status);
+
+        var swap = new Command {
+            ClientSequence = 6,
+            RequestedTick = 16,
+            MoveItemRequested = new MoveItemRequested {
+                Item = new PlayerItemReference { Location = PlayerItemLocation.Inventory, Slot = 1 },
+                Destination = new PlayerItemReference { Location = PlayerItemLocation.Inventory, Slot = 8 },
+            },
+        };
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", swap, 16).Status);
+        var state = executor.GetPlayerState("player-a");
+        Assert.Equal(0, state.InventoryGrid[8]);
+        Assert.Equal(-1, state.InventoryGrid[9]);
+        Assert.Equal(1, state.InventoryGrid[20]);
+        Assert.Equal(1, state.InventoryGrid[21]);
+    }
+
+    [Fact]
+    public void MovementIsValidatedAndIncludedInTheAuthoritativeSnapshot()
+    {
+        var executor = new StoreSimulationExecutor(
+            CreateCatalog(),
+            startingGold: 100,
+            startingPositionX: 1,
+            startingPositionY: 1,
+            startingLife: 40,
+            startingLifeMaximum: 60,
+            startingCharacterLevel: 3);
+        var server = new AuthoritativeCommandServer(executor);
+
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", new Command {
+            ClientSequence = 1,
+            RequestedTick = 5,
+            MoveRequested = new MoveRequested { DirectionX = 1, DirectionY = -1 },
+        }, 5).Status);
+        var snapshot = executor.CreateSnapshot("player-a", 7, 5);
+        var player = Assert.Single(snapshot.Players);
+        Assert.Equal(2, player.PositionX);
+        Assert.Equal(0, player.PositionY);
+        Assert.Equal(60, player.LifeMaximum);
+        Assert.Equal(3U, player.CharacterLevel);
+
+        var invalidDirection = server.Process("player-a", new Command {
+            ClientSequence = 2,
+            RequestedTick = 6,
+            MoveRequested = new MoveRequested(),
+        }, 6);
+        Assert.Equal(CommandRejectReason.Malformed, invalidDirection.RejectReason);
+        var outOfBounds = server.Process("player-a", new Command {
+            ClientSequence = 3,
+            RequestedTick = 7,
+            MoveRequested = new MoveRequested { DirectionX = -1, DirectionY = -1 },
+        }, 7);
+        Assert.Equal(CommandRejectReason.InvalidTarget, outOfBounds.RejectReason);
+    }
+
+    [Fact]
+    public void HealingCastConsumesManaAndCannotExceedLifeMaximum()
+    {
+        var executor = new StoreSimulationExecutor(
+            CreateCatalog(),
+            startingGold: 100,
+            startingLife: 10,
+            startingLifeMaximum: 25,
+            startingMana: 10,
+            startingManaMaximum: 10);
+        var server = new AuthoritativeCommandServer(executor);
+        var result = server.Process("player-a", new Command {
+            ClientSequence = 1,
+            RequestedTick = 1,
+            CastRequested = new CastRequested { SpellId = 1 },
+        }, 1);
+
+        Assert.Equal(CommandStatus.Accepted, result.Status);
+        var state = executor.GetPlayerState("player-a");
+        Assert.Equal(25, state.Life);
+        Assert.Equal(5, state.Mana);
+
+        var full = server.Process("player-a", new Command {
+            ClientSequence = 2,
+            RequestedTick = 2,
+            CastRequested = new CastRequested { SpellId = 1 },
+        }, 2);
+        Assert.Equal(CommandRejectReason.NotAllowed, full.RejectReason);
+    }
+
+    [Fact]
+    public void AdjacentAttackDamagesTargetsAndAwardsExperienceOnDefeat()
+    {
+        var target = new AuthoritativeCombatTarget(9, 1, 0, hitPoints: 11, armorClass: 2);
+        var executor = new StoreSimulationExecutor(
+            CreateCatalog(),
+            startingGold: 100,
+            startingPositionX: 0,
+            startingPositionY: 0,
+            startingCharacterLevel: 1,
+            startingCombatTargets: [target]);
+        var server = new AuthoritativeCommandServer(executor);
+
+        var first = server.Process("player-a", new Command {
+            ClientSequence = 1,
+            RequestedTick = 1,
+            AttackRequested = new AttackRequested { TargetEntityId = 9 },
+        }, 1);
+        Assert.Equal(CommandStatus.Accepted, first.Status);
+        Assert.Equal(3, target.HitPoints);
+        Assert.Equal(0U, executor.GetPlayerState("player-a").Experience);
+        var hitEvents = executor.DrainEvents("player-a", 7, 1);
+        Assert.NotNull(hitEvents);
+        Assert.Equal(8, Assert.Single(hitEvents.Events).Damage.Amount);
+
+        var second = server.Process("player-a", new Command {
+            ClientSequence = 2,
+            RequestedTick = 2,
+            AttackRequested = new AttackRequested { TargetEntityId = 9 },
+        }, 2);
+        Assert.Equal(CommandStatus.Accepted, second.Status);
+        Assert.Equal(0, target.HitPoints);
+        Assert.Equal(100U, executor.GetPlayerState("player-a").Experience);
+        var defeatEvents = executor.DrainEvents("player-a", 7, 2);
+        Assert.NotNull(defeatEvents);
+        Assert.Equal(2, defeatEvents.Events.Count);
+        Assert.Equal(100U, defeatEvents.Events.Single(gameEvent => gameEvent.Experience is not null).Experience.Amount);
+
+        var distant = new AuthoritativeCombatTarget(10, 4, 4, 10);
+        var distantExecutor = new StoreSimulationExecutor(CreateCatalog(), 100, startingCombatTargets: [distant]);
+        var distantResult = new AuthoritativeCommandServer(distantExecutor).Process("player-a", new Command {
+            ClientSequence = 1,
+            RequestedTick = 1,
+            AttackRequested = new AttackRequested { TargetEntityId = 10 },
+        }, 1);
+        Assert.Equal(CommandRejectReason.InvalidTarget, distantResult.RejectReason);
     }
 
     private static StoreCatalog CreateCatalog(params StoreItem[] items)

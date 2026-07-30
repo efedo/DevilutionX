@@ -23,6 +23,7 @@ public sealed class AuthoritativeTcpServer : IAsyncDisposable
     private readonly ProtocolHandshake handshake;
     private readonly IAuthoritativeClock clock;
     private readonly IAuthoritativeSnapshotProvider? snapshotProvider;
+    private readonly IAuthoritativeEventProvider? eventProvider;
     private readonly StableEntityIdAllocator entityIds = new();
     private readonly ConcurrentDictionary<TcpClient, byte> clients = new();
     private readonly ConcurrentDictionary<string, SessionState> sessionsByToken = new(StringComparer.Ordinal);
@@ -35,8 +36,9 @@ public sealed class AuthoritativeTcpServer : IAsyncDisposable
         Func<ulong> currentTickProvider,
         int port = 0,
         IPAddress? address = null,
-        IAuthoritativeSnapshotProvider? snapshotProvider = null)
-        : this(commandServer, handshake, new DelegateAuthoritativeClock(currentTickProvider), port, address, snapshotProvider)
+        IAuthoritativeSnapshotProvider? snapshotProvider = null,
+        IAuthoritativeEventProvider? eventProvider = null)
+        : this(commandServer, handshake, new DelegateAuthoritativeClock(currentTickProvider), port, address, snapshotProvider, eventProvider)
     {
     }
 
@@ -46,12 +48,14 @@ public sealed class AuthoritativeTcpServer : IAsyncDisposable
         IAuthoritativeClock clock,
         int port = 0,
         IPAddress? address = null,
-        IAuthoritativeSnapshotProvider? snapshotProvider = null)
+        IAuthoritativeSnapshotProvider? snapshotProvider = null,
+        IAuthoritativeEventProvider? eventProvider = null)
     {
         this.commandServer = commandServer ?? throw new ArgumentNullException(nameof(commandServer));
         this.handshake = handshake ?? throw new ArgumentNullException(nameof(handshake));
         this.clock = clock ?? throw new ArgumentNullException(nameof(clock));
         this.snapshotProvider = snapshotProvider;
+        this.eventProvider = eventProvider;
         listener = new TcpListener(address ?? IPAddress.Loopback, port);
     }
 
@@ -139,6 +143,7 @@ public sealed class AuthoritativeTcpServer : IAsyncDisposable
                     currentTick = clock.CurrentTick;
                     var acknowledgement = commandServer.ProcessBatch(sessionId, envelope.CommandBatch, currentTick);
                     await EnvelopeCodec.WriteAsync(stream, new Envelope { CommandAck = acknowledgement }, cancellationToken);
+                    await SendEventsIfAvailable(stream, sessionId, entityId, currentTick, cancellationToken);
                     await SendSnapshotIfAvailableAsync(stream, sessionId, entityId, currentTick, cancellationToken);
                 } else {
                     await SendErrorAsync(stream, ProtocolErrorCode.InvalidMessage, "The session only accepts command batches after the handshake.", cancellationToken);
@@ -190,5 +195,18 @@ public sealed class AuthoritativeTcpServer : IAsyncDisposable
 
         var snapshot = snapshotProvider.CreateSnapshot(sessionId, entityId, tick);
         await EnvelopeCodec.WriteAsync(stream, new Envelope { Snapshot = snapshot }, cancellationToken);
+    }
+
+    private ValueTask SendEventsIfAvailable(
+        Stream stream,
+        string sessionId,
+        uint entityId,
+        ulong tick,
+        CancellationToken cancellationToken)
+    {
+        var events = eventProvider?.DrainEvents(sessionId, entityId, tick);
+        return events is null || events.Events.Count == 0
+            ? ValueTask.CompletedTask
+            : EnvelopeCodec.WriteAsync(stream, new Envelope { EventBatch = events }, cancellationToken);
     }
 }

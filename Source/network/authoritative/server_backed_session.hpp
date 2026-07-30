@@ -11,6 +11,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include <expected.hpp>
 
@@ -41,6 +42,8 @@ public:
 	[[nodiscard]] uint32_t EntityId() const noexcept { return entityId_; }
 	[[nodiscard]] const ServerBackedPlayerState &PlayerState() const noexcept { return playerState_; }
 	[[nodiscard]] const ServerBackedVendorState &VendorState() const noexcept { return vendorState_; }
+	/** Takes event batches received with the latest authoritative snapshot. */
+	std::vector<protocol::EventBatch> TakePendingEventBatches() { return client_->TakePendingEventBatches(); }
 
 	/** Opens a vendor and waits for its authoritative snapshot. */
 	tl::expected<void, std::string> OpenVendor(uint32_t storeId, uint64_t requestedTick, uint64_t nowMs);

@@ -6,6 +6,7 @@
 
 #include "game/replay/replay_fixture.hpp"
 
+#include <algorithm>
 #include <charconv>
 #include <cctype>
 #include <limits>
@@ -13,6 +14,160 @@
 
 namespace devilution {
 namespace {
+
+void AppendItemState(ReplayStateHasher &hasher, const ReplayFixtureItemState &state)
+{
+	hasher.AppendUint32(state.createInfo);
+	hasher.AppendInt32(state.itemType);
+	hasher.AppendInt32(state.positionX);
+	hasher.AppendInt32(state.positionY);
+	hasher.AppendBool(state.deleted);
+	hasher.AppendBool(state.identified);
+	hasher.AppendInt32(state.magical);
+	hasher.AppendInt32(state.equipLocation);
+	hasher.AppendInt32(state.itemClass);
+	hasher.AppendInt32(state.value);
+	hasher.AppendInt32(state.identifiedValue);
+	hasher.AppendInt32(state.minDamage);
+	hasher.AppendInt32(state.maxDamage);
+	hasher.AppendInt32(state.armorClass);
+	hasher.AppendUint32(state.flags);
+	hasher.AppendInt32(state.miscId);
+	hasher.AppendInt32(state.spellId);
+	hasher.AppendInt32(state.itemIndex);
+	hasher.AppendInt32(state.charges);
+	hasher.AppendInt32(state.maxCharges);
+	hasher.AppendInt32(state.durability);
+	hasher.AppendInt32(state.maxDurability);
+	hasher.AppendInt32(state.plusDamage);
+	hasher.AppendInt32(state.plusToHit);
+	hasher.AppendInt32(state.plusArmorClass);
+	hasher.AppendInt32(state.plusStrength);
+	hasher.AppendInt32(state.plusMagic);
+	hasher.AppendInt32(state.plusDexterity);
+	hasher.AppendInt32(state.plusVitality);
+	hasher.AppendInt32(state.plusFireResistance);
+	hasher.AppendInt32(state.plusLightningResistance);
+	hasher.AppendInt32(state.plusMagicResistance);
+	hasher.AppendInt32(state.plusMana);
+	hasher.AppendInt32(state.plusHitPoints);
+	hasher.AppendInt32(state.plusDamageModifier);
+	hasher.AppendInt32(state.plusGetHit);
+	hasher.AppendInt32(state.plusLight);
+	hasher.AppendInt32(state.spellLevelAdd);
+	hasher.AppendInt32(state.uniqueId);
+	hasher.AppendInt32(state.fireMinDamage);
+	hasher.AppendInt32(state.fireMaxDamage);
+	hasher.AppendInt32(state.lightningMinDamage);
+	hasher.AppendInt32(state.lightningMaxDamage);
+	hasher.AppendInt32(state.plusEnemyArmorClass);
+	hasher.AppendInt32(state.prefixPower);
+	hasher.AppendInt32(state.suffixPower);
+	hasher.AppendInt32(state.valueAdd1);
+	hasher.AppendInt32(state.valueMultiply1);
+	hasher.AppendInt32(state.valueAdd2);
+	hasher.AppendInt32(state.valueMultiply2);
+	hasher.AppendInt32(state.minimumStrength);
+	hasher.AppendInt32(state.minimumMagic);
+	hasher.AppendInt32(state.minimumDexterity);
+	hasher.AppendBool(state.statFlag);
+	hasher.AppendInt32(state.hellfireDamageArmorFlags);
+	hasher.AppendUint32(state.buff);
+	hasher.AppendUint32(state.inventoryWidth == 0 ? 1 : state.inventoryWidth);
+	hasher.AppendUint32(state.inventoryHeight == 0 ? 1 : state.inventoryHeight);
+}
+
+template <typename Item>
+void AppendSlottedItems(ReplayStateHasher &hasher, std::vector<Item> items)
+{
+	std::sort(items.begin(), items.end(), [](const Item &left, const Item &right) {
+		if (left.slot != right.slot)
+			return left.slot < right.slot;
+		return left.itemSeed < right.itemSeed;
+	});
+	hasher.AppendUint64(items.size());
+	for (const auto &item : items) {
+		hasher.AppendUint32(item.slot);
+		hasher.AppendUint32(item.itemSeed);
+		AppendItemState(hasher, item.state);
+	}
+}
+
+void AppendCanonicalState(ReplayStateHasher &hasher, const ReplayFixtureExecutionState &state)
+{
+	hasher.AppendUint64(1);
+	hasher.AppendUint32(state.entityId);
+	hasher.AppendInt32(state.positionX);
+	hasher.AppendInt32(state.positionY);
+	hasher.AppendInt32(state.life);
+	hasher.AppendInt32(state.mana);
+	hasher.AppendInt32(state.manaMaximum);
+	hasher.AppendInt32(state.lifeMaximum);
+	hasher.AppendUint32(state.characterLevel);
+	hasher.AppendUint32(state.gold);
+	hasher.AppendUint32(state.experience);
+	hasher.AppendUint32(state.activeStoreId);
+	for (const int32_t attribute : state.attributes)
+		hasher.AppendInt32(attribute);
+
+	AppendSlottedItems(hasher, state.equipment);
+	AppendSlottedItems(hasher, state.belt);
+
+	std::vector<ReplayFixtureInventoryItem> inventory = state.inventory;
+	std::sort(inventory.begin(), inventory.end(), [](const auto &left, const auto &right) {
+		if (left.storeId != right.storeId)
+			return left.storeId < right.storeId;
+			if (left.storeSlot != right.storeSlot)
+				return left.storeSlot < right.storeSlot;
+		if (left.itemSeed != right.itemSeed)
+			return left.itemSeed < right.itemSeed;
+		if (left.price != right.price)
+			return left.price < right.price;
+		return left.purchasedAtTick < right.purchasedAtTick;
+	});
+	hasher.AppendUint64(inventory.size());
+	for (const auto &item : inventory) {
+		hasher.AppendUint32(item.storeId);
+		hasher.AppendUint32(item.storeSlot);
+		hasher.AppendUint32(item.itemSeed);
+		hasher.AppendUint32(item.price);
+		hasher.AppendUint64(item.purchasedAtTick);
+		AppendItemState(hasher, item.state);
+	}
+
+	hasher.AppendUint64(state.inventoryGrid.size());
+	for (const int32_t cell : state.inventoryGrid)
+		hasher.AppendInt32(cell);
+
+	hasher.AppendBool(state.activeStoreId != 0);
+	if (state.activeStoreId != 0) {
+		hasher.AppendUint32(state.activeStoreId);
+		std::vector<ReplayFixtureStoreItem> items = state.activeStoreItems;
+		std::sort(items.begin(), items.end(), [](const auto &left, const auto &right) {
+			if (left.storeSlot != right.storeSlot)
+				return left.storeSlot < right.storeSlot;
+			if (left.itemSeed != right.itemSeed)
+				return left.itemSeed < right.itemSeed;
+			return left.price < right.price;
+		});
+		hasher.AppendUint64(items.size());
+		for (const auto &item : items) {
+			hasher.AppendUint32(item.storeSlot);
+			hasher.AppendUint32(item.itemSeed);
+			hasher.AppendUint32(item.price);
+			AppendItemState(hasher, item.state);
+		}
+	}
+}
+
+bool IsSha256(std::string_view value)
+{
+	if (value.size() != 64)
+		return false;
+	return std::all_of(value.begin(), value.end(), [](char character) {
+		return std::isdigit(static_cast<unsigned char>(character)) || (character >= 'a' && character <= 'f') || (character >= 'A' && character <= 'F');
+	});
+}
 
 class JsonReader {
 public:
@@ -424,6 +579,83 @@ bool ParseReplayFixture(std::string_view json, ReplayFixture &fixture, std::stri
 	fixture = {};
 	error.clear();
 	return JsonReader(json, fixture, error).Parse();
+}
+
+std::string ComputeReplayFixtureStateHash(const ReplayFixtureExecutionState &state)
+{
+	ReplayStateHasher hasher;
+	AppendCanonicalState(hasher, state);
+	return hasher.HexDigest();
+}
+
+bool ExecuteReplayFixture(
+	const ReplayFixture &fixture,
+	ReplayFixtureExecutionState &state,
+	ReplayFixtureExecutionResult &result,
+	std::string &error)
+{
+	result = {};
+	error.clear();
+	std::vector<ReplayFixtureCommand> commands = fixture.commands;
+	std::stable_sort(commands.begin(), commands.end(), [](const auto &left, const auto &right) {
+		return IsReplayCommandOrderBefore(left.order, right.order);
+	});
+
+	for (const ReplayFixtureCommand &command : commands) {
+		bool accepted = false;
+		if (command.kind == "OpenStore") {
+			state.activeStoreId = command.storeId;
+			if (command.storeId == 10)
+				state.activeStoreItems.clear();
+			accepted = true;
+		} else if (command.kind == "BuyItem") {
+			if (state.activeStoreId == command.storeId) {
+				auto item = std::find_if(state.activeStoreItems.begin(), state.activeStoreItems.end(), [&](const auto &candidate) {
+					return candidate.storeSlot == command.storeSlot;
+				});
+				if (item != state.activeStoreItems.end() && state.gold >= item->price) {
+					state.gold -= item->price;
+					state.inventory.push_back({ command.storeId, item->storeSlot, item->itemSeed, item->price, command.order.targetTick, item->state });
+					state.activeStoreItems.erase(item);
+					accepted = true;
+				}
+			}
+		} else if (command.kind == "SellItem") {
+			if (state.activeStoreId != 0 && command.storeSlot < state.inventory.size()) {
+				auto item = state.inventory.begin() + static_cast<std::ptrdiff_t>(command.storeSlot);
+				const int value = item->state.magical != 0 && item->state.identified ? item->state.identifiedValue : item->state.value;
+				state.gold += static_cast<uint32_t>(std::max(value / 4, 1));
+				state.inventory.erase(item);
+				accepted = true;
+			}
+		} else if (command.kind == "RefillMana") {
+			if (state.activeStoreId == 10 && state.mana < state.manaMaximum && state.gold >= 10) {
+				state.gold -= 10;
+				state.mana = state.manaMaximum;
+				accepted = true;
+			}
+		} else {
+			error = "Unsupported replay command kind: " + command.kind;
+			return false;
+		}
+
+		const std::string hash = ComputeReplayFixtureStateHash(state);
+		result.transitions.push_back({ command.order.targetTick, command.kind, accepted, hash });
+		if (!fixture.contentManifest.id.empty()) {
+			auto checkpoint = std::find_if(fixture.checkpoints.begin(), fixture.checkpoints.end(), [&](const auto &candidate) {
+				return candidate.tick == command.order.targetTick;
+			});
+			if (checkpoint == fixture.checkpoints.end()) {
+				error = "Replay fixture is missing a checkpoint at command tick " + std::to_string(command.order.targetTick);
+				return false;
+			}
+			if (IsSha256(checkpoint->stateSha256) && checkpoint->stateSha256 != hash) {
+				error = "Replay checkpoint hash mismatch at tick " + std::to_string(checkpoint->tick) + ": actual " + hash;
+				return false;
+			}
+		}
+	}
+	return true;
 }
 
 } // namespace devilution

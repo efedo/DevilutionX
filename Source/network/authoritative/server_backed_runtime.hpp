@@ -33,6 +33,8 @@ public:
 	[[nodiscard]] const ServerBackedSession *Session() const noexcept { return session_.get(); }
 
 	/** Opens the experimental Smith store and applies its authoritative stock to the legacy UI buffers. */
+	tl::expected<void, std::string> OpenVendor(uint32_t storeId, ServerBackedVendorDestination destination, uint64_t requestedTick, uint64_t nowMs);
+	tl::expected<void, std::string> PurchaseVendor(uint32_t storeId, uint32_t storeSlot, ServerBackedVendorDestination destination, uint64_t requestedTick, uint64_t nowMs);
 	tl::expected<void, std::string> OpenSmithStore(uint64_t requestedTick, uint64_t nowMs);
 	tl::expected<void, std::string> OpenAdriaStore(uint64_t requestedTick, uint64_t nowMs);
 	tl::expected<void, std::string> PurchaseSmith(uint32_t storeSlot, uint64_t requestedTick, uint64_t nowMs);

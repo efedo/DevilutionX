@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <algorithm>
 #include <fstream>
 #include <iterator>
 #include <string>
@@ -272,13 +273,50 @@ TEST(ReplayFixture, ParsesTransactionParityCommands)
 	EXPECT_EQ(fixture.checkpoints[2].tick, 14U);
 	EXPECT_EQ(fixture.checkpoints[3].tick, 15U);
 	EXPECT_EQ(fixture.checkpoints[4].tick, 16U);
-	EXPECT_EQ(fixture.checkpoints[0].stateSha256, "0babdd719bddc6200b919a9023b7016b58d67153e4159f30b6fb176d58adcaa8");
-	EXPECT_EQ(fixture.checkpoints[4].stateSha256, "b4174cab0d5255716cb40071f2fe9e31794cef76fc5b73759ffa36ef4a529630");
+	EXPECT_EQ(fixture.checkpoints[0].stateSha256, "3505564ccf5eedeb40bcdeff53388af0ee595b2c24f892b05891af0ff6e8366a");
+	EXPECT_EQ(fixture.checkpoints[4].stateSha256, "5b6eb80702fba75330f6e8a85e112f7f7e03a8da0fd0432699ff5460ac04c169");
 	EXPECT_EQ(fixture.commands[2].kind, "SellItem");
 	EXPECT_EQ(fixture.commands[2].storeSlot, 0U);
 	EXPECT_EQ(fixture.commands[3].kind, "OpenStore");
 	EXPECT_EQ(fixture.commands[3].storeId, 10U);
 	EXPECT_EQ(fixture.commands[4].kind, "RefillMana");
+}
+
+TEST(ReplayFixture, ExecutesTransactionTransitionsAndMatchesCSharpCheckpoints)
+{
+	std::ifstream file("test/fixtures/replay/stores/transaction-parity.json");
+	ASSERT_TRUE(file.good());
+	const std::string json((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+	ReplayFixture fixture;
+	std::string error;
+	ASSERT_TRUE(ParseReplayFixture(json, fixture, error)) << error;
+
+	ReplayFixtureExecutionState state;
+	state.life = fixture.initialState.life;
+	state.mana = fixture.initialState.mana;
+	state.manaMaximum = fixture.initialState.manaMaximum;
+	state.lifeMaximum = fixture.initialState.life;
+	state.characterLevel = fixture.initialState.characterLevel;
+	state.gold = fixture.initialState.gold;
+	state.experience = fixture.initialState.experience;
+	ReplayFixtureItemState itemState;
+	itemState.itemType = 1;
+	itemState.value = 75;
+	itemState.identifiedValue = 75;
+	itemState.durability = 1;
+	itemState.maxDurability = 1;
+	state.activeStoreItems.push_back({ 0, 42, 75, itemState });
+
+	ReplayFixtureExecutionResult result;
+	ASSERT_TRUE(ExecuteReplayFixture(fixture, state, result, error)) << error;
+	ASSERT_EQ(result.transitions.size(), 5U);
+	EXPECT_TRUE(std::all_of(result.transitions.begin(), result.transitions.end(), [](const auto &transition) {
+		return transition.accepted;
+	}));
+	EXPECT_EQ(state.gold, 33U);
+	EXPECT_EQ(state.mana, 640);
+	EXPECT_TRUE(state.inventory.empty());
+	EXPECT_EQ(result.transitions.back().stateSha256, fixture.checkpoints.back().stateSha256);
 }
 
 TEST(ReplayFixture, RejectsMalformedJson)

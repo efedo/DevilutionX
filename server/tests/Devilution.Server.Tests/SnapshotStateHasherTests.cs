@@ -102,4 +102,42 @@ public sealed class SnapshotStateHasherTests
 
         Assert.NotEqual(SnapshotStateHasher.Compute(first), SnapshotStateHasher.Compute(second));
     }
+
+    [Fact]
+    public void BroaderPlayerProjectionFieldsChangeTheStateHash()
+    {
+        var first = new Snapshot {
+            Players = {
+                new PlayerSnapshot {
+                    Mana = 10,
+                    ManaMaximum = 20,
+                    Belt = {
+                        new BeltItemSnapshot { Slot = 0, ItemSeed = 42 },
+                    },
+                },
+            },
+        };
+        var changedMaximum = first.Clone();
+        changedMaximum.Players[0].ManaMaximum = 21;
+        var changedBelt = first.Clone();
+        changedBelt.Players[0].Belt[0].ItemSeed = 43;
+
+        Assert.NotEqual(SnapshotStateHasher.Compute(first), SnapshotStateHasher.Compute(changedMaximum));
+        Assert.NotEqual(SnapshotStateHasher.Compute(first), SnapshotStateHasher.Compute(changedBelt));
+    }
+
+    [Fact]
+    public void ItemInventoryFootprintChangesTheStateHash()
+    {
+        var first = new Snapshot {
+            ActiveStore = new StoreSnapshot {
+                StoreId = 1,
+                Items = { new StoreItemSnapshot { State = new ItemStateSnapshot { InventoryWidth = 1, InventoryHeight = 1 } } },
+            },
+        };
+        var second = first.Clone();
+        second.ActiveStore.Items[0].State.InventoryWidth = 2;
+
+        Assert.NotEqual(SnapshotStateHasher.Compute(first), SnapshotStateHasher.Compute(second));
+    }
 }

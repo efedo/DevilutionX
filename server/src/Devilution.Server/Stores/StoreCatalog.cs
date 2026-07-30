@@ -95,6 +95,11 @@ public sealed record AuthoritativeItemState(
 
     public uint Buff { get; init; }
 
+    /** Inventory footprint in the authoritative 10-column grid. */
+    public int InventoryWidth { get; init; } = 1;
+
+    public int InventoryHeight { get; init; } = 1;
+
     public static AuthoritativeItemState Empty { get; } = new(
         0, -1, 0, 0, false, false, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0);
 }
@@ -205,6 +210,8 @@ public sealed class StoreCatalog
             MaxCharges = row.OptionalInt32("max_charges"),
             Durability = row.OptionalInt32("durability"),
             MaxDurability = row.OptionalInt32("max_durability"),
+            InventoryWidth = Math.Max(1, row.OptionalInt32("inventory_width", 1)),
+            InventoryHeight = Math.Max(1, row.OptionalInt32("inventory_height", 1)),
         };
     }
 }

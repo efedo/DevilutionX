@@ -64,6 +64,11 @@ public sealed record StorePlayerSnapshot(
     IReadOnlyList<int> InventoryGrid,
     IReadOnlyList<BeltStoreItem> Belt)
 {
+    public int PositionX { get; init; }
+    public int PositionY { get; init; }
+    public int LifeMaximum { get; init; }
+    public uint CharacterLevel { get; init; } = 1;
+
     public StorePlayerSnapshot(uint gold, uint? activeStoreId, IReadOnlyList<OwnedStoreItem> inventory)
         : this(gold, activeStoreId, inventory, 0, 0, 0, 0, PlayerAttributesState.Zero, [], [], [])
     {
@@ -88,7 +93,7 @@ public sealed record StorePlayerSnapshot(
  * outer command server provides command-level deduplication, so this executor
  * is called once even when a purchase is retried.
  */
-public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAuthoritativeSnapshotProvider
+public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAuthoritativeSnapshotProvider, IAuthoritativeEventProvider
 {
     /** Reserved service-only store used by Adria's mana refill action. */
     public const uint AdriaStoreId = 10;
@@ -99,11 +104,19 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
     private readonly int startingLife;
     private readonly int startingMana;
     private readonly int startingManaMaximum;
+    private readonly int startingPositionX;
+    private readonly int startingPositionY;
+    private readonly int startingLifeMaximum;
+    private readonly uint startingCharacterLevel;
+    private readonly int worldWidth;
+    private readonly int worldHeight;
     private readonly PlayerAttributesState startingAttributes;
     private readonly IReadOnlyList<EquippedStoreItem> startingEquipment;
     private readonly IReadOnlyList<int> startingInventoryGrid;
     private readonly IReadOnlyList<BeltStoreItem> startingBelt;
     private readonly IStoreGameplayRules gameplayRules;
+    private readonly Dictionary<uint, AuthoritativeCombatTarget> combatTargets = new();
+    private readonly Dictionary<string, List<PendingGameplayEvent>> pendingEvents = new(StringComparer.Ordinal);
     private readonly Dictionary<string, PlayerStoreState> players = new(StringComparer.Ordinal);
 
     public StoreSimulationExecutor(
@@ -117,7 +130,14 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
         IReadOnlyList<int>? startingInventoryGrid = null,
         IStoreGameplayRules? gameplayRules = null,
         IReadOnlyList<BeltStoreItem>? startingBelt = null,
-        int? startingManaMaximum = null)
+        int? startingManaMaximum = null,
+        int startingPositionX = 0,
+        int startingPositionY = 0,
+        int? startingLifeMaximum = null,
+        uint startingCharacterLevel = 1,
+        IReadOnlyList<AuthoritativeCombatTarget>? startingCombatTargets = null,
+        int worldWidth = 40,
+        int worldHeight = 40)
     {
         this.catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
         this.startingGold = startingGold;
@@ -125,11 +145,19 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
         this.startingLife = startingLife;
         this.startingMana = startingMana;
         this.startingManaMaximum = Math.Max(startingMana, startingManaMaximum ?? startingMana);
+        this.startingPositionX = startingPositionX;
+        this.startingPositionY = startingPositionY;
+        this.startingLifeMaximum = Math.Max(startingLife, startingLifeMaximum ?? startingLife);
+        this.startingCharacterLevel = Math.Clamp(startingCharacterLevel, 1U, 50U);
+        this.worldWidth = worldWidth > 0 ? worldWidth : throw new ArgumentOutOfRangeException(nameof(worldWidth));
+        this.worldHeight = worldHeight > 0 ? worldHeight : throw new ArgumentOutOfRangeException(nameof(worldHeight));
         this.startingAttributes = startingAttributes ?? PlayerAttributesState.Zero;
         this.startingEquipment = startingEquipment?.ToArray() ?? [];
         this.startingInventoryGrid = startingInventoryGrid?.ToArray() ?? [];
         this.startingBelt = startingBelt?.ToArray() ?? [];
         this.gameplayRules = gameplayRules ?? DiabloGameplayModule.Instance;
+        foreach (var target in startingCombatTargets ?? [])
+            combatTargets.Add(target.EntityId, target);
     }
 
     public CommandExecutionResult Execute(string sessionId, Command command, ulong appliedTick)
@@ -153,6 +181,9 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
                     command.MoveInventoryItemRequested.TargetCell),
                 Command.IntentOneofCase.MoveItemRequested => MoveItem(player, command.MoveItemRequested),
                 Command.IntentOneofCase.RefillManaRequested => RefillMana(player),
+                Command.IntentOneofCase.MoveRequested => Move(player, command.MoveRequested),
+                Command.IntentOneofCase.CastRequested => Cast(player, command.CastRequested),
+                Command.IntentOneofCase.AttackRequested => Attack(sessionId, player, command.AttackRequested, appliedTick),
                 _ => CommandExecutionResult.Rejected(CommandRejectReason.Malformed),
             };
         }
@@ -176,7 +207,12 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
                 player.Attributes,
                 player.Equipment.ToArray(),
                 player.InventoryGrid.ToArray(),
-                player.Belt.ToArray());
+                player.Belt.ToArray()) {
+                PositionX = player.PositionX,
+                PositionY = player.PositionY,
+                LifeMaximum = player.LifeMaximum,
+                CharacterLevel = player.CharacterLevel,
+            };
         }
     }
 
@@ -187,13 +223,18 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
 
         lock (synchronization) {
             var state = GetOrCreatePlayer(sessionId);
+            state.EntityId = entityId;
             var player = new PlayerSnapshot {
                 EntityId = entityId,
+                PositionX = state.PositionX,
+                PositionY = state.PositionY,
                 Gold = state.Gold,
                 ActiveStoreId = state.ActiveStoreId ?? 0,
                 Life = state.Life,
                 Mana = state.Mana,
                 ManaMaximum = state.ManaMaximum,
+                LifeMaximum = state.LifeMaximum,
+                CharacterLevel = state.CharacterLevel,
                 Experience = state.Experience,
                 Attributes = new PlayerAttributesSnapshot {
                     Strength = ToSnapshot(state.Attributes.Strength),
@@ -251,6 +292,41 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
 
             snapshot.StateSha256 = SnapshotStateHasher.Compute(snapshot);
             return snapshot;
+        }
+    }
+
+    public EventBatch? DrainEvents(string sessionId, uint entityId, ulong tick)
+    {
+        if (string.IsNullOrWhiteSpace(sessionId))
+            throw new ArgumentException("A session ID is required.", nameof(sessionId));
+
+        lock (synchronization) {
+            if (!pendingEvents.Remove(sessionId, out var events) || events.Count == 0)
+                return null;
+
+            var batch = new EventBatch { Tick = tick };
+            foreach (var gameplayEvent in events) {
+                switch (gameplayEvent.Kind) {
+                case PendingGameplayEventKind.Damage:
+                    batch.Events.Add(new GameEvent {
+                        Damage = new DamageEvent {
+                            SourceEntityId = entityId,
+                            TargetEntityId = gameplayEvent.TargetEntityId,
+                            Amount = gameplayEvent.Amount,
+                        },
+                    });
+                    break;
+                case PendingGameplayEventKind.Experience:
+                    batch.Events.Add(new GameEvent {
+                        Experience = new ExperienceEvent {
+                            PlayerEntityId = entityId,
+                            Amount = (uint)gameplayEvent.Amount,
+                        },
+                    });
+                    break;
+                }
+            }
+            return batch;
         }
     }
 
@@ -318,6 +394,8 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
             StatFlag = state.StatFlag,
             HellfireDamageArmorFlags = state.HellfireDamageArmorFlags,
             Buff = state.Buff,
+            InventoryWidth = state.InventoryWidth > 1 ? (uint)state.InventoryWidth : 0,
+            InventoryHeight = state.InventoryHeight > 1 ? (uint)state.InventoryHeight : 0,
         };
     }
 
@@ -421,20 +499,83 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
         return CommandExecutionResult.Accepted;
     }
 
+    private CommandExecutionResult Move(PlayerStoreState player, MoveRequested request)
+    {
+        if (request.DirectionX is < -1 or > 1 || request.DirectionY is < -1 or > 1
+            || (request.DirectionX == 0 && request.DirectionY == 0))
+            return CommandExecutionResult.Rejected(CommandRejectReason.Malformed);
+
+        var targetX = player.PositionX + request.DirectionX;
+        var targetY = player.PositionY + request.DirectionY;
+        if (targetX < 0 || targetX >= worldWidth || targetY < 0 || targetY >= worldHeight)
+            return CommandExecutionResult.Rejected(CommandRejectReason.InvalidTarget);
+
+        player.PositionX = targetX;
+        player.PositionY = targetY;
+        return CommandExecutionResult.Accepted;
+    }
+
+    private static CommandExecutionResult Cast(PlayerStoreState player, CastRequested request)
+    {
+        const uint HealingSpellId = 1;
+        const int ManaCost = 5;
+        const int HealingAmount = 20;
+        if (request.SpellId != HealingSpellId)
+            return CommandExecutionResult.Rejected(CommandRejectReason.InvalidTarget);
+        if (request.TargetEntityId != 0 && request.TargetEntityId != player.EntityId)
+            return CommandExecutionResult.Rejected(CommandRejectReason.InvalidTarget);
+        if (player.Life >= player.LifeMaximum)
+            return CommandExecutionResult.Rejected(CommandRejectReason.NotAllowed);
+        if (player.Mana < ManaCost)
+            return CommandExecutionResult.Rejected(CommandRejectReason.InsufficientResources);
+
+        player.Mana -= ManaCost;
+        player.Life = Math.Min(player.LifeMaximum, player.Life + HealingAmount);
+        return CommandExecutionResult.Accepted;
+    }
+
+    private CommandExecutionResult Attack(string sessionId, PlayerStoreState player, AttackRequested request, ulong appliedTick)
+    {
+        if (!combatTargets.TryGetValue(request.TargetEntityId, out var target) || target.HitPoints <= 0)
+            return CommandExecutionResult.Rejected(CommandRejectReason.InvalidTarget);
+        if (Math.Max(Math.Abs(target.PositionX - player.PositionX), Math.Abs(target.PositionY - player.PositionY)) > 1)
+            return CommandExecutionResult.Rejected(CommandRejectReason.InvalidTarget);
+
+        var damage = Math.Max(1, 10 - target.ArmorClass);
+        target.HitPoints = Math.Max(0, target.HitPoints - damage);
+        GetPendingEvents(sessionId).Add(new PendingGameplayEvent(PendingGameplayEventKind.Damage, target.EntityId, damage));
+        if (target.HitPoints == 0)
+        {
+            GrantExperience(player, 100);
+            GetPendingEvents(sessionId).Add(new PendingGameplayEvent(PendingGameplayEventKind.Experience, player.EntityId, 100));
+        }
+        return CommandExecutionResult.Accepted;
+    }
+
+    private List<PendingGameplayEvent> GetPendingEvents(string sessionId)
+    {
+        if (!pendingEvents.TryGetValue(sessionId, out var events)) {
+            events = [];
+            pendingEvents.Add(sessionId, events);
+        }
+        return events;
+    }
+
+    private static void GrantExperience(PlayerStoreState player, uint amount)
+    {
+        player.Experience = checked(player.Experience + amount);
+        while (player.CharacterLevel < 50 && player.Experience >= player.CharacterLevel * 1000U)
+            player.CharacterLevel++;
+    }
+
     private static CommandExecutionResult MoveInventoryItem(PlayerStoreState player, uint inventoryIndex, uint targetCell)
     {
-        if (!TryGetInventoryItem(player, inventoryIndex, out _))
+        if (!TryGetInventoryItem(player, inventoryIndex, out var item))
             return CommandExecutionResult.Rejected(CommandRejectReason.InvalidTarget);
-        if (targetCell >= player.InventoryGrid.Count)
+        if (!CanPlaceInventoryItem(player, targetCell, item.State, (int)inventoryIndex))
             return CommandExecutionResult.Rejected(CommandRejectReason.InvalidTarget);
-        if (player.InventoryGrid[(int)targetCell] >= 0 && player.InventoryGrid[(int)targetCell] != (int)inventoryIndex)
-            return CommandExecutionResult.Rejected(CommandRejectReason.NotAllowed);
-
-        for (var cell = 0; cell < player.InventoryGrid.Count; cell++) {
-            if (player.InventoryGrid[cell] == (int)inventoryIndex)
-                player.InventoryGrid[cell] = -1;
-        }
-        player.InventoryGrid[(int)targetCell] = (int)inventoryIndex;
+        ClearInventoryItem(player, (int)inventoryIndex);
+        FillInventoryItem(player, (int)targetCell, (int)inventoryIndex, item.State);
         return CommandExecutionResult.Accepted;
     }
 
@@ -442,12 +583,42 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
     {
         if (!TryGetTransfer(player, request.Item, out var source))
             return CommandExecutionResult.Rejected(CommandRejectReason.InvalidTarget);
-        if (!IsValidDestination(player, request.Destination))
+        if (!IsValidDestination(player, request.Destination, source.State, request.Item))
             return CommandExecutionResult.Rejected(CommandRejectReason.InvalidTarget);
         if (SameLocation(request.Item, request.Destination))
             return CommandExecutionResult.Accepted;
-        if (DestinationOccupied(player, request.Destination))
-            return SwapTransfers(player, request.Item, request.Destination, source);
+
+        var destinationIndex = request.Destination.Location == PlayerItemLocation.Inventory
+            ? GetInventoryItemIndexAt(player, request.Destination.Slot)
+            : -1;
+        if (destinationIndex >= 0) {
+            var destinationReference = request.Destination.Clone();
+            destinationReference.Slot = (uint)destinationIndex;
+            destinationReference.Location = PlayerItemLocation.Inventory;
+            if (!TryGetTransfer(player, destinationReference, out var destination))
+                return CommandExecutionResult.Rejected(CommandRejectReason.InvalidTarget);
+            return SwapTransfers(player, request.Item, request.Destination, source, destinationReference, destination);
+        }
+
+        if (request.Destination.Location != PlayerItemLocation.Inventory && DestinationSlotOccupied(player, request.Destination)) {
+            if (!TryGetTransfer(player, request.Destination, out var destination))
+                return CommandExecutionResult.Rejected(CommandRejectReason.InvalidTarget);
+            return SwapTransfers(player, request.Item, request.Destination, source, request.Destination, destination);
+        }
+
+        if (request.Destination.Location == PlayerItemLocation.Inventory && destinationIndex < 0) {
+            var ignoredIndex = request.Item.Location == PlayerItemLocation.Inventory ? (int)request.Item.Slot : -1;
+            if (!CanPlaceInventoryItem(player, request.Destination.Slot, source.State, ignoredIndex))
+                return CommandExecutionResult.Rejected(CommandRejectReason.NotAllowed);
+            if (request.Item.Location == PlayerItemLocation.Inventory) {
+                ClearInventoryItem(player, (int)request.Item.Slot);
+                FillInventoryItem(player, (int)request.Destination.Slot, (int)request.Item.Slot, source.State);
+            } else {
+                AddTransfer(player, request.Destination, source);
+                RemoveTransfer(player, request.Item);
+            }
+            return CommandExecutionResult.Accepted;
+        }
 
         RemoveTransfer(player, request.Item);
         AddTransfer(player, request.Destination, source);
@@ -458,48 +629,56 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
         PlayerStoreState player,
         PlayerItemReference sourceReference,
         PlayerItemReference destinationReference,
-        TransferItem source)
+        TransferItem source,
+        PlayerItemReference actualDestinationReference,
+        TransferItem destination)
     {
-        if (!TryGetDestinationInventoryReference(player, destinationReference, out var actualDestinationReference)
-            || !TryGetTransfer(player, actualDestinationReference, out var destination))
-            return CommandExecutionResult.Rejected(CommandRejectReason.NotAllowed);
-
-        if (sourceReference.Location == PlayerItemLocation.Inventory && actualDestinationReference.Location == PlayerItemLocation.Inventory) {
+        if (sourceReference.Location == PlayerItemLocation.Inventory
+            && actualDestinationReference.Location == PlayerItemLocation.Inventory) {
             var sourceIndex = (int)sourceReference.Slot;
             var destinationIndex = (int)actualDestinationReference.Slot;
-            player.Inventory[sourceIndex] = new OwnedStoreItem(destination.StoreId, destination.StoreSlot, destination.ItemSeed, destination.Price, destination.PurchasedAtTick, destination.State);
-            player.Inventory[destinationIndex] = new OwnedStoreItem(source.StoreId, source.StoreSlot, source.ItemSeed, source.Price, source.PurchasedAtTick, source.State);
-            for (var cell = 0; cell < player.InventoryGrid.Count; cell++) {
-                if (player.InventoryGrid[cell] == sourceIndex)
-                    player.InventoryGrid[cell] = destinationIndex;
-                else if (player.InventoryGrid[cell] == destinationIndex)
-                    player.InventoryGrid[cell] = sourceIndex;
-            }
+            var sourceAnchor = FindInventoryAnchor(player, sourceIndex);
+            if (sourceAnchor < 0
+                || !CanPlaceInventoryItem(player, (uint)sourceAnchor, destination.State, sourceIndex, destinationIndex)
+                || !CanPlaceInventoryItem(player, destinationReference.Slot, source.State, sourceIndex, destinationIndex))
+                return CommandExecutionResult.Rejected(CommandRejectReason.NotAllowed);
+
+            ClearInventoryItem(player, sourceIndex);
+            ClearInventoryItem(player, destinationIndex);
+            player.Inventory[sourceIndex] = ToOwnedItem(destination);
+            player.Inventory[destinationIndex] = ToOwnedItem(source);
+            FillInventoryItem(player, sourceAnchor, sourceIndex, destination.State);
+            FillInventoryItem(player, (int)destinationReference.Slot, destinationIndex, source.State);
+            return CommandExecutionResult.Accepted;
+        }
+
+        if (actualDestinationReference.Location == PlayerItemLocation.Inventory) {
+            var destinationIndex = (int)actualDestinationReference.Slot;
+            if (!CanPlaceInventoryItem(player, destinationReference.Slot, source.State, destinationIndex))
+                return CommandExecutionResult.Rejected(CommandRejectReason.NotAllowed);
+            var destinationAnchor = (int)destinationReference.Slot;
+            ClearInventoryItem(player, destinationIndex);
+            player.Inventory[destinationIndex] = ToOwnedItem(source);
+            FillInventoryItem(player, destinationAnchor, destinationIndex, source.State);
+            ReplaceTransfer(player, sourceReference, destination);
+            return CommandExecutionResult.Accepted;
+        }
+
+        if (sourceReference.Location == PlayerItemLocation.Inventory) {
+            var sourceIndex = (int)sourceReference.Slot;
+            var sourceAnchor = FindInventoryAnchor(player, sourceIndex);
+            if (sourceAnchor < 0 || !CanPlaceInventoryItem(player, (uint)sourceAnchor, destination.State, sourceIndex))
+                return CommandExecutionResult.Rejected(CommandRejectReason.NotAllowed);
+            ClearInventoryItem(player, sourceIndex);
+            player.Inventory[sourceIndex] = ToOwnedItem(destination);
+            FillInventoryItem(player, sourceAnchor, sourceIndex, destination.State);
+            ReplaceTransfer(player, destinationReference, source);
             return CommandExecutionResult.Accepted;
         }
 
         ReplaceTransfer(player, sourceReference, destination);
         ReplaceTransfer(player, actualDestinationReference, source);
         return CommandExecutionResult.Accepted;
-    }
-
-    private static bool TryGetDestinationInventoryReference(PlayerStoreState player, PlayerItemReference destination, out PlayerItemReference actual)
-    {
-        if (destination.Location != PlayerItemLocation.Inventory) {
-            actual = destination;
-            return true;
-        }
-
-        if (destination.Slot >= player.InventoryGrid.Count || player.InventoryGrid[(int)destination.Slot] < 0) {
-            actual = destination;
-            return false;
-        }
-
-        actual = new PlayerItemReference {
-            Location = PlayerItemLocation.Inventory,
-            Slot = (uint)player.InventoryGrid[(int)destination.Slot],
-        };
-        return true;
     }
 
     private static void ReplaceTransfer(PlayerStoreState player, PlayerItemReference reference, TransferItem item)
@@ -542,24 +721,89 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
         return false;
     }
 
-    private static bool IsValidDestination(PlayerStoreState player, PlayerItemReference reference)
+    private static bool IsValidDestination(PlayerStoreState player, PlayerItemReference reference, AuthoritativeItemState state, PlayerItemReference source)
     {
-        return reference.Location switch {
-            PlayerItemLocation.Inventory => reference.Slot < player.InventoryGrid.Count,
-            PlayerItemLocation.Belt => reference.Slot < 8,
-            PlayerItemLocation.Equipment => reference.Slot < 8,
-            _ => false,
-        };
+        if (reference.Location == PlayerItemLocation.Inventory)
+            return IsInventoryBoundsValid(player, reference.Slot, state);
+        if (reference.Slot >= 8)
+            return false;
+        return state.InventoryWidth <= 1 && state.InventoryHeight <= 1;
     }
 
-    private static bool DestinationOccupied(PlayerStoreState player, PlayerItemReference reference)
+    private static bool IsInventoryBoundsValid(PlayerStoreState player, uint targetCell, AuthoritativeItemState state)
     {
-        return reference.Location switch {
-            PlayerItemLocation.Inventory => player.InventoryGrid[(int)reference.Slot] >= 0,
-            PlayerItemLocation.Belt => player.Belt.Any(item => item.Slot == reference.Slot),
-            PlayerItemLocation.Equipment => player.Equipment.Any(item => item.Slot == reference.Slot),
-            _ => true,
-        };
+        if (targetCell >= player.InventoryGrid.Count)
+            return false;
+        var width = Math.Max(1, state.InventoryWidth);
+        var height = Math.Max(1, state.InventoryHeight);
+        var column = (int)targetCell % 10;
+        var row = (int)targetCell / 10;
+        return column + width <= 10 && row + height <= (player.InventoryGrid.Count + 9) / 10;
+    }
+
+    private static bool CanPlaceInventoryItem(PlayerStoreState player, uint targetCell, AuthoritativeItemState state, params int[] ignoredIndices)
+    {
+        if (targetCell >= player.InventoryGrid.Count)
+            return false;
+        var width = Math.Max(1, state.InventoryWidth);
+        var height = Math.Max(1, state.InventoryHeight);
+        var column = (int)targetCell % 10;
+        var row = (int)targetCell / 10;
+        if (column + width > 10 || row + height > (player.InventoryGrid.Count + 9) / 10)
+            return false;
+        var ignored = ignoredIndices.ToHashSet();
+        for (var y = 0; y < height; y++) {
+            for (var x = 0; x < width; x++) {
+                var cell = (row + y) * 10 + column + x;
+                if (cell >= player.InventoryGrid.Count)
+                    return false;
+                var occupant = player.InventoryGrid[cell];
+                if (occupant >= 0 && !ignored.Contains(occupant))
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    private static int GetInventoryItemIndexAt(PlayerStoreState player, uint cell)
+    {
+        return cell < player.InventoryGrid.Count ? player.InventoryGrid[(int)cell] : -1;
+    }
+
+    private static bool DestinationSlotOccupied(PlayerStoreState player, PlayerItemReference reference)
+    {
+        return reference.Location == PlayerItemLocation.Belt
+            ? player.Belt.Any(item => item.Slot == reference.Slot)
+            : player.Equipment.Any(item => item.Slot == reference.Slot);
+    }
+
+    private static int FindInventoryAnchor(PlayerStoreState player, int inventoryIndex)
+    {
+        return player.InventoryGrid.FindIndex(cell => cell == inventoryIndex);
+    }
+
+    private static void ClearInventoryItem(PlayerStoreState player, int inventoryIndex)
+    {
+        for (var cell = 0; cell < player.InventoryGrid.Count; cell++) {
+            if (player.InventoryGrid[cell] == inventoryIndex)
+                player.InventoryGrid[cell] = -1;
+        }
+    }
+
+    private static void FillInventoryItem(PlayerStoreState player, int targetCell, int inventoryIndex, AuthoritativeItemState state)
+    {
+        var width = Math.Max(1, state.InventoryWidth);
+        var height = Math.Max(1, state.InventoryHeight);
+        var column = targetCell % 10;
+        var row = targetCell / 10;
+        for (var y = 0; y < height; y++)
+            for (var x = 0; x < width; x++)
+                player.InventoryGrid[(row + y) * 10 + column + x] = inventoryIndex;
+    }
+
+    private static OwnedStoreItem ToOwnedItem(TransferItem item)
+    {
+        return new OwnedStoreItem(item.StoreId, item.StoreSlot, item.ItemSeed, item.Price, item.PurchasedAtTick, item.State);
     }
 
     private static bool SameLocation(PlayerItemReference source, PlayerItemReference destination)
@@ -589,7 +833,7 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
         if (destination.Location == PlayerItemLocation.Inventory) {
             var index = player.Inventory.Count;
             player.Inventory.Add(new OwnedStoreItem(item.StoreId, item.StoreSlot, item.ItemSeed, item.Price, item.PurchasedAtTick, item.State));
-            player.InventoryGrid[(int)destination.Slot] = index;
+            FillInventoryItem(player, (int)destination.Slot, index, item.State);
         } else if (destination.Location == PlayerItemLocation.Belt) {
             player.Belt.Add(new BeltStoreItem(destination.Slot, item.ItemSeed, item.State));
         } else {
@@ -598,6 +842,14 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
     }
 
     private readonly record struct TransferItem(uint ItemSeed, AuthoritativeItemState State, uint StoreId, uint StoreSlot, uint Price, ulong PurchasedAtTick);
+
+    private enum PendingGameplayEventKind
+    {
+        Damage,
+        Experience,
+    }
+
+    private readonly record struct PendingGameplayEvent(PendingGameplayEventKind Kind, uint TargetEntityId, int Amount);
 
     private static bool TryGetInventoryItem(PlayerStoreState player, uint inventoryIndex, out OwnedStoreItem item)
     {
@@ -700,7 +952,11 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
                 startingAttributes,
                 startingEquipment,
                 startingInventoryGrid,
-                startingBelt);
+                startingBelt,
+                startingPositionX,
+                startingPositionY,
+                startingLifeMaximum,
+                startingCharacterLevel);
             players.Add(sessionId, player);
         }
 
@@ -716,13 +972,27 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
         PlayerAttributesState attributes,
         IReadOnlyList<EquippedStoreItem> equipment,
         IReadOnlyList<int> inventoryGrid,
-        IReadOnlyList<BeltStoreItem> belt)
+        IReadOnlyList<BeltStoreItem> belt,
+        int positionX,
+        int positionY,
+        int lifeMaximum,
+        uint characterLevel)
     {
         public uint Gold { get; set; } = gold;
 
-        public uint Experience { get; } = experience;
+        public uint Experience { get; set; } = experience;
 
-        public int Life { get; } = life;
+        public int Life { get; set; } = Math.Clamp(life, 0, Math.Max(lifeMaximum, 0));
+
+        public int LifeMaximum { get; } = Math.Max(lifeMaximum, 0);
+
+        public uint CharacterLevel { get; set; } = characterLevel;
+
+        public int PositionX { get; set; } = positionX;
+
+        public int PositionY { get; set; } = positionY;
+
+        public uint EntityId { get; set; }
 
         public int Mana { get; set; } = mana;
 

@@ -95,22 +95,23 @@ The first fixtures should cover one narrow behavior each:
 
 `test/fixtures/replay/stores/transaction-parity.json` is the first shared
 transaction fixture. It exercises open-store, purchase, sale, and mana-refill
-commands in both language loaders. Its four transaction checkpoints are now
-real C# snapshot SHA-256 values. The C# executor validates each checkpoint
-after the corresponding command; the C++ loader validates the same checkpoint
-ticks and hashes while native transition execution is still the next parity
-gate.
+commands in both language loaders. Its five transaction checkpoints are real
+C# snapshot SHA-256 values. The C# executor and the native replay executor
+validate each checkpoint after the corresponding command.
 
 The C++ replay primitives now provide canonical field encoding, SHA-256
-digests, command ordering, and an initial player/store state projection. The
-strict envelope parser and `stores/basic-buy` fixture exercise that projection
-with an explicitly value-initialized C++ baseline, and the C# legacy projection
-matches its initial checkpoint. Complete game-state serialization, command
-execution, and transition checkpoints remain future work. The C# server uses
-the same primitive encoding for its current protocol snapshot projection,
-including baseline resources, primary attributes, equipment slots, inventory
-layout, and core item state. Full legacy player/store transition parity will be
-added as the domain model grows.
+digests, command ordering, a protocol-shaped player/store state projection, and
+native transition execution for the shared store fixture. The strict envelope
+parser, `stores/basic-buy`, and `stores/transaction-parity` fixtures exercise
+that projection with an explicitly value-initialized C++ baseline. The C# and
+C++ hash projections include baseline resources, primary attributes, equipment,
+belt contents, inventory layout, multi-cell item footprints, store stock, and
+the complete protocol item state in the same field order.
+
+The authoritative server now also exposes movement, life/mana maxima, character
+level, healing, and the initial adjacent-combat boundary. These transitions are
+covered by C# domain tests; the next shared fixture should encode them so native
+replay execution can validate the same event ordering and checkpoints.
 
 ## Executable baseline fixture
 
@@ -126,10 +127,10 @@ grow without adding a JSON dependency to the engine.
 | Behavior | Current tests | Coverage assessment |
 | --- | --- | --- |
 | Item generation and unique-item availability | `items_test`, `vendor_test`, `replay_test` | Existing deterministic cases; convert selected cases to replay fixtures |
-| Store inventory and pricing | `vendor_test`, `stores_test`, `store_transaction_test`, `replay_test` | Projection exists; add normalized state checkpoints |
+| Store inventory and pricing | `vendor_test`, `stores_test`, `store_transaction_test`, `replay_test` | Shared purchase/sale/refill transitions and normalized checkpoints |
 | Purchases, sales, repairs, recharge, identification, and gold | `store_transaction_test` | Broad success/failure coverage; add command-level fixture inputs |
 | Player stats/resources and experience | `player_test`, `replay_test` | Projection exists; add explicit experience/life/mana transition fixtures |
 | Damage calculations and event order | `monster_test`, `player_test`, `game_event_bus_test` | Partial; add damage-state and ordering checkpoints |
 | Quest selection and transitions | `quests_test` | Initial pool coverage; add seeded transition fixtures |
 | Mod reload and Hellfire activation | None | Missing characterization fixture |
-| Canonical state hashing | `replay_test` | Primitive encoding and SHA-256 tested; complete game-state projection remains |
+| Canonical state hashing | `replay_test`, `SnapshotStateHasherTests` | Shared protocol projection, item dimensions, belt, and resource coverage |
