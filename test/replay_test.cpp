@@ -273,8 +273,8 @@ TEST(ReplayFixture, ParsesTransactionParityCommands)
 	EXPECT_EQ(fixture.checkpoints[2].tick, 14U);
 	EXPECT_EQ(fixture.checkpoints[3].tick, 15U);
 	EXPECT_EQ(fixture.checkpoints[4].tick, 16U);
-	EXPECT_EQ(fixture.checkpoints[0].stateSha256, "3505564ccf5eedeb40bcdeff53388af0ee595b2c24f892b05891af0ff6e8366a");
-	EXPECT_EQ(fixture.checkpoints[4].stateSha256, "5b6eb80702fba75330f6e8a85e112f7f7e03a8da0fd0432699ff5460ac04c169");
+	EXPECT_EQ(fixture.checkpoints[0].stateSha256, "be0daa30bd593e5db72615b4c4ada959146c0ab140735a8d82376f2de170ae64");
+	EXPECT_EQ(fixture.checkpoints[4].stateSha256, "8e703c723fb1217eb74b1a3bb4a3134b86fd441bf5f40abbd6152fe9c5d68987");
 	EXPECT_EQ(fixture.commands[2].kind, "SellItem");
 	EXPECT_EQ(fixture.commands[2].storeSlot, 0U);
 	EXPECT_EQ(fixture.commands[3].kind, "OpenStore");

@@ -17,6 +17,11 @@
 
 namespace devilution::protocol::v1 {
 class Snapshot;
+class EventBatch;
+}
+
+namespace devilution {
+struct Player;
 }
 
 namespace devilution::authoritative {
@@ -47,6 +52,12 @@ struct ProjectedBeltItem {
 	Item item;
 };
 
+struct ProjectedStatusEffect {
+	uint32_t effectId = 0;
+	uint32_t remainingTicks = 0;
+	int32_t magnitude = 0;
+};
+
 struct ProjectedPlayerSnapshot {
 	uint32_t entityId = 0;
 	int32_t positionX = 0;
@@ -58,6 +69,7 @@ struct ProjectedPlayerSnapshot {
 	uint32_t gold = 0;
 	uint32_t experience = 0;
 	uint32_t characterLevel = 1;
+	uint32_t levelId = 0;
 	ProjectedPlayerAttribute strength;
 	ProjectedPlayerAttribute magic;
 	ProjectedPlayerAttribute dexterity;
@@ -67,11 +79,18 @@ struct ProjectedPlayerSnapshot {
 	std::vector<ProjectedEquippedItem> equipment;
 	std::vector<ProjectedBeltItem> belt;
 	std::vector<int32_t> inventoryGrid;
+	std::vector<ProjectedStatusEffect> statusEffects;
 };
 
 /** Projects exactly one entity's player state from a server snapshot. */
 [[nodiscard]] tl::expected<ProjectedPlayerSnapshot, std::string> ProjectPlayerSnapshot(
 	const ::devilution::protocol::v1::Snapshot &snapshot,
+	uint32_t entityId);
+
+/** Applies server-authored combat and experience events to the native projection before its snapshot arrives. */
+void ApplyServerBackedEventBatch(
+	Player &player,
+	const ::devilution::protocol::v1::EventBatch &eventBatch,
 	uint32_t entityId);
 
 /** Reconnect-safe owner of the latest validated authoritative player state. */

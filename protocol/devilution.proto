@@ -55,6 +55,7 @@ message Command {
 	MoveInventoryItemRequested move_inventory_item_requested = 19;
 	RefillManaRequested refill_mana_requested = 20;
 	MoveItemRequested move_item_requested = 21;
+	UsePortalRequested use_portal_requested = 22;
 	}
 }
 
@@ -115,6 +116,10 @@ message RefillManaRequested {}
 message MoveItemRequested {
 	PlayerItemReference item = 1;
 	PlayerItemReference destination = 2;
+}
+
+message UsePortalRequested {
+	uint32 portal_id = 1;
 }
 
 message PlayerItemReference {
@@ -196,6 +201,14 @@ message PlayerSnapshot {
 	int32 mana_maximum = 14;
 	int32 life_maximum = 15;
 	uint32 character_level = 16;
+	repeated StatusEffectSnapshot status_effects = 17;
+	uint32 level_id = 18;
+}
+
+message StatusEffectSnapshot {
+	uint32 effect_id = 1;
+	uint32 remaining_ticks = 2;
+	int32 magnitude = 3;
 }
 
 message ItemSnapshot {

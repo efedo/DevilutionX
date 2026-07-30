@@ -162,6 +162,13 @@ struct ReplayFixtureExecutionState {
 	int32_t manaMaximum = 0;
 	int32_t lifeMaximum = 0;
 	uint32_t characterLevel = 1;
+	uint32_t levelId = 0;
+	struct StatusEffect {
+		uint32_t effectId = 0;
+		uint32_t remainingTicks = 0;
+		int32_t magnitude = 0;
+	};
+	std::vector<StatusEffect> statusEffects;
 	uint32_t gold = 0;
 	uint32_t experience = 0;
 	uint32_t activeStoreId = 0;

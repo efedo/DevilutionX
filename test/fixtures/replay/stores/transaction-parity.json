@@ -27,10 +27,10 @@
     { "client_sequence": 5, "target_tick": 16, "server_receipt_sequence": 5, "kind": "RefillMana" }
   ],
   "checkpoints": [
-    { "tick": 10, "state_sha256": "3505564ccf5eedeb40bcdeff53388af0ee595b2c24f892b05891af0ff6e8366a" },
-    { "tick": 12, "state_sha256": "81a52de2790d4d5ac468ca9b1849515b0f88dcddf964cdfdba1852c6baf85ad2" },
-    { "tick": 14, "state_sha256": "7716d94b06b14a8de3a5a43b2e54914bd7b26681ae680ca0ffdd9136fa2d0b9a" },
-    { "tick": 15, "state_sha256": "0e0c887f5e95cdbe217d48c89d1a06cdbf7732e76094d7a131ebff8db1d2a7cd" },
-    { "tick": 16, "state_sha256": "5b6eb80702fba75330f6e8a85e112f7f7e03a8da0fd0432699ff5460ac04c169" }
+    { "tick": 10, "state_sha256": "be0daa30bd593e5db72615b4c4ada959146c0ab140735a8d82376f2de170ae64" },
+    { "tick": 12, "state_sha256": "eae8f371b7fe4a9a637906a6a45cea8172b316904ab80dffdb13858a115b5ee3" },
+    { "tick": 14, "state_sha256": "2bf7b45587fa97ef7bd883fbf051e02046d6f13c2495d89dca8399da87dbf019" },
+    { "tick": 15, "state_sha256": "b22b63cbaa53384c8b1cc98bce88d10e5e413a6d837560492867874c206a54b7" },
+    { "tick": 16, "state_sha256": "8e703c723fb1217eb74b1a3bb4a3134b86fd441bf5f40abbd6152fe9c5d68987" }
   ]
 }

@@ -22,6 +22,10 @@ TEST(ServerBackedPlayerSnapshot, ProjectsResourcesInventoryAndEquipment)
 	player->set_gold(125);
 	player->set_experience(99);
 	player->set_character_level(3);
+	player->set_level_id(7);
+	player->add_status_effects()->set_effect_id(1);
+	player->mutable_status_effects(0)->set_remaining_ticks(10);
+	player->mutable_status_effects(0)->set_magnitude(1);
 	player->mutable_attributes()->mutable_strength()->set_current(12);
 	player->mutable_attributes()->mutable_strength()->set_base(10);
 	player->mutable_inventory_grid()->Add(0);
@@ -51,6 +55,9 @@ TEST(ServerBackedPlayerSnapshot, ProjectsResourcesInventoryAndEquipment)
 	EXPECT_EQ(projected->manaMaximum, 640);
 	EXPECT_EQ(projected->gold, 125U);
 	EXPECT_EQ(projected->characterLevel, 3U);
+	EXPECT_EQ(projected->levelId, 7U);
+	ASSERT_EQ(projected->statusEffects.size(), 1U);
+	EXPECT_EQ(projected->statusEffects[0].remainingTicks, 10U);
 	EXPECT_EQ(projected->strength.base, 10);
 	EXPECT_EQ(projected->strength.current, 12);
 	ASSERT_EQ(projected->inventory.size(), 1U);
@@ -62,6 +69,27 @@ TEST(ServerBackedPlayerSnapshot, ProjectsResourcesInventoryAndEquipment)
 	EXPECT_EQ(projected->belt[0].slot, 2U);
 	EXPECT_EQ(projected->belt[0].itemSeed, 88U);
 	EXPECT_EQ(projected->inventoryGrid, std::vector<int32_t>({ 0, -1 }));
+}
+
+TEST(ServerBackedPlayerSnapshot, AppliesAuthoritativeEventBatchToNativeResources)
+{
+	Player player;
+	player._pExperience = 0;
+	player.life.maximum = 100;
+	player.life.maximumBase = 100;
+	player.life.current = 80;
+	protocol::EventBatch events;
+	auto *damage = events.add_events()->mutable_damage();
+	damage->set_target_entity_id(7);
+	damage->set_amount(25);
+	auto *experience = events.add_events()->mutable_experience();
+	experience->set_player_entity_id(7);
+	experience->set_amount(40);
+
+	ApplyServerBackedEventBatch(player, events, 7);
+
+	EXPECT_EQ(player.life.current, 55);
+	EXPECT_EQ(player._pExperience, 40U);
 }
 
 TEST(ServerBackedPlayerSnapshot, RejectsMissingAndDuplicateEntities)

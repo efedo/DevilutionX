@@ -259,6 +259,8 @@ tl::expected<void, std::string> ServerBackedRuntime::ApplyCurrentPlayerSnapshot(
 	const ProjectedPlayerSnapshot *snapshot = session_->PlayerState().Snapshot();
 	if (snapshot == nullptr)
 		return tl::make_unexpected("The server-backed session has no player snapshot.");
+	for (const auto &eventBatch : session_->TakePendingEventBatches())
+		ApplyServerBackedEventBatch(*player_, eventBatch, session_->EntityId());
 	return ApplyServerBackedPlayerSnapshot(*player_, *snapshot);
 }
 

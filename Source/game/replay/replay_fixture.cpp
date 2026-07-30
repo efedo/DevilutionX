@@ -104,6 +104,21 @@ void AppendCanonicalState(ReplayStateHasher &hasher, const ReplayFixtureExecutio
 	hasher.AppendInt32(state.manaMaximum);
 	hasher.AppendInt32(state.lifeMaximum);
 	hasher.AppendUint32(state.characterLevel);
+	hasher.AppendUint32(state.levelId);
+	std::vector<ReplayFixtureExecutionState::StatusEffect> statusEffects = state.statusEffects;
+	std::sort(statusEffects.begin(), statusEffects.end(), [](const auto &left, const auto &right) {
+		if (left.effectId != right.effectId)
+			return left.effectId < right.effectId;
+		if (left.remainingTicks != right.remainingTicks)
+			return left.remainingTicks < right.remainingTicks;
+		return left.magnitude < right.magnitude;
+	});
+	hasher.AppendUint64(statusEffects.size());
+	for (const auto &effect : statusEffects) {
+		hasher.AppendUint32(effect.effectId);
+		hasher.AppendUint32(effect.remainingTicks);
+		hasher.AppendInt32(effect.magnitude);
+	}
 	hasher.AppendUint32(state.gold);
 	hasher.AppendUint32(state.experience);
 	hasher.AppendUint32(state.activeStoreId);

@@ -108,10 +108,14 @@ C++ hash projections include baseline resources, primary attributes, equipment,
 belt contents, inventory layout, multi-cell item footprints, store stock, and
 the complete protocol item state in the same field order.
 
-The authoritative server now also exposes movement, life/mana maxima, character
-level, healing, and the initial adjacent-combat boundary. These transitions are
-covered by C# domain tests; the next shared fixture should encode them so native
-replay execution can validate the same event ordering and checkpoints.
+The authoritative server now also exposes bounded movement, blocked-cell
+validation, level-aware portal transitions, life/mana maxima, character level,
+healing, haste/status expiry, and the initial adjacent-combat boundary. Native
+snapshot projection carries level and status fields, native event projection
+applies authoritative damage and experience batches, and both hashers include
+the new canonical fields. The next shared fixture should encode movement and
+combat commands directly so native replay execution can validate their event
+ordering and checkpoints.
 
 ## Executable baseline fixture
 

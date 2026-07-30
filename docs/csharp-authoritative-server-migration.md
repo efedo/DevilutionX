@@ -697,19 +697,20 @@ Client extensions must not receive APIs that mutate authoritative state. They ma
 | Step | State | Notes |
 |---|---|---|
 | Lua capability inventory and freeze notice | Complete | Capability destinations and freeze rules are documented |
-| Minimal replay fixture and state hashing | Complete for initial baseline | Both languages load the fixture and match the deterministic initial checkpoint; transition parity remains |
+| Minimal replay fixture and state hashing | Complete for initial baseline | Both languages load and execute the shared transaction fixture; movement/combat transition fixtures remain |
 | Extract `ModManager` | Complete | Active archive ownership moved out of Lua |
 | Extract `GameDataManager` | Partial | Reload ordering moved; content identity and validation remain |
 | Add typed engine-neutral events | Complete for initial events | Damage and experience paths use stable IDs |
 | Add `LuaEventAdapter` | Complete for initial events | Lua remains the temporary consumer |
 | Replace pointer-derived IDs | Partial | Event IDs and item locations are stable; protocol-wide ID catalogs remain |
 | Replace Hellfire Lua bootstrap | Not started | Requires declarative content metadata |
-| Add protocol schema, handshake, IDs, and bindings | Partial | Schema, handshake, C# bindings, and opt-in initial C++ bindings/client exist; complete IDs remain |
+| Add protocol schema, handshake, IDs, and bindings | Partial | Schema, handshake, C# bindings, and opt-in C++ bindings/client exist; level, status, and portal fields are now additive; complete IDs remain |
 | Add C# deterministic primitives, TSV loader, and parity tests | Partial | Fixed-point, LCG, TSV, hashing, and matching C++/C# content-manifest vectors exist; live C++ data-manager identity and complete transition parity remain |
 | Define gameplay-module contract and ruleset identity | Started | Explicit module registry, Diablo store rules, and combined identity exist; full module API remains |
 | Extract first store/item data and Diablo rules module | Partial | External store data and transactions are module-owned; legacy pricing/generation remains |
 | Add minimal C++ server connection | Complete for initial slice | Opt-in client proves handshake, command acknowledgement, and snapshot exchange; retry wiring and remote gameplay remain |
 | Implement remote inventory/store slice | Started server-side | Authoritative player, belt, and vendor-stock snapshots exist; C++ Smith visual-store routing and shared transaction fixtures are active; legacy generation and full pricing parity remain |
+| Implement authoritative movement, transitions, and status boundary | Started server-side | Bounded movement, blocked-cell validation, portal transitions, level snapshots, healing/haste, status expiry, and native event projection are covered; full world occupancy remains |
 
 Each delivery should include tests and update this document if it changes a
 decision, dependency, milestone, or ownership state.

@@ -21,6 +21,18 @@ public static class SnapshotStateHasher
             hasher.AppendInt32(player.ManaMaximum);
             hasher.AppendInt32(player.LifeMaximum);
             hasher.AppendUInt32(player.CharacterLevel);
+            hasher.AppendUInt32(player.LevelId);
+            var statusEffects = player.StatusEffects
+                .OrderBy(effect => effect.EffectId)
+                .ThenBy(effect => effect.RemainingTicks)
+                .ThenBy(effect => effect.Magnitude)
+                .ToArray();
+            hasher.AppendUInt64((ulong)statusEffects.Length);
+            foreach (var effect in statusEffects) {
+                hasher.AppendUInt32(effect.EffectId);
+                hasher.AppendUInt32(effect.RemainingTicks);
+                hasher.AppendInt32(effect.Magnitude);
+            }
             hasher.AppendUInt32(player.Gold);
             hasher.AppendUInt32(player.Experience);
             hasher.AppendUInt32(player.ActiveStoreId);

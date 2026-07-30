@@ -137,7 +137,7 @@ public sealed class StoreSimulationExecutorTests
         Assert.Equal(7U, player.EntityId);
         Assert.Equal(25U, player.Gold);
         Assert.Equal(1U, player.ActiveStoreId);
-        Assert.Equal("ca8eabaa692a972f3e23c7611aec60c411ea34210b6e420d6ffdcf35dfad3e94", snapshot.StateSha256);
+        Assert.Equal("f44870bf6d2003b08092b991adc473c757b0548b6744fb48831cd70027baf877", snapshot.StateSha256);
         Assert.Equal(SnapshotStateHasher.Compute(snapshot), snapshot.StateSha256);
         Assert.Equal(1U, item.StoreId);
         Assert.Equal(0U, item.StoreSlot);
@@ -631,6 +631,92 @@ public sealed class StoreSimulationExecutorTests
             AttackRequested = new AttackRequested { TargetEntityId = 10 },
         }, 1);
         Assert.Equal(CommandRejectReason.InvalidTarget, distantResult.RejectReason);
+    }
+
+    [Fact]
+    public void MovementRejectsBlockedCellsWithoutChangingPosition()
+    {
+        var executor = new StoreSimulationExecutor(
+            CreateCatalog(),
+            startingGold: 100,
+            startingPositionX: 1,
+            startingPositionY: 1,
+            worldWidth: 4,
+            worldHeight: 4,
+            startingBlockedCells: [1 * 4 + 2]);
+        var result = new AuthoritativeCommandServer(executor).Process("player-a", new Command {
+            ClientSequence = 1,
+            RequestedTick = 1,
+            MoveRequested = new MoveRequested { DirectionX = 1, DirectionY = 0 },
+        }, 1);
+
+        Assert.Equal(CommandRejectReason.InvalidTarget, result.RejectReason);
+        var state = executor.GetPlayerState("player-a");
+        Assert.Equal(1, state.PositionX);
+        Assert.Equal(1, state.PositionY);
+    }
+
+    [Fact]
+    public void PortalRequiresSourceCellAndProjectsDestinationLevel()
+    {
+        var portal = new AuthoritativePortal(5, 2, 1, 1, 7, 3, 4);
+        var executor = new StoreSimulationExecutor(
+            CreateCatalog(),
+            startingGold: 100,
+            startingPositionX: 1,
+            startingPositionY: 1,
+            startingLevelId: 2,
+            startingPortals: [portal]);
+        var server = new AuthoritativeCommandServer(executor);
+
+        var result = server.Process("player-a", new Command {
+            ClientSequence = 1,
+            RequestedTick = 1,
+            UsePortalRequested = new UsePortalRequested { PortalId = 5 },
+        }, 1);
+        var snapshot = executor.CreateSnapshot("player-a", 7, 1);
+        var player = Assert.Single(snapshot.Players);
+
+        Assert.Equal(CommandStatus.Accepted, result.Status);
+        Assert.Equal(7U, player.LevelId);
+        Assert.Equal(3, player.PositionX);
+        Assert.Equal(4, player.PositionY);
+
+        var invalidExecutor = new StoreSimulationExecutor(
+            CreateCatalog(),
+            startingGold: 100,
+            startingPositionX: 1,
+            startingPositionY: 1,
+            startingLevelId: 1,
+            startingPortals: [portal]);
+        var invalid = new AuthoritativeCommandServer(invalidExecutor).Process("player-b", new Command {
+            ClientSequence = 1,
+            RequestedTick = 1,
+            UsePortalRequested = new UsePortalRequested { PortalId = 5 },
+        }, 1);
+        Assert.Equal(CommandRejectReason.InvalidTarget, invalid.RejectReason);
+    }
+
+    [Fact]
+    public void HasteStatusIsAuthoritativeAndExpiresByAppliedTick()
+    {
+        var executor = new StoreSimulationExecutor(CreateCatalog(), startingGold: 100, startingMana: 10, startingManaMaximum: 10);
+        var server = new AuthoritativeCommandServer(executor);
+        var result = server.Process("player-a", new Command {
+            ClientSequence = 1,
+            RequestedTick = 1,
+            CastRequested = new CastRequested { SpellId = 2 },
+        }, 1);
+
+        Assert.Equal(CommandStatus.Accepted, result.Status);
+        Assert.Equal(7, executor.GetPlayerState("player-a").Mana);
+        var active = executor.CreateSnapshot("player-a", 7, 1).Players[0];
+        var effect = Assert.Single(active.StatusEffects);
+        Assert.Equal(1U, effect.EffectId);
+        Assert.Equal(10U, effect.RemainingTicks);
+
+        var expired = executor.CreateSnapshot("player-a", 7, 11).Players[0];
+        Assert.Empty(expired.StatusEffects);
     }
 
     private static StoreCatalog CreateCatalog(params StoreItem[] items)

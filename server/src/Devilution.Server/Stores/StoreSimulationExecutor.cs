@@ -68,6 +68,8 @@ public sealed record StorePlayerSnapshot(
     public int PositionY { get; init; }
     public int LifeMaximum { get; init; }
     public uint CharacterLevel { get; init; } = 1;
+    public uint LevelId { get; init; }
+    public IReadOnlyList<AuthoritativeStatusEffect> StatusEffects { get; init; } = [];
 
     public StorePlayerSnapshot(uint gold, uint? activeStoreId, IReadOnlyList<OwnedStoreItem> inventory)
         : this(gold, activeStoreId, inventory, 0, 0, 0, 0, PlayerAttributesState.Zero, [], [], [])
@@ -110,12 +112,15 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
     private readonly uint startingCharacterLevel;
     private readonly int worldWidth;
     private readonly int worldHeight;
+    private readonly uint startingLevelId;
+    private readonly HashSet<int> blockedCells;
     private readonly PlayerAttributesState startingAttributes;
     private readonly IReadOnlyList<EquippedStoreItem> startingEquipment;
     private readonly IReadOnlyList<int> startingInventoryGrid;
     private readonly IReadOnlyList<BeltStoreItem> startingBelt;
     private readonly IStoreGameplayRules gameplayRules;
     private readonly Dictionary<uint, AuthoritativeCombatTarget> combatTargets = new();
+    private readonly Dictionary<uint, AuthoritativePortal> portals = new();
     private readonly Dictionary<string, List<PendingGameplayEvent>> pendingEvents = new(StringComparer.Ordinal);
     private readonly Dictionary<string, PlayerStoreState> players = new(StringComparer.Ordinal);
 
@@ -137,7 +142,10 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
         uint startingCharacterLevel = 1,
         IReadOnlyList<AuthoritativeCombatTarget>? startingCombatTargets = null,
         int worldWidth = 40,
-        int worldHeight = 40)
+        int worldHeight = 40,
+        uint startingLevelId = 0,
+        IReadOnlyList<int>? startingBlockedCells = null,
+        IReadOnlyList<AuthoritativePortal>? startingPortals = null)
     {
         this.catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
         this.startingGold = startingGold;
@@ -151,6 +159,8 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
         this.startingCharacterLevel = Math.Clamp(startingCharacterLevel, 1U, 50U);
         this.worldWidth = worldWidth > 0 ? worldWidth : throw new ArgumentOutOfRangeException(nameof(worldWidth));
         this.worldHeight = worldHeight > 0 ? worldHeight : throw new ArgumentOutOfRangeException(nameof(worldHeight));
+        this.startingLevelId = startingLevelId;
+        this.blockedCells = (startingBlockedCells ?? []).ToHashSet();
         this.startingAttributes = startingAttributes ?? PlayerAttributesState.Zero;
         this.startingEquipment = startingEquipment?.ToArray() ?? [];
         this.startingInventoryGrid = startingInventoryGrid?.ToArray() ?? [];
@@ -158,6 +168,8 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
         this.gameplayRules = gameplayRules ?? DiabloGameplayModule.Instance;
         foreach (var target in startingCombatTargets ?? [])
             combatTargets.Add(target.EntityId, target);
+        foreach (var portal in startingPortals ?? [])
+            portals.Add(portal.PortalId, portal);
     }
 
     public CommandExecutionResult Execute(string sessionId, Command command, ulong appliedTick)
@@ -168,6 +180,7 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
 
         lock (synchronization) {
             var player = GetOrCreatePlayer(sessionId);
+            AdvanceStatuses(player, appliedTick);
             return command.IntentCase switch {
                 Command.IntentOneofCase.OpenStoreRequested => OpenStore(player, command.OpenStoreRequested.StoreId),
                 Command.IntentOneofCase.PurchaseRequested => Purchase(player, command.PurchaseRequested, appliedTick),
@@ -184,6 +197,7 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
                 Command.IntentOneofCase.MoveRequested => Move(player, command.MoveRequested),
                 Command.IntentOneofCase.CastRequested => Cast(player, command.CastRequested),
                 Command.IntentOneofCase.AttackRequested => Attack(sessionId, player, command.AttackRequested, appliedTick),
+                Command.IntentOneofCase.UsePortalRequested => UsePortal(player, command.UsePortalRequested.PortalId),
                 _ => CommandExecutionResult.Rejected(CommandRejectReason.Malformed),
             };
         }
@@ -212,6 +226,8 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
                 PositionY = player.PositionY,
                 LifeMaximum = player.LifeMaximum,
                 CharacterLevel = player.CharacterLevel,
+                LevelId = player.LevelId,
+                StatusEffects = player.StatusEffects.ToArray(),
             };
         }
     }
@@ -223,6 +239,7 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
 
         lock (synchronization) {
             var state = GetOrCreatePlayer(sessionId);
+            AdvanceStatuses(state, tick);
             state.EntityId = entityId;
             var player = new PlayerSnapshot {
                 EntityId = entityId,
@@ -235,6 +252,7 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
                 ManaMaximum = state.ManaMaximum,
                 LifeMaximum = state.LifeMaximum,
                 CharacterLevel = state.CharacterLevel,
+                LevelId = state.LevelId,
                 Experience = state.Experience,
                 Attributes = new PlayerAttributesSnapshot {
                     Strength = ToSnapshot(state.Attributes.Strength),
@@ -243,6 +261,13 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
                     Vitality = ToSnapshot(state.Attributes.Vitality),
                 },
             };
+
+            foreach (var effect in state.StatusEffects)
+                player.StatusEffects.Add(new StatusEffectSnapshot {
+                    EffectId = effect.EffectId,
+                    RemainingTicks = effect.RemainingTicks,
+                    Magnitude = effect.Magnitude,
+                });
 
             foreach (var item in state.Inventory) {
                 player.Inventory.Add(new ItemSnapshot {
@@ -507,7 +532,7 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
 
         var targetX = player.PositionX + request.DirectionX;
         var targetY = player.PositionY + request.DirectionY;
-        if (targetX < 0 || targetX >= worldWidth || targetY < 0 || targetY >= worldHeight)
+        if (!IsWalkable(targetX, targetY))
             return CommandExecutionResult.Rejected(CommandRejectReason.InvalidTarget);
 
         player.PositionX = targetX;
@@ -515,23 +540,68 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
         return CommandExecutionResult.Accepted;
     }
 
+    private bool IsWalkable(int positionX, int positionY)
+    {
+        return positionX >= 0 && positionX < worldWidth
+            && positionY >= 0 && positionY < worldHeight
+            && !blockedCells.Contains(positionY * worldWidth + positionX);
+    }
+
+    private CommandExecutionResult UsePortal(PlayerStoreState player, uint portalId)
+    {
+        if (!portals.TryGetValue(portalId, out var portal)
+            || player.LevelId != portal.SourceLevelId
+            || player.PositionX != portal.SourcePositionX
+            || player.PositionY != portal.SourcePositionY)
+            return CommandExecutionResult.Rejected(CommandRejectReason.InvalidTarget);
+        if (!IsWalkable(portal.DestinationPositionX, portal.DestinationPositionY))
+            return CommandExecutionResult.Rejected(CommandRejectReason.NotAllowed);
+
+        player.LevelId = portal.DestinationLevelId;
+        player.PositionX = portal.DestinationPositionX;
+        player.PositionY = portal.DestinationPositionY;
+        return CommandExecutionResult.Accepted;
+    }
+
     private static CommandExecutionResult Cast(PlayerStoreState player, CastRequested request)
     {
         const uint HealingSpellId = 1;
+        const uint HasteSpellId = 2;
         const int ManaCost = 5;
         const int HealingAmount = 20;
-        if (request.SpellId != HealingSpellId)
+        if (request.SpellId is not (HealingSpellId or HasteSpellId))
             return CommandExecutionResult.Rejected(CommandRejectReason.InvalidTarget);
         if (request.TargetEntityId != 0 && request.TargetEntityId != player.EntityId)
             return CommandExecutionResult.Rejected(CommandRejectReason.InvalidTarget);
-        if (player.Life >= player.LifeMaximum)
+        if (request.SpellId == HealingSpellId && player.Life >= player.LifeMaximum)
             return CommandExecutionResult.Rejected(CommandRejectReason.NotAllowed);
-        if (player.Mana < ManaCost)
+        var manaCost = request.SpellId == HasteSpellId ? 3 : ManaCost;
+        if (player.Mana < manaCost)
             return CommandExecutionResult.Rejected(CommandRejectReason.InsufficientResources);
 
-        player.Mana -= ManaCost;
-        player.Life = Math.Min(player.LifeMaximum, player.Life + HealingAmount);
+        player.Mana -= manaCost;
+        if (request.SpellId == HealingSpellId)
+            player.Life = Math.Min(player.LifeMaximum, player.Life + HealingAmount);
+        else {
+            player.StatusEffects.RemoveAll(effect => effect.EffectId == 1);
+            player.StatusEffects.Add(new AuthoritativeStatusEffect(1, 10, 1));
+        }
         return CommandExecutionResult.Accepted;
+    }
+
+    private static void AdvanceStatuses(PlayerStoreState player, ulong tick)
+    {
+        if (player.LastAppliedTick is not ulong previousTick || tick <= previousTick) {
+            player.LastAppliedTick = Math.Max(player.LastAppliedTick ?? 0, tick);
+            return;
+        }
+
+        var elapsed = tick - previousTick;
+        player.StatusEffects = player.StatusEffects
+            .Select(effect => effect with { RemainingTicks = effect.RemainingTicks > elapsed ? effect.RemainingTicks - (uint)elapsed : 0 })
+            .Where(effect => effect.RemainingTicks > 0)
+            .ToList();
+        player.LastAppliedTick = tick;
     }
 
     private CommandExecutionResult Attack(string sessionId, PlayerStoreState player, AttackRequested request, ulong appliedTick)
@@ -956,7 +1026,8 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
                 startingPositionX,
                 startingPositionY,
                 startingLifeMaximum,
-                startingCharacterLevel);
+                startingCharacterLevel,
+                startingLevelId);
             players.Add(sessionId, player);
         }
 
@@ -976,7 +1047,8 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
         int positionX,
         int positionY,
         int lifeMaximum,
-        uint characterLevel)
+        uint characterLevel,
+        uint levelId)
     {
         public uint Gold { get; set; } = gold;
 
@@ -991,6 +1063,12 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
         public int PositionX { get; set; } = positionX;
 
         public int PositionY { get; set; } = positionY;
+
+        public uint LevelId { get; set; } = levelId;
+
+        public List<AuthoritativeStatusEffect> StatusEffects { get; set; } = [];
+
+        public ulong? LastAppliedTick { get; set; }
 
         public uint EntityId { get; set; }
 
