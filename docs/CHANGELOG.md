@@ -11,6 +11,7 @@ All notable changes to this fork are documented below.
 - Execute the shared transaction replay natively, add shape-aware multi-cell inventory placement and swaps, and align C++/C# hashes for resources, belts, item footprints, and protocol item state
 - Add the first authoritative gameplay boundary: bounded movement, life/mana maxima, character level, healing, adjacent combat damage, defeat experience, event-batch transport, native player projection, and generic vendor routing
 - Add authoritative blocked-cell movement, level-aware portal transitions, status-effect snapshots/expiry, native event application, and replay-hash parity for level/status state
+- Add a shared movement/combat replay fixture executed by both C# and native replay runners
 - Configure the C# test project to build a self-contained Microsoft Testing Platform runner; direct execution avoids a missing machine-wide VSTest `testhost` package
 
 ## 2026-07-01

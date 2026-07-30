@@ -22,6 +22,9 @@ struct ReplayFixtureCommand {
 	std::string kind;
 	uint32_t storeId = 1;
 	uint32_t storeSlot = 0;
+	int32_t directionX = 0;
+	int32_t directionY = 0;
+	uint32_t targetEntityId = 0;
 };
 
 struct ReplayFixtureContentManifest {
@@ -45,6 +48,8 @@ struct ReplayFixtureInitialState {
 	int32_t manaMaximum = 0;
 	int32_t characterClass = 0;
 	uint8_t characterLevel = 1;
+	int32_t positionX = 0;
+	int32_t positionY = 0;
 };
 
 struct ReplayFixtureStoreState {
@@ -178,6 +183,10 @@ struct ReplayFixtureExecutionState {
 	std::vector<ReplayFixtureSlottedItem> belt;
 	std::vector<int32_t> inventoryGrid;
 	std::vector<ReplayFixtureStoreItem> activeStoreItems;
+	uint32_t combatTargetEntityId = 0;
+	int32_t combatTargetPositionX = 0;
+	int32_t combatTargetPositionY = 0;
+	int32_t combatTargetHitPoints = 0;
 };
 
 struct ReplayFixtureTransitionResult {

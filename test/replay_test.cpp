@@ -319,6 +319,39 @@ TEST(ReplayFixture, ExecutesTransactionTransitionsAndMatchesCSharpCheckpoints)
 	EXPECT_EQ(result.transitions.back().stateSha256, fixture.checkpoints.back().stateSha256);
 }
 
+TEST(ReplayFixture, ExecutesGameplayTransitionsAndMatchesCSharpCheckpoints)
+{
+	std::ifstream file("test/fixtures/replay/gameplay-movement-combat.json");
+	ASSERT_TRUE(file.good());
+	const std::string json((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+	ReplayFixture fixture;
+	std::string error;
+	ASSERT_TRUE(ParseReplayFixture(json, fixture, error)) << error;
+
+	ReplayFixtureExecutionState state;
+	state.life = fixture.initialState.life;
+	state.mana = fixture.initialState.mana;
+	state.manaMaximum = fixture.initialState.manaMaximum;
+	state.lifeMaximum = fixture.initialState.life;
+	state.characterLevel = fixture.initialState.characterLevel;
+	state.positionX = fixture.initialState.positionX;
+	state.positionY = fixture.initialState.positionY;
+	state.combatTargetEntityId = 9;
+	state.combatTargetPositionX = 1;
+	state.combatTargetPositionY = 0;
+	state.combatTargetHitPoints = 11;
+
+	ReplayFixtureExecutionResult result;
+	ASSERT_TRUE(ExecuteReplayFixture(fixture, state, result, error)) << error;
+	ASSERT_EQ(result.transitions.size(), 3U);
+	EXPECT_TRUE(std::all_of(result.transitions.begin(), result.transitions.end(), [](const auto &transition) {
+		return transition.accepted;
+	}));
+	EXPECT_EQ(state.positionX, 1);
+	EXPECT_EQ(state.experience, 100U);
+	EXPECT_EQ(result.transitions.back().stateSha256, fixture.checkpoints.back().stateSha256);
+}
+
 TEST(ReplayFixture, RejectsMalformedJson)
 {
 	ReplayFixture fixture;

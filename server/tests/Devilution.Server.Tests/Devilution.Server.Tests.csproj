@@ -22,6 +22,7 @@
   <ItemGroup>
     <None Include="../../../test/fixtures/replay/stores/basic-buy.json" Link="Fixtures/basic-buy.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../../test/fixtures/replay/stores/transaction-parity.json" Link="Fixtures/transaction-parity.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../../test/fixtures/replay/gameplay-movement-combat.json" Link="Fixtures/gameplay-movement-combat.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../../protocol/test-vectors/command-delivery-retry.json" Link="Vectors/command-delivery-retry.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

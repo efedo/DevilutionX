@@ -12,7 +12,7 @@ public sealed record ReplayExecutionResult(
     IReadOnlyList<CommandResult> Results,
     IReadOnlyList<ReplayCheckpointResult> Checkpoints);
 
-/** Executes the fixture's supported store commands and validates receipts. */
+/** Executes the fixture's supported authoritative commands and validates receipts. */
 public static class ReplayFixtureExecutor
 {
     public static ReplayExecutionResult Execute(
@@ -53,6 +53,19 @@ public static class ReplayFixtureExecutor
                     ClientSequence = fixtureCommand.ClientSequence,
                     RequestedTick = fixtureCommand.TargetTick,
                     RefillManaRequested = new RefillManaRequested(),
+                },
+                "Move" => new Command {
+                    ClientSequence = fixtureCommand.ClientSequence,
+                    RequestedTick = fixtureCommand.TargetTick,
+                    MoveRequested = new MoveRequested {
+                        DirectionX = fixtureCommand.DirectionX,
+                        DirectionY = fixtureCommand.DirectionY,
+                    },
+                },
+                "Attack" => new Command {
+                    ClientSequence = fixtureCommand.ClientSequence,
+                    RequestedTick = fixtureCommand.TargetTick,
+                    AttackRequested = new AttackRequested { TargetEntityId = fixtureCommand.TargetEntityId },
                 },
                 _ => throw new InvalidDataException($"Unsupported replay command '{fixtureCommand.Kind}'."),
             };

@@ -1,5 +1,6 @@
 using Devilution.Protocol.V1;
 using Devilution.Server.Commands;
+using Devilution.Server.Gameplay;
 using Devilution.Server.Replay;
 using Devilution.Server.Stores;
 using Xunit;
@@ -68,6 +69,32 @@ public sealed class ReplayFixtureTests
         Assert.Equal(33U, player.Gold);
         Assert.Equal(640, player.Mana);
         Assert.Empty(player.Inventory);
+    }
+
+    [Fact]
+    public void GameplayFixtureExecutesMovementAndCombatTransitions()
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "Fixtures", "gameplay-movement-combat.json");
+        var fixture = ReplayFixtureLoader.Load(File.ReadAllText(path));
+        var executor = new StoreSimulationExecutor(
+            new StoreCatalog(),
+            fixture.InitialState.Gold,
+            fixture.InitialState.Experience,
+            fixture.InitialState.Life,
+            fixture.InitialState.Mana,
+            startingManaMaximum: fixture.InitialState.ManaMaximum,
+            startingPositionX: fixture.InitialState.PositionX,
+            startingPositionY: fixture.InitialState.PositionY,
+            startingLifeMaximum: fixture.InitialState.Life,
+            startingCharacterLevel: fixture.InitialState.CharacterLevel,
+            startingCombatTargets: [new AuthoritativeCombatTarget(9, 1, 0, 11, 2)]);
+        var result = ReplayFixtureExecutor.Execute(fixture, executor, new AuthoritativeCommandServer(executor));
+        var player = Assert.Single(result.FinalSnapshot.Players);
+
+        Assert.Equal([CommandStatus.Accepted, CommandStatus.Accepted, CommandStatus.Accepted], result.Results.Select(command => command.Status));
+        Assert.Equal(1, player.PositionX);
+        Assert.Equal(100U, player.Experience);
+        Assert.Equal(40, player.Life);
     }
 
     [Fact]

@@ -69,6 +69,9 @@ public static class ReplayFixtureLoader
             ManaMaximum = value.TryGetProperty("mana_maximum", out var manaMaximum) ? manaMaximum.GetInt32() : 0,
             CharacterClass = value.TryGetProperty("character_class", out var characterClass) ? characterClass.GetInt32() : 0,
             CharacterLevel = value.TryGetProperty("character_level", out var characterLevel) ? characterLevel.GetByte() : (byte)1,
+            PositionX = value.TryGetProperty("position_x", out var positionX) ? positionX.GetInt32() : 0,
+            PositionY = value.TryGetProperty("position_y", out var positionY) ? positionY.GetInt32() : 0,
+            LevelId = value.TryGetProperty("level_id", out var levelId) ? levelId.GetUInt32() : 0,
         };
     }
 
@@ -111,7 +114,7 @@ public static class ReplayFixtureLoader
                         ? inventory.GetUInt32()
                         : 0U;
 
-            if (kind is not ("OpenStore" or "BuyItem" or "SellItem" or "RefillMana"))
+            if (kind is not ("OpenStore" or "BuyItem" or "SellItem" or "RefillMana" or "Move" or "Attack"))
                 throw new InvalidDataException($"Unsupported replay command kind '{kind}'.");
 
             commands.Add(new ReplayFixtureCommand(
@@ -120,7 +123,11 @@ public static class ReplayFixtureLoader
                 RequiredULong(command, "server_receipt_sequence"),
                 kind,
                 storeId,
-                storeSlot));
+                storeSlot) {
+                DirectionX = GetOptionalInt(payload, "direction_x"),
+                DirectionY = GetOptionalInt(payload, "direction_y"),
+                TargetEntityId = GetOptionalUInt(payload, "target_entity_id"),
+            });
         }
 
         return commands;
@@ -179,5 +186,15 @@ public static class ReplayFixtureLoader
         if (!value.TryGetProperty(property, out var result) || result.ValueKind != JsonValueKind.Number || !result.TryGetUInt64(out var number))
             throw new InvalidDataException($"Replay fixture property '{property}' must be an unsigned integer.");
         return number;
+    }
+
+    private static int GetOptionalInt(JsonElement value, string property)
+    {
+        return value.ValueKind == JsonValueKind.Object && value.TryGetProperty(property, out var result) ? result.GetInt32() : 0;
+    }
+
+    private static uint GetOptionalUInt(JsonElement value, string property)
+    {
+        return value.ValueKind == JsonValueKind.Object && value.TryGetProperty(property, out var result) ? result.GetUInt32() : 0;
     }
 }

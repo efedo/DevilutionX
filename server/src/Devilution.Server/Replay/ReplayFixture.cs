@@ -9,6 +9,12 @@ public sealed record ReplayInitialState(string Player, uint Gold, uint Experienc
     public int CharacterClass { get; init; }
 
     public byte CharacterLevel { get; init; } = 1;
+
+    public int PositionX { get; init; }
+
+    public int PositionY { get; init; }
+
+    public uint LevelId { get; init; }
 }
 
 public sealed record ReplayLegacyStoreState(
@@ -29,7 +35,14 @@ public sealed record ReplayFixtureCommand(
     ulong ServerReceiptSequence,
     string Kind,
     uint StoreId,
-    uint StoreSlot);
+    uint StoreSlot)
+{
+    public int DirectionX { get; init; }
+
+    public int DirectionY { get; init; }
+
+    public uint TargetEntityId { get; init; }
+}
 
 public sealed record ReplayContentManifest(string Id, string Version, string Sha256);
 

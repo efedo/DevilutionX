@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <charconv>
 #include <cctype>
+#include <cstdlib>
 #include <limits>
 #include <utility>
 
@@ -315,6 +316,10 @@ private:
 				return ParseSigned(fixture_.initialState.characterClass);
 			if (key == "character_level")
 				return ParseUnsigned(fixture_.initialState.characterLevel);
+			if (key == "position_x")
+				return ParseSigned(fixture_.initialState.positionX);
+			if (key == "position_y")
+				return ParseSigned(fixture_.initialState.positionY);
 			return SkipValue();
 		});
 	}
@@ -399,6 +404,12 @@ private:
 				return ParseUnsigned(command.storeId);
 			if (key == "store_slot" || key == "item_index" || key == "inventory_index")
 				return ParseUnsigned(command.storeSlot);
+			if (key == "direction_x")
+				return ParseSigned(command.directionX);
+			if (key == "direction_y")
+				return ParseSigned(command.directionY);
+			if (key == "target_entity_id")
+				return ParseUnsigned(command.targetEntityId);
 			return SkipValue();
 		});
 	}
@@ -647,6 +658,22 @@ bool ExecuteReplayFixture(
 			if (state.activeStoreId == 10 && state.mana < state.manaMaximum && state.gold >= 10) {
 				state.gold -= 10;
 				state.mana = state.manaMaximum;
+				accepted = true;
+			}
+		} else if (command.kind == "Move") {
+			const int32_t targetX = state.positionX + command.directionX;
+			const int32_t targetY = state.positionY + command.directionY;
+			if ((command.directionX != 0 || command.directionY != 0) && targetX >= 0 && targetX < 40 && targetY >= 0 && targetY < 40) {
+				state.positionX = targetX;
+				state.positionY = targetY;
+				accepted = true;
+			}
+		} else if (command.kind == "Attack") {
+			const int distance = std::abs(state.positionX - state.combatTargetPositionX) + std::abs(state.positionY - state.combatTargetPositionY);
+			if (command.targetEntityId == state.combatTargetEntityId && state.combatTargetHitPoints > 0 && distance <= 1) {
+				state.combatTargetHitPoints -= 8;
+				if (state.combatTargetHitPoints <= 0)
+					state.experience += 100;
 				accepted = true;
 			}
 		} else {
