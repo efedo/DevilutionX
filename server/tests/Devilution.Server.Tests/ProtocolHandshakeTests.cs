@@ -55,6 +55,23 @@ public sealed class ProtocolHandshakeTests
         Assert.Equal(ProtocolErrorCode.InvalidMessage, result.Error!.Code);
     }
 
+    [Fact]
+    public void ValidatesOptionalRulesetIdentityWithoutBreakingLegacyClients()
+    {
+        var handshake = new ProtocolHandshake(new ProtocolServerIdentity("server-build", "0.1.0", "content-hash", 20) {
+            RulesetIdentityHash = "ruleset-hash",
+        });
+
+        var legacy = handshake.Validate(new ClientHello { ContentManifestHash = "content-hash", ProtocolSchemaVersion = "0.1.0" });
+        var matching = handshake.Validate(new ClientHello { ContentManifestHash = "content-hash", ProtocolSchemaVersion = "0.1.0", RulesetIdentityHash = "ruleset-hash" });
+        var mismatched = handshake.Validate(new ClientHello { ContentManifestHash = "content-hash", ProtocolSchemaVersion = "0.1.0", RulesetIdentityHash = "other" });
+
+        Assert.True(legacy.Accepted);
+        Assert.True(matching.Accepted);
+        Assert.Equal(ProtocolErrorCode.ContentMismatch, mismatched.Error!.Code);
+        Assert.Equal("ruleset-hash", matching.ServerHello!.RulesetIdentityHash);
+    }
+
     private static ProtocolHandshake CreateHandshake()
     {
         return new ProtocolHandshake(new ProtocolServerIdentity("server-build", "0.1.0", "content-hash", 20));

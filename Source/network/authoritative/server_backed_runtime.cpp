@@ -1,6 +1,7 @@
 #include "network/authoritative/server_backed_runtime.hpp"
 
 #include "network/authoritative/server_backed_player_ui.hpp"
+#include <algorithm>
 #include <utility>
 
 namespace devilution::authoritative {
@@ -62,6 +63,8 @@ void ServerBackedRuntime::Stop() noexcept
 		session_->Close();
 	vendorUiAdapter_.reset();
 	session_.reset();
+	worldProjection_.Clear();
+	worldPresentation_.Clear();
 	player_ = nullptr;
 }
 
@@ -211,15 +214,94 @@ tl::expected<void, std::string> ServerBackedRuntime::MoveItem(ServerBackedItemRe
 	return ApplyCurrentPlayerSnapshot();
 }
 
+tl::expected<void, std::string> ServerBackedRuntime::Move(int32_t directionX, int32_t directionY, uint64_t requestedTick, uint64_t nowMs)
+{
+	if (!session_)
+		return tl::make_unexpected("The server-backed runtime is not connected.");
+	if (auto result = session_->Move(directionX, directionY, requestedTick, nowMs); !result.has_value())
+		return result;
+	if (auto result = EnsureCommandAccepted(); !result.has_value())
+		return result;
+	return ApplyCurrentPlayerSnapshot();
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::Attack(uint32_t targetEntityId, uint64_t requestedTick, uint64_t nowMs)
+{
+	if (!session_)
+		return tl::make_unexpected("The server-backed runtime is not connected.");
+	if (auto result = session_->Attack(targetEntityId, requestedTick, nowMs); !result.has_value())
+		return result;
+	if (auto result = EnsureCommandAccepted(); !result.has_value())
+		return result;
+	return ApplyCurrentPlayerSnapshot();
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::Cast(uint32_t spellId, uint32_t targetEntityId, uint64_t requestedTick, uint64_t nowMs)
+{
+	return Cast(spellId, targetEntityId, 0, 0, requestedTick, nowMs);
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::Cast(uint32_t spellId, uint32_t targetEntityId, int32_t targetX, int32_t targetY, uint64_t requestedTick, uint64_t nowMs)
+{
+	if (!session_)
+		return tl::make_unexpected("The server-backed runtime is not connected.");
+	if (auto result = session_->Cast(spellId, targetEntityId, targetX, targetY, requestedTick, nowMs); !result.has_value())
+		return result;
+	if (auto result = EnsureCommandAccepted(); !result.has_value())
+		return result;
+	return ApplyCurrentPlayerSnapshot();
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::UsePortal(uint32_t portalId, uint64_t requestedTick, uint64_t nowMs)
+{
+	if (!session_)
+		return tl::make_unexpected("The server-backed runtime is not connected.");
+	if (auto result = session_->UsePortal(portalId, requestedTick, nowMs); !result.has_value())
+		return result;
+	if (auto result = EnsureCommandAccepted(); !result.has_value())
+		return result;
+	return ApplyCurrentPlayerSnapshot();
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::PickupWorldItem(uint32_t itemEntityId, uint64_t requestedTick, uint64_t nowMs)
+{
+	if (!session_)
+		return tl::make_unexpected("The server-backed runtime is not connected.");
+	if (auto result = session_->PickupWorldItem(itemEntityId, requestedTick, nowMs); !result.has_value())
+		return result;
+	if (auto result = EnsureCommandAccepted(); !result.has_value())
+		return result;
+	return ApplyCurrentPlayerSnapshot();
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::OperateObject(uint32_t objectEntityId, uint64_t requestedTick, uint64_t nowMs)
+{
+	if (!session_)
+		return tl::make_unexpected("The server-backed runtime is not connected.");
+	if (auto result = session_->OperateObject(objectEntityId, requestedTick, nowMs); !result.has_value())
+		return result;
+	if (auto result = EnsureCommandAccepted(); !result.has_value())
+		return result;
+	return ApplyCurrentPlayerSnapshot();
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::AdvanceQuest(uint32_t questId, uint64_t requestedTick, uint64_t nowMs)
+{
+	if (!session_)
+		return tl::make_unexpected("The server-backed runtime is not connected.");
+	if (auto result = session_->AdvanceQuest(questId, requestedTick, nowMs); !result.has_value())
+		return result;
+	if (auto result = EnsureCommandAccepted(); !result.has_value())
+		return result;
+	return ApplyCurrentPlayerSnapshot();
+}
+
 tl::expected<void, std::string> ServerBackedRuntime::Poll(uint64_t nowMs)
 {
 	if (!session_)
 		return {};
-	const std::size_t pendingCommands = session_->Client().PendingTrackedCommandCount();
 	if (auto result = session_->Poll(nowMs); !result.has_value())
 		return result;
-	if (session_->Client().PendingTrackedCommandCount() == pendingCommands)
-		return {};
 	return ApplyCurrentPlayerSnapshot();
 }
 
@@ -228,6 +310,29 @@ std::optional<uint32_t> ServerBackedRuntime::SmithStoreSlotAt(std::size_t index)
 	if (!vendorUiAdapter_)
 		return std::nullopt;
 	return vendorUiAdapter_->StoreSlotAt(index);
+}
+
+std::optional<uint32_t> ServerBackedRuntime::MonsterEntityIdAt(std::size_t index) const noexcept
+{
+	if (index >= worldProjection_.Monsters().size())
+		return std::nullopt;
+	const auto entityId = worldProjection_.Monsters()[index].entityId;
+	return entityId == 0 ? std::nullopt : std::optional<uint32_t> { entityId };
+}
+
+std::optional<uint32_t> ServerBackedRuntime::WorldItemEntityIdAt(int32_t positionX, int32_t positionY) const noexcept
+{
+	return worldProjection_.WorldItemAt(positionX, positionY);
+}
+
+std::optional<uint32_t> ServerBackedRuntime::MonsterEntityIdAt(int32_t positionX, int32_t positionY) const noexcept
+{
+	return worldProjection_.MonsterAt(positionX, positionY);
+}
+
+std::optional<uint32_t> ServerBackedRuntime::ObjectEntityIdAt(int32_t positionX, int32_t positionY) const noexcept
+{
+	return worldProjection_.ObjectAt(positionX, positionY);
 }
 
 std::optional<ServerBackedItemReference> ServerBackedRuntime::PlayerItemReferenceForSeed(uint32_t itemSeed) const noexcept
@@ -259,6 +364,10 @@ tl::expected<void, std::string> ServerBackedRuntime::ApplyCurrentPlayerSnapshot(
 	const ProjectedPlayerSnapshot *snapshot = session_->PlayerState().Snapshot();
 	if (snapshot == nullptr)
 		return tl::make_unexpected("The server-backed session has no player snapshot.");
+	if (auto result = worldProjection_.Apply(session_->MonsterState(), session_->WorldItemState(), session_->ObjectState(), snapshot->levelId); !result.has_value())
+		return result;
+	if (auto result = worldPresentation_.Apply(worldProjection_, snapshot->levelId); !result.has_value())
+		return result;
 	for (const auto &eventBatch : session_->TakePendingEventBatches())
 		ApplyServerBackedEventBatch(*player_, eventBatch, session_->EntityId());
 	return ApplyServerBackedPlayerSnapshot(*player_, *snapshot);

@@ -2,6 +2,41 @@
 
 All notable changes to this fork are documented below.
 
+## 2026-07-30
+
+- Restore saved authoritative monsters and world items with entity-identity and walkability validation.
+- Add deterministic server-owned monster movement and attack ticks, including correctly sourced damage events and external attack/aggro tuning.
+- Add a validated external item catalog and allow store stock to reference stable item definitions.
+- Add external portal definitions, deterministic level/tag-filtered item affixes, and catalog-backed monster drops.
+- Route opt-in native world-item pickup through authoritative projected entity IDs.
+- Add authoritative object activation and quest progress snapshots, commands, persistence, and native routing.
+- Add a shared C++/C# replay fixture for object activation and quest completion with matching state hashes.
+- Add typed elemental/magic damage, area-targeted spells, unique-item catalog generation, and expanded monster combat tuning.
+- Load the shipped legacy item, prefix, suffix, and unique TSV table shapes into stable authoritative catalogs, with deterministic aliases and expanded native power mappings.
+- Harden authoritative startup and save import against blocked placements, cross-category entity collisions, duplicate item identities, invalid equipment/belt slots, and malformed multi-cell inventory footprints.
+- Match native item armor rolls with the legacy Diablo LCG, advance autonomous monsters for every skipped authoritative tick, and reject damage spells through blocked line-of-sight cells.
+- Add autonomous snapshot polling and suppress legacy gameplay processors while the native client is connected to the authoritative server.
+- Reject overlapping live player, monster, world-item, and object placements during startup and save restoration.
+- Route autonomous monster hit, critical, and armor resolution through the external authoritative combat rules.
+- Match legacy unique-item power rolls with the native LCG for legacy tables and recalculate legacy affix pricing from value modifiers.
+- Carry external object-to-quest links through authoritative snapshots and advance linked quest progress during object activation.
+- Add a validated native world projection cache for authoritative monsters, world items, and objects.
+- Verify deterministic multi-actor autonomous movement across skipped authoritative ticks.
+- Share the native LCG stream across legacy base armor, monster-drop quality, and affix generation, including forced-good drops.
+- Match native legacy modifier semantics for fixed-point life/mana, hit-recovery signs, resistance clamping, elemental flags/damage, and indestructible durability; restore object quest links during save import.
+- Resolve server-backed monster targets by authoritative cell rather than sorted native cursor index, preventing attacks and spells from addressing the wrong entity.
+- Add shared multi-level occupancy replay coverage and save restoration checks for entities that remain on their original level after portal transitions.
+- Synchronize compatible authoritative world items, monsters, and objects into legacy presentation pools, including safe creation and removal of server-owned entries.
+- Fix CMake 4.x deferred dependency resolution for configuration keywords and link the MSVC Protobuf import target instead of a DLL path.
+
+## 2026-07-29
+
+- Extend the authoritative gameplay boundary with catalog-driven monster snapshots, defeat drops, world-item pickup, damage spells, and native client projections for monsters and world items.
+- Add stable content-ID catalogs and ruleset identity negotiation to the Protobuf handshake
+- Load authoritative levels, blocked cells, spells, combat constants, and complete protocol item modifiers from external TSV content
+- Add validated Protobuf-snapshot saves with atomic server-owned filesystem persistence and session restoration
+- Add native movement, attack, cast, and portal command entry points plus shared C++/C# spell replay coverage
+
 ## 2026-07-28
 
 - Add external `store_services.tsv` pricing data, including spell staff-cost overrides and legacy-compatible service formulas
@@ -250,3 +285,6 @@ All notable changes to this fork are documented below.
 - Refactor players and monsters onto Actor
 - Introduce Bestiary class and related engine updates
 - Introduce Actor base struct for Player, Monster
+# 2026-07-29
+
+- Extend the authoritative gameplay boundary with catalog-driven monster snapshots, defeat drops, world-item pickup, damage spells, and native client projections for monsters and world items.

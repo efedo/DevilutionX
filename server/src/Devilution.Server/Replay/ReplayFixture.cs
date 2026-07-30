@@ -15,6 +15,30 @@ public sealed record ReplayInitialState(string Player, uint Gold, uint Experienc
     public int PositionY { get; init; }
 
     public uint LevelId { get; init; }
+
+    public uint WorldItemEntityId { get; init; }
+
+    public uint WorldItemSeed { get; init; }
+
+    public uint WorldItemPrice { get; init; }
+
+    public uint ObjectEntityId { get; init; }
+
+    public uint ObjectId { get; init; }
+
+    public int ObjectPositionX { get; init; }
+
+    public int ObjectPositionY { get; init; }
+
+    public uint QuestId { get; init; }
+
+    public uint QuestRequiredProgress { get; init; }
+
+    public uint StatusEffectId { get; init; }
+
+    public uint StatusDuration { get; init; }
+
+    public int StatusMagnitude { get; init; }
 }
 
 public sealed record ReplayLegacyStoreState(
@@ -42,6 +66,16 @@ public sealed record ReplayFixtureCommand(
     public int DirectionY { get; init; }
 
     public uint TargetEntityId { get; init; }
+
+    public uint SpellId { get; init; }
+
+    public uint PortalId { get; init; }
+
+    public uint WorldItemEntityId { get; init; }
+
+    public uint ObjectEntityId { get; init; }
+
+    public uint QuestId { get; init; }
 }
 
 public sealed record ReplayContentManifest(string Id, string Version, string Sha256);

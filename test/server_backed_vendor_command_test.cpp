@@ -88,5 +88,41 @@ TEST(ServerBackedVendorCommand, BuildsExplicitInventoryToBeltTransfer)
 	EXPECT_EQ(command->move_item_requested().destination().slot(), 5U);
 }
 
+TEST(ServerBackedVendorCommand, BuildsAuthoritativeGameplayIntents)
+{
+	const auto move = MakeMoveCommand(1, -1, 20);
+	const auto attack = MakeAttackCommand(9, 21);
+	const auto cast = MakeCastCommand(2, 7, 22);
+	const auto portal = MakeUsePortalCommand(4, 23);
+	const auto pickup = MakePickupWorldItemCommand(20, 24);
+	const auto object = MakeOperateObjectCommand(30, 25);
+	const auto quest = MakeAdvanceQuestCommand(40, 26);
+	ASSERT_TRUE(move.has_value());
+	ASSERT_TRUE(attack.has_value());
+	ASSERT_TRUE(cast.has_value());
+	ASSERT_TRUE(portal.has_value());
+	ASSERT_TRUE(pickup.has_value());
+	ASSERT_TRUE(object.has_value());
+	ASSERT_TRUE(quest.has_value());
+	EXPECT_EQ(move->move_requested().direction_x(), 1);
+	EXPECT_EQ(move->move_requested().direction_y(), -1);
+	EXPECT_EQ(attack->attack_requested().target_entity_id(), 9U);
+	EXPECT_EQ(cast->cast_requested().spell_id(), 2U);
+	EXPECT_EQ(portal->use_portal_requested().portal_id(), 4U);
+	EXPECT_EQ(pickup->pickup_world_item_requested().item_entity_id(), 20U);
+	EXPECT_EQ(object->operate_object_requested().object_entity_id(), 30U);
+	EXPECT_EQ(quest->advance_quest_requested().quest_id(), 40U);
+}
+
+TEST(ServerBackedVendorCommand, BuildsCellTargetedCastIntent)
+{
+	const auto cast = MakeCastCommand(7, 0, 4, 5, 22);
+	ASSERT_TRUE(cast.has_value()) << cast.error();
+	EXPECT_EQ(cast->cast_requested().spell_id(), 7U);
+	EXPECT_EQ(cast->cast_requested().target_entity_id(), 0U);
+	EXPECT_EQ(cast->cast_requested().target_x(), 4);
+	EXPECT_EQ(cast->cast_requested().target_y(), 5);
+}
+
 } // namespace
 } // namespace devilution::authoritative

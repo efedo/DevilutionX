@@ -64,6 +64,10 @@
 #include "utils/sdl/sdl_compat.h"
 #include "utils/string/str_cat.hpp"
 
+#ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
+#include "network/authoritative/server_backed_runtime.hpp"
+#endif
+
 namespace devilution {
 
 GameActionType ControllerActionHeld = GameActionType_NONE;
@@ -526,6 +530,24 @@ void Interact()
 
 	const Player &myPlayer = *MyPlayer;
 
+#ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
+	if (authoritative::GetServerBackedRuntime().IsConnected()) {
+		const auto entityId = authoritative::GetServerBackedRuntime().MonsterEntityIdAt(cursPosition.x, cursPosition.y);
+		if (entityId.has_value()) {
+			if (auto result = authoritative::GetServerBackedRuntime().Attack(*entityId, 0, SDL_GetTicks()); !result.has_value())
+				LogError("Server-backed monster attack failed: {}", result.error());
+			LastPlayerAction = PlayerActionType::AttackMonsterTarget;
+			return;
+		}
+		if (const auto objectEntityId = authoritative::GetServerBackedRuntime().ObjectEntityIdAt(cursPosition.x, cursPosition.y); objectEntityId.has_value()) {
+			if (auto result = authoritative::GetServerBackedRuntime().OperateObject(*objectEntityId, 0, SDL_GetTicks()); !result.has_value())
+				LogError("Server-backed object interaction failed: {}", result.error());
+			LastPlayerAction = PlayerActionType::OperateObject;
+			return;
+		}
+	}
+#endif
+
 	if (levelType() != DTYPE_TOWN && IsStandingGround()) {
 		Direction pdir = myPlayer.direction;
 		const AxisDirection moveDir = GetMoveDirection();
@@ -561,6 +583,17 @@ void Interact()
 	}
 
 	if (ObjectUnderCursor != nullptr) {
+#ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
+		if (authoritative::GetServerBackedRuntime().IsConnected()) {
+			const auto entityId = authoritative::GetServerBackedRuntime().ObjectEntityIdAt(cursPosition.x, cursPosition.y);
+			if (entityId.has_value()) {
+				if (auto result = authoritative::GetServerBackedRuntime().OperateObject(*entityId, 0, SDL_GetTicks()); !result.has_value())
+					LogError("Server-backed object interaction failed: {}", result.error());
+				LastPlayerAction = PlayerActionType::OperateObject;
+				return;
+			}
+		}
+#endif
 		NetSendCmdLoc(MyPlayerId, true, CMD_OPOBJXY, cursPosition);
 		LastPlayerAction = PlayerActionType::OperateObject;
 		return;
@@ -1755,6 +1788,16 @@ void WalkInDir(Player &player, AxisDirection dir)
 		return;
 	}
 
+#ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
+	if (authoritative::GetServerBackedRuntime().IsConnected()) {
+		const int directionX = dir.x == AxisDirectionX_LEFT ? -1 : dir.x == AxisDirectionX_RIGHT ? 1 : 0;
+		const int directionY = dir.y == AxisDirectionY_UP ? -1 : dir.y == AxisDirectionY_DOWN ? 1 : 0;
+		if (auto result = authoritative::GetServerBackedRuntime().Move(directionX, directionY, 0, SDL_GetTicks()); !result.has_value())
+			LogError("Server-backed movement failed: {}", result.error());
+		return;
+	}
+#endif
+
 	const Direction pdir = FaceDir[static_cast<std::size_t>(dir.x)][static_cast<std::size_t>(dir.y)];
 	const auto delta = player.position.future + pdir;
 
@@ -2563,7 +2606,33 @@ void PerformSecondaryAction()
 	if (pcurs > CURSOR_HAND)
 		NewCursor(CURSOR_HAND);
 
+#ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
+	if (authoritative::GetServerBackedRuntime().IsConnected()) {
+		if (const auto entityId = authoritative::GetServerBackedRuntime().WorldItemEntityIdAt(cursPosition.x, cursPosition.y); entityId.has_value()) {
+			if (auto result = authoritative::GetServerBackedRuntime().PickupWorldItem(*entityId, 0, SDL_GetTicks()); !result.has_value())
+				LogError("Server-backed world-item pickup failed: {}", result.error());
+			return;
+		}
+		if (const auto entityId = authoritative::GetServerBackedRuntime().ObjectEntityIdAt(cursPosition.x, cursPosition.y); entityId.has_value()) {
+			if (auto result = authoritative::GetServerBackedRuntime().OperateObject(*entityId, 0, SDL_GetTicks()); !result.has_value())
+				LogError("Server-backed object interaction failed: {}", result.error());
+			LastPlayerAction = PlayerActionType::OperateObject;
+			return;
+		}
+	}
+#endif
+
 	if (pcursitem != -1) {
+#ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
+		if (authoritative::GetServerBackedRuntime().IsConnected()) {
+			const auto entityId = authoritative::GetServerBackedRuntime().WorldItemEntityIdAt(cursPosition.x, cursPosition.y);
+			if (entityId.has_value()) {
+				if (auto result = authoritative::GetServerBackedRuntime().PickupWorldItem(*entityId, 0, SDL_GetTicks()); !result.has_value())
+					LogError("Server-backed world-item pickup failed: {}", result.error());
+				return;
+			}
+		}
+#endif
 		NetSendCmdLocParam1(true, CMD_GOTOAGETITEM, cursPosition, pcursitem);
 	} else if (ObjectUnderCursor != nullptr) {
 		NetSendCmdLoc(MyPlayerId, true, CMD_OPOBJXY, cursPosition);

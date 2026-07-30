@@ -22,6 +22,37 @@ public sealed class ContentAndGameplayModuleTests
     }
 
     [Fact]
+    public void PortalCatalogLoadsStableDefinitionsAndRejectsDuplicateIds()
+    {
+        var portals = AuthoritativePortalCatalog.LoadTsv(
+            "portals.tsv",
+            "portal_id\tsource_level_id\tsource_position_x\tsource_position_y\tdestination_level_id\tdestination_position_x\tdestination_position_y\n"
+                + "7\t1\t2\t3\t2\t4\t5\n");
+
+        var portal = Assert.Single(portals);
+        Assert.Equal(7U, portal.PortalId);
+        Assert.Equal(2U, portal.DestinationLevelId);
+        Assert.Throws<InvalidDataException>(() => AuthoritativePortalCatalog.LoadTsv(
+            "portals.tsv",
+            "portal_id\tsource_level_id\tsource_position_x\tsource_position_y\tdestination_level_id\tdestination_position_x\tdestination_position_y\n"
+                + "7\t1\t2\t3\t2\t4\t5\n7\t1\t3\t3\t2\t4\t5\n"));
+    }
+
+    [Fact]
+    public void WorldObjectAndQuestCatalogsLoadExternalState()
+    {
+        var objects = AuthoritativeWorldObjectCatalog.LoadTsv(
+            "objects.tsv",
+            "entity_id\tobject_id\tlevel_id\tposition_x\tposition_y\tactivated\n20\t4\t2\t3\t5\t0\n");
+        var quests = AuthoritativeQuestCatalog.LoadTsv(
+            "quests.tsv",
+            "quest_id\tlevel_id\trequired_progress\tprogress\tcompleted\n30\t2\t3\t1\t0\n");
+
+        Assert.Equal(4U, Assert.Single(objects).ObjectId);
+        Assert.Equal(1U, Assert.Single(quests).Progress);
+    }
+
+    [Fact]
     public void StoreServicePricingLoadsOverridesAndSpellStaffCosts()
     {
         var pricing = StoreServicePricing.LoadTsv("store_services.tsv", "key\tspell_id\tvalue\nsale_divisor\t\t5\nspell_staff_cost\t7\t12\n");

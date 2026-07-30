@@ -10,6 +10,7 @@
 
 #include <array>
 #include <functional>
+#include <optional>
 #include <string>
 
 #include <expected.hpp>
@@ -117,7 +118,7 @@ struct Monster : CombatActor { // note: missing field _mAFNum
 
 	std::unique_ptr<uint8_t[]> uniqueMonsterTRN;
 	// animInfo, direction, lightId, hitPoints, maxHitPoints are inherited from Actor
-	uint32_t flags;	
+	uint32_t flags;
 	uint32_t rndItemSeed; // Seed used to determine item drops on death
 	uint32_t aiSeed; // Seed used to determine AI behaviour/sync sounds in multiplayer games?
 	uint16_t golemToHit;
@@ -315,6 +316,8 @@ void InitGolems();
 tl::expected<void, std::string> InitMonsters();
 tl::expected<void, std::string> SetMapMonsters(const uint16_t *dunData, Point startPosition);
 Monster *AddMonster(Point position, Direction dir, size_t typeIndex, bool inMap);
+[[nodiscard]] std::optional<size_t> FindNativeMonsterTypeIndex(uint32_t monsterId);
+void DeleteMonsterAtActiveIndex(size_t activeIndex);
 
 // Spawns a new monsters (dynamically/not on level load).
 // Only executed for the level owner, to prevent desyncs in multiplayer.

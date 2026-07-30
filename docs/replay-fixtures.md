@@ -89,9 +89,10 @@ The first fixtures should cover one narrow behavior each:
 3. Repair, recharge, sale, and identification transactions.
 4. Item generation for known seeds and quality parameters.
 5. Player experience, level thresholds, life, and mana changes.
-6. Monster and player damage with event ordering.
-7. Quest selection and quest-pool state transitions.
-8. Mod reload ordering and Hellfire activation.
+6. Portal transitions, world-item pickup, object activation, and quest progress.
+7. Monster and player damage with event ordering.
+8. Quest selection and quest-pool state transitions.
+9. Mod reload ordering and Hellfire activation.
 
 `test/fixtures/replay/stores/transaction-parity.json` is the first shared
 transaction fixture. It exercises open-store, purchase, sale, and mana-refill
@@ -110,13 +111,27 @@ the complete protocol item state in the same field order.
 
 The authoritative server now also exposes bounded movement, blocked-cell
 validation, level-aware portal transitions, life/mana maxima, character level,
-healing, haste/status expiry, and the initial adjacent-combat boundary. Native
-snapshot projection carries level and status fields, native event projection
-applies authoritative damage and experience batches, and both hashers include
-the new canonical fields. The shared `gameplay-movement-combat` fixture now
-encodes bounded movement and adjacent attacks with matching checkpoints in both
-language runners. Portal and status transitions remain covered at the
-domain/projection layer until their fixture payloads are added.
+healing, haste/status expiry, adjacent combat, monster snapshots, catalog-driven
+drops, world-item pickup, damage spells, and line-of-sight validation. Native
+snapshot projection carries level, status, monster, and world-item fields;
+native event projection applies authoritative damage and experience batches;
+and both hashers include the new canonical fields. The shared gameplay fixtures
+now cover movement/combat, healing, portal transitions, world-item pickup, and
+status expiry in both language runners. Object activation now supports an
+external quest link and advances the linked quest in the same authoritative
+transition. Content reload and broader world occupancy remain the next replay
+additions.
+
+Native legacy item projections now preserve the Diablo fixed-point and modifier
+conventions used by the C++ item system, including elemental damage/arrow flags,
+resistance clamping, and indestructible durability. World interaction lookup is
+cell-based for authoritative monsters, world items, and objects, so projection
+ordering cannot change the selected server entity.
+
+`test/fixtures/replay/gameplay-multi-level-occupancy.json` covers a portal
+transition while a world item and object remain on the source level. Both
+runners preserve those entities with their original level IDs, and the C# save
+tests verify that the same multi-level entity set survives persistence.
 
 ## Executable baseline fixture
 

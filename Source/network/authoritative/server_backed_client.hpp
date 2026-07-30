@@ -31,7 +31,9 @@ public:
 		uint16_t port = 0;
 		std::string clientBuildId;
 		std::string protocolSchemaVersion;
-		std::string contentManifestHash;
+	std::string contentManifestHash;
+	/** Optional additive ruleset identity for newer servers. */
+	std::string rulesetIdentityHash;
 		std::string resumeToken;
 		bool expectInitialSnapshot = false;
 	};
@@ -50,6 +52,8 @@ public:
 
 	tl::expected<protocol::CommandAck, std::string> Submit(const protocol::CommandBatch &batch);
 	tl::expected<protocol::Snapshot, std::string> ReadSnapshot();
+	/** Requests a fresh snapshot for autonomous server-side simulation ticks. */
+	tl::expected<protocol::Snapshot, std::string> RequestSnapshot();
 
 	/** Returns transient gameplay events received before the latest snapshot. */
 	std::vector<protocol::EventBatch> TakePendingEventBatches();

@@ -908,6 +908,8 @@ if(DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT)
     network/authoritative/server_backed_configuration.cpp
     network/authoritative/item_snapshot.cpp
     network/authoritative/player_snapshot.cpp
+    network/authoritative/server_backed_world_projection.cpp
+    network/authoritative/server_backed_world_presentation.cpp
     network/authoritative/server_backed_player_ui.cpp
     network/authoritative/server_backed_session.cpp
     network/authoritative/server_backed_runtime.cpp
@@ -1024,7 +1026,13 @@ target_link_dependencies(libdevilutionx PUBLIC
   libdevilutionx_utils_console
 )
 if(DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT)
-  target_link_dependencies(libdevilutionx PUBLIC ${Protobuf_LIBRARIES})
+  # Prefer the imported target so MSVC uses Protobuf's import library rather
+  # than the DLL path returned by some vcpkg FindProtobuf configurations.
+  if(TARGET protobuf::libprotobuf)
+    target_link_dependencies(libdevilutionx PUBLIC protobuf::libprotobuf)
+  else()
+    target_link_dependencies(libdevilutionx PUBLIC ${Protobuf_LIBRARIES})
+  endif()
 endif()
 if(NOT TARGET_PLATFORM STREQUAL "dos")
   target_link_dependencies(libdevilutionx PUBLIC Threads::Threads)

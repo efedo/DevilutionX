@@ -15,6 +15,8 @@ public sealed record ServerHostOptions(
     uint TickRateHz,
     uint StartingGold)
 {
+    public string SaveRoot { get; init; } = Path.Combine("server", "saves");
+
     public static ServerHostOptions Defaults { get; } = new(
         IPAddress.Loopback,
         6113,
@@ -93,6 +95,9 @@ public sealed record ServerHostOptions(
                 }
                 current = current with { StartingGold = startingGold };
                 break;
+            case "--save-root":
+                current = current with { SaveRoot = value };
+                break;
             default:
                 options = current;
                 error = $"Unknown option '{argument}'.";
@@ -127,5 +132,6 @@ public sealed record ServerHostOptions(
           --protocol-version <version> Protocol schema version
           --tick-rate <hz>             Authoritative simulation rate
           --starting-gold <amount>     Initial wallet for new sessions
+          --save-root <directory>     Server-owned authoritative save directory
         """;
 }

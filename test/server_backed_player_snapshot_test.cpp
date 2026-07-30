@@ -3,6 +3,7 @@
 #include "devilution.pb.h"
 #include "network/authoritative/player_snapshot.hpp"
 #include "network/authoritative/server_backed_player_ui.hpp"
+#include "network/authoritative/server_backed_world_projection.hpp"
 
 namespace devilution::authoritative {
 namespace protocol = ::devilution::protocol::v1;
@@ -101,6 +102,154 @@ TEST(ServerBackedPlayerSnapshot, RejectsMissingAndDuplicateEntities)
 	duplicate.add_players()->set_entity_id(7);
 	duplicate.add_players()->set_entity_id(7);
 	EXPECT_FALSE(ProjectPlayerSnapshot(duplicate, 7).has_value());
+}
+
+TEST(ServerBackedPlayerSnapshot, ProjectsAndSortsAuthoritativeMonsters)
+{
+	protocol::Snapshot snapshot;
+	auto *second = snapshot.add_monsters();
+	second->set_entity_id(9);
+	second->set_monster_id(12);
+	second->set_level_id(2);
+	second->set_position_x(4);
+	second->set_position_y(5);
+	second->set_hit_points(7);
+	second->set_max_hit_points(20);
+	second->set_armor_class(3);
+	second->set_alive(true);
+	second->set_attack_damage(11);
+	second->set_aggro_range(6);
+	second->set_fire_resistance(25);
+	second->set_lightning_resistance(-10);
+	second->set_magic_resistance(40);
+	const auto first = snapshot.add_monsters();
+	first->set_entity_id(3);
+	first->set_hit_points(0);
+	first->set_max_hit_points(10);
+	first->set_alive(false);
+
+	auto projected = ProjectMonsterSnapshots(snapshot);
+	ASSERT_TRUE(projected.has_value()) << projected.error();
+	ASSERT_EQ(projected->size(), 2U);
+	EXPECT_EQ((*projected)[0].entityId, 3U);
+	EXPECT_FALSE((*projected)[0].alive);
+	EXPECT_EQ((*projected)[1].entityId, 9U);
+	EXPECT_EQ((*projected)[1].monsterId, 12U);
+	EXPECT_EQ((*projected)[1].hitPoints, 7);
+	EXPECT_EQ((*projected)[1].attackDamage, 11);
+	EXPECT_EQ((*projected)[1].aggroRange, 6);
+	EXPECT_EQ((*projected)[1].fireResistance, 25);
+	EXPECT_EQ((*projected)[1].lightningResistance, -10);
+	EXPECT_EQ((*projected)[1].magicResistance, 40);
+}
+
+TEST(ServerBackedPlayerSnapshot, ProjectsAndSortsAuthoritativeWorldItems)
+{
+	devilution::protocol::v1::Snapshot snapshot;
+	auto *second = snapshot.add_world_items();
+	second->set_entity_id(20);
+	second->set_item_seed(42);
+	second->set_price(75);
+	second->mutable_state()->set_item_type(1);
+	auto *first = snapshot.add_world_items();
+	first->set_entity_id(10);
+	first->set_item_seed(43);
+	first->set_price(80);
+	first->mutable_state()->set_item_type(1);
+
+	auto projected = ProjectWorldItemSnapshots(snapshot);
+	ASSERT_TRUE(projected.has_value());
+	ASSERT_EQ(projected->size(), 2U);
+	EXPECT_EQ((*projected)[0].entityId, 10U);
+	EXPECT_EQ((*projected)[1].entityId, 20U);
+	EXPECT_EQ((*projected)[0].itemSeed, 43U);
+}
+
+TEST(ServerBackedPlayerSnapshot, ProjectsAndSortsAuthoritativeObjects)
+{
+	protocol::Snapshot snapshot;
+	auto *second = snapshot.add_objects();
+	second->set_entity_id(20);
+	second->set_object_id(2);
+	second->set_level_id(1);
+	second->set_position_x(8);
+	second->set_position_y(9);
+	second->set_activated(true);
+	second->set_quest_id(30);
+	auto *first = snapshot.add_objects();
+	first->set_entity_id(10);
+	first->set_object_id(1);
+	first->set_level_id(1);
+	first->set_position_x(4);
+	first->set_position_y(4);
+
+	auto projected = ProjectObjectSnapshots(snapshot);
+	ASSERT_TRUE(projected.has_value());
+	ASSERT_EQ(projected->size(), 2U);
+	EXPECT_EQ((*projected)[0].entityId, 10U);
+	EXPECT_EQ((*projected)[0].objectId, 1U);
+	EXPECT_FALSE((*projected)[0].activated);
+	EXPECT_EQ((*projected)[1].entityId, 20U);
+	EXPECT_TRUE((*projected)[1].activated);
+	EXPECT_EQ((*projected)[1].questId, 30U);
+}
+
+TEST(ServerBackedPlayerSnapshot, WorldProjectionRetainsEntitiesFromAnotherLevel)
+{
+	ServerBackedWorldProjection projection;
+	ProjectedMonsterSnapshot monster;
+	monster.entityId = 7;
+	monster.levelId = 2;
+
+	ASSERT_TRUE(projection.Apply({ monster }, {}, {}, 1).has_value());
+	ASSERT_EQ(projection.Monsters().size(), 1U);
+	EXPECT_EQ(projection.Monsters()[0].levelId, 2U);
+}
+
+TEST(ServerBackedPlayerSnapshot, WorldProjectionProvidesStableInteractionLookups)
+{
+	ServerBackedWorldProjection projection;
+	ProjectedMonsterSnapshot monster;
+	monster.entityId = 40;
+	monster.levelId = 1;
+	monster.positionX = 4;
+	monster.positionY = 5;
+	monster.alive = true;
+	ProjectedWorldItemSnapshot item;
+	item.entityId = 20;
+	item.levelId = 2;
+	item.positionX = 4;
+	item.positionY = 5;
+	ProjectedObjectSnapshot object;
+	object.entityId = 30;
+	object.levelId = 1;
+	object.positionX = 4;
+	object.positionY = 5;
+
+	ASSERT_TRUE(projection.Apply({ monster }, { item }, { object }, 1).has_value());
+	EXPECT_EQ(projection.MonsterAt(4, 5), std::optional<uint32_t> { 40 });
+	EXPECT_FALSE(projection.MonsterAt(5, 5).has_value());
+	EXPECT_FALSE(projection.WorldItemAt(4, 5).has_value());
+	EXPECT_EQ(projection.ObjectAt(4, 5), std::optional<uint32_t>(30));
+	object.activated = true;
+	ASSERT_TRUE(projection.Apply({}, { item }, { object }, 1).has_value());
+	EXPECT_FALSE(projection.ObjectAt(4, 5).has_value());
+	ASSERT_TRUE(projection.Apply({}, { item }, {}, 2).has_value());
+	EXPECT_EQ(projection.WorldItemAt(4, 5), std::optional<uint32_t>(20));
+}
+
+TEST(ServerBackedPlayerSnapshot, RejectsMalformedAuthoritativeObjects)
+{
+	protocol::Snapshot missingId;
+	missingId.add_objects()->set_object_id(1);
+	EXPECT_FALSE(ProjectObjectSnapshots(missingId).has_value());
+
+	protocol::Snapshot duplicate;
+	duplicate.add_objects()->set_entity_id(7);
+	duplicate.mutable_objects(0)->set_object_id(1);
+	duplicate.add_objects()->set_entity_id(7);
+	duplicate.mutable_objects(1)->set_object_id(2);
+	EXPECT_FALSE(ProjectObjectSnapshots(duplicate).has_value());
 }
 
 TEST(ServerBackedPlayerSnapshot, StateRetainsLastValidSnapshotUntilReplacement)

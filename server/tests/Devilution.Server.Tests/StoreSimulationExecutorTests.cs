@@ -3,6 +3,7 @@ using Devilution.Server.Commands;
 using Devilution.Server.Gameplay;
 using Devilution.Server.Snapshots;
 using Devilution.Server.Stores;
+using Google.Protobuf;
 using Xunit;
 
 namespace Devilution.Server.Tests;
@@ -586,6 +587,187 @@ public sealed class StoreSimulationExecutorTests
     }
 
     [Fact]
+    public void DataDrivenDamageSpellUsesTargetRangeArmorAndEvents()
+    {
+        var executor = new StoreSimulationExecutor(
+            CreateCatalog(),
+            startingGold: 100,
+            startingMana: 10,
+            startingManaMaximum: 10,
+            startingCombatTargets: [new AuthoritativeCombatTarget(9, 1, 0, 20, armorClass: 2)],
+            startingSpells: new AuthoritativeSpellCatalog([
+                new AuthoritativeSpellDefinition(7, 4, 0, 0, 0, 0) { DamageAmount = 12, Range = 1 },
+            ]));
+        var server = new AuthoritativeCommandServer(executor);
+
+        var result = server.Process("player-a", new Command {
+            ClientSequence = 1,
+            RequestedTick = 1,
+            CastRequested = new CastRequested { SpellId = 7, TargetEntityId = 9 },
+        }, 1);
+
+        Assert.Equal(CommandStatus.Accepted, result.Status);
+        Assert.Equal(10, Assert.Single(executor.DrainEvents("player-a", 7, 1)!.Events).Damage.Amount);
+        Assert.Equal(6, executor.GetPlayerState("player-a").Mana);
+    }
+
+    [Fact]
+    public void DamageSpellMayResolveAnAuthoritativeTargetByCell()
+    {
+        var executor = new StoreSimulationExecutor(
+            CreateCatalog(),
+            startingGold: 100,
+            startingMana: 10,
+            startingManaMaximum: 10,
+            startingCombatTargets: [new AuthoritativeCombatTarget(9, 1, 1, 20)],
+            startingSpells: new AuthoritativeSpellCatalog([
+                new AuthoritativeSpellDefinition(7, 4, 0, 0, 0, 0) { DamageAmount = 12, Range = 2 },
+            ]));
+
+        var result = new AuthoritativeCommandServer(executor).Process("player-a", new Command {
+            ClientSequence = 1,
+            RequestedTick = 1,
+            CastRequested = new CastRequested { SpellId = 7, TargetX = 1, TargetY = 1 },
+        }, 1);
+
+        Assert.Equal(CommandStatus.Accepted, result.Status);
+        Assert.Equal(12, Assert.Single(executor.DrainEvents("player-a", 7, 1)!.Events).Damage.Amount);
+    }
+
+    [Fact]
+    public void AreaDamageUsesTypedResistanceAndStableTargetOrdering()
+    {
+        var executor = new StoreSimulationExecutor(
+            CreateCatalog(),
+            startingGold: 100,
+            startingMana: 10,
+            startingManaMaximum: 10,
+            startingCombatTargets: [
+                new AuthoritativeCombatTarget(9, 2, 0, 20, fireResistance: 50),
+                new AuthoritativeCombatTarget(10, 2, 1, 20),
+                new AuthoritativeCombatTarget(11, 4, 0, 20),
+            ],
+            startingSpells: new AuthoritativeSpellCatalog([
+                new AuthoritativeSpellDefinition(7, 4, 0, 0, 0, 0) {
+                    DamageAmount = 10,
+                    Range = 4,
+                    AreaRadius = 1,
+                    DamageType = AuthoritativeDamageType.Fire,
+                },
+            ]));
+        var server = new AuthoritativeCommandServer(executor);
+
+        var result = server.Process("player-a", new Command {
+            ClientSequence = 1,
+            RequestedTick = 1,
+            CastRequested = new CastRequested { SpellId = 7, TargetX = 2, TargetY = 0 },
+        }, 1);
+
+        Assert.Equal(CommandStatus.Accepted, result.Status);
+        var snapshot = executor.CreateSnapshot("player-a", 1, 1);
+        Assert.Equal(15, snapshot.Monsters.Single(monster => monster.EntityId == 9).HitPoints);
+        Assert.Equal(10, snapshot.Monsters.Single(monster => monster.EntityId == 10).HitPoints);
+        Assert.Equal(20, snapshot.Monsters.Single(monster => monster.EntityId == 11).HitPoints);
+        var events = executor.DrainEvents("player-a", 7, 1)!.Events;
+        Assert.Equal([9U, 10U], events.Select(@event => @event.Damage.TargetEntityId));
+        Assert.Equal([5, 10], events.Select(@event => @event.Damage.Amount));
+    }
+
+    [Fact]
+    public void PickupTransfersAnAuthoritativeWorldItemIntoTheInventory()
+    {
+        var itemState = AuthoritativeItemState.Empty with {
+            ItemType = 1,
+            Value = 75,
+            InventoryWidth = 1,
+            InventoryHeight = 1,
+        };
+        var executor = new StoreSimulationExecutor(
+            CreateCatalog(),
+            startingGold: 100,
+            startingInventoryGrid: Enumerable.Repeat(-1, 40).ToArray(),
+            startingWorldItems: [new AuthoritativeWorldItem(20, 0, 1, 0, 42, 75, itemState)]);
+        var server = new AuthoritativeCommandServer(executor);
+
+        var result = server.Process("player-a", new Command {
+            ClientSequence = 1,
+            RequestedTick = 1,
+            PickupWorldItemRequested = new PickupWorldItemRequested { ItemEntityId = 20 },
+        }, 1);
+
+        Assert.Equal(CommandStatus.Accepted, result.Status);
+        var player = executor.GetPlayerState("player-a");
+        var item = Assert.Single(player.Inventory);
+        Assert.Equal(42U, item.ItemSeed);
+        Assert.Equal(0, player.InventoryGrid[0]);
+        Assert.Empty(executor.CreateSnapshot("player-a", 7, 1).WorldItems);
+    }
+
+    [Fact]
+    public void ObjectInteractionAndQuestProgressAreAuthoritative()
+    {
+        var executor = new StoreSimulationExecutor(
+            CreateCatalog(),
+            startingGold: 0,
+            startingPositionX: 1,
+            startingPositionY: 1,
+            startingObjects: [new AuthoritativeWorldObject(20, 4, 0, 2, 1, questId: 30)],
+            startingQuests: [new AuthoritativeQuestState(30, 0, 2)]);
+        var server = new AuthoritativeCommandServer(executor);
+
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", new Command {
+            ClientSequence = 1,
+            RequestedTick = 1,
+            OperateObjectRequested = new OperateObjectRequested { ObjectEntityId = 20 },
+        }, 1).Status);
+        var objectActivatedSnapshot = executor.CreateSnapshot("player-a", 7, 1);
+        Assert.Equal(1U, Assert.Single(objectActivatedSnapshot.Quests).Progress);
+        Assert.Equal(CommandRejectReason.InvalidTarget, server.Process("player-a", new Command {
+            ClientSequence = 2,
+            RequestedTick = 2,
+            OperateObjectRequested = new OperateObjectRequested { ObjectEntityId = 20 },
+        }, 2).RejectReason);
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", new Command {
+            ClientSequence = 3,
+            RequestedTick = 3,
+            AdvanceQuestRequested = new AdvanceQuestRequested { QuestId = 30 },
+        }, 3).Status);
+        Assert.Equal(CommandRejectReason.InvalidTarget, server.Process("player-a", new Command {
+            ClientSequence = 4,
+            RequestedTick = 4,
+            AdvanceQuestRequested = new AdvanceQuestRequested { QuestId = 30 },
+        }, 4).RejectReason);
+
+        var snapshot = executor.CreateSnapshot("player-a", 7, 4);
+        var objectSnapshot = Assert.Single(snapshot.Objects);
+        Assert.True(objectSnapshot.Activated);
+        Assert.Equal(30U, objectSnapshot.QuestId);
+        var quest = Assert.Single(snapshot.Quests);
+        Assert.Equal(2U, quest.Progress);
+        Assert.True(quest.Completed);
+    }
+
+    [Fact]
+    public void DefeatingAMonsterSpawnsItsConfiguredDrop()
+    {
+        var target = new AuthoritativeCombatTarget(9, 1, 0, 1, dropItemEntityId: 1009, dropItemSeed: 6001, dropItemPrice: 25);
+        var executor = new StoreSimulationExecutor(
+            new StoreCatalog(),
+            startingGold: 0,
+            startingLife: 40,
+            startingPositionX: 0,
+            startingPositionY: 0,
+            startingCombatTargets: [target]);
+
+        var result = executor.Execute("player-a", new Command { AttackRequested = new AttackRequested { TargetEntityId = 9 } }, 1);
+
+        Assert.True(result.Succeeded);
+        var item = Assert.Single(executor.CreateSnapshot("player-a", 7, 1).WorldItems);
+        Assert.Equal(1009U, item.EntityId);
+        Assert.Equal(6001U, item.ItemSeed);
+    }
+
+    [Fact]
     public void AdjacentAttackDamagesTargetsAndAwardsExperienceOnDefeat()
     {
         var target = new AuthoritativeCombatTarget(9, 1, 0, hitPoints: 11, armorClass: 2);
@@ -622,6 +804,13 @@ public sealed class StoreSimulationExecutorTests
         Assert.NotNull(defeatEvents);
         Assert.Equal(2, defeatEvents.Events.Count);
         Assert.Equal(100U, defeatEvents.Events.Single(gameEvent => gameEvent.Experience is not null).Experience.Amount);
+
+        var snapshot = executor.CreateSnapshot("player-a", 7, 2);
+        var monster = Assert.Single(snapshot.Monsters);
+        Assert.Equal(9U, monster.EntityId);
+        Assert.Equal(0, monster.HitPoints);
+        Assert.Equal(11, monster.MaxHitPoints);
+        Assert.False(monster.Alive);
 
         var distant = new AuthoritativeCombatTarget(10, 4, 4, 10);
         var distantExecutor = new StoreSimulationExecutor(CreateCatalog(), 100, startingCombatTargets: [distant]);
@@ -698,6 +887,206 @@ public sealed class StoreSimulationExecutorTests
     }
 
     [Fact]
+    public void MovementUsesLevelSpecificAuthoritativeWorldGeometry()
+    {
+        var world = new AuthoritativeWorld();
+        world.AddLevel(new AuthoritativeLevel(2, 4, 4, [1 * 4 + 2]));
+        var executor = new StoreSimulationExecutor(
+            CreateCatalog(),
+            startingGold: 100,
+            startingPositionX: 1,
+            startingPositionY: 1,
+            startingLevelId: 2,
+            startingWorld: world);
+
+        var result = new AuthoritativeCommandServer(executor).Process("player-a", new Command {
+            ClientSequence = 1,
+            RequestedTick = 1,
+            MoveRequested = new MoveRequested { DirectionX = 1, DirectionY = 0 },
+        }, 1);
+
+        Assert.Equal(CommandRejectReason.InvalidTarget, result.RejectReason);
+    }
+
+    [Fact]
+    public void MovementRejectsOccupiedMonsterCells()
+    {
+        var executor = new StoreSimulationExecutor(
+            CreateCatalog(),
+            startingGold: 100,
+            startingCombatTargets: [new AuthoritativeCombatTarget(9, 1, 0, 10)]);
+        var result = new AuthoritativeCommandServer(executor).Process("player-a", new Command {
+            ClientSequence = 1,
+            RequestedTick = 1,
+            MoveRequested = new MoveRequested { DirectionX = 1, DirectionY = 0 },
+        }, 1);
+
+        Assert.Equal(CommandRejectReason.InvalidTarget, result.RejectReason);
+        Assert.Equal(0, executor.GetPlayerState("player-a").PositionX);
+    }
+
+    [Fact]
+    public void MovementRejectsAnotherAuthoritativePlayerCell()
+    {
+        var executor = new StoreSimulationExecutor(CreateCatalog(), startingGold: 100, startingPositionX: 0, startingPositionY: 0);
+        executor.CreateSnapshot("player-a", 7, 0);
+        executor.CreateSnapshot("player-b", 8, 0);
+        var otherPlayerMove = new AuthoritativeCommandServer(executor).Process("player-b", new Command {
+            ClientSequence = 1,
+            RequestedTick = 1,
+            MoveRequested = new MoveRequested { DirectionX = 1, DirectionY = 0 },
+        }, 1);
+        Assert.Equal(CommandStatus.Accepted, otherPlayerMove.Status);
+
+        var result = new AuthoritativeCommandServer(executor).Process("player-a", new Command {
+            ClientSequence = 1,
+            RequestedTick = 2,
+            MoveRequested = new MoveRequested { DirectionX = 1, DirectionY = 0 },
+        }, 2);
+
+        Assert.Equal(CommandRejectReason.InvalidTarget, result.RejectReason);
+    }
+
+    [Fact]
+    public void AutonomousMonsterTickMovesAndAttacksDeterministically()
+    {
+        var executor = new StoreSimulationExecutor(
+            CreateCatalog(),
+            startingGold: 0,
+            startingLife: 20,
+            startingLifeMaximum: 20,
+            startingPositionX: 0,
+            startingPositionY: 0,
+            startingCombatTargets: [new AuthoritativeCombatTarget(9, 2, 0, 10, levelId: 0, monsterId: 1, attackDamage: 3, aggroRange: 5)],
+            worldWidth: 5,
+            worldHeight: 5);
+        executor.CreateSnapshot("player-a", 7, 0);
+        var server = new AuthoritativeCommandServer(executor);
+
+        var firstTick = server.Process("player-a", new Command {
+            ClientSequence = 1,
+            RequestedTick = 1,
+            MoveRequested = new MoveRequested { DirectionX = 0, DirectionY = 0 },
+        }, 1);
+        Assert.Equal(CommandStatus.Rejected, firstTick.Status);
+        Assert.Equal(1, Assert.Single(executor.CreateSnapshot("player-a", 7, 1).Monsters).PositionX);
+
+        var secondTick = server.Process("player-a", new Command {
+            ClientSequence = 2,
+            RequestedTick = 2,
+            MoveRequested = new MoveRequested { DirectionX = 0, DirectionY = 0 },
+        }, 2);
+        Assert.Equal(CommandStatus.Rejected, secondTick.Status);
+        Assert.Equal(17, executor.GetPlayerState("player-a").Life);
+        var events = executor.DrainEvents("player-a", 7, 2);
+        Assert.NotNull(events);
+        var damage = Assert.Single(events.Events).Damage;
+        Assert.Equal(9U, damage.SourceEntityId);
+        Assert.Equal(7U, damage.TargetEntityId);
+        Assert.Equal(3, damage.Amount);
+    }
+
+    [Fact]
+    public void AutonomousMonsterSimulationCatchesUpEveryAuthoritativeTick()
+    {
+        var executor = new StoreSimulationExecutor(
+            CreateCatalog(),
+            startingGold: 0,
+            startingLife: 20,
+            startingLifeMaximum: 20,
+            startingPositionX: 0,
+            startingPositionY: 0,
+            startingCombatTargets: [new AuthoritativeCombatTarget(9, 3, 0, 10, levelId: 0, monsterId: 1, attackDamage: 2, aggroRange: 5)],
+            worldWidth: 5,
+            worldHeight: 5);
+        executor.CreateSnapshot("player-a", 7, 0);
+
+        executor.AdvanceTo(3);
+
+        var monster = Assert.Single(executor.CreateSnapshot("player-a", 7, 3).Monsters);
+        Assert.Equal(1, monster.PositionX);
+        Assert.Equal(18, executor.GetPlayerState("player-a").Life);
+    }
+
+    [Fact]
+    public void AutonomousSimulationAdvancesMultipleActorsInStableEntityOrder()
+    {
+        var executor = new StoreSimulationExecutor(
+            CreateCatalog(),
+            startingGold: 0,
+            startingLife: 30,
+            startingLifeMaximum: 30,
+            startingPositionX: 0,
+            startingPositionY: 0,
+            startingCombatTargets: [
+                new AuthoritativeCombatTarget(11, 3, 0, 10, levelId: 0, monsterId: 1, attackDamage: 1, aggroRange: 6),
+                new AuthoritativeCombatTarget(9, 4, 1, 10, levelId: 0, monsterId: 1, attackDamage: 1, aggroRange: 6),
+            ],
+            worldWidth: 6,
+            worldHeight: 6);
+        executor.CreateSnapshot("player-a", 7, 0);
+
+        executor.AdvanceTo(2);
+
+        var monsters = executor.CreateSnapshot("player-a", 7, 2).Monsters.OrderBy(monster => monster.EntityId).ToArray();
+        Assert.Equal(2, monsters.Length);
+        Assert.Equal(9U, monsters[0].EntityId);
+        Assert.Equal(11U, monsters[1].EntityId);
+        Assert.NotEqual((4, 1), (monsters[0].PositionX, monsters[0].PositionY));
+        Assert.NotEqual((3, 0), (monsters[1].PositionX, monsters[1].PositionY));
+        Assert.Equal(30, executor.GetPlayerState("player-a").Life);
+    }
+
+    [Fact]
+    public void AutonomousMonsterAttackCanMissFromExternalCombatRules()
+    {
+        var executor = new StoreSimulationExecutor(
+            CreateCatalog(),
+            startingGold: 0,
+            startingLife: 20,
+            startingLifeMaximum: 20,
+            startingCombatTargets: [new AuthoritativeCombatTarget(9, 1, 0, 10, levelId: 0, monsterId: 1, attackDamage: 3, aggroRange: 5)],
+            startingCombatRules: new AuthoritativeCombatRules(10, 1, 100, hitChancePercent: 0),
+            worldWidth: 5,
+            worldHeight: 5);
+        executor.CreateSnapshot("player-a", 7, 0);
+
+        executor.AdvanceTo(1);
+
+        Assert.Equal(20, executor.GetPlayerState("player-a").Life);
+    }
+
+    [Fact]
+    public void DamageSpellCannotPassThroughAuthoritativeGeometry()
+    {
+        var world = new AuthoritativeWorld();
+        world.AddLevel(new AuthoritativeLevel(1, 5, 3, [1 * 5 + 2]));
+        var executor = new StoreSimulationExecutor(
+            CreateCatalog(),
+            startingGold: 0,
+            startingMana: 10,
+            startingManaMaximum: 10,
+            startingPositionX: 0,
+            startingPositionY: 1,
+            startingLevelId: 1,
+            startingWorld: world,
+            startingCombatTargets: [new AuthoritativeCombatTarget(9, 4, 1, 10, levelId: 1, monsterId: 1)],
+            startingSpells: new AuthoritativeSpellCatalog([
+                new AuthoritativeSpellDefinition(4, 2, 0, 0, 0, 0) { DamageAmount = 6, Range = 5 },
+            ]));
+
+        var result = new AuthoritativeCommandServer(executor).Process("player-a", new Command {
+            ClientSequence = 1,
+            RequestedTick = 1,
+            CastRequested = new CastRequested { SpellId = 4, TargetEntityId = 9 },
+        }, 1);
+
+        Assert.Equal(CommandStatus.Rejected, result.Status);
+        Assert.Equal(CommandRejectReason.InvalidTarget, result.RejectReason);
+        Assert.Equal(10, Assert.Single(executor.CreateSnapshot("player-a", 7, 1).Monsters).HitPoints);
+    }
+
+    [Fact]
     public void HasteStatusIsAuthoritativeAndExpiresByAppliedTick()
     {
         var executor = new StoreSimulationExecutor(CreateCatalog(), startingGold: 100, startingMana: 10, startingManaMaximum: 10);
@@ -717,6 +1106,161 @@ public sealed class StoreSimulationExecutorTests
 
         var expired = executor.CreateSnapshot("player-a", 7, 11).Players[0];
         Assert.Empty(expired.StatusEffects);
+    }
+
+    [Fact]
+    public void AuthoritativeSaveRoundTripsPlayerStateAndRejectsMalformedState()
+    {
+        var worldItemState = AuthoritativeItemState.Empty with { ItemType = 1, ItemIndex = 2, Value = 75 };
+        var executor = new StoreSimulationExecutor(
+            CreateCatalog(),
+            startingGold: 100,
+            startingExperience: 25,
+            startingLife: 40,
+            startingLifeMaximum: 60,
+            startingMana: 8,
+            startingManaMaximum: 10,
+            startingPositionX: 2,
+            startingPositionY: 3,
+            worldWidth: 4,
+            worldHeight: 4,
+            startingCombatTargets: [new AuthoritativeCombatTarget(9, 1, 1, 12, armorClass: 2, maxHitPoints: 20, monsterId: 4, attackDamage: 4, aggroRange: 6, fireResistance: 25)],
+            startingWorldItems: [new AuthoritativeWorldItem(20, 0, 2, 2, 42, 75, worldItemState)],
+            startingObjects: [new AuthoritativeWorldObject(30, 4, 0, 0, 1, activated: true, questId: 40)],
+            startingQuests: [new AuthoritativeQuestState(40, 0, 2, progress: 1)]);
+        var state = executor.GetPlayerState("player-a");
+        var save = executor.ExportPlayerSave("player-a");
+
+        var replacement = new StoreSimulationExecutor(
+            CreateCatalog(),
+            startingGold: 0,
+            startingLife: 40,
+            startingLifeMaximum: 60,
+            startingMana: 0,
+            startingManaMaximum: 10,
+            worldWidth: 4,
+            worldHeight: 4);
+        replacement.ImportPlayerSave("player-a", save);
+        var restored = replacement.GetPlayerState("player-a");
+
+        Assert.Equal(state.Gold, restored.Gold);
+        Assert.Equal(state.Experience, restored.Experience);
+        Assert.Equal(state.PositionX, restored.PositionX);
+        Assert.Equal(state.PositionY, restored.PositionY);
+        var restoredSnapshot = replacement.CreateSnapshot("player-a", restored.EntityId, 0);
+        var restoredMonster = Assert.Single(restoredSnapshot.Monsters);
+        Assert.Equal(12, restoredMonster.HitPoints);
+        Assert.Equal(1, restoredMonster.PositionX);
+        Assert.Equal(4, restoredMonster.AttackDamage);
+        Assert.Equal(6, restoredMonster.AggroRange);
+        Assert.Equal(25, restoredMonster.FireResistance);
+        var restoredWorldItem = Assert.Single(restoredSnapshot.WorldItems);
+        Assert.Equal(42U, restoredWorldItem.ItemSeed);
+        Assert.Equal(75U, restoredWorldItem.Price);
+        Assert.True(Assert.Single(restoredSnapshot.Objects).Activated);
+        Assert.Equal(40U, Assert.Single(restoredSnapshot.Objects).QuestId);
+        Assert.Equal(1U, Assert.Single(restoredSnapshot.Quests).Progress);
+        Assert.Throws<InvalidDataException>(() => replacement.ImportPlayerSave("player-a", "{\"FormatVersion\":99}"));
+    }
+
+    [Fact]
+    public void AuthoritativeSaveRoundTripRetainsMultiLevelWorldEntities()
+    {
+        var world = new AuthoritativeWorld();
+        world.AddLevel(new AuthoritativeLevel(1, 5, 5, []));
+        world.AddLevel(new AuthoritativeLevel(2, 5, 5, []));
+        var executor = new StoreSimulationExecutor(
+            CreateCatalog(),
+            startingGold: 0,
+            startingLife: 40,
+            startingLevelId: 1,
+            startingWorld: world,
+            startingCombatTargets: [new AuthoritativeCombatTarget(9, 2, 2, 10, levelId: 2, monsterId: 1)],
+            startingWorldItems: [new AuthoritativeWorldItem(20, 2, 3, 3, 42, 75, AuthoritativeItemState.Empty)],
+            startingObjects: [new AuthoritativeWorldObject(30, 4, 2, 1, 1)]);
+
+        var save = executor.ExportPlayerSave("player-a");
+        var replacement = new StoreSimulationExecutor(CreateCatalog(), startingGold: 0, startingLife: 40, startingLevelId: 1, startingWorld: world);
+        replacement.ImportPlayerSave("player-a", save);
+
+        var restored = replacement.CreateSnapshot("player-a", 1, 0);
+        Assert.Single(restored.Monsters);
+        Assert.Single(restored.WorldItems);
+        Assert.Single(restored.Objects);
+        Assert.Contains(restored.Monsters, monster => monster.EntityId == 9 && monster.LevelId == 2);
+        Assert.Contains(restored.WorldItems, item => item.EntityId == 20 && item.LevelId == 2);
+        Assert.Contains(restored.Objects, @object => @object.EntityId == 30 && @object.LevelId == 2);
+    }
+
+    [Fact]
+    public void AuthoritativeSaveRejectsDuplicateItemsAndInvalidInventoryFootprints()
+    {
+        var catalog = CreateCatalog(new StoreItem(0, 42, 10));
+        var source = new StoreSimulationExecutor(catalog, startingGold: 100);
+        var server = new AuthoritativeCommandServer(source);
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", OpenStore(1), 0).Status);
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", Purchase(2, 0), 1).Status);
+
+        var document = System.Text.Json.JsonSerializer.Deserialize<AuthoritativeSaveDocument>(source.ExportPlayerSave("player-a"))!;
+        var snapshot = Snapshot.Parser.ParseFrom(Convert.FromBase64String(document.SnapshotBase64));
+        var player = Assert.Single(snapshot.Players);
+        player.InventoryGrid.Add(0);
+        player.Inventory[0].State.InventoryWidth = 2;
+        var invalidFootprint = document with { SnapshotBase64 = Convert.ToBase64String(snapshot.ToByteArray()) };
+
+        var destination = new StoreSimulationExecutor(CreateCatalog(), startingGold: 0);
+        Assert.Throws<InvalidDataException>(() => destination.ImportPlayerSave("player-a", System.Text.Json.JsonSerializer.Serialize(invalidFootprint)));
+
+        var duplicateSnapshot = Snapshot.Parser.ParseFrom(Convert.FromBase64String(document.SnapshotBase64));
+        duplicateSnapshot.Players[0].Equipment.Add(new EquippedItemSnapshot {
+            Slot = 0,
+            ItemSeed = duplicateSnapshot.Players[0].Inventory[0].ItemSeed,
+            State = duplicateSnapshot.Players[0].Inventory[0].State,
+        });
+        var duplicateItem = document with { SnapshotBase64 = Convert.ToBase64String(duplicateSnapshot.ToByteArray()) };
+        Assert.Throws<InvalidDataException>(() => destination.ImportPlayerSave("player-a", System.Text.Json.JsonSerializer.Serialize(duplicateItem)));
+    }
+
+    [Fact]
+    public void AuthoritativeWorldRejectsImpossibleStartingPlacement()
+    {
+        var world = new AuthoritativeWorld();
+        world.AddLevel(new AuthoritativeLevel(1, 2, 2, [0]));
+
+        Assert.Throws<InvalidDataException>(() => new StoreSimulationExecutor(
+            CreateCatalog(),
+            startingGold: 0,
+            startingLevelId: 1,
+            startingWorld: world));
+    }
+
+    [Fact]
+    public void AuthoritativeWorldRejectsOverlappingLiveEntities()
+    {
+        Assert.Throws<InvalidDataException>(() => new StoreSimulationExecutor(
+            CreateCatalog(),
+            startingGold: 0,
+            startingCombatTargets: [new AuthoritativeCombatTarget(9, 0, 0, 10)],
+            startingWorldItems: [new AuthoritativeWorldItem(20, 0, 0, 0, 42, 10, AuthoritativeItemState.Empty)]));
+    }
+
+    [Fact]
+    public void AuthoritativeSaveStoreWritesAndReplacesOnlySafeSessionPaths()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "devilution-save-tests", Guid.NewGuid().ToString("N"));
+        try {
+            var store = new AuthoritativeSaveStore(root);
+            store.Save("player-a", "first");
+            store.Save("player-a", "second");
+
+            Assert.Equal("second", store.Load("player-a"));
+            Assert.True(store.Delete("player-a"));
+            Assert.Null(store.Load("player-a"));
+            Assert.Throws<ArgumentException>(() => store.Save("../escape", "invalid"));
+        } finally {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
     }
 
     private static StoreCatalog CreateCatalog(params StoreItem[] items)

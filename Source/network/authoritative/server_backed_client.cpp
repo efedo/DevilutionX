@@ -94,6 +94,8 @@ tl::expected<void, std::string> ServerBackedClient::ConnectTransport(bool expect
 	clientHello->set_client_build_id(configuration_.clientBuildId);
 	clientHello->set_protocol_schema_version(configuration_.protocolSchemaVersion);
 	clientHello->set_content_manifest_hash(configuration_.contentManifestHash);
+	if (!configuration_.rulesetIdentityHash.empty())
+		clientHello->set_ruleset_identity_hash(configuration_.rulesetIdentityHash);
 	clientHello->set_resume_token(configuration_.resumeToken);
 	if (auto result = WriteEnvelope(hello); !result.has_value())
 		return tl::make_unexpected(result.error());
@@ -156,6 +158,15 @@ tl::expected<protocol::Snapshot, std::string> ServerBackedClient::ReadSnapshot()
 			return tl::make_unexpected(ProtocolErrorMessage(*response));
 		return response->snapshot();
 	}
+}
+
+tl::expected<protocol::Snapshot, std::string> ServerBackedClient::RequestSnapshot()
+{
+	protocol::Envelope request;
+	request.mutable_snapshot_request();
+	if (auto result = WriteEnvelope(request); !result.has_value())
+		return tl::make_unexpected(result.error());
+	return ReadSnapshot();
 }
 
 std::vector<protocol::EventBatch> ServerBackedClient::TakePendingEventBatches()

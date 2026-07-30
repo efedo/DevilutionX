@@ -4,6 +4,8 @@
 #include <type_traits>
 
 #include "devilution.pb.h"
+#include "tables/itemdat.h"
+#include "utils/string/utf8.hpp"
 
 namespace devilution::authoritative {
 namespace protocol = ::devilution::protocol::v1;
@@ -87,6 +89,13 @@ tl::expected<Item, std::string> ProjectNativeItem(const protocol::ItemStateSnaps
 	item._iVMult2 = state.value_multiply_2();
 	item._iStatFlag = state.stat_flag();
 	item.dwBuff = state.buff();
+	if (state.item_index() >= 0 && static_cast<size_t>(state.item_index()) < AllItemsList.size()) {
+		const auto &baseItem = AllItemsList[static_cast<size_t>(state.item_index())];
+		CopyUtf8(item._iName, baseItem.iName, ItemNameLength);
+		CopyUtf8(item._iIName, baseItem.iName, ItemNameLength);
+		item._iCurs = baseItem.iCurs;
+		item.setNewAnimation(false);
+	}
 	return item;
 }
 

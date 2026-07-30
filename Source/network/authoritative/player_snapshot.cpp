@@ -77,6 +77,85 @@ tl::expected<ProjectedPlayerSnapshot, std::string> ProjectPlayerSnapshot(const p
 	return projected;
 }
 
+tl::expected<std::vector<ProjectedMonsterSnapshot>, std::string> ProjectMonsterSnapshots(const protocol::Snapshot &snapshot)
+{
+	std::vector<ProjectedMonsterSnapshot> projected;
+	projected.reserve(snapshot.monsters_size());
+	for (const auto &source : snapshot.monsters()) {
+		if (source.entity_id() == 0)
+			return tl::make_unexpected("Server-backed snapshot contains a monster with an invalid entity ID.");
+		if (std::any_of(projected.begin(), projected.end(), [&](const auto &candidate) { return candidate.entityId == source.entity_id(); }))
+			return tl::make_unexpected("Server-backed snapshot contains duplicate monster entity IDs.");
+		projected.push_back({
+			.entityId = source.entity_id(),
+			.monsterId = source.monster_id(),
+			.levelId = source.level_id(),
+			.positionX = source.position_x(),
+			.positionY = source.position_y(),
+			.hitPoints = source.hit_points(),
+			.maxHitPoints = source.max_hit_points(),
+			.armorClass = source.armor_class(),
+			.alive = source.alive(),
+			.attackDamage = source.attack_damage(),
+			.aggroRange = source.aggro_range(),
+			.fireResistance = source.fire_resistance(),
+			.lightningResistance = source.lightning_resistance(),
+			.magicResistance = source.magic_resistance(),
+		});
+	}
+	std::sort(projected.begin(), projected.end(), [](const auto &left, const auto &right) { return left.entityId < right.entityId; });
+	return projected;
+}
+
+tl::expected<std::vector<ProjectedWorldItemSnapshot>, std::string> ProjectWorldItemSnapshots(const protocol::Snapshot &snapshot)
+{
+	std::vector<ProjectedWorldItemSnapshot> projected;
+	projected.reserve(snapshot.world_items_size());
+	for (const auto &source : snapshot.world_items()) {
+		if (source.entity_id() == 0 || source.item_seed() == 0)
+			return tl::make_unexpected("Server-backed snapshot contains a world item with an invalid entity or item ID.");
+		if (std::any_of(projected.begin(), projected.end(), [&](const auto &candidate) { return candidate.entityId == source.entity_id(); }))
+			return tl::make_unexpected("Server-backed snapshot contains duplicate world item entity IDs.");
+		auto item = ProjectNativeItem(source.state(), source.item_seed(), source.price());
+		if (!item.has_value())
+			return tl::make_unexpected(item.error());
+		projected.push_back({
+			.entityId = source.entity_id(),
+			.levelId = source.level_id(),
+			.positionX = source.position_x(),
+			.positionY = source.position_y(),
+			.itemSeed = source.item_seed(),
+			.price = source.price(),
+			.item = std::move(*item),
+		});
+	}
+	std::sort(projected.begin(), projected.end(), [](const auto &left, const auto &right) { return left.entityId < right.entityId; });
+	return projected;
+}
+
+tl::expected<std::vector<ProjectedObjectSnapshot>, std::string> ProjectObjectSnapshots(const protocol::Snapshot &snapshot)
+{
+	std::vector<ProjectedObjectSnapshot> projected;
+	projected.reserve(snapshot.objects_size());
+	for (const auto &source : snapshot.objects()) {
+		if (source.entity_id() == 0 || source.object_id() == 0)
+			return tl::make_unexpected("Server-backed snapshot contains an object with an invalid entity or object ID.");
+		if (std::any_of(projected.begin(), projected.end(), [&](const auto &candidate) { return candidate.entityId == source.entity_id(); }))
+			return tl::make_unexpected("Server-backed snapshot contains duplicate object entity IDs.");
+		projected.push_back({
+			.entityId = source.entity_id(),
+			.objectId = source.object_id(),
+			.levelId = source.level_id(),
+			.positionX = source.position_x(),
+			.positionY = source.position_y(),
+			.activated = source.activated(),
+			.questId = source.quest_id(),
+		});
+	}
+	std::sort(projected.begin(), projected.end(), [](const auto &left, const auto &right) { return left.entityId < right.entityId; });
+	return projected;
+}
+
 void ApplyServerBackedEventBatch(Player &player, const protocol::EventBatch &eventBatch, uint32_t entityId)
 {
 	for (const auto &event : eventBatch.events()) {

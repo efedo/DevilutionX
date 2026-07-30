@@ -1570,11 +1570,22 @@ void GameLogic()
 	if (!ProcessInput()) {
 		return;
 	}
-	if (gbProcessPlayers) {
+	#ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
+	const bool serverBackedGameplay = authoritative::GetServerBackedRuntime().IsConnected();
+	#else
+	const bool serverBackedGameplay = false;
+	#endif
+	if (!serverBackedGameplay && gbProcessPlayers) {
 		gGameLogicStep = GameLogicStep::ProcessPlayers;
 		ProcessPlayers();
 	}
-	if (levelType() != DTYPE_TOWN) {
+	if (serverBackedGameplay) {
+		// The connected server owns all gameplay mutation. The legacy pools remain
+		// presentation data until their authoritative projection is consumed by
+		// the renderer; running them locally would create a second simulation.
+		CurrentLightManager.ProcessLightList();
+		CurrentLightManager.ProcessVisionList();
+	} else if (levelType() != DTYPE_TOWN) {
 		gGameLogicStep = GameLogicStep::ProcessMonsters;
 #ifdef _DEBUG
 		if (!DebugInvisible)
@@ -1605,10 +1616,13 @@ void GameLogic()
 #endif
 
 	sound_update();
-	CheckTriggers();
-	CheckQuests();
+	if (!serverBackedGameplay) {
+		CheckTriggers();
+		CheckQuests();
+	}
 	RedrawViewport();
-	pfile_update(false);
+	if (!serverBackedGameplay)
+		pfile_update(false);
 
 	plrctrls_after_game_logic();
 }

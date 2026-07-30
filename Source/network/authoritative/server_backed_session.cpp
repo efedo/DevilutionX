@@ -102,6 +102,46 @@ tl::expected<void, std::string> ServerBackedSession::MoveItem(ServerBackedItemRe
 	return SubmitInventoryCommand(MakeMoveItemCommand(item, destination, requestedTick), nowMs);
 }
 
+tl::expected<void, std::string> ServerBackedSession::Move(int32_t directionX, int32_t directionY, uint64_t requestedTick, uint64_t nowMs)
+{
+	return SubmitGameplayCommand(MakeMoveCommand(directionX, directionY, requestedTick), nowMs);
+}
+
+tl::expected<void, std::string> ServerBackedSession::Attack(uint32_t targetEntityId, uint64_t requestedTick, uint64_t nowMs)
+{
+	return SubmitGameplayCommand(MakeAttackCommand(targetEntityId, requestedTick), nowMs);
+}
+
+tl::expected<void, std::string> ServerBackedSession::Cast(uint32_t spellId, uint32_t targetEntityId, uint64_t requestedTick, uint64_t nowMs)
+{
+	return Cast(spellId, targetEntityId, 0, 0, requestedTick, nowMs);
+}
+
+tl::expected<void, std::string> ServerBackedSession::Cast(uint32_t spellId, uint32_t targetEntityId, int32_t targetX, int32_t targetY, uint64_t requestedTick, uint64_t nowMs)
+{
+	return SubmitGameplayCommand(MakeCastCommand(spellId, targetEntityId, targetX, targetY, requestedTick), nowMs);
+}
+
+tl::expected<void, std::string> ServerBackedSession::UsePortal(uint32_t portalId, uint64_t requestedTick, uint64_t nowMs)
+{
+	return SubmitGameplayCommand(MakeUsePortalCommand(portalId, requestedTick), nowMs);
+}
+
+tl::expected<void, std::string> ServerBackedSession::PickupWorldItem(uint32_t itemEntityId, uint64_t requestedTick, uint64_t nowMs)
+{
+	return SubmitGameplayCommand(MakePickupWorldItemCommand(itemEntityId, requestedTick), nowMs);
+}
+
+tl::expected<void, std::string> ServerBackedSession::OperateObject(uint32_t objectEntityId, uint64_t requestedTick, uint64_t nowMs)
+{
+	return SubmitGameplayCommand(MakeOperateObjectCommand(objectEntityId, requestedTick), nowMs);
+}
+
+tl::expected<void, std::string> ServerBackedSession::AdvanceQuest(uint32_t questId, uint64_t requestedTick, uint64_t nowMs)
+{
+	return SubmitGameplayCommand(MakeAdvanceQuestCommand(questId, requestedTick), nowMs);
+}
+
 tl::expected<void, std::string> ServerBackedSession::SubmitInventoryCommand(tl::expected<protocol::Command, std::string> command, uint64_t nowMs)
 {
 	lastCommandResolution_ = CommandResolution::None;
@@ -112,20 +152,40 @@ tl::expected<void, std::string> ServerBackedSession::SubmitInventoryCommand(tl::
 	return Flush(nowMs, sequence);
 }
 
+tl::expected<void, std::string> ServerBackedSession::SubmitGameplayCommand(tl::expected<protocol::Command, std::string> command, uint64_t nowMs)
+{
+	lastCommandResolution_ = CommandResolution::None;
+	if (!command.has_value())
+		return tl::make_unexpected(command.error());
+	const uint64_t sequence = client_->QueueCommand(std::move(*command));
+	pendingIntents_.emplace(sequence, PendingIntent { .kind = PendingIntent::Kind::Gameplay });
+	return Flush(nowMs, sequence);
+}
+
 tl::expected<void, std::string> ServerBackedSession::Poll(uint64_t nowMs)
 {
-	if (client_->PendingTrackedCommandCount() == 0)
+	if (client_->PendingTrackedCommandCount() != 0) {
+		auto resubmissions = client_->PrepareTrackedResubmissions(nowMs);
+		if (!resubmissions.has_value())
+			return tl::make_unexpected(resubmissions.error());
+		if (!resubmissions->empty()) {
+			auto acknowledgement = client_->ReceiveCommandAcknowledgement(nowMs);
+			if (!acknowledgement.has_value())
+				return tl::make_unexpected(acknowledgement.error());
+			ApplyAcknowledgements(*acknowledgement);
+			auto snapshot = client_->ReadSnapshot();
+			if (!snapshot.has_value())
+				return tl::make_unexpected(snapshot.error());
+			return ApplySnapshot(*snapshot);
+		}
 		return {};
-	auto resubmissions = client_->PrepareTrackedResubmissions(nowMs);
-	if (!resubmissions.has_value())
-		return tl::make_unexpected(resubmissions.error());
-	if (resubmissions->empty())
+	}
+
+	constexpr uint64_t SnapshotPollIntervalMs = 50;
+	if (lastSnapshotRequestMs_.has_value() && nowMs - *lastSnapshotRequestMs_ < SnapshotPollIntervalMs)
 		return {};
-	auto acknowledgement = client_->ReceiveCommandAcknowledgement(nowMs);
-	if (!acknowledgement.has_value())
-		return tl::make_unexpected(acknowledgement.error());
-	ApplyAcknowledgements(*acknowledgement);
-	auto snapshot = client_->ReadSnapshot();
+	lastSnapshotRequestMs_ = nowMs;
+	auto snapshot = client_->RequestSnapshot();
 	if (!snapshot.has_value())
 		return tl::make_unexpected(snapshot.error());
 	return ApplySnapshot(*snapshot);
@@ -165,6 +225,18 @@ tl::expected<void, std::string> ServerBackedSession::ApplySnapshot(const protoco
 		return tl::make_unexpected(player.error());
 	if (!playerState_.ApplySnapshot(std::move(*player)))
 		return tl::make_unexpected("Server-backed player snapshot could not be applied.");
+	auto monsters = ProjectMonsterSnapshots(snapshot);
+	if (!monsters.has_value())
+		return tl::make_unexpected(monsters.error());
+	monsterState_ = std::move(*monsters);
+	auto worldItems = ProjectWorldItemSnapshots(snapshot);
+	if (!worldItems.has_value())
+		return tl::make_unexpected(worldItems.error());
+	worldItemState_ = std::move(*worldItems);
+	auto objects = ProjectObjectSnapshots(snapshot);
+	if (!objects.has_value())
+		return tl::make_unexpected(objects.error());
+	objectState_ = std::move(*objects);
 
 	vendorState_.SetEnabled(true);
 	vendorState_.SetConnected(true);

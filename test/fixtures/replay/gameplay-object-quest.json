@@ -1,0 +1,49 @@
+{
+  "format_version": 1,
+  "fixture_id": "gameplay/object-quest",
+  "protocol_schema_version": "0.1.0",
+  "content_manifest": {
+    "id": "test-content",
+    "version": "1",
+    "sha256": "object-quest-fixture"
+  },
+  "tick_rate_hz": 20,
+  "rng_seed": 1,
+  "initial_state": {
+    "player": "A",
+    "gold": 0,
+    "experience": 0,
+    "life": 40,
+    "mana": 0,
+    "mana_maximum": 0,
+    "level_id": 1,
+    "position_x": 0,
+    "position_y": 0,
+    "object_entity_id": 30,
+    "object_id": 4,
+    "object_position_x": 1,
+    "object_position_y": 0,
+    "quest_id": 40,
+    "quest_required_progress": 1
+  },
+  "commands": [
+    {
+      "client_sequence": 1,
+      "target_tick": 1,
+      "server_receipt_sequence": 1,
+      "kind": "OperateObject",
+      "payload": { "object_entity_id": 30 }
+    },
+    {
+      "client_sequence": 2,
+      "target_tick": 2,
+      "server_receipt_sequence": 2,
+      "kind": "AdvanceQuest",
+      "payload": { "quest_id": 40 }
+    }
+  ],
+  "checkpoints": [
+    { "tick": 1, "state_sha256": "58823d5d7de88c35ef4ba228902951f698419ad5ff7ed22da2a3bd65f7e21d34" },
+    { "tick": 2, "state_sha256": "c47155a1374034f961a38a4922893fe297fbb13c1d75f23caaef48f4acc31e2d" }
+  ]
+}

@@ -87,6 +87,71 @@ public static class SnapshotStateHasher
                 hasher.AppendInt32(cell);
         }
 
+        // Preserve hashes for legacy snapshots with no world entities while
+        // making the first authoritative monster projection deterministic.
+        var monsters = snapshot.Monsters.OrderBy(monster => monster.EntityId).ToArray();
+        if (monsters.Length > 0) {
+            hasher.AppendUInt64((ulong)monsters.Length);
+            foreach (var monster in monsters) {
+                hasher.AppendUInt32(monster.EntityId);
+                hasher.AppendUInt32(monster.MonsterId);
+                hasher.AppendUInt32(monster.LevelId);
+                hasher.AppendInt32(monster.PositionX);
+                hasher.AppendInt32(monster.PositionY);
+                hasher.AppendInt32(monster.HitPoints);
+                hasher.AppendInt32(monster.MaxHitPoints);
+                hasher.AppendInt32(monster.ArmorClass);
+                hasher.AppendBool(monster.Alive);
+                if (monster.AttackDamage != 0 || monster.AggroRange != 0 || monster.FireResistance != 0
+                    || monster.LightningResistance != 0 || monster.MagicResistance != 0) {
+                    hasher.AppendInt32(monster.AttackDamage);
+                    hasher.AppendInt32(monster.AggroRange);
+                    hasher.AppendInt32(monster.FireResistance);
+                    hasher.AppendInt32(monster.LightningResistance);
+                    hasher.AppendInt32(monster.MagicResistance);
+                }
+            }
+        }
+
+        var worldItems = snapshot.WorldItems.OrderBy(item => item.EntityId).ToArray();
+        if (worldItems.Length > 0) {
+            hasher.AppendUInt64((ulong)worldItems.Length);
+            foreach (var item in worldItems) {
+                hasher.AppendUInt32(item.EntityId);
+                hasher.AppendUInt32(item.LevelId);
+                hasher.AppendInt32(item.PositionX);
+                hasher.AppendInt32(item.PositionY);
+                hasher.AppendUInt32(item.ItemSeed);
+                hasher.AppendUInt32(item.Price);
+                AppendItemState(hasher, item.State);
+            }
+        }
+
+        var objects = snapshot.Objects.OrderBy(@object => @object.EntityId).ToArray();
+        if (objects.Length > 0) {
+            hasher.AppendUInt64((ulong)objects.Length);
+            foreach (var @object in objects) {
+                hasher.AppendUInt32(@object.EntityId);
+                hasher.AppendUInt32(@object.ObjectId);
+                hasher.AppendUInt32(@object.LevelId);
+                hasher.AppendInt32(@object.PositionX);
+                hasher.AppendInt32(@object.PositionY);
+                hasher.AppendBool(@object.Activated);
+            }
+        }
+
+        var quests = snapshot.Quests.OrderBy(quest => quest.QuestId).ToArray();
+        if (quests.Length > 0) {
+            hasher.AppendUInt64((ulong)quests.Length);
+            foreach (var quest in quests) {
+                hasher.AppendUInt32(quest.QuestId);
+                hasher.AppendUInt32(quest.LevelId);
+                hasher.AppendUInt32(quest.Progress);
+                hasher.AppendUInt32(quest.RequiredProgress);
+                hasher.AppendBool(quest.Completed);
+            }
+        }
+
         hasher.AppendBool(snapshot.ActiveStore is not null);
         if (snapshot.ActiveStore is not null) {
             hasher.AppendUInt32(snapshot.ActiveStore.StoreId);

@@ -1,0 +1,6 @@
+kind	symbol	numeric_id
+level	town	1
+level	dungeon	2
+portal	cathedral_entrance	1
+spell	healing	1
+spell	haste	2

@@ -155,6 +155,57 @@ void AppendCanonicalState(ReplayStateHasher &hasher, const ReplayFixtureExecutio
 	for (const int32_t cell : state.inventoryGrid)
 		hasher.AppendInt32(cell);
 
+	if (state.combatTargetEntityId != 0) {
+		hasher.AppendUint64(1);
+		hasher.AppendUint32(state.combatTargetEntityId);
+		hasher.AppendUint32(0);
+		hasher.AppendUint32(0);
+		hasher.AppendInt32(state.combatTargetPositionX);
+		hasher.AppendInt32(state.combatTargetPositionY);
+		hasher.AppendInt32(state.combatTargetHitPoints);
+		hasher.AppendInt32(state.combatTargetMaxHitPoints);
+		hasher.AppendInt32(state.combatTargetArmorClass);
+		hasher.AppendBool(state.combatTargetHitPoints > 0);
+		if (state.combatTargetAttackDamage != 0 || state.combatTargetAggroRange != 0 || state.combatTargetFireResistance != 0
+			|| state.combatTargetLightningResistance != 0 || state.combatTargetMagicResistance != 0) {
+			hasher.AppendInt32(state.combatTargetAttackDamage);
+			hasher.AppendInt32(state.combatTargetAggroRange);
+			hasher.AppendInt32(state.combatTargetFireResistance);
+			hasher.AppendInt32(state.combatTargetLightningResistance);
+			hasher.AppendInt32(state.combatTargetMagicResistance);
+		}
+	}
+
+	if (state.worldItemEntityId != 0) {
+		hasher.AppendUint64(1);
+		hasher.AppendUint32(state.worldItemEntityId);
+		hasher.AppendUint32(state.worldItemLevelId);
+		hasher.AppendInt32(state.worldItemPositionX);
+		hasher.AppendInt32(state.worldItemPositionY);
+		hasher.AppendUint32(state.worldItemSeed);
+		hasher.AppendUint32(state.worldItemPrice);
+		AppendItemState(hasher, state.worldItemState);
+	}
+
+	if (state.objectEntityId != 0) {
+		hasher.AppendUint64(1);
+		hasher.AppendUint32(state.objectEntityId);
+		hasher.AppendUint32(state.objectId);
+		hasher.AppendUint32(state.objectLevelId);
+		hasher.AppendInt32(state.objectPositionX);
+		hasher.AppendInt32(state.objectPositionY);
+		hasher.AppendBool(state.objectActivated);
+	}
+
+	if (state.questId != 0) {
+		hasher.AppendUint64(1);
+		hasher.AppendUint32(state.questId);
+		hasher.AppendUint32(state.questLevelId);
+		hasher.AppendUint32(state.questProgress);
+		hasher.AppendUint32(state.questRequiredProgress);
+		hasher.AppendBool(state.questCompleted);
+	}
+
 	hasher.AppendBool(state.activeStoreId != 0);
 	if (state.activeStoreId != 0) {
 		hasher.AppendUint32(state.activeStoreId);
@@ -320,6 +371,37 @@ private:
 				return ParseSigned(fixture_.initialState.positionX);
 			if (key == "position_y")
 				return ParseSigned(fixture_.initialState.positionY);
+			if (key == "level_id") {
+				uint32_t levelId = 0;
+				if (!ParseUnsigned(levelId))
+					return false;
+				fixture_.initialState.levelId = levelId;
+				return true;
+			}
+			if (key == "world_item_entity_id")
+				return ParseUnsigned(fixture_.initialState.worldItemEntityId);
+			if (key == "world_item_seed")
+				return ParseUnsigned(fixture_.initialState.worldItemSeed);
+			if (key == "world_item_price")
+				return ParseUnsigned(fixture_.initialState.worldItemPrice);
+			if (key == "object_entity_id")
+				return ParseUnsigned(fixture_.initialState.objectEntityId);
+			if (key == "object_id")
+				return ParseUnsigned(fixture_.initialState.objectId);
+			if (key == "object_position_x")
+				return ParseSigned(fixture_.initialState.objectPositionX);
+			if (key == "object_position_y")
+				return ParseSigned(fixture_.initialState.objectPositionY);
+			if (key == "quest_id")
+				return ParseUnsigned(fixture_.initialState.questId);
+			if (key == "quest_required_progress")
+				return ParseUnsigned(fixture_.initialState.questRequiredProgress);
+			if (key == "status_effect_id")
+				return ParseUnsigned(fixture_.initialState.statusEffectId);
+			if (key == "status_duration")
+				return ParseUnsigned(fixture_.initialState.statusDuration);
+			if (key == "status_magnitude")
+				return ParseSigned(fixture_.initialState.statusMagnitude);
 			return SkipValue();
 		});
 	}
@@ -410,6 +492,16 @@ private:
 				return ParseSigned(command.directionY);
 			if (key == "target_entity_id")
 				return ParseUnsigned(command.targetEntityId);
+			if (key == "spell_id")
+				return ParseUnsigned(command.spellId);
+			if (key == "portal_id")
+				return ParseUnsigned(command.portalId);
+			if (key == "item_entity_id")
+				return ParseUnsigned(command.worldItemEntityId);
+			if (key == "object_entity_id")
+				return ParseUnsigned(command.objectEntityId);
+			if (key == "quest_id")
+				return ParseUnsigned(command.questId);
 			return SkipValue();
 		});
 	}
@@ -628,6 +720,15 @@ bool ExecuteReplayFixture(
 	});
 
 	for (const ReplayFixtureCommand &command : commands) {
+		if (command.order.targetTick > state.lastAppliedTick) {
+			const uint64_t elapsed = command.order.targetTick - state.lastAppliedTick;
+			for (auto &effect : state.statusEffects)
+				effect.remainingTicks = effect.remainingTicks > elapsed ? effect.remainingTicks - static_cast<uint32_t>(elapsed) : 0;
+			state.statusEffects.erase(std::remove_if(state.statusEffects.begin(), state.statusEffects.end(), [](const auto &effect) {
+				return effect.remainingTicks == 0;
+			}), state.statusEffects.end());
+			state.lastAppliedTick = command.order.targetTick;
+		}
 		bool accepted = false;
 		if (command.kind == "OpenStore") {
 			state.activeStoreId = command.storeId;
@@ -671,9 +772,61 @@ bool ExecuteReplayFixture(
 		} else if (command.kind == "Attack") {
 			const int distance = std::abs(state.positionX - state.combatTargetPositionX) + std::abs(state.positionY - state.combatTargetPositionY);
 			if (command.targetEntityId == state.combatTargetEntityId && state.combatTargetHitPoints > 0 && distance <= 1) {
-				state.combatTargetHitPoints -= 8;
+				state.combatTargetHitPoints = std::max(0, state.combatTargetHitPoints - std::max(1, 10 - state.combatTargetArmorClass));
 				if (state.combatTargetHitPoints <= 0)
 					state.experience += 100;
+				accepted = true;
+			}
+		} else if (command.kind == "Cast") {
+			if (command.spellId == 1 && state.mana >= static_cast<int32_t>(state.spellManaCost)) {
+				state.mana -= static_cast<int32_t>(state.spellManaCost);
+				state.life = std::min(state.life + static_cast<int32_t>(state.spellHealingAmount), state.lifeMaximum);
+				accepted = true;
+			} else if (command.spellId == 2 && state.spellStatusEffectId != 0
+				&& state.mana >= 3) {
+				state.mana -= 3;
+				state.statusEffects.erase(std::remove_if(state.statusEffects.begin(), state.statusEffects.end(), [&](const auto &effect) {
+					return effect.effectId == state.spellStatusEffectId;
+				}), state.statusEffects.end());
+				state.statusEffects.push_back({ state.spellStatusEffectId, state.spellStatusDuration, state.spellStatusMagnitude });
+				accepted = true;
+			}
+		} else if (command.kind == "UsePortal") {
+			if (command.portalId == state.portalId) {
+				state.levelId = state.portalDestinationLevelId;
+				state.positionX = state.portalDestinationX;
+				state.positionY = state.portalDestinationY;
+				accepted = true;
+			}
+		} else if (command.kind == "PickupWorldItem") {
+			const int distance = std::max(std::abs(state.positionX - state.worldItemPositionX), std::abs(state.positionY - state.worldItemPositionY));
+			if (command.worldItemEntityId == state.worldItemEntityId
+				&& state.worldItemSeed != 0
+				&& state.levelId == state.worldItemLevelId
+				&& distance <= 1) {
+				state.inventory.push_back({ 0, 0, state.worldItemSeed, state.worldItemPrice, command.order.targetTick, state.worldItemState });
+				if (!state.inventoryGrid.empty())
+					state.inventoryGrid[0] = 0;
+				state.worldItemEntityId = 0;
+				accepted = true;
+			}
+		} else if (command.kind == "OperateObject") {
+			const int distance = std::max(std::abs(state.positionX - state.objectPositionX), std::abs(state.positionY - state.objectPositionY));
+			if (command.objectEntityId == state.objectEntityId
+				&& state.objectId != 0
+				&& !state.objectActivated
+				&& state.levelId == state.objectLevelId
+				&& distance <= 1) {
+				state.objectActivated = true;
+				accepted = true;
+			}
+		} else if (command.kind == "AdvanceQuest") {
+			if (command.questId == state.questId
+				&& state.questId != 0
+				&& !state.questCompleted
+				&& state.levelId == state.questLevelId) {
+				state.questProgress = std::min(state.questProgress + 1U, state.questRequiredProgress);
+				state.questCompleted = state.questProgress >= state.questRequiredProgress;
 				accepted = true;
 			}
 		} else {

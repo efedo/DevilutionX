@@ -1,7 +1,9 @@
 using Devilution.Protocol.V1;
+using Google.Protobuf;
 using Devilution.Server.Commands;
 using Devilution.Server.Gameplay;
 using Devilution.Server.Snapshots;
+using System.Text.Json;
 
 namespace Devilution.Server.Stores;
 
@@ -69,6 +71,7 @@ public sealed record StorePlayerSnapshot(
     public int LifeMaximum { get; init; }
     public uint CharacterLevel { get; init; } = 1;
     public uint LevelId { get; init; }
+    public uint EntityId { get; init; }
     public IReadOnlyList<AuthoritativeStatusEffect> StatusEffects { get; init; } = [];
 
     public StorePlayerSnapshot(uint gold, uint? activeStoreId, IReadOnlyList<OwnedStoreItem> inventory)
@@ -95,7 +98,7 @@ public sealed record StorePlayerSnapshot(
  * outer command server provides command-level deduplication, so this executor
  * is called once even when a purchase is retried.
  */
-public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAuthoritativeSnapshotProvider, IAuthoritativeEventProvider
+public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAuthoritativeTickExecutor, IAuthoritativeSnapshotProvider, IAuthoritativeEventProvider, IAuthoritativeSaveProvider
 {
     /** Reserved service-only store used by Adria's mana refill action. */
     public const uint AdriaStoreId = 10;
@@ -110,6 +113,7 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
     private readonly int startingPositionY;
     private readonly int startingLifeMaximum;
     private readonly uint startingCharacterLevel;
+    private readonly int startingArmorClass;
     private readonly int worldWidth;
     private readonly int worldHeight;
     private readonly uint startingLevelId;
@@ -121,8 +125,15 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
     private readonly IStoreGameplayRules gameplayRules;
     private readonly Dictionary<uint, AuthoritativeCombatTarget> combatTargets = new();
     private readonly Dictionary<uint, AuthoritativePortal> portals = new();
+    private readonly Dictionary<uint, AuthoritativeWorldItem> worldItems = new();
+    private readonly Dictionary<uint, AuthoritativeWorldObject> objects = new();
+    private readonly Dictionary<uint, AuthoritativeQuestState> quests = new();
+    private readonly AuthoritativeSpellCatalog spells;
+    private readonly AuthoritativeCombatRules combatRules;
+    private readonly AuthoritativeWorld? world;
     private readonly Dictionary<string, List<PendingGameplayEvent>> pendingEvents = new(StringComparer.Ordinal);
     private readonly Dictionary<string, PlayerStoreState> players = new(StringComparer.Ordinal);
+    private ulong lastAdvancedTick;
 
     public StoreSimulationExecutor(
         StoreCatalog catalog,
@@ -145,7 +156,14 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
         int worldHeight = 40,
         uint startingLevelId = 0,
         IReadOnlyList<int>? startingBlockedCells = null,
-        IReadOnlyList<AuthoritativePortal>? startingPortals = null)
+        IReadOnlyList<AuthoritativePortal>? startingPortals = null,
+        AuthoritativeWorld? startingWorld = null,
+        AuthoritativeSpellCatalog? startingSpells = null,
+        AuthoritativeCombatRules? startingCombatRules = null,
+        IReadOnlyList<AuthoritativeWorldItem>? startingWorldItems = null,
+        IReadOnlyList<AuthoritativeWorldObject>? startingObjects = null,
+        IReadOnlyList<AuthoritativeQuestState>? startingQuests = null,
+        int startingArmorClass = 0)
     {
         this.catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
         this.startingGold = startingGold;
@@ -157,10 +175,19 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
         this.startingPositionY = startingPositionY;
         this.startingLifeMaximum = Math.Max(startingLife, startingLifeMaximum ?? startingLife);
         this.startingCharacterLevel = Math.Clamp(startingCharacterLevel, 1U, 50U);
+        this.startingArmorClass = Math.Max(0, startingArmorClass);
         this.worldWidth = worldWidth > 0 ? worldWidth : throw new ArgumentOutOfRangeException(nameof(worldWidth));
         this.worldHeight = worldHeight > 0 ? worldHeight : throw new ArgumentOutOfRangeException(nameof(worldHeight));
         this.startingLevelId = startingLevelId;
         this.blockedCells = (startingBlockedCells ?? []).ToHashSet();
+        if (this.blockedCells.Any(cell => cell < 0 || cell >= checked(worldWidth * worldHeight)))
+            throw new InvalidDataException("Starting blocked cells must be inside the configured world bounds.");
+        world = startingWorld;
+        spells = startingSpells ?? new AuthoritativeSpellCatalog([
+            new AuthoritativeSpellDefinition(1, 5, 20, 0, 0, 0),
+            new AuthoritativeSpellDefinition(2, 3, 0, 1, 10, 1),
+        ]);
+        combatRules = startingCombatRules ?? new AuthoritativeCombatRules(10, 1, 100);
         this.startingAttributes = startingAttributes ?? PlayerAttributesState.Zero;
         this.startingEquipment = startingEquipment?.ToArray() ?? [];
         this.startingInventoryGrid = startingInventoryGrid?.ToArray() ?? [];
@@ -170,6 +197,49 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
             combatTargets.Add(target.EntityId, target);
         foreach (var portal in startingPortals ?? [])
             portals.Add(portal.PortalId, portal);
+        foreach (var item in startingWorldItems ?? [])
+            worldItems.Add(item.EntityId, item);
+        foreach (var @object in startingObjects ?? []) {
+            if (!objects.TryAdd(@object.EntityId, @object))
+                throw new InvalidDataException($"Object entity {@object.EntityId} is registered more than once.");
+        }
+        foreach (var quest in startingQuests ?? []) {
+            if (!quests.TryAdd(quest.QuestId, quest))
+                throw new InvalidDataException($"Quest {quest.QuestId} is registered more than once.");
+        }
+
+        if (!IsWalkable(startingLevelId, startingPositionX, startingPositionY))
+            throw new InvalidDataException("The starting player position is not walkable in the authoritative world.");
+
+        var entityIds = new HashSet<uint>();
+        foreach (var target in combatTargets.Values) {
+            ValidateWorldPosition(target.LevelId, target.PositionX, target.PositionY, "monster");
+            if (!entityIds.Add(target.EntityId))
+                throw new InvalidDataException($"Entity {target.EntityId} is registered more than once.");
+            if (target.Drop is not null && !entityIds.Add(target.Drop.EntityId))
+                throw new InvalidDataException($"Entity {target.Drop.EntityId} is registered more than once.");
+        }
+        foreach (var item in worldItems.Values) {
+            ValidateWorldPosition(item.LevelId, item.PositionX, item.PositionY, "world item");
+            if (!entityIds.Add(item.EntityId))
+                throw new InvalidDataException($"Entity {item.EntityId} is registered more than once.");
+        }
+        foreach (var @object in objects.Values) {
+            ValidateWorldPosition(@object.LevelId, @object.PositionX, @object.PositionY, "object");
+            if (!entityIds.Add(@object.EntityId))
+                throw new InvalidDataException($"Entity {@object.EntityId} is registered more than once.");
+        }
+        foreach (var portal in portals.Values) {
+            ValidateWorldPosition(portal.SourceLevelId, portal.SourcePositionX, portal.SourcePositionY, "portal source");
+            ValidateWorldPosition(portal.DestinationLevelId, portal.DestinationPositionX, portal.DestinationPositionY, "portal destination");
+        }
+        ValidateWorldOccupancy(
+            startingLevelId,
+            startingPositionX,
+            startingPositionY,
+            combatTargets.Values.Where(target => target.HitPoints > 0).Select(target => (target.LevelId, target.PositionX, target.PositionY)),
+            worldItems.Values.Select(item => (item.LevelId, item.PositionX, item.PositionY)),
+            objects.Values.Where(@object => !@object.Activated).Select(@object => (@object.LevelId, @object.PositionX, @object.PositionY)));
     }
 
     public CommandExecutionResult Execute(string sessionId, Command command, ulong appliedTick)
@@ -195,9 +265,12 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
                 Command.IntentOneofCase.MoveItemRequested => MoveItem(player, command.MoveItemRequested),
                 Command.IntentOneofCase.RefillManaRequested => RefillMana(player),
                 Command.IntentOneofCase.MoveRequested => Move(player, command.MoveRequested),
-                Command.IntentOneofCase.CastRequested => Cast(player, command.CastRequested),
+                Command.IntentOneofCase.CastRequested => Cast(sessionId, player, command.CastRequested),
                 Command.IntentOneofCase.AttackRequested => Attack(sessionId, player, command.AttackRequested, appliedTick),
                 Command.IntentOneofCase.UsePortalRequested => UsePortal(player, command.UsePortalRequested.PortalId),
+                Command.IntentOneofCase.PickupWorldItemRequested => PickupWorldItem(player, command.PickupWorldItemRequested.ItemEntityId, appliedTick),
+                Command.IntentOneofCase.OperateObjectRequested => OperateObject(player, command.OperateObjectRequested.ObjectEntityId),
+                Command.IntentOneofCase.AdvanceQuestRequested => AdvanceQuest(player, command.AdvanceQuestRequested.QuestId),
                 _ => CommandExecutionResult.Rejected(CommandRejectReason.Malformed),
             };
         }
@@ -227,6 +300,7 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
                 LifeMaximum = player.LifeMaximum,
                 CharacterLevel = player.CharacterLevel,
                 LevelId = player.LevelId,
+                EntityId = player.EntityId,
                 StatusEffects = player.StatusEffects.ToArray(),
             };
         }
@@ -237,6 +311,7 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
         if (string.IsNullOrWhiteSpace(sessionId))
             throw new ArgumentException("A session ID is required.", nameof(sessionId));
 
+        AdvanceTo(tick);
         lock (synchronization) {
             var state = GetOrCreatePlayer(sessionId);
             AdvanceStatuses(state, tick);
@@ -302,6 +377,55 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
                 Tick = tick,
                 Players = { player },
             };
+            foreach (var target in combatTargets.Values.OrderBy(target => target.EntityId)) {
+                snapshot.Monsters.Add(new MonsterSnapshot {
+                    EntityId = target.EntityId,
+                    MonsterId = target.MonsterId,
+                    LevelId = target.LevelId,
+                    PositionX = target.PositionX,
+                    PositionY = target.PositionY,
+                    HitPoints = target.HitPoints,
+                    MaxHitPoints = target.MaxHitPoints,
+                    ArmorClass = target.ArmorClass,
+                    Alive = target.HitPoints > 0,
+                    AttackDamage = target.AttackDamage,
+                    AggroRange = target.AggroRange,
+                    FireResistance = target.FireResistance,
+                    LightningResistance = target.LightningResistance,
+                    MagicResistance = target.MagicResistance,
+                });
+            }
+            foreach (var item in worldItems.Values.OrderBy(item => item.EntityId)) {
+                snapshot.WorldItems.Add(new WorldItemSnapshot {
+                    EntityId = item.EntityId,
+                    LevelId = item.LevelId,
+                    PositionX = item.PositionX,
+                    PositionY = item.PositionY,
+                    ItemSeed = item.ItemSeed,
+                    Price = item.Price,
+                    State = ToSnapshot(item.State),
+                });
+            }
+            foreach (var @object in objects.Values.OrderBy(@object => @object.EntityId)) {
+                snapshot.Objects.Add(new ObjectSnapshot {
+                    EntityId = @object.EntityId,
+                    ObjectId = @object.ObjectId,
+                    LevelId = @object.LevelId,
+                    PositionX = @object.PositionX,
+                    PositionY = @object.PositionY,
+                    Activated = @object.Activated,
+                    QuestId = @object.QuestId,
+                });
+            }
+            foreach (var quest in quests.Values.OrderBy(quest => quest.QuestId)) {
+                snapshot.Quests.Add(new QuestSnapshot {
+                    QuestId = quest.QuestId,
+                    LevelId = quest.LevelId,
+                    Progress = quest.Progress,
+                    RequiredProgress = quest.RequiredProgress,
+                    Completed = quest.Completed,
+                });
+            }
             if (state.ActiveStoreId is uint storeId) {
                 var store = new StoreSnapshot { StoreId = storeId };
                 foreach (var item in catalog.GetItems(storeId)) {
@@ -320,6 +444,333 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
         }
     }
 
+    /** Serializes authoritative player state for server-owned persistence. */
+    public string ExportPlayerSave(string sessionId)
+    {
+        var state = GetPlayerState(sessionId);
+        var snapshot = CreateSnapshot(sessionId, state.EntityId, 0);
+        return JsonSerializer.Serialize(new AuthoritativeSaveDocument(1, Convert.ToBase64String(snapshot.ToByteArray())));
+    }
+
+    /** Restores a validated save into an existing session without changing world configuration. */
+    public void ImportPlayerSave(string sessionId, string serializedSave)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(serializedSave);
+        AuthoritativeSaveDocument? document;
+        try {
+            document = JsonSerializer.Deserialize<AuthoritativeSaveDocument>(serializedSave);
+        } catch (JsonException exception) {
+            throw new InvalidDataException("The authoritative save is not valid JSON.", exception);
+        }
+        if (document is null || document.FormatVersion != 1 || string.IsNullOrWhiteSpace(document.SnapshotBase64))
+            throw new InvalidDataException("The authoritative save format is unsupported or incomplete.");
+
+        Snapshot snapshot;
+        try {
+            snapshot = Snapshot.Parser.ParseFrom(Convert.FromBase64String(document.SnapshotBase64));
+        } catch (Exception exception) when (exception is FormatException or InvalidProtocolBufferException) {
+            throw new InvalidDataException("The authoritative save snapshot is not valid.", exception);
+        }
+        var sourcePlayer = snapshot.Players.Count == 1 ? snapshot.Players[0] : null;
+        if (sourcePlayer is null)
+            throw new InvalidDataException("The authoritative save must contain exactly one player snapshot.");
+
+        lock (synchronization) {
+            var player = GetOrCreatePlayer(sessionId);
+            var source = ToStorePlayerSnapshot(sourcePlayer);
+            ValidateSavedPlayer(source, player);
+            player.Gold = source.Gold;
+            player.Experience = source.Experience;
+            player.Life = source.Life;
+            player.Mana = source.Mana;
+            player.Attributes = source.Attributes;
+            player.CharacterLevel = source.CharacterLevel;
+            player.PositionX = source.PositionX;
+            player.PositionY = source.PositionY;
+            player.LevelId = source.LevelId;
+            player.StatusEffects = source.StatusEffects.ToList();
+            player.ActiveStoreId = source.ActiveStoreId;
+            player.Inventory.Clear();
+            player.Inventory.AddRange(source.Inventory);
+            player.Equipment.Clear();
+            player.Equipment.AddRange(source.Equipment);
+            player.Belt.Clear();
+            player.Belt.AddRange(source.Belt);
+            player.InventoryGrid.Clear();
+            player.InventoryGrid.AddRange(source.InventoryGrid);
+            player.EntityId = source.EntityId;
+            RestoreWorldState(snapshot, player.EntityId);
+        }
+    }
+
+    /** Advances statuses and autonomous monster behavior at a server tick boundary. */
+    public void AdvanceTo(ulong tick)
+    {
+        lock (synchronization) {
+            if (tick <= lastAdvancedTick)
+                return;
+            foreach (var player in players.Values)
+                AdvanceStatuses(player, tick);
+            for (var simulationTick = lastAdvancedTick + 1; simulationTick <= tick; simulationTick++)
+                AdvanceMonsters(simulationTick);
+            lastAdvancedTick = tick;
+        }
+    }
+
+    /** Restores the shared authoritative entities captured in a server save. */
+    private void RestoreWorldState(Snapshot snapshot, uint playerEntityId)
+    {
+        var sourcePlayer = snapshot.Players.Count == 1 ? snapshot.Players[0] : null;
+        if (sourcePlayer is null)
+            throw new InvalidDataException("The authoritative save must contain exactly one player snapshot.");
+        var monsterEntityIds = snapshot.Monsters.Select(monster => monster.EntityId).ToArray();
+        var worldItemEntityIds = snapshot.WorldItems.Select(item => item.EntityId).ToArray();
+        var objectEntityIds = snapshot.Objects.Select(@object => @object.EntityId).ToArray();
+        var allWorldEntityIds = monsterEntityIds.Concat(worldItemEntityIds).Concat(objectEntityIds).ToArray();
+        if (monsterEntityIds.Any(entityId => entityId == 0)
+            || worldItemEntityIds.Any(entityId => entityId == 0)
+            || objectEntityIds.Any(entityId => entityId == 0)
+            || monsterEntityIds.Distinct().Count() != monsterEntityIds.Length
+            || worldItemEntityIds.Distinct().Count() != worldItemEntityIds.Length
+            || objectEntityIds.Distinct().Count() != objectEntityIds.Length
+            || allWorldEntityIds.Distinct().Count() != allWorldEntityIds.Length
+            || allWorldEntityIds.Contains(playerEntityId)
+            || snapshot.Monsters.Count > 4096
+            || snapshot.WorldItems.Count > 4096
+            || snapshot.Objects.Count > 4096)
+            throw new InvalidDataException("The authoritative save contains invalid world entity identity.");
+
+        var restoredWorldItems = snapshot.WorldItems.Select(item => {
+            if (item.ItemSeed == 0 || item.State is null || !IsWalkable(item.LevelId, item.PositionX, item.PositionY))
+                throw new InvalidDataException("The authoritative save contains an invalid world item.");
+            return new AuthoritativeWorldItem(
+                item.EntityId,
+                item.LevelId,
+                item.PositionX,
+                item.PositionY,
+                item.ItemSeed,
+                item.Price,
+                FromSnapshot(item.State));
+        }).ToArray();
+
+        var restoredMonsters = snapshot.Monsters.Select(monster => {
+            if (!IsWalkable(monster.LevelId, monster.PositionX, monster.PositionY)
+                || monster.HitPoints < 0
+                || monster.MaxHitPoints < monster.HitPoints
+                || monster.MaxHitPoints < 0
+                || monster.AttackDamage < 0
+                || monster.AggroRange < 0
+                || monster.FireResistance is < -100 or > 100
+                || monster.LightningResistance is < -100 or > 100
+                || monster.MagicResistance is < -100 or > 100)
+                throw new InvalidDataException("The authoritative save contains an invalid monster.");
+            return monster;
+        }).ToArray();
+        var restoredObjects = snapshot.Objects.Select(@object => {
+            if (!IsWalkable(@object.LevelId, @object.PositionX, @object.PositionY))
+                throw new InvalidDataException("The authoritative save contains an invalid object position.");
+            return @object;
+        }).ToArray();
+        var restoredQuests = snapshot.Quests.Select(quest => {
+            if (quest.QuestId == 0 || quest.RequiredProgress == 0 || quest.Progress > quest.RequiredProgress)
+                throw new InvalidDataException("The authoritative save contains an invalid quest state.");
+            return quest;
+        }).ToArray();
+        ValidateWorldOccupancy(
+            sourcePlayer.LevelId,
+            sourcePlayer.PositionX,
+            sourcePlayer.PositionY,
+            restoredMonsters.Where(monster => monster.HitPoints > 0).Select(monster => (monster.LevelId, monster.PositionX, monster.PositionY)),
+            restoredWorldItems.Select(item => (item.LevelId, item.PositionX, item.PositionY)),
+            restoredObjects.Where(@object => !@object.Activated).Select(@object => (@object.LevelId, @object.PositionX, @object.PositionY)));
+
+        var savedMonsterIds = restoredMonsters.Select(monster => monster.EntityId).ToHashSet();
+        foreach (var entityId in combatTargets.Keys.Where(entityId => !savedMonsterIds.Contains(entityId)).ToArray())
+            combatTargets.Remove(entityId);
+        foreach (var monster in restoredMonsters) {
+            if (combatTargets.TryGetValue(monster.EntityId, out var target)) {
+                target.PositionX = monster.PositionX;
+                target.PositionY = monster.PositionY;
+                target.HitPoints = monster.HitPoints;
+                target.ArmorClass = monster.ArmorClass;
+                target.MaxHitPoints = monster.MaxHitPoints;
+                target.LevelId = monster.LevelId;
+                target.MonsterId = monster.MonsterId;
+                target.AttackDamage = monster.AttackDamage;
+                target.AggroRange = monster.AggroRange;
+                target.FireResistance = monster.FireResistance;
+                target.LightningResistance = monster.LightningResistance;
+                target.MagicResistance = monster.MagicResistance;
+            } else {
+                combatTargets.Add(monster.EntityId, new AuthoritativeCombatTarget(
+                    monster.EntityId,
+                    monster.PositionX,
+                    monster.PositionY,
+                    monster.HitPoints,
+                    monster.ArmorClass,
+                    monster.MaxHitPoints,
+                    monster.LevelId,
+                    monster.MonsterId,
+                    attackDamage: monster.AttackDamage,
+                    aggroRange: monster.AggroRange,
+                    fireResistance: monster.FireResistance,
+                    lightningResistance: monster.LightningResistance,
+                    magicResistance: monster.MagicResistance));
+            }
+        }
+
+        worldItems.Clear();
+        foreach (var item in restoredWorldItems)
+            worldItems.Add(item.EntityId, item);
+
+        var savedObjectIds = restoredObjects.Select(@object => @object.EntityId).ToHashSet();
+        foreach (var entityId in objects.Keys.Where(entityId => !savedObjectIds.Contains(entityId)).ToArray())
+            objects.Remove(entityId);
+        foreach (var @object in restoredObjects) {
+            if (objects.TryGetValue(@object.EntityId, out var target)) {
+                target.ObjectId = @object.ObjectId;
+                target.LevelId = @object.LevelId;
+                target.PositionX = @object.PositionX;
+                target.PositionY = @object.PositionY;
+                target.Activated = @object.Activated;
+                target.QuestId = @object.QuestId;
+            } else {
+                objects.Add(@object.EntityId, new AuthoritativeWorldObject(
+                    @object.EntityId,
+                    @object.ObjectId,
+                    @object.LevelId,
+                    @object.PositionX,
+                    @object.PositionY,
+                    @object.Activated,
+                    @object.QuestId));
+            }
+        }
+
+        var savedQuestIds = restoredQuests.Select(quest => quest.QuestId).ToHashSet();
+        foreach (var questId in quests.Keys.Where(questId => !savedQuestIds.Contains(questId)).ToArray())
+            quests.Remove(questId);
+        foreach (var quest in restoredQuests) {
+            if (quests.TryGetValue(quest.QuestId, out var target)) {
+                target.LevelId = quest.LevelId;
+                target.Progress = quest.Progress;
+                target.RequiredProgress = quest.RequiredProgress;
+                target.Completed = quest.Completed;
+            } else {
+                quests.Add(quest.QuestId, new AuthoritativeQuestState(
+                    quest.QuestId,
+                    quest.LevelId,
+                    quest.RequiredProgress,
+                    quest.Progress,
+                    quest.Completed));
+            }
+        }
+    }
+
+    private static StorePlayerSnapshot ToStorePlayerSnapshot(PlayerSnapshot source)
+    {
+        var attributes = source.Attributes ?? new PlayerAttributesSnapshot();
+        return new StorePlayerSnapshot(
+            source.Gold,
+            source.ActiveStoreId == 0 ? null : source.ActiveStoreId,
+            source.Inventory.Select(item => new OwnedStoreItem(
+                item.StoreId,
+                item.StoreSlot,
+                item.ItemSeed,
+                item.Price,
+                item.PurchasedAtTick,
+                FromSnapshot(item.State))).ToArray(),
+            source.Experience,
+            source.Life,
+            source.Mana,
+            source.ManaMaximum,
+            new PlayerAttributesState(
+                FromSnapshot(attributes.Strength),
+                FromSnapshot(attributes.Magic),
+                FromSnapshot(attributes.Dexterity),
+                FromSnapshot(attributes.Vitality)),
+            source.Equipment.Select(item => new EquippedStoreItem(item.Slot, item.ItemSeed, FromSnapshot(item.State))).ToArray(),
+            source.InventoryGrid.ToArray(),
+            source.Belt.Select(item => new BeltStoreItem(item.Slot, item.ItemSeed, FromSnapshot(item.State))).ToArray()) {
+            PositionX = source.PositionX,
+            PositionY = source.PositionY,
+            LifeMaximum = source.LifeMaximum,
+            CharacterLevel = source.CharacterLevel,
+            LevelId = source.LevelId,
+            EntityId = source.EntityId,
+            StatusEffects = source.StatusEffects.Select(effect => new AuthoritativeStatusEffect(effect.EffectId, effect.RemainingTicks, effect.Magnitude)).ToArray(),
+        };
+    }
+
+    private static PlayerAttributeState FromSnapshot(AttributeSnapshot? attribute)
+    {
+        return new PlayerAttributeState(attribute?.Base ?? 0, attribute?.Current ?? 0);
+    }
+
+    private static AuthoritativeItemState FromSnapshot(ItemStateSnapshot? source)
+    {
+        source ??= new ItemStateSnapshot { ItemType = -1, ItemIndex = -1 };
+        return AuthoritativeItemState.Empty with {
+            CreateInfo = source.CreateInfo,
+            ItemType = source.ItemType,
+            PositionX = source.PositionX,
+            PositionY = source.PositionY,
+            Deleted = source.Deleted,
+            Identified = source.Identified,
+            Magical = source.Magical,
+            EquipLocation = source.EquipLocation,
+            ItemClass = source.ItemClass,
+            Value = source.Value,
+            IdentifiedValue = source.IdentifiedValue,
+            MinDamage = source.MinDamage,
+            MaxDamage = source.MaxDamage,
+            ArmorClass = source.ArmorClass,
+            Flags = source.Flags,
+            MiscId = source.MiscId,
+            SpellId = source.SpellId,
+            ItemIndex = source.ItemIndex,
+            Charges = source.Charges,
+            MaxCharges = source.MaxCharges,
+            Durability = source.Durability,
+            MaxDurability = source.MaxDurability,
+            PlusDamage = source.PlusDamage,
+            PlusToHit = source.PlusToHit,
+            PlusArmorClass = source.PlusArmorClass,
+            PlusStrength = source.PlusStrength,
+            PlusMagic = source.PlusMagic,
+            PlusDexterity = source.PlusDexterity,
+            PlusVitality = source.PlusVitality,
+            PlusFireResistance = source.PlusFireResistance,
+            PlusLightningResistance = source.PlusLightningResistance,
+            PlusMagicResistance = source.PlusMagicResistance,
+            PlusMana = source.PlusMana,
+            PlusHitPoints = source.PlusHitPoints,
+            PlusDamageModifier = source.PlusDamageModifier,
+            PlusGetHit = source.PlusGetHit,
+            PlusLight = source.PlusLight,
+            SpellLevelAdd = source.SpellLevelAdd,
+            UniqueId = source.UniqueId,
+            FireMinDamage = source.FireMinDamage,
+            FireMaxDamage = source.FireMaxDamage,
+            LightningMinDamage = source.LightningMinDamage,
+            LightningMaxDamage = source.LightningMaxDamage,
+            PlusEnemyArmorClass = source.PlusEnemyArmorClass,
+            PrefixPower = source.PrefixPower,
+            SuffixPower = source.SuffixPower,
+            ValueAdd1 = source.ValueAdd1,
+            ValueMultiply1 = source.ValueMultiply1,
+            ValueAdd2 = source.ValueAdd2,
+            ValueMultiply2 = source.ValueMultiply2,
+            MinimumStrength = source.MinimumStrength,
+            MinimumMagic = source.MinimumMagic,
+            MinimumDexterity = source.MinimumDexterity,
+            StatFlag = source.StatFlag,
+            HellfireDamageArmorFlags = source.HellfireDamageArmorFlags,
+            Buff = source.Buff,
+            InventoryWidth = source.InventoryWidth == 0 ? 1 : (int)source.InventoryWidth,
+            InventoryHeight = source.InventoryHeight == 0 ? 1 : (int)source.InventoryHeight,
+        };
+    }
+
     public EventBatch? DrainEvents(string sessionId, uint entityId, ulong tick)
     {
         if (string.IsNullOrWhiteSpace(sessionId))
@@ -335,7 +786,7 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
                 case PendingGameplayEventKind.Damage:
                     batch.Events.Add(new GameEvent {
                         Damage = new DamageEvent {
-                            SourceEntityId = entityId,
+                            SourceEntityId = gameplayEvent.SourceEntityId,
                             TargetEntityId = gameplayEvent.TargetEntityId,
                             Amount = gameplayEvent.Amount,
                         },
@@ -532,7 +983,7 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
 
         var targetX = player.PositionX + request.DirectionX;
         var targetY = player.PositionY + request.DirectionY;
-        if (!IsWalkable(targetX, targetY))
+        if (!IsWalkable(player.LevelId, targetX, targetY) || IsOccupied(player.LevelId, targetX, targetY, player.EntityId))
             return CommandExecutionResult.Rejected(CommandRejectReason.InvalidTarget);
 
         player.PositionX = targetX;
@@ -542,9 +993,98 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
 
     private bool IsWalkable(int positionX, int positionY)
     {
+        return IsWalkable(0, positionX, positionY);
+    }
+
+    private bool IsWalkable(uint levelId, int positionX, int positionY)
+    {
+        if (world is not null)
+            return world.IsWalkable(levelId, positionX, positionY);
         return positionX >= 0 && positionX < worldWidth
             && positionY >= 0 && positionY < worldHeight
             && !blockedCells.Contains(positionY * worldWidth + positionX);
+    }
+
+    private bool HasLineOfSight(uint levelId, int startX, int startY, int endX, int endY)
+    {
+        if (world is not null) {
+            var level = world.Levels.SingleOrDefault(candidate => candidate.LevelId == levelId);
+            return level?.HasLineOfSight(startX, startY, endX, endY) ?? false;
+        }
+
+        var x = startX;
+        var y = startY;
+        var deltaX = Math.Abs(endX - startX);
+        var deltaY = Math.Abs(endY - startY);
+        var stepX = startX < endX ? 1 : -1;
+        var stepY = startY < endY ? 1 : -1;
+        var error = deltaX - deltaY;
+        while (true) {
+            if ((x != startX || y != startY) && (x != endX || y != endY)
+                && !IsWalkable(levelId, x, y))
+                return false;
+            if (x == endX && y == endY)
+                return true;
+            var doubledError = 2 * error;
+            if (doubledError > -deltaY) {
+                error -= deltaY;
+                x += stepX;
+            }
+            if (doubledError < deltaX) {
+                error += deltaX;
+                y += stepY;
+            }
+        }
+    }
+
+    private void ValidateWorldPosition(uint levelId, int positionX, int positionY, string entityKind)
+    {
+        if (!IsWalkable(levelId, positionX, positionY))
+            throw new InvalidDataException($"The starting {entityKind} position is not walkable in the authoritative world.");
+    }
+
+    private void ValidateWorldOccupancy(
+        uint sourceLevelId,
+        int sourcePositionX,
+        int sourcePositionY,
+        IEnumerable<(uint LevelId, int PositionX, int PositionY)> monsters,
+        IEnumerable<(uint LevelId, int PositionX, int PositionY)> items,
+        IEnumerable<(uint LevelId, int PositionX, int PositionY)> worldObjects)
+    {
+        var occupied = new HashSet<(uint LevelId, int PositionX, int PositionY)> {
+            (sourceLevelId, sourcePositionX, sourcePositionY),
+        };
+        foreach (var monster in monsters) {
+            if (!occupied.Add((monster.LevelId, monster.PositionX, monster.PositionY)))
+                throw new InvalidDataException("The authoritative world contains overlapping live entities.");
+        }
+        foreach (var item in items) {
+            if (!occupied.Add((item.LevelId, item.PositionX, item.PositionY)))
+                throw new InvalidDataException("The authoritative world contains overlapping live entities.");
+        }
+        foreach (var @object in worldObjects) {
+            if (!occupied.Add((@object.LevelId, @object.PositionX, @object.PositionY)))
+                throw new InvalidDataException("The authoritative world contains overlapping live entities.");
+        }
+    }
+
+    private bool IsOccupied(uint levelId, int positionX, int positionY, uint excludedEntityId = 0)
+    {
+        return combatTargets.Values.Any(target => target.HitPoints > 0
+            && target.EntityId != excludedEntityId
+            && (target.LevelId == 0 || target.LevelId == levelId)
+            && target.PositionX == positionX
+            && target.PositionY == positionY)
+            || players.Values.Any(player => player.EntityId != 0
+                && player.EntityId != excludedEntityId
+                && player.LevelId == levelId
+                && player.PositionX == positionX
+                && player.PositionY == positionY)
+            || objects.Values.Any(@object => !@object.Activated
+                && @object.EntityId != excludedEntityId
+                && @object.LevelId == levelId
+                && @object.PositionX == positionX
+                && @object.PositionY == positionY);
     }
 
     private CommandExecutionResult UsePortal(PlayerStoreState player, uint portalId)
@@ -554,7 +1094,9 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
             || player.PositionX != portal.SourcePositionX
             || player.PositionY != portal.SourcePositionY)
             return CommandExecutionResult.Rejected(CommandRejectReason.InvalidTarget);
-        if (!IsWalkable(portal.DestinationPositionX, portal.DestinationPositionY))
+        if (!IsWalkable(portal.DestinationLevelId, portal.DestinationPositionX, portal.DestinationPositionY))
+            return CommandExecutionResult.Rejected(CommandRejectReason.NotAllowed);
+        if (IsOccupied(portal.DestinationLevelId, portal.DestinationPositionX, portal.DestinationPositionY, player.EntityId))
             return CommandExecutionResult.Rejected(CommandRejectReason.NotAllowed);
 
         player.LevelId = portal.DestinationLevelId;
@@ -563,30 +1105,136 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
         return CommandExecutionResult.Accepted;
     }
 
-    private static CommandExecutionResult Cast(PlayerStoreState player, CastRequested request)
+    private CommandExecutionResult PickupWorldItem(PlayerStoreState player, uint itemEntityId, ulong appliedTick)
     {
-        const uint HealingSpellId = 1;
-        const uint HasteSpellId = 2;
-        const int ManaCost = 5;
-        const int HealingAmount = 20;
-        if (request.SpellId is not (HealingSpellId or HasteSpellId))
+        if (!worldItems.TryGetValue(itemEntityId, out var item)
+            || item.LevelId != player.LevelId
+            || Math.Max(Math.Abs(item.PositionX - player.PositionX), Math.Abs(item.PositionY - player.PositionY)) > 1)
             return CommandExecutionResult.Rejected(CommandRejectReason.InvalidTarget);
-        if (request.TargetEntityId != 0 && request.TargetEntityId != player.EntityId)
-            return CommandExecutionResult.Rejected(CommandRejectReason.InvalidTarget);
-        if (request.SpellId == HealingSpellId && player.Life >= player.LifeMaximum)
-            return CommandExecutionResult.Rejected(CommandRejectReason.NotAllowed);
-        var manaCost = request.SpellId == HasteSpellId ? 3 : ManaCost;
-        if (player.Mana < manaCost)
-            return CommandExecutionResult.Rejected(CommandRejectReason.InsufficientResources);
 
-        player.Mana -= manaCost;
-        if (request.SpellId == HealingSpellId)
-            player.Life = Math.Min(player.LifeMaximum, player.Life + HealingAmount);
-        else {
-            player.StatusEffects.RemoveAll(effect => effect.EffectId == 1);
-            player.StatusEffects.Add(new AuthoritativeStatusEffect(1, 10, 1));
+        var targetCell = FindFirstInventoryPlacement(player, item.State);
+        if (targetCell < 0)
+            return CommandExecutionResult.Rejected(CommandRejectReason.NotAllowed);
+
+        var inventoryIndex = player.Inventory.Count;
+        player.Inventory.Add(new OwnedStoreItem(0, 0, item.ItemSeed, item.Price, appliedTick, item.State));
+        FillInventoryItem(player, targetCell, inventoryIndex, item.State);
+        worldItems.Remove(itemEntityId);
+        return CommandExecutionResult.Accepted;
+    }
+
+    private CommandExecutionResult OperateObject(PlayerStoreState player, uint objectEntityId)
+    {
+        if (!objects.TryGetValue(objectEntityId, out var @object)
+            || @object.Activated
+            || @object.LevelId != player.LevelId
+            || Math.Max(Math.Abs(@object.PositionX - player.PositionX), Math.Abs(@object.PositionY - player.PositionY)) > 1)
+            return CommandExecutionResult.Rejected(CommandRejectReason.InvalidTarget);
+
+        @object.Activated = true;
+        if (@object.QuestId != 0 && quests.TryGetValue(@object.QuestId, out var quest)
+            && !quest.Completed && quest.LevelId == player.LevelId) {
+            quest.Progress++;
+            if (quest.Progress >= quest.RequiredProgress)
+                quest.Completed = true;
         }
         return CommandExecutionResult.Accepted;
+    }
+
+    private CommandExecutionResult AdvanceQuest(PlayerStoreState player, uint questId)
+    {
+        if (!quests.TryGetValue(questId, out var quest)
+            || quest.Completed
+            || quest.LevelId != player.LevelId)
+            return CommandExecutionResult.Rejected(CommandRejectReason.InvalidTarget);
+
+        quest.Progress++;
+        if (quest.Progress >= quest.RequiredProgress)
+            quest.Completed = true;
+        return CommandExecutionResult.Accepted;
+    }
+
+    private CommandExecutionResult Cast(string sessionId, PlayerStoreState player, CastRequested request)
+    {
+        if (!spells.TryGet(request.SpellId, out var spell))
+            return CommandExecutionResult.Rejected(CommandRejectReason.InvalidTarget);
+        if (spell.DamageAmount == 0 && request.TargetEntityId != 0 && request.TargetEntityId != player.EntityId)
+            return CommandExecutionResult.Rejected(CommandRejectReason.InvalidTarget);
+        AuthoritativeCombatTarget? target = null;
+        IReadOnlyList<AuthoritativeCombatTarget> damageTargets = [];
+        if (spell.DamageAmount > 0) {
+            if (request.TargetEntityId != 0)
+                combatTargets.TryGetValue(request.TargetEntityId, out target);
+            else {
+                target = combatTargets.Values
+                    .Where(candidate => candidate.HitPoints > 0
+                        && (candidate.LevelId == 0 || candidate.LevelId == player.LevelId)
+                        && candidate.PositionX == request.TargetX
+                        && candidate.PositionY == request.TargetY)
+                    .OrderBy(candidate => candidate.EntityId)
+                    .FirstOrDefault();
+            }
+            var centerX = target?.PositionX ?? request.TargetX;
+            var centerY = target?.PositionY ?? request.TargetY;
+            if ((request.TargetEntityId != 0 && target is null)
+                || (target is not null && (target.HitPoints <= 0 || (target.LevelId != 0 && target.LevelId != player.LevelId)))
+                || Math.Max(Math.Abs(centerX - player.PositionX), Math.Abs(centerY - player.PositionY)) > spell.Range
+                || (spell.AreaRadius == 0 && target is null))
+                return CommandExecutionResult.Rejected(CommandRejectReason.InvalidTarget);
+            if (!HasLineOfSight(player.LevelId, player.PositionX, player.PositionY, centerX, centerY))
+                return CommandExecutionResult.Rejected(CommandRejectReason.InvalidTarget);
+
+            damageTargets = combatTargets.Values
+                .Where(candidate => candidate.HitPoints > 0
+                    && (candidate.LevelId == 0 || candidate.LevelId == player.LevelId)
+                    && Math.Max(Math.Abs(candidate.PositionX - centerX), Math.Abs(candidate.PositionY - centerY)) <= spell.AreaRadius)
+                .OrderBy(candidate => candidate.EntityId)
+                .ToArray();
+            if (spell.AreaRadius == 0)
+                damageTargets = [target!];
+        }
+        if (spell.HealingAmount > 0 && player.Life >= player.LifeMaximum)
+            return CommandExecutionResult.Rejected(CommandRejectReason.NotAllowed);
+        if (player.Mana < spell.ManaCost)
+            return CommandExecutionResult.Rejected(CommandRejectReason.InsufficientResources);
+
+        player.Mana -= spell.ManaCost;
+        if (spell.HealingAmount > 0)
+            player.Life = Math.Min(player.LifeMaximum, player.Life + spell.HealingAmount);
+        if (spell.StatusEffectId != 0) {
+            player.StatusEffects.RemoveAll(effect => effect.EffectId == spell.StatusEffectId);
+            player.StatusEffects.Add(new AuthoritativeStatusEffect(spell.StatusEffectId, spell.StatusDuration, spell.StatusMagnitude));
+        }
+        foreach (var damageTarget in damageTargets)
+            ApplyDamage(sessionId, player, damageTarget, spell.DamageAmount, spell.DamageType);
+        return CommandExecutionResult.Accepted;
+    }
+
+    private void ApplyDamage(
+        string sessionId,
+        PlayerStoreState player,
+        AuthoritativeCombatTarget target,
+        int baseDamage,
+        AuthoritativeDamageType damageType)
+    {
+        var damage = combatRules.ResolveDamage(baseDamage, target.ArmorClass, damageType, target);
+        ApplyResolvedDamage(sessionId, player, target, damage);
+    }
+
+    private void ApplyResolvedDamage(
+        string sessionId,
+        PlayerStoreState player,
+        AuthoritativeCombatTarget target,
+        int damage)
+    {
+        target.HitPoints = Math.Max(0, target.HitPoints - damage);
+        if (damage > 0)
+            GetPendingEvents(sessionId).Add(new PendingGameplayEvent(PendingGameplayEventKind.Damage, player.EntityId, target.EntityId, damage));
+        if (target.HitPoints == 0) {
+            GrantExperience(player, combatRules.DefeatExperience);
+            GetPendingEvents(sessionId).Add(new PendingGameplayEvent(PendingGameplayEventKind.Experience, player.EntityId, player.EntityId, checked((int)combatRules.DefeatExperience)));
+            SpawnDrop(target);
+        }
     }
 
     private static void AdvanceStatuses(PlayerStoreState player, ulong tick)
@@ -604,21 +1252,69 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
         player.LastAppliedTick = tick;
     }
 
+    private void AdvanceMonsters(ulong tick)
+    {
+        foreach (var target in combatTargets.Values.OrderBy(target => target.EntityId)) {
+            if (target.HitPoints <= 0 || target.AggroRange <= 0)
+                continue;
+
+            var victim = players
+                .OrderBy(entry => entry.Key, StringComparer.Ordinal)
+                .Select(entry => (SessionId: entry.Key, Player: entry.Value))
+                .Where(entry => entry.Player.Life > 0
+                    && entry.Player.LevelId == target.LevelId
+                    && Math.Max(Math.Abs(entry.Player.PositionX - target.PositionX), Math.Abs(entry.Player.PositionY - target.PositionY)) <= target.AggroRange)
+                .OrderBy(entry => Math.Max(Math.Abs(entry.Player.PositionX - target.PositionX), Math.Abs(entry.Player.PositionY - target.PositionY)))
+                .ThenBy(entry => entry.Player.EntityId)
+                .FirstOrDefault();
+            if (victim.Player is null)
+                continue;
+
+            var distance = Math.Max(Math.Abs(victim.Player.PositionX - target.PositionX), Math.Abs(victim.Player.PositionY - target.PositionY));
+            if (distance <= 1) {
+                var damage = combatRules.ResolveAttackDamage(
+                    target.AttackDamage,
+                    victim.Player.ArmorClass,
+                    unchecked((uint)tick ^ target.EntityId ^ victim.Player.EntityId));
+                damage = Math.Min(victim.Player.Life, damage);
+                victim.Player.Life -= damage;
+                if (damage > 0)
+                    GetPendingEvents(victim.SessionId).Add(new PendingGameplayEvent(PendingGameplayEventKind.Damage, target.EntityId, victim.Player.EntityId, damage));
+                continue;
+            }
+
+            var deltaX = Math.Sign(victim.Player.PositionX - target.PositionX);
+            var deltaY = Math.Sign(victim.Player.PositionY - target.PositionY);
+            var candidates = new[] {
+                (X: target.PositionX + deltaX, Y: target.PositionY + deltaY),
+                (X: target.PositionX + deltaX, Y: target.PositionY),
+                (X: target.PositionX, Y: target.PositionY + deltaY),
+            };
+            foreach (var candidate in candidates.Where(candidate => candidate.X != target.PositionX || candidate.Y != target.PositionY)) {
+                if (!IsWalkable(target.LevelId, candidate.X, candidate.Y)
+                    || IsOccupied(target.LevelId, candidate.X, candidate.Y, target.EntityId))
+                    continue;
+                target.PositionX = candidate.X;
+                target.PositionY = candidate.Y;
+                break;
+            }
+        }
+    }
+
     private CommandExecutionResult Attack(string sessionId, PlayerStoreState player, AttackRequested request, ulong appliedTick)
     {
         if (!combatTargets.TryGetValue(request.TargetEntityId, out var target) || target.HitPoints <= 0)
             return CommandExecutionResult.Rejected(CommandRejectReason.InvalidTarget);
+        if (target.LevelId != 0 && target.LevelId != player.LevelId)
+            return CommandExecutionResult.Rejected(CommandRejectReason.InvalidTarget);
         if (Math.Max(Math.Abs(target.PositionX - player.PositionX), Math.Abs(target.PositionY - player.PositionY)) > 1)
             return CommandExecutionResult.Rejected(CommandRejectReason.InvalidTarget);
 
-        var damage = Math.Max(1, 10 - target.ArmorClass);
-        target.HitPoints = Math.Max(0, target.HitPoints - damage);
-        GetPendingEvents(sessionId).Add(new PendingGameplayEvent(PendingGameplayEventKind.Damage, target.EntityId, damage));
-        if (target.HitPoints == 0)
-        {
-            GrantExperience(player, 100);
-            GetPendingEvents(sessionId).Add(new PendingGameplayEvent(PendingGameplayEventKind.Experience, player.EntityId, 100));
-        }
+        var damage = combatRules.ResolveAttackDamage(
+            combatRules.BaseAttackDamage,
+            target,
+            unchecked((uint)appliedTick ^ target.EntityId ^ player.EntityId));
+        ApplyResolvedDamage(sessionId, player, target, damage);
         return CommandExecutionResult.Accepted;
     }
 
@@ -636,6 +1332,12 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
         player.Experience = checked(player.Experience + amount);
         while (player.CharacterLevel < 50 && player.Experience >= player.CharacterLevel * 1000U)
             player.CharacterLevel++;
+    }
+
+    private void SpawnDrop(AuthoritativeCombatTarget target)
+    {
+        if (target.Drop is not null)
+            worldItems[target.Drop.EntityId] = target.Drop;
     }
 
     private static CommandExecutionResult MoveInventoryItem(PlayerStoreState player, uint inventoryIndex, uint targetCell)
@@ -835,6 +1537,15 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
         return true;
     }
 
+    private static int FindFirstInventoryPlacement(PlayerStoreState player, AuthoritativeItemState state)
+    {
+        for (uint cell = 0; cell < player.InventoryGrid.Count; cell++) {
+            if (CanPlaceInventoryItem(player, cell, state))
+                return (int)cell;
+        }
+        return -1;
+    }
+
     private static int GetInventoryItemIndexAt(PlayerStoreState player, uint cell)
     {
         return cell < player.InventoryGrid.Count ? player.InventoryGrid[(int)cell] : -1;
@@ -919,7 +1630,7 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
         Experience,
     }
 
-    private readonly record struct PendingGameplayEvent(PendingGameplayEventKind Kind, uint TargetEntityId, int Amount);
+    private readonly record struct PendingGameplayEvent(PendingGameplayEventKind Kind, uint SourceEntityId, uint TargetEntityId, int Amount);
 
     private static bool TryGetInventoryItem(PlayerStoreState player, uint inventoryIndex, out OwnedStoreItem item)
     {
@@ -1027,11 +1738,94 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
                 startingPositionY,
                 startingLifeMaximum,
                 startingCharacterLevel,
-                startingLevelId);
+                startingLevelId,
+                startingArmorClass);
             players.Add(sessionId, player);
         }
 
         return player;
+    }
+
+    private void ValidateSavedPlayer(StorePlayerSnapshot source, PlayerStoreState destination)
+    {
+        if (source.Life < 0 || source.Life > destination.LifeMaximum
+            || source.Mana < 0 || source.Mana > destination.ManaMaximum
+            || source.CharacterLevel is < 1 or > 50
+            || !IsWalkable(source.LevelId, source.PositionX, source.PositionY)
+            || source.Inventory.Count > 40
+            || source.Equipment.Count > 7
+            || source.Belt.Count > 8
+            || source.InventoryGrid.Count > 400
+            || source.StatusEffects.Count > 128
+            || source.LifeMaximum != destination.LifeMaximum
+            || source.ManaMaximum != destination.ManaMaximum)
+            throw new InvalidDataException("The authoritative save contains out-of-range player state.");
+
+        ValidateInventoryTopology(source);
+    }
+
+    private static void ValidateInventoryTopology(StorePlayerSnapshot source)
+    {
+        var itemSeeds = new HashSet<uint>();
+        foreach (var item in source.Inventory) {
+            if (item.ItemSeed == 0 || !HasValidDimensions(item.State))
+                throw new InvalidDataException("The authoritative save contains an invalid inventory item.");
+            if (!itemSeeds.Add(item.ItemSeed))
+                throw new InvalidDataException("The authoritative save contains a duplicate item seed.");
+        }
+        foreach (var item in source.Equipment) {
+            if (item.ItemSeed == 0 || item.Slot >= 7 || !HasValidDimensions(item.State) || !itemSeeds.Add(item.ItemSeed))
+                throw new InvalidDataException("The authoritative save contains invalid or duplicate equipment.");
+        }
+        if (source.Equipment.Select(item => item.Slot).Distinct().Count() != source.Equipment.Count)
+            throw new InvalidDataException("The authoritative save contains duplicate equipment slots.");
+        foreach (var item in source.Belt) {
+            if (item.ItemSeed == 0 || item.Slot >= 8 || !HasValidDimensions(item.State) || !itemSeeds.Add(item.ItemSeed))
+                throw new InvalidDataException("The authoritative save contains invalid or duplicate belt items.");
+        }
+        if (source.Belt.Select(item => item.Slot).Distinct().Count() != source.Belt.Count)
+            throw new InvalidDataException("The authoritative save contains duplicate belt slots.");
+        if (source.InventoryGrid.Any(cell => cell < -1 || cell >= source.Inventory.Count))
+            throw new InvalidDataException("The authoritative save contains an invalid inventory-grid reference.");
+
+        for (var inventoryIndex = 0; inventoryIndex < source.Inventory.Count; inventoryIndex++) {
+            var state = source.Inventory[inventoryIndex].State;
+            var anchor = -1;
+            for (var cell = 0; cell < source.InventoryGrid.Count; cell++) {
+                if (source.InventoryGrid[cell] == inventoryIndex) {
+                    anchor = cell;
+                    break;
+                }
+            }
+            if (anchor < 0)
+                continue;
+            if (!CanPlaceInventoryItem(source.InventoryGrid, anchor, inventoryIndex, state))
+                throw new InvalidDataException("The authoritative save contains an invalid inventory footprint.");
+        }
+    }
+
+    private static bool HasValidDimensions(AuthoritativeItemState state)
+    {
+        return state.InventoryWidth is >= 1 and <= 10
+            && state.InventoryHeight is >= 1 and <= 40;
+    }
+
+    private static bool CanPlaceInventoryItem(IReadOnlyList<int> grid, int targetCell, int inventoryIndex, AuthoritativeItemState state)
+    {
+        var width = Math.Max(1, state.InventoryWidth);
+        var height = Math.Max(1, state.InventoryHeight);
+        var column = targetCell % 10;
+        var row = targetCell / 10;
+        if (column + width > 10 || row + height > (grid.Count + 9) / 10)
+            return false;
+        for (var y = 0; y < height; y++) {
+            for (var x = 0; x < width; x++) {
+                var cell = (row + y) * 10 + column + x;
+                if (cell >= grid.Count || grid[cell] != inventoryIndex)
+                    return false;
+            }
+        }
+        return true;
     }
 
     private sealed class PlayerStoreState(
@@ -1048,7 +1842,8 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
         int positionY,
         int lifeMaximum,
         uint characterLevel,
-        uint levelId)
+        uint levelId,
+        int armorClass)
     {
         public uint Gold { get; set; } = gold;
 
@@ -1066,6 +1861,8 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
 
         public uint LevelId { get; set; } = levelId;
 
+        public int ArmorClass { get; } = Math.Max(0, armorClass);
+
         public List<AuthoritativeStatusEffect> StatusEffects { get; set; } = [];
 
         public ulong? LastAppliedTick { get; set; }
@@ -1076,7 +1873,7 @@ public sealed class StoreSimulationExecutor : IAuthoritativeCommandExecutor, IAu
 
         public int ManaMaximum { get; } = Math.Max(manaMaximum, 0);
 
-        public PlayerAttributesState Attributes { get; } = attributes;
+        public PlayerAttributesState Attributes { get; set; } = attributes;
 
         public List<EquippedStoreItem> Equipment { get; } = equipment.ToList();
 

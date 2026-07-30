@@ -41,6 +41,9 @@ public:
 	[[nodiscard]] const ServerBackedClient &Client() const noexcept { return *client_; }
 	[[nodiscard]] uint32_t EntityId() const noexcept { return entityId_; }
 	[[nodiscard]] const ServerBackedPlayerState &PlayerState() const noexcept { return playerState_; }
+	[[nodiscard]] const std::vector<ProjectedMonsterSnapshot> &MonsterState() const noexcept { return monsterState_; }
+	[[nodiscard]] const std::vector<ProjectedWorldItemSnapshot> &WorldItemState() const noexcept { return worldItemState_; }
+	[[nodiscard]] const std::vector<ProjectedObjectSnapshot> &ObjectState() const noexcept { return objectState_; }
 	[[nodiscard]] const ServerBackedVendorState &VendorState() const noexcept { return vendorState_; }
 	/** Takes event batches received with the latest authoritative snapshot. */
 	std::vector<protocol::EventBatch> TakePendingEventBatches() { return client_->TakePendingEventBatches(); }
@@ -61,6 +64,14 @@ public:
 	tl::expected<void, std::string> RefillMana(uint64_t requestedTick, uint64_t nowMs);
 	tl::expected<void, std::string> MoveInventoryItem(uint32_t inventoryIndex, uint32_t targetCell, uint64_t requestedTick, uint64_t nowMs);
 	tl::expected<void, std::string> MoveItem(ServerBackedItemReference item, ServerBackedItemReference destination, uint64_t requestedTick, uint64_t nowMs);
+	tl::expected<void, std::string> Move(int32_t directionX, int32_t directionY, uint64_t requestedTick, uint64_t nowMs);
+	tl::expected<void, std::string> Attack(uint32_t targetEntityId, uint64_t requestedTick, uint64_t nowMs);
+	tl::expected<void, std::string> Cast(uint32_t spellId, uint32_t targetEntityId, uint64_t requestedTick, uint64_t nowMs);
+	tl::expected<void, std::string> Cast(uint32_t spellId, uint32_t targetEntityId, int32_t targetX, int32_t targetY, uint64_t requestedTick, uint64_t nowMs);
+	tl::expected<void, std::string> UsePortal(uint32_t portalId, uint64_t requestedTick, uint64_t nowMs);
+	tl::expected<void, std::string> PickupWorldItem(uint32_t itemEntityId, uint64_t requestedTick, uint64_t nowMs);
+	tl::expected<void, std::string> OperateObject(uint32_t objectEntityId, uint64_t requestedTick, uint64_t nowMs);
+	tl::expected<void, std::string> AdvanceQuest(uint32_t questId, uint64_t requestedTick, uint64_t nowMs);
 
 	/** Polls for commands whose adaptive acknowledgement timeout has elapsed. */
 	tl::expected<void, std::string> Poll(uint64_t nowMs);
@@ -78,6 +89,7 @@ private:
 			OpenVendor,
 			Purchase,
 			Inventory,
+			Gameplay,
 		};
 		Kind kind;
 		uint32_t storeId = 0;
@@ -89,14 +101,19 @@ private:
 	tl::expected<void, std::string> ApplySnapshot(const protocol::Snapshot &snapshot);
 	tl::expected<void, std::string> Flush(uint64_t nowMs, std::optional<uint64_t> focusSequence = std::nullopt);
 	tl::expected<void, std::string> SubmitInventoryCommand(tl::expected<protocol::Command, std::string> command, uint64_t nowMs);
+	tl::expected<void, std::string> SubmitGameplayCommand(tl::expected<protocol::Command, std::string> command, uint64_t nowMs);
 	void ApplyAcknowledgements(const protocol::CommandAck &acknowledgement, std::optional<uint64_t> focusSequence = std::nullopt);
 
 	std::unique_ptr<ServerBackedClient> client_;
 	uint32_t entityId_ = 0;
 	ServerBackedPlayerState playerState_;
+	std::vector<ProjectedMonsterSnapshot> monsterState_;
+	std::vector<ProjectedWorldItemSnapshot> worldItemState_;
+	std::vector<ProjectedObjectSnapshot> objectState_;
 	ServerBackedVendorState vendorState_;
 	std::map<uint64_t, PendingIntent> pendingIntents_;
 	CommandResolution lastCommandResolution_ = CommandResolution::None;
+	std::optional<uint64_t> lastSnapshotRequestMs_;
 };
 
 } // namespace devilution::authoritative

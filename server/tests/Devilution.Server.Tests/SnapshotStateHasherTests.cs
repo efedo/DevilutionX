@@ -140,4 +140,47 @@ public sealed class SnapshotStateHasherTests
 
         Assert.NotEqual(SnapshotStateHasher.Compute(first), SnapshotStateHasher.Compute(second));
     }
+
+    [Fact]
+    public void MonsterProjectionChangesTheStateHashAndIgnoresInputOrder()
+    {
+        var first = new Snapshot {
+            Monsters = {
+                new MonsterSnapshot { EntityId = 2, MonsterId = 7, HitPoints = 20, MaxHitPoints = 20, Alive = true },
+                new MonsterSnapshot { EntityId = 1, MonsterId = 3, HitPoints = 5, MaxHitPoints = 10, Alive = true },
+            },
+        };
+        var second = new Snapshot {
+            Monsters = {
+                new MonsterSnapshot { EntityId = 1, MonsterId = 3, HitPoints = 5, MaxHitPoints = 10, Alive = true },
+                new MonsterSnapshot { EntityId = 2, MonsterId = 7, HitPoints = 20, MaxHitPoints = 20, Alive = true },
+            },
+        };
+
+        Assert.Equal(SnapshotStateHasher.Compute(first), SnapshotStateHasher.Compute(second));
+        second.Monsters[0].HitPoints = 4;
+        Assert.NotEqual(SnapshotStateHasher.Compute(first), SnapshotStateHasher.Compute(second));
+    }
+
+    [Fact]
+    public void WorldItemProjectionChangesTheStateHash()
+    {
+        var first = new Snapshot {
+            WorldItems = {
+                new WorldItemSnapshot {
+                    EntityId = 20,
+                    LevelId = 1,
+                    PositionX = 2,
+                    PositionY = 3,
+                    ItemSeed = 42,
+                    Price = 75,
+                    State = new ItemStateSnapshot { ItemType = 1 },
+                },
+            },
+        };
+        var second = first.Clone();
+        second.WorldItems[0].PositionX = 4;
+
+        Assert.NotEqual(SnapshotStateHasher.Compute(first), SnapshotStateHasher.Compute(second));
+    }
 }

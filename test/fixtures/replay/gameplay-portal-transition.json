@@ -1,0 +1,36 @@
+{
+  "format_version": 1,
+  "fixture_id": "gameplay/portal-transition",
+  "protocol_schema_version": "0.1.0",
+  "content_manifest": {
+    "id": "test-content",
+    "version": "1",
+    "sha256": "portal-transition-fixture"
+  },
+  "tick_rate_hz": 20,
+  "rng_seed": 1,
+  "initial_state": {
+    "player": "A",
+    "gold": 0,
+    "experience": 0,
+    "life": 40,
+    "mana": 10,
+    "mana_maximum": 10,
+    "level_id": 1,
+    "position_x": 1,
+    "position_y": 1,
+    "character_level": 1
+  },
+  "commands": [
+    {
+      "client_sequence": 1,
+      "target_tick": 1,
+      "server_receipt_sequence": 1,
+      "kind": "UsePortal",
+      "payload": { "portal_id": 5 }
+    }
+  ],
+  "checkpoints": [
+    { "tick": 1, "state_sha256": "portal-transition-checkpoint" }
+  ]
+}

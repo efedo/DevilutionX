@@ -12,10 +12,15 @@ message Envelope {
 		ServerHello server_hello = 11;
 		CommandBatch command_batch = 20;
 		CommandAck command_ack = 21;
-		Snapshot snapshot = 30;
-		EventBatch event_batch = 31;
-		ProtocolError error = 40;
-	}
+	Snapshot snapshot = 30;
+	EventBatch event_batch = 31;
+	SnapshotRequest snapshot_request = 32;
+	ProtocolError error = 40;
+}
+
+// Requests the latest authoritative state after the client has no unresolved
+// command acknowledgement to consume.
+message SnapshotRequest {}
 }
 
 message ClientHello {
@@ -23,6 +28,8 @@ message ClientHello {
 	string protocol_schema_version = 2;
 	string content_manifest_hash = 3;
 	string resume_token = 4;
+	// Optional additive identity for clients that understand ruleset hashes.
+	string ruleset_identity_hash = 5;
 }
 
 message ServerHello {
@@ -31,6 +38,7 @@ message ServerHello {
 	string content_manifest_hash = 3;
 	uint32 tick_rate_hz = 4;
 	string session_token = 5;
+	string ruleset_identity_hash = 6;
 }
 
 message CommandBatch {
@@ -56,6 +64,9 @@ message Command {
 	RefillManaRequested refill_mana_requested = 20;
 	MoveItemRequested move_item_requested = 21;
 	UsePortalRequested use_portal_requested = 22;
+		PickupWorldItemRequested pickup_world_item_requested = 23;
+	OperateObjectRequested operate_object_requested = 24;
+	AdvanceQuestRequested advance_quest_requested = 25;
 	}
 }
 
@@ -122,6 +133,18 @@ message UsePortalRequested {
 	uint32 portal_id = 1;
 }
 
+message PickupWorldItemRequested {
+	uint32 item_entity_id = 1;
+}
+
+message OperateObjectRequested {
+	uint32 object_entity_id = 1;
+}
+
+message AdvanceQuestRequested {
+	uint32 quest_id = 1;
+}
+
 message PlayerItemReference {
 	PlayerItemLocation location = 1;
 	uint32 slot = 2;
@@ -169,6 +192,11 @@ message Snapshot {
 	// Present when the receiving session has an active store. This is the
 	// authoritative remaining vendor stock after every accepted command.
 	StoreSnapshot active_store = 4;
+	// Authoritative combat entities visible in the current world snapshot.
+	repeated MonsterSnapshot monsters = 5;
+	repeated WorldItemSnapshot world_items = 6;
+	repeated ObjectSnapshot objects = 7;
+	repeated QuestSnapshot quests = 8;
 }
 
 message StoreSnapshot {
@@ -203,6 +231,51 @@ message PlayerSnapshot {
 	uint32 character_level = 16;
 	repeated StatusEffectSnapshot status_effects = 17;
 	uint32 level_id = 18;
+}
+
+message MonsterSnapshot {
+	uint32 entity_id = 1;
+	uint32 monster_id = 2;
+	uint32 level_id = 3;
+	int32 position_x = 4;
+	int32 position_y = 5;
+	int32 hit_points = 6;
+	int32 max_hit_points = 7;
+	int32 armor_class = 8;
+	bool alive = 9;
+	int32 attack_damage = 10;
+	int32 aggro_range = 11;
+	int32 fire_resistance = 12;
+	int32 lightning_resistance = 13;
+	int32 magic_resistance = 14;
+}
+
+message WorldItemSnapshot {
+	uint32 entity_id = 1;
+	uint32 level_id = 2;
+	int32 position_x = 3;
+	int32 position_y = 4;
+	uint32 item_seed = 5;
+	uint32 price = 6;
+	ItemStateSnapshot state = 7;
+}
+
+message ObjectSnapshot {
+	uint32 entity_id = 1;
+	uint32 object_id = 2;
+	uint32 level_id = 3;
+	int32 position_x = 4;
+	int32 position_y = 5;
+	bool activated = 6;
+	uint32 quest_id = 7;
+}
+
+message QuestSnapshot {
+	uint32 quest_id = 1;
+	uint32 level_id = 2;
+	uint32 progress = 3;
+	uint32 required_progress = 4;
+	bool completed = 5;
 }
 
 message StatusEffectSnapshot {

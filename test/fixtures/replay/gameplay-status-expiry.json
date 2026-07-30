@@ -1,0 +1,47 @@
+{
+  "format_version": 1,
+  "fixture_id": "gameplay/status-expiry",
+  "protocol_schema_version": "0.1.0",
+  "content_manifest": {
+    "id": "base",
+    "version": "1",
+    "sha256": "status-fixture"
+  },
+  "tick_rate_hz": 20,
+  "rng_seed": 305419896,
+  "initial_state": {
+    "player": "player-a",
+    "gold": 0,
+    "experience": 0,
+    "life": 20,
+    "mana": 10,
+    "mana_maximum": 10,
+    "life_maximum": 20,
+    "position_x": 0,
+    "position_y": 0,
+    "level_id": 0,
+    "status_effect_id": 7,
+    "status_duration": 10,
+    "status_magnitude": 3
+  },
+  "commands": [
+    {
+      "client_sequence": 1,
+      "target_tick": 1,
+      "server_receipt_sequence": 1,
+      "kind": "Cast",
+      "payload": { "spell_id": 2 }
+    },
+    {
+      "client_sequence": 2,
+      "target_tick": 11,
+      "server_receipt_sequence": 2,
+      "kind": "Move",
+      "payload": { "direction_x": 1, "direction_y": 0 }
+    }
+  ],
+  "checkpoints": [
+    { "tick": 1, "state_sha256": "05505615c152fd7c2d776f3f425aca71f37055236dd2aecfa67bc4e43dc2e176" },
+    { "tick": 11, "state_sha256": "9fa1305aa3a27f7269590490903a9b288b5193ccd159add178a958ead0e45a78" }
+  ]
+}

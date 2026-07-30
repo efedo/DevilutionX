@@ -19,6 +19,8 @@
 #include "network/authoritative/server_backed_configuration.hpp"
 #include "network/authoritative/server_backed_session.hpp"
 #include "network/authoritative/server_backed_vendor_ui.hpp"
+#include "network/authoritative/server_backed_world_projection.hpp"
+#include "network/authoritative/server_backed_world_presentation.hpp"
 
 namespace devilution::authoritative {
 
@@ -31,6 +33,7 @@ public:
 	[[nodiscard]] bool IsConnected() const noexcept { return session_ != nullptr; }
 	[[nodiscard]] ServerBackedSession *Session() noexcept { return session_.get(); }
 	[[nodiscard]] const ServerBackedSession *Session() const noexcept { return session_.get(); }
+	[[nodiscard]] const ServerBackedWorldProjection &WorldProjection() const noexcept { return worldProjection_; }
 
 	/** Opens the experimental Smith store and applies its authoritative stock to the legacy UI buffers. */
 	tl::expected<void, std::string> OpenVendor(uint32_t storeId, ServerBackedVendorDestination destination, uint64_t requestedTick, uint64_t nowMs);
@@ -49,9 +52,25 @@ public:
 	tl::expected<void, std::string> RefillMana(uint64_t requestedTick, uint64_t nowMs);
 	tl::expected<void, std::string> MoveInventoryItem(uint32_t inventoryIndex, uint32_t targetCell, uint64_t requestedTick, uint64_t nowMs);
 	tl::expected<void, std::string> MoveItem(ServerBackedItemReference item, ServerBackedItemReference destination, uint64_t requestedTick, uint64_t nowMs);
+	tl::expected<void, std::string> Move(int32_t directionX, int32_t directionY, uint64_t requestedTick, uint64_t nowMs);
+	tl::expected<void, std::string> Attack(uint32_t targetEntityId, uint64_t requestedTick, uint64_t nowMs);
+	tl::expected<void, std::string> Cast(uint32_t spellId, uint32_t targetEntityId, uint64_t requestedTick, uint64_t nowMs);
+	tl::expected<void, std::string> Cast(uint32_t spellId, uint32_t targetEntityId, int32_t targetX, int32_t targetY, uint64_t requestedTick, uint64_t nowMs);
+	tl::expected<void, std::string> UsePortal(uint32_t portalId, uint64_t requestedTick, uint64_t nowMs);
+	tl::expected<void, std::string> PickupWorldItem(uint32_t itemEntityId, uint64_t requestedTick, uint64_t nowMs);
+	tl::expected<void, std::string> OperateObject(uint32_t objectEntityId, uint64_t requestedTick, uint64_t nowMs);
+	tl::expected<void, std::string> AdvanceQuest(uint32_t questId, uint64_t requestedTick, uint64_t nowMs);
 	tl::expected<void, std::string> Poll(uint64_t nowMs);
 
 	[[nodiscard]] std::optional<uint32_t> SmithStoreSlotAt(std::size_t index) const noexcept;
+	/** Returns the authoritative entity ID for a projected monster index. */
+	[[nodiscard]] std::optional<uint32_t> MonsterEntityIdAt(std::size_t index) const noexcept;
+	/** Finds the lowest-ID authoritative world item at a projected cell. */
+	[[nodiscard]] std::optional<uint32_t> WorldItemEntityIdAt(int32_t positionX, int32_t positionY) const noexcept;
+	/** Finds the lowest-ID live authoritative monster at a projected cell. */
+	[[nodiscard]] std::optional<uint32_t> MonsterEntityIdAt(int32_t positionX, int32_t positionY) const noexcept;
+	/** Finds the lowest-ID authoritative object at a projected cell. */
+	[[nodiscard]] std::optional<uint32_t> ObjectEntityIdAt(int32_t positionX, int32_t positionY) const noexcept;
 	/** Finds the authoritative location of an item, including while it is held by the legacy cursor. */
 	[[nodiscard]] std::optional<ServerBackedItemReference> PlayerItemReferenceForSeed(uint32_t itemSeed) const noexcept;
 
@@ -63,6 +82,8 @@ private:
 	std::unique_ptr<ServerBackedSession> session_;
 	std::unique_ptr<ServerBackedVendorUiAdapter> vendorUiAdapter_;
 	Player *player_ = nullptr;
+	ServerBackedWorldProjection worldProjection_;
+	ServerBackedWorldPresentation worldPresentation_;
 };
 
 /** Returns the process-wide opt-in runtime bridge. */

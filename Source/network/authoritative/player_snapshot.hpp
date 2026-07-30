@@ -58,6 +58,43 @@ struct ProjectedStatusEffect {
 	int32_t magnitude = 0;
 };
 
+struct ProjectedMonsterSnapshot {
+	uint32_t entityId = 0;
+	uint32_t monsterId = 0;
+	uint32_t levelId = 0;
+	int32_t positionX = 0;
+	int32_t positionY = 0;
+	int32_t hitPoints = 0;
+	int32_t maxHitPoints = 0;
+	int32_t armorClass = 0;
+	bool alive = false;
+	int32_t attackDamage = 0;
+	int32_t aggroRange = 0;
+	int32_t fireResistance = 0;
+	int32_t lightningResistance = 0;
+	int32_t magicResistance = 0;
+};
+
+struct ProjectedWorldItemSnapshot {
+	uint32_t entityId = 0;
+	uint32_t levelId = 0;
+	int32_t positionX = 0;
+	int32_t positionY = 0;
+	uint32_t itemSeed = 0;
+	uint32_t price = 0;
+	Item item;
+};
+
+struct ProjectedObjectSnapshot {
+	uint32_t entityId = 0;
+	uint32_t objectId = 0;
+	uint32_t levelId = 0;
+	int32_t positionX = 0;
+	int32_t positionY = 0;
+	bool activated = false;
+	uint32_t questId = 0;
+};
+
 struct ProjectedPlayerSnapshot {
 	uint32_t entityId = 0;
 	int32_t positionX = 0;
@@ -86,6 +123,16 @@ struct ProjectedPlayerSnapshot {
 [[nodiscard]] tl::expected<ProjectedPlayerSnapshot, std::string> ProjectPlayerSnapshot(
 	const ::devilution::protocol::v1::Snapshot &snapshot,
 	uint32_t entityId);
+
+/** Projects the authoritative combat entities in stable entity-ID order. */
+[[nodiscard]] tl::expected<std::vector<ProjectedMonsterSnapshot>, std::string> ProjectMonsterSnapshots(
+	const ::devilution::protocol::v1::Snapshot &snapshot);
+
+/** Projects authoritative world items in stable entity-ID order. */
+[[nodiscard]] tl::expected<std::vector<ProjectedWorldItemSnapshot>, std::string> ProjectWorldItemSnapshots(
+	const ::devilution::protocol::v1::Snapshot &snapshot);
+[[nodiscard]] tl::expected<std::vector<ProjectedObjectSnapshot>, std::string> ProjectObjectSnapshots(
+	const ::devilution::protocol::v1::Snapshot &snapshot);
 
 /** Applies server-authored combat and experience events to the native projection before its snapshot arrives. */
 void ApplyServerBackedEventBatch(

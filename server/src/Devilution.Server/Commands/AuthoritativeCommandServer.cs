@@ -48,6 +48,8 @@ public sealed class AuthoritativeCommandServer
             return CreateMalformedResult(command.ClientSequence, currentTick);
 
         lock (synchronization) {
+            if (executor is IAuthoritativeTickExecutor tickExecutor)
+                tickExecutor.AdvanceTo(currentTick);
             var completedCommands = GetCompletedCommands(sessionId);
             if (completedCommands.TryGetValue(command.ClientSequence, out var priorResult))
                 return CreateDuplicateResult(priorResult);
@@ -65,6 +67,15 @@ public sealed class AuthoritativeCommandServer
 
             completedCommands.Add(command.ClientSequence, result.Clone());
             return result;
+        }
+    }
+
+    /** Advances autonomous simulation without requiring a client command. */
+    public void AdvanceTo(ulong currentTick)
+    {
+        lock (synchronization) {
+            if (executor is IAuthoritativeTickExecutor tickExecutor)
+                tickExecutor.AdvanceTo(currentTick);
         }
     }
 

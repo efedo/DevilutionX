@@ -3060,6 +3060,20 @@ void ActivateSpawn(Monster &monster, Point position, Direction dir)
 
 } // namespace
 
+void DeleteMonsterAtActiveIndex(size_t activeIndex)
+{
+	DeleteMonster(activeIndex);
+}
+
+std::optional<size_t> FindNativeMonsterTypeIndex(uint32_t monsterId)
+{
+	if (monsterId > static_cast<uint32_t>(std::numeric_limits<int16_t>::max()))
+		return std::nullopt;
+	const auto type = static_cast<_monster_id>(monsterId);
+	const size_t typeIndex = GetMonsterTypeIndex(type);
+	return typeIndex < LevelBestiary.size() ? std::optional<size_t> { typeIndex } : std::nullopt;
+}
+
 // ---------------------------------------------------------------------------
 // AI registry — populated at startup.
 // ---------------------------------------------------------------------------

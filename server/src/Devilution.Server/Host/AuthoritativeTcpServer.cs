@@ -6,6 +6,7 @@ using Devilution.Server.Commands;
 using Devilution.Server.Protocol;
 using Devilution.Server.Snapshots;
 using Devilution.Server.Simulation;
+using Devilution.Server.Stores;
 
 namespace Devilution.Server.Host;
 
@@ -24,11 +25,15 @@ public sealed class AuthoritativeTcpServer : IAsyncDisposable
     private readonly IAuthoritativeClock clock;
     private readonly IAuthoritativeSnapshotProvider? snapshotProvider;
     private readonly IAuthoritativeEventProvider? eventProvider;
+    private readonly AuthoritativeSaveStore? saveStore;
+    private readonly IAuthoritativeSaveProvider? saveProvider;
     private readonly StableEntityIdAllocator entityIds = new();
     private readonly ConcurrentDictionary<TcpClient, byte> clients = new();
     private readonly ConcurrentDictionary<string, SessionState> sessionsByToken = new(StringComparer.Ordinal);
     private CancellationTokenSource? cancellation;
     private Task? acceptLoop;
+    private Task? simulationLoop;
+    private ulong lastSimulationTick;
 
     public AuthoritativeTcpServer(
         AuthoritativeCommandServer commandServer,
@@ -37,8 +42,10 @@ public sealed class AuthoritativeTcpServer : IAsyncDisposable
         int port = 0,
         IPAddress? address = null,
         IAuthoritativeSnapshotProvider? snapshotProvider = null,
-        IAuthoritativeEventProvider? eventProvider = null)
-        : this(commandServer, handshake, new DelegateAuthoritativeClock(currentTickProvider), port, address, snapshotProvider, eventProvider)
+        IAuthoritativeEventProvider? eventProvider = null,
+        AuthoritativeSaveStore? saveStore = null,
+        IAuthoritativeSaveProvider? saveProvider = null)
+        : this(commandServer, handshake, new DelegateAuthoritativeClock(currentTickProvider), port, address, snapshotProvider, eventProvider, saveStore, saveProvider)
     {
     }
 
@@ -49,13 +56,17 @@ public sealed class AuthoritativeTcpServer : IAsyncDisposable
         int port = 0,
         IPAddress? address = null,
         IAuthoritativeSnapshotProvider? snapshotProvider = null,
-        IAuthoritativeEventProvider? eventProvider = null)
+        IAuthoritativeEventProvider? eventProvider = null,
+        AuthoritativeSaveStore? saveStore = null,
+        IAuthoritativeSaveProvider? saveProvider = null)
     {
         this.commandServer = commandServer ?? throw new ArgumentNullException(nameof(commandServer));
         this.handshake = handshake ?? throw new ArgumentNullException(nameof(handshake));
         this.clock = clock ?? throw new ArgumentNullException(nameof(clock));
         this.snapshotProvider = snapshotProvider;
         this.eventProvider = eventProvider;
+        this.saveStore = saveStore;
+        this.saveProvider = saveProvider;
         listener = new TcpListener(address ?? IPAddress.Loopback, port);
     }
 
@@ -69,6 +80,7 @@ public sealed class AuthoritativeTcpServer : IAsyncDisposable
         cancellation = new CancellationTokenSource();
         listener.Start();
         acceptLoop = AcceptLoopAsync(cancellation.Token);
+        simulationLoop = SimulationLoopAsync(cancellation.Token);
     }
 
     public async ValueTask DisposeAsync()
@@ -87,10 +99,17 @@ public sealed class AuthoritativeTcpServer : IAsyncDisposable
             } catch (OperationCanceledException) when (cancellation.IsCancellationRequested) {
             }
         }
+        if (simulationLoop is not null) {
+            try {
+                await simulationLoop;
+            } catch (OperationCanceledException) when (cancellation.IsCancellationRequested) {
+            }
+        }
 
         cancellation.Dispose();
         cancellation = null;
         acceptLoop = null;
+        simulationLoop = null;
     }
 
     private async Task AcceptLoopAsync(CancellationToken cancellationToken)
@@ -107,6 +126,20 @@ public sealed class AuthoritativeTcpServer : IAsyncDisposable
 
             clients.TryAdd(client, 0);
             _ = HandleClientAsync(client, cancellationToken);
+        }
+    }
+
+    private async Task SimulationLoopAsync(CancellationToken cancellationToken)
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(10));
+        while (await timer.WaitForNextTickAsync(cancellationToken)) {
+            var tick = clock.CurrentTick;
+            if (tick == lastSimulationTick)
+                continue;
+            commandServer.AdvanceTo(tick);
+            lastSimulationTick = tick;
+            foreach (var session in sessionsByToken.Values)
+                SaveSession(session);
         }
     }
 
@@ -127,6 +160,7 @@ public sealed class AuthoritativeTcpServer : IAsyncDisposable
             }
 
             var session = GetOrCreateSession(helloEnvelope.ClientHello.ResumeToken);
+            RestoreSessionIfAvailable(session);
             var serverHello = handshakeResult.ServerHello!.Clone();
             serverHello.SessionToken = session.Token;
             await EnvelopeCodec.WriteAsync(stream, new Envelope { ServerHello = serverHello }, cancellationToken);
@@ -142,7 +176,13 @@ public sealed class AuthoritativeTcpServer : IAsyncDisposable
                 if (envelope.PayloadCase == Envelope.PayloadOneofCase.CommandBatch) {
                     currentTick = clock.CurrentTick;
                     var acknowledgement = commandServer.ProcessBatch(sessionId, envelope.CommandBatch, currentTick);
+                    SaveSession(session);
                     await EnvelopeCodec.WriteAsync(stream, new Envelope { CommandAck = acknowledgement }, cancellationToken);
+                    await SendEventsIfAvailable(stream, sessionId, entityId, currentTick, cancellationToken);
+                    await SendSnapshotIfAvailableAsync(stream, sessionId, entityId, currentTick, cancellationToken);
+                } else if (envelope.PayloadCase == Envelope.PayloadOneofCase.SnapshotRequest) {
+                    currentTick = clock.CurrentTick;
+                    commandServer.AdvanceTo(currentTick);
                     await SendEventsIfAvailable(stream, sessionId, entityId, currentTick, cancellationToken);
                     await SendSnapshotIfAvailableAsync(stream, sessionId, entityId, currentTick, cancellationToken);
                 } else {
@@ -174,6 +214,23 @@ public sealed class AuthoritativeTcpServer : IAsyncDisposable
         return session;
     }
 
+    private void RestoreSessionIfAvailable(SessionState session)
+    {
+        if (session.SaveLoaded || saveStore is null || saveProvider is null)
+            return;
+        session.SaveLoaded = true;
+        var serializedSave = saveStore.Load(session.Id);
+        if (serializedSave is not null)
+            saveProvider.ImportPlayerSave(session.Id, serializedSave);
+    }
+
+    private void SaveSession(SessionState session)
+    {
+        if (saveStore is null || saveProvider is null)
+            return;
+        saveStore.Save(session.Id, saveProvider.ExportPlayerSave(session.Id));
+    }
+
     private static ValueTask SendErrorAsync(Stream stream, ProtocolErrorCode code, string detail, CancellationToken cancellationToken)
     {
         return EnvelopeCodec.WriteAsync(stream, new Envelope {
@@ -181,7 +238,13 @@ public sealed class AuthoritativeTcpServer : IAsyncDisposable
         }, cancellationToken);
     }
 
-    private sealed record SessionState(string Id, string Token, uint EntityId);
+    private sealed class SessionState(string id, string token, uint entityId)
+    {
+        public string Id { get; } = id;
+        public string Token { get; } = token;
+        public uint EntityId { get; } = entityId;
+        public bool SaveLoaded { get; set; }
+    }
 
     private async ValueTask SendSnapshotIfAvailableAsync(
         Stream stream,

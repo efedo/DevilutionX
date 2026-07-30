@@ -84,6 +84,12 @@ set(devilutionx_fixtures
   memory_map/portal.txt
   memory_map/quest.txt
   replay/stores/basic-buy.json
+  replay/gameplay-spell-cast.json
+  replay/gameplay-portal-transition.json
+  replay/gameplay-world-item-pickup.json
+  replay/gameplay-object-quest.json
+  replay/gameplay-status-expiry.json
+  replay/gameplay-multi-level-occupancy.json
   timedemo/WarriorLevel1to2/demo_0.dmo
   timedemo/WarriorLevel1to2/demo_0_reference_spawn_0.sv
   timedemo/WarriorLevel1to2/spawn_0.sv

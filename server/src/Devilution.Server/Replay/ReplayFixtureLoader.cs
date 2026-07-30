@@ -72,6 +72,18 @@ public static class ReplayFixtureLoader
             PositionX = value.TryGetProperty("position_x", out var positionX) ? positionX.GetInt32() : 0,
             PositionY = value.TryGetProperty("position_y", out var positionY) ? positionY.GetInt32() : 0,
             LevelId = value.TryGetProperty("level_id", out var levelId) ? levelId.GetUInt32() : 0,
+            WorldItemEntityId = value.TryGetProperty("world_item_entity_id", out var worldItemEntityId) ? worldItemEntityId.GetUInt32() : 0,
+            WorldItemSeed = value.TryGetProperty("world_item_seed", out var worldItemSeed) ? worldItemSeed.GetUInt32() : 0,
+            WorldItemPrice = value.TryGetProperty("world_item_price", out var worldItemPrice) ? worldItemPrice.GetUInt32() : 0,
+            ObjectEntityId = value.TryGetProperty("object_entity_id", out var objectEntityId) ? objectEntityId.GetUInt32() : 0,
+            ObjectId = value.TryGetProperty("object_id", out var objectId) ? objectId.GetUInt32() : 0,
+            ObjectPositionX = value.TryGetProperty("object_position_x", out var objectPositionX) ? objectPositionX.GetInt32() : 0,
+            ObjectPositionY = value.TryGetProperty("object_position_y", out var objectPositionY) ? objectPositionY.GetInt32() : 0,
+            QuestId = value.TryGetProperty("quest_id", out var questId) ? questId.GetUInt32() : 0,
+            QuestRequiredProgress = value.TryGetProperty("quest_required_progress", out var questRequiredProgress) ? questRequiredProgress.GetUInt32() : 0,
+            StatusEffectId = value.TryGetProperty("status_effect_id", out var statusEffectId) ? statusEffectId.GetUInt32() : 0,
+            StatusDuration = value.TryGetProperty("status_duration", out var statusDuration) ? statusDuration.GetUInt32() : 0,
+            StatusMagnitude = value.TryGetProperty("status_magnitude", out var statusMagnitude) ? statusMagnitude.GetInt32() : 0,
         };
     }
 
@@ -114,7 +126,7 @@ public static class ReplayFixtureLoader
                         ? inventory.GetUInt32()
                         : 0U;
 
-            if (kind is not ("OpenStore" or "BuyItem" or "SellItem" or "RefillMana" or "Move" or "Attack"))
+            if (kind is not ("OpenStore" or "BuyItem" or "SellItem" or "RefillMana" or "Move" or "Attack" or "Cast" or "UsePortal" or "PickupWorldItem" or "OperateObject" or "AdvanceQuest"))
                 throw new InvalidDataException($"Unsupported replay command kind '{kind}'.");
 
             commands.Add(new ReplayFixtureCommand(
@@ -127,6 +139,11 @@ public static class ReplayFixtureLoader
                 DirectionX = GetOptionalInt(payload, "direction_x"),
                 DirectionY = GetOptionalInt(payload, "direction_y"),
                 TargetEntityId = GetOptionalUInt(payload, "target_entity_id"),
+                SpellId = GetOptionalUInt(payload, "spell_id"),
+                PortalId = GetOptionalUInt(payload, "portal_id"),
+                WorldItemEntityId = GetOptionalUInt(payload, "item_entity_id"),
+                ObjectEntityId = GetOptionalUInt(payload, "object_entity_id"),
+                QuestId = GetOptionalUInt(payload, "quest_id"),
             });
         }
 

@@ -118,6 +118,57 @@ TEST(ServerBackedClient, CompletesHandshakeCommandAndSnapshotExchange)
 	EXPECT_TRUE(serverObservedExpectedMessages);
 }
 
+TEST(ServerBackedClient, RequestsAutonomousSnapshotsAfterHandshake)
+{
+	asio::io_context serverIo;
+	tcp::acceptor acceptor { serverIo, { tcp::v4(), 0 } };
+	std::atomic_bool serverObservedExpectedMessages = false;
+	std::thread server([&]() {
+		tcp::socket socket(serverIo);
+		acceptor.accept(socket);
+		auto helloPayload = EnvelopeCodec::Read(socket);
+		if (!helloPayload.has_value() || !helloPayload->has_value())
+			return;
+		protocol::Envelope hello;
+		if (!hello.ParseFromArray(helloPayload->value().data(), static_cast<int>(helloPayload->value().size())))
+			return;
+		protocol::Envelope serverHello;
+		serverHello.mutable_server_hello()->set_protocol_schema_version("1");
+		serverHello.mutable_server_hello()->set_content_manifest_hash("content");
+		WriteEnvelope(socket, serverHello);
+
+		auto requestPayload = EnvelopeCodec::Read(socket);
+		if (!requestPayload.has_value() || !requestPayload->has_value())
+			return;
+		protocol::Envelope request;
+		if (!request.ParseFromArray(requestPayload->value().data(), static_cast<int>(requestPayload->value().size()))
+		    || request.payload_case() != protocol::Envelope::kSnapshotRequest)
+			return;
+		protocol::Envelope snapshot;
+		snapshot.mutable_snapshot()->set_tick(25);
+		snapshot.mutable_snapshot()->set_state_sha256("autonomous-state");
+		WriteEnvelope(socket, snapshot);
+		serverObservedExpectedMessages = true;
+	});
+
+	ServerBackedClient::Configuration configuration {
+		.host = "127.0.0.1",
+		.port = acceptor.local_endpoint().port(),
+		.clientBuildId = "client",
+		.protocolSchemaVersion = "1",
+		.contentManifestHash = "content",
+	};
+	auto client = ServerBackedClient::Connect(configuration);
+	ASSERT_TRUE(client.has_value()) << client.error();
+	auto snapshot = (*client)->RequestSnapshot();
+	ASSERT_TRUE(snapshot.has_value()) << snapshot.error();
+	EXPECT_EQ(snapshot->tick(), 25U);
+	EXPECT_EQ(snapshot->state_sha256(), "autonomous-state");
+	(*client)->Close();
+	server.join();
+	EXPECT_TRUE(serverObservedExpectedMessages);
+}
+
 TEST(ServerBackedClient, RetriesTrackedCommandsWithTheOriginalSequence)
 {
 	asio::io_context serverIo;

@@ -87,7 +87,7 @@ public sealed class ReplayFixtureTests
             startingPositionY: fixture.InitialState.PositionY,
             startingLifeMaximum: fixture.InitialState.Life,
             startingCharacterLevel: fixture.InitialState.CharacterLevel,
-            startingCombatTargets: [new AuthoritativeCombatTarget(9, 1, 0, 11, 2)]);
+            startingCombatTargets: [new AuthoritativeCombatTarget(9, 2, 0, 11, 2)]);
         var result = ReplayFixtureExecutor.Execute(fixture, executor, new AuthoritativeCommandServer(executor));
         var player = Assert.Single(result.FinalSnapshot.Players);
 
@@ -95,6 +95,198 @@ public sealed class ReplayFixtureTests
         Assert.Equal(1, player.PositionX);
         Assert.Equal(100U, player.Experience);
         Assert.Equal(40, player.Life);
+    }
+
+    [Fact]
+    public void GameplaySpellFixtureExecutesDataDrivenHealingTransition()
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "Fixtures", "gameplay-spell-cast.json");
+        var fixture = ReplayFixtureLoader.Load(File.ReadAllText(path));
+        var executor = new StoreSimulationExecutor(
+            new StoreCatalog(),
+            fixture.InitialState.Gold,
+            fixture.InitialState.Experience,
+            fixture.InitialState.Life,
+            fixture.InitialState.Mana,
+            startingManaMaximum: fixture.InitialState.ManaMaximum,
+            startingLifeMaximum: 40);
+
+        var result = ReplayFixtureExecutor.Execute(fixture, executor, new AuthoritativeCommandServer(executor));
+        var player = Assert.Single(result.FinalSnapshot.Players);
+        Assert.Equal([CommandStatus.Accepted], result.Results.Select(command => command.Status));
+        Assert.Equal(5, player.Mana);
+        Assert.Equal(40, player.Life);
+    }
+
+    [Fact]
+    public void GameplayPortalFixtureExecutesLevelTransition()
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "Fixtures", "gameplay-portal-transition.json");
+        var fixture = ReplayFixtureLoader.Load(File.ReadAllText(path));
+        var world = new AuthoritativeWorld();
+        world.AddLevel(new AuthoritativeLevel(1, 40, 40, []));
+        world.AddLevel(new AuthoritativeLevel(2, 40, 40, []));
+        var executor = new StoreSimulationExecutor(
+            new StoreCatalog(),
+            fixture.InitialState.Gold,
+            fixture.InitialState.Experience,
+            fixture.InitialState.Life,
+            fixture.InitialState.Mana,
+            startingManaMaximum: fixture.InitialState.ManaMaximum,
+            startingPositionX: fixture.InitialState.PositionX,
+            startingPositionY: fixture.InitialState.PositionY,
+            startingLevelId: fixture.InitialState.LevelId,
+            startingWorld: world,
+            startingPortals: [new AuthoritativePortal(5, 1, 1, 1, 2, 3, 4)]);
+
+        var result = ReplayFixtureExecutor.Execute(fixture, executor, new AuthoritativeCommandServer(executor));
+        var player = Assert.Single(result.FinalSnapshot.Players);
+        Assert.Equal([CommandStatus.Accepted], result.Results.Select(command => command.Status));
+        Assert.Equal(2U, player.LevelId);
+        Assert.Equal(3, player.PositionX);
+        Assert.Equal(4, player.PositionY);
+    }
+
+    [Fact]
+    public void GameplayMultiLevelFixtureRetainsEntitiesOnTheirOriginalLevel()
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "Fixtures", "gameplay-multi-level-occupancy.json");
+        var fixture = ReplayFixtureLoader.Load(File.ReadAllText(path));
+        var world = new AuthoritativeWorld();
+        world.AddLevel(new AuthoritativeLevel(1, 40, 40, []));
+        world.AddLevel(new AuthoritativeLevel(2, 40, 40, []));
+        var executor = new StoreSimulationExecutor(
+            new StoreCatalog(),
+            fixture.InitialState.Gold,
+            fixture.InitialState.Experience,
+            fixture.InitialState.Life,
+            fixture.InitialState.Mana,
+            startingPositionX: fixture.InitialState.PositionX,
+            startingPositionY: fixture.InitialState.PositionY,
+            startingLevelId: fixture.InitialState.LevelId,
+            startingWorld: world,
+            startingWorldItems: [new AuthoritativeWorldItem(
+                fixture.InitialState.WorldItemEntityId,
+                fixture.InitialState.LevelId,
+                2,
+                0,
+                fixture.InitialState.WorldItemSeed,
+                fixture.InitialState.WorldItemPrice,
+                AuthoritativeItemState.Empty)],
+            startingObjects: [new AuthoritativeWorldObject(
+                fixture.InitialState.ObjectEntityId,
+                fixture.InitialState.ObjectId,
+                fixture.InitialState.LevelId,
+                fixture.InitialState.ObjectPositionX,
+                fixture.InitialState.ObjectPositionY)],
+            startingPortals: [new AuthoritativePortal(5, 1, 0, 0, 2, 3, 4)]);
+
+        var result = ReplayFixtureExecutor.Execute(fixture, executor, new AuthoritativeCommandServer(executor));
+
+        Assert.Equal(CommandStatus.Accepted, Assert.Single(result.Results).Status);
+        Assert.Equal(2U, Assert.Single(result.FinalSnapshot.Players).LevelId);
+        Assert.Equal(20U, Assert.Single(result.FinalSnapshot.WorldItems).EntityId);
+        Assert.Equal(1U, Assert.Single(result.FinalSnapshot.WorldItems).LevelId);
+        Assert.Equal(30U, Assert.Single(result.FinalSnapshot.Objects).EntityId);
+        Assert.Equal(1U, Assert.Single(result.FinalSnapshot.Objects).LevelId);
+    }
+
+    [Fact]
+    public void GameplayWorldItemFixtureExecutesPickupTransition()
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "Fixtures", "gameplay-world-item-pickup.json");
+        var fixture = ReplayFixtureLoader.Load(File.ReadAllText(path));
+        var item = new AuthoritativeWorldItem(
+            fixture.InitialState.WorldItemEntityId,
+            fixture.InitialState.LevelId,
+            fixture.InitialState.PositionX + 1,
+            fixture.InitialState.PositionY,
+            fixture.InitialState.WorldItemSeed,
+            fixture.InitialState.WorldItemPrice,
+            AuthoritativeItemState.Empty);
+        var executor = new StoreSimulationExecutor(
+            new StoreCatalog(),
+            fixture.InitialState.Gold,
+            fixture.InitialState.Experience,
+            fixture.InitialState.Life,
+            fixture.InitialState.Mana,
+            startingPositionX: fixture.InitialState.PositionX,
+            startingPositionY: fixture.InitialState.PositionY,
+            startingLevelId: fixture.InitialState.LevelId,
+            startingInventoryGrid: Enumerable.Repeat(-1, 40).ToArray(),
+            startingWorldItems: [item]);
+
+        var result = ReplayFixtureExecutor.Execute(fixture, executor, new AuthoritativeCommandServer(executor));
+        Assert.Equal([CommandStatus.Accepted], result.Results.Select(command => command.Status));
+        Assert.Empty(result.FinalSnapshot.WorldItems);
+        Assert.Equal(fixture.InitialState.WorldItemSeed, Assert.Single(result.FinalSnapshot.Players[0].Inventory).ItemSeed);
+        Assert.Equal(fixture.Checkpoints[0].StateSha256, result.Checkpoints[0].ActualStateSha256);
+    }
+
+    [Fact]
+    public void GameplayObjectQuestFixtureExecutesAuthoritativeWorldTransitions()
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "Fixtures", "gameplay-object-quest.json");
+        var fixture = ReplayFixtureLoader.Load(File.ReadAllText(path));
+        var executor = new StoreSimulationExecutor(
+            new StoreCatalog(),
+            fixture.InitialState.Gold,
+            fixture.InitialState.Experience,
+            fixture.InitialState.Life,
+            fixture.InitialState.Mana,
+            startingPositionX: fixture.InitialState.PositionX,
+            startingPositionY: fixture.InitialState.PositionY,
+            startingLevelId: fixture.InitialState.LevelId,
+            startingObjects: [new AuthoritativeWorldObject(
+                fixture.InitialState.ObjectEntityId,
+                fixture.InitialState.ObjectId,
+                fixture.InitialState.LevelId,
+                fixture.InitialState.ObjectPositionX,
+                fixture.InitialState.ObjectPositionY)],
+            startingQuests: [new AuthoritativeQuestState(
+                fixture.InitialState.QuestId,
+                fixture.InitialState.LevelId,
+                fixture.InitialState.QuestRequiredProgress)]);
+
+        var result = ReplayFixtureExecutor.Execute(fixture, executor, new AuthoritativeCommandServer(executor));
+
+        Assert.Equal([CommandStatus.Accepted, CommandStatus.Accepted], result.Results.Select(command => command.Status));
+        Assert.True(Assert.Single(result.FinalSnapshot.Objects).Activated);
+        var quest = Assert.Single(result.FinalSnapshot.Quests);
+        Assert.Equal(1U, quest.Progress);
+        Assert.True(quest.Completed);
+    }
+
+    [Fact]
+    public void GameplayStatusExpiryFixtureAdvancesEffectsByAuthoritativeTick()
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "Fixtures", "gameplay-status-expiry.json");
+        var fixture = ReplayFixtureLoader.Load(File.ReadAllText(path));
+        var spells = new AuthoritativeSpellCatalog([
+            new AuthoritativeSpellDefinition(
+                2,
+                3,
+                0,
+                fixture.InitialState.StatusEffectId,
+                fixture.InitialState.StatusDuration,
+                fixture.InitialState.StatusMagnitude),
+        ]);
+        var executor = new StoreSimulationExecutor(
+            new StoreCatalog(),
+            fixture.InitialState.Gold,
+            fixture.InitialState.Experience,
+            fixture.InitialState.Life,
+            fixture.InitialState.Mana,
+            startingManaMaximum: fixture.InitialState.ManaMaximum,
+            startingLifeMaximum: fixture.InitialState.Life,
+            startingSpells: spells);
+
+        var result = ReplayFixtureExecutor.Execute(fixture, executor, new AuthoritativeCommandServer(executor));
+        var player = Assert.Single(result.FinalSnapshot.Players);
+
+        Assert.Equal([CommandStatus.Accepted, CommandStatus.Accepted], result.Results.Select(command => command.Status));
+        Assert.Equal(2, result.Checkpoints.Count);
+        Assert.Empty(player.StatusEffects);
     }
 
     [Fact]

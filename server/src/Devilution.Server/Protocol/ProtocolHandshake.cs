@@ -9,6 +9,9 @@ public sealed record ProtocolServerIdentity(
     string ContentManifestHash,
     uint TickRateHz)
 {
+    /** Additive ruleset identity; legacy callers use the combined hash field. */
+    public string RulesetIdentityHash { get; init; } = ContentManifestHash;
+
     public static ProtocolServerIdentity FromRuleset(
         string buildId,
         string protocolSchemaVersion,
@@ -16,7 +19,9 @@ public sealed record ProtocolServerIdentity(
         GameplayRulesetIdentity ruleset)
     {
         ArgumentNullException.ThrowIfNull(ruleset);
-        return new ProtocolServerIdentity(buildId, protocolSchemaVersion, ruleset.CombinedSha256, tickRateHz);
+        return new ProtocolServerIdentity(buildId, protocolSchemaVersion, ruleset.CombinedSha256, tickRateHz) {
+            RulesetIdentityHash = ruleset.CombinedSha256,
+        };
     }
 }
 
@@ -61,11 +66,16 @@ public sealed class ProtocolHandshake
         if (!string.Equals(clientHello.ContentManifestHash, identity.ContentManifestHash, StringComparison.Ordinal))
             return HandshakeResult.Failure(Error(ProtocolErrorCode.ContentMismatch, "The client content manifest does not match the server."));
 
+        if (!string.IsNullOrWhiteSpace(clientHello.RulesetIdentityHash)
+            && !string.Equals(clientHello.RulesetIdentityHash, identity.RulesetIdentityHash, StringComparison.Ordinal))
+            return HandshakeResult.Failure(Error(ProtocolErrorCode.ContentMismatch, "The client gameplay ruleset does not match the server."));
+
         return HandshakeResult.Success(new ServerHello {
             ServerBuildId = identity.BuildId,
             ProtocolSchemaVersion = identity.ProtocolSchemaVersion,
             ContentManifestHash = identity.ContentManifestHash,
             TickRateHz = identity.TickRateHz,
+            RulesetIdentityHash = identity.RulesetIdentityHash,
         });
     }
 

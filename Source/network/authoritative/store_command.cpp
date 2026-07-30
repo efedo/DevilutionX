@@ -160,4 +160,83 @@ tl::expected<::devilution::protocol::v1::Command, std::string> MakeMoveItemComma
 	return command;
 }
 
+tl::expected<::devilution::protocol::v1::Command, std::string> MakeMoveCommand(int32_t directionX, int32_t directionY, uint64_t requestedTick)
+{
+	if (directionX < -1 || directionX > 1 || directionY < -1 || directionY > 1 || (directionX == 0 && directionY == 0))
+		return tl::make_unexpected("Movement direction must be a non-zero adjacent step.");
+	protocol::v1::Command command;
+	command.set_requested_tick(requestedTick);
+	command.mutable_move_requested()->set_direction_x(directionX);
+	command.mutable_move_requested()->set_direction_y(directionY);
+	return command;
+}
+
+tl::expected<::devilution::protocol::v1::Command, std::string> MakeAttackCommand(uint32_t targetEntityId, uint64_t requestedTick)
+{
+	if (targetEntityId == 0)
+		return tl::make_unexpected("Cannot attack an invalid entity.");
+	protocol::v1::Command command;
+	command.set_requested_tick(requestedTick);
+	command.mutable_attack_requested()->set_target_entity_id(targetEntityId);
+	return command;
+}
+
+tl::expected<::devilution::protocol::v1::Command, std::string> MakeCastCommand(uint32_t spellId, uint32_t targetEntityId, uint64_t requestedTick)
+{
+	return MakeCastCommand(spellId, targetEntityId, 0, 0, requestedTick);
+}
+
+tl::expected<::devilution::protocol::v1::Command, std::string> MakeCastCommand(uint32_t spellId, uint32_t targetEntityId, int32_t targetX, int32_t targetY, uint64_t requestedTick)
+{
+	if (spellId == 0)
+		return tl::make_unexpected("Cannot cast an invalid spell.");
+	protocol::v1::Command command;
+	command.set_requested_tick(requestedTick);
+	command.mutable_cast_requested()->set_spell_id(spellId);
+	command.mutable_cast_requested()->set_target_entity_id(targetEntityId);
+	command.mutable_cast_requested()->set_target_x(targetX);
+	command.mutable_cast_requested()->set_target_y(targetY);
+	return command;
+}
+
+tl::expected<::devilution::protocol::v1::Command, std::string> MakeUsePortalCommand(uint32_t portalId, uint64_t requestedTick)
+{
+	if (portalId == 0)
+		return tl::make_unexpected("Cannot use an invalid portal.");
+	protocol::v1::Command command;
+	command.set_requested_tick(requestedTick);
+	command.mutable_use_portal_requested()->set_portal_id(portalId);
+	return command;
+}
+
+tl::expected<::devilution::protocol::v1::Command, std::string> MakePickupWorldItemCommand(uint32_t itemEntityId, uint64_t requestedTick)
+{
+	if (itemEntityId == 0)
+		return tl::make_unexpected("Cannot pick up an invalid world item.");
+	protocol::v1::Command command;
+	command.set_requested_tick(requestedTick);
+	command.mutable_pickup_world_item_requested()->set_item_entity_id(itemEntityId);
+	return command;
+}
+
+tl::expected<::devilution::protocol::v1::Command, std::string> MakeOperateObjectCommand(uint32_t objectEntityId, uint64_t requestedTick)
+{
+	if (objectEntityId == 0)
+		return tl::make_unexpected("Cannot operate an invalid object.");
+	protocol::v1::Command command;
+	command.set_requested_tick(requestedTick);
+	command.mutable_operate_object_requested()->set_object_entity_id(objectEntityId);
+	return command;
+}
+
+tl::expected<::devilution::protocol::v1::Command, std::string> MakeAdvanceQuestCommand(uint32_t questId, uint64_t requestedTick)
+{
+	if (questId == 0)
+		return tl::make_unexpected("Cannot advance an invalid quest.");
+	protocol::v1::Command command;
+	command.set_requested_tick(requestedTick);
+	command.mutable_advance_quest_requested()->set_quest_id(questId);
+	return command;
+}
+
 } // namespace devilution::authoritative

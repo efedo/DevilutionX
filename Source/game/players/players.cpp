@@ -63,6 +63,10 @@
 #include "utils/string/str_cat.hpp"
 #include "utils/string/utf8.hpp"
 
+#ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
+#include "network/authoritative/server_backed_runtime.hpp"
+#endif
+
 namespace devilution {
 
 uint8_t MyPlayerId;
@@ -3473,6 +3477,23 @@ void CheckPlrSpell(bool isShiftHeld, SpellID spellID, SpellType spellType)
 		}
 		return;
 	}
+
+#ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
+	if (authoritative::GetServerBackedRuntime().IsConnected()) {
+		uint32_t targetEntityId = 0;
+		if (pcursmonst != -1) {
+			if (const auto entityId = authoritative::GetServerBackedRuntime().MonsterEntityIdAt(cursPosition.x, cursPosition.y); entityId.has_value())
+				targetEntityId = *entityId;
+		}
+		if (PlayerUnderCursor != nullptr && targetEntityId == 0)
+			LogError("Server-backed spell target is not an authoritative entity.");
+		if (auto result = authoritative::GetServerBackedRuntime().Cast(
+		        static_cast<uint32_t>(spellID), targetEntityId, cursPosition.x, cursPosition.y, 0, SDL_GetTicks()); !result.has_value())
+			LogError("Server-backed spell cast failed: {}", result.error());
+		LastPlayerAction = targetEntityId != 0 ? PlayerActionType::SpellMonsterTarget : PlayerActionType::Spell;
+		return;
+	}
+#endif
 
 	const int spellFrom = 0;
 	if (IsWallSpell(spellID)) {

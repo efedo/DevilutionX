@@ -67,6 +67,34 @@ public static class ReplayFixtureExecutor
                     RequestedTick = fixtureCommand.TargetTick,
                     AttackRequested = new AttackRequested { TargetEntityId = fixtureCommand.TargetEntityId },
                 },
+                "Cast" => new Command {
+                    ClientSequence = fixtureCommand.ClientSequence,
+                    RequestedTick = fixtureCommand.TargetTick,
+                    CastRequested = new CastRequested {
+                        SpellId = fixtureCommand.SpellId,
+                        TargetEntityId = fixtureCommand.TargetEntityId,
+                    },
+                },
+                "UsePortal" => new Command {
+                    ClientSequence = fixtureCommand.ClientSequence,
+                    RequestedTick = fixtureCommand.TargetTick,
+                    UsePortalRequested = new UsePortalRequested { PortalId = fixtureCommand.PortalId },
+                },
+                "PickupWorldItem" => new Command {
+                    ClientSequence = fixtureCommand.ClientSequence,
+                    RequestedTick = fixtureCommand.TargetTick,
+                    PickupWorldItemRequested = new PickupWorldItemRequested { ItemEntityId = fixtureCommand.WorldItemEntityId },
+                },
+                "OperateObject" => new Command {
+                    ClientSequence = fixtureCommand.ClientSequence,
+                    RequestedTick = fixtureCommand.TargetTick,
+                    OperateObjectRequested = new OperateObjectRequested { ObjectEntityId = fixtureCommand.ObjectEntityId },
+                },
+                "AdvanceQuest" => new Command {
+                    ClientSequence = fixtureCommand.ClientSequence,
+                    RequestedTick = fixtureCommand.TargetTick,
+                    AdvanceQuestRequested = new AdvanceQuestRequested { QuestId = fixtureCommand.QuestId },
+                },
                 _ => throw new InvalidDataException($"Unsupported replay command '{fixtureCommand.Kind}'."),
             };
             var result = commandServer.Process(sessionId, command, fixtureCommand.TargetTick);

@@ -125,7 +125,11 @@ public sealed class StoreCatalog
     private readonly Dictionary<uint, Dictionary<uint, StoreItem>> stores = new();
 
     /** Loads the first store slice from an external TSV table. */
-    public static StoreCatalog LoadTsv(string sourcePath, string contents)
+    public static StoreCatalog LoadTsv(
+        string sourcePath,
+        string contents,
+        AuthoritativeItemCatalog? itemCatalog = null,
+        AuthoritativeUniqueItemCatalog? uniqueItems = null)
     {
         var table = TsvTable.Parse(sourcePath, contents);
         var catalog = new StoreCatalog();
@@ -135,7 +139,7 @@ public sealed class StoreCatalog
                 row.RequiredUInt32("store_slot"),
                 row.RequiredUInt32("item_seed"),
                 row.RequiredUInt32("price"),
-                ParseItemState(row))));
+                ParseItemState(row, itemCatalog, uniqueItems))));
         }
         if (!catalog.stores.Any())
             throw new InvalidDataException($"Store table '{sourcePath}' does not contain any stores.");
@@ -185,8 +189,23 @@ public sealed class StoreCatalog
         return stock.Values.OrderBy(item => item.StoreSlot).ToArray();
     }
 
-    private static AuthoritativeItemState ParseItemState(TsvRow row)
+    private static AuthoritativeItemState ParseItemState(
+        TsvRow row,
+        AuthoritativeItemCatalog? itemCatalog,
+        AuthoritativeUniqueItemCatalog? uniqueItems)
     {
+        if (itemCatalog is not null && uniqueItems is not null && row.TryGet("unique_item_id", out var uniqueId)
+            && !string.IsNullOrWhiteSpace(uniqueId))
+            return itemCatalog.GenerateUnique(
+                row.RequiredUInt32("unique_item_id"),
+                row.RequiredUInt32("item_seed"),
+                row.OptionalInt32("item_level", 1));
+        if (itemCatalog is not null && row.TryGet("item_id", out var itemId)
+            && !string.IsNullOrWhiteSpace(itemId))
+            return itemCatalog.Generate(
+                row.RequiredUInt32("item_id"),
+                row.RequiredUInt32("item_seed"),
+                row.OptionalInt32("item_level"));
         return AuthoritativeItemState.Empty with {
             CreateInfo = row.OptionalUInt32("create_info"),
             ItemType = row.OptionalInt32("item_type", -1),
@@ -210,6 +229,40 @@ public sealed class StoreCatalog
             MaxCharges = row.OptionalInt32("max_charges"),
             Durability = row.OptionalInt32("durability"),
             MaxDurability = row.OptionalInt32("max_durability"),
+            PlusDamage = row.OptionalInt32("plus_damage"),
+            PlusToHit = row.OptionalInt32("plus_to_hit"),
+            PlusArmorClass = row.OptionalInt32("plus_armor_class"),
+            PlusStrength = row.OptionalInt32("plus_strength"),
+            PlusMagic = row.OptionalInt32("plus_magic"),
+            PlusDexterity = row.OptionalInt32("plus_dexterity"),
+            PlusVitality = row.OptionalInt32("plus_vitality"),
+            PlusFireResistance = row.OptionalInt32("plus_fire_resistance"),
+            PlusLightningResistance = row.OptionalInt32("plus_lightning_resistance"),
+            PlusMagicResistance = row.OptionalInt32("plus_magic_resistance"),
+            PlusMana = row.OptionalInt32("plus_mana"),
+            PlusHitPoints = row.OptionalInt32("plus_hit_points"),
+            PlusDamageModifier = row.OptionalInt32("plus_damage_modifier"),
+            PlusGetHit = row.OptionalInt32("plus_get_hit"),
+            PlusLight = row.OptionalInt32("plus_light"),
+            SpellLevelAdd = row.OptionalInt32("spell_level_add"),
+            UniqueId = row.OptionalInt32("unique_id"),
+            FireMinDamage = row.OptionalInt32("fire_min_damage"),
+            FireMaxDamage = row.OptionalInt32("fire_max_damage"),
+            LightningMinDamage = row.OptionalInt32("lightning_min_damage"),
+            LightningMaxDamage = row.OptionalInt32("lightning_max_damage"),
+            PlusEnemyArmorClass = row.OptionalInt32("plus_enemy_armor_class"),
+            PrefixPower = row.OptionalInt32("prefix_power", -1),
+            SuffixPower = row.OptionalInt32("suffix_power", -1),
+            ValueAdd1 = row.OptionalInt32("value_add_1"),
+            ValueMultiply1 = row.OptionalInt32("value_multiply_1"),
+            ValueAdd2 = row.OptionalInt32("value_add_2"),
+            ValueMultiply2 = row.OptionalInt32("value_multiply_2"),
+            MinimumStrength = row.OptionalInt32("minimum_strength"),
+            MinimumMagic = row.OptionalInt32("minimum_magic"),
+            MinimumDexterity = row.OptionalInt32("minimum_dexterity"),
+            StatFlag = row.OptionalInt32("stat_flag") != 0,
+            HellfireDamageArmorFlags = row.OptionalInt32("hellfire_damage_armor_flags"),
+            Buff = row.OptionalUInt32("buff"),
             InventoryWidth = Math.Max(1, row.OptionalInt32("inventory_width", 1)),
             InventoryHeight = Math.Max(1, row.OptionalInt32("inventory_height", 1)),
         };

@@ -25,6 +25,11 @@ struct ReplayFixtureCommand {
 	int32_t directionX = 0;
 	int32_t directionY = 0;
 	uint32_t targetEntityId = 0;
+	uint32_t spellId = 0;
+	uint32_t portalId = 0;
+	uint32_t worldItemEntityId = 0;
+	uint32_t objectEntityId = 0;
+	uint32_t questId = 0;
 };
 
 struct ReplayFixtureContentManifest {
@@ -50,6 +55,19 @@ struct ReplayFixtureInitialState {
 	uint8_t characterLevel = 1;
 	int32_t positionX = 0;
 	int32_t positionY = 0;
+	uint32_t levelId = 0;
+	uint32_t worldItemEntityId = 0;
+	uint32_t worldItemSeed = 0;
+	uint32_t worldItemPrice = 0;
+	uint32_t objectEntityId = 0;
+	uint32_t objectId = 0;
+	int32_t objectPositionX = 0;
+	int32_t objectPositionY = 0;
+	uint32_t questId = 0;
+	uint32_t questRequiredProgress = 0;
+	uint32_t statusEffectId = 0;
+	uint32_t statusDuration = 0;
+	int32_t statusMagnitude = 0;
 };
 
 struct ReplayFixtureStoreState {
@@ -187,6 +205,41 @@ struct ReplayFixtureExecutionState {
 	int32_t combatTargetPositionX = 0;
 	int32_t combatTargetPositionY = 0;
 	int32_t combatTargetHitPoints = 0;
+	int32_t combatTargetMaxHitPoints = 0;
+	int32_t combatTargetArmorClass = 0;
+	int32_t combatTargetAttackDamage = 0;
+	int32_t combatTargetAggroRange = 0;
+	int32_t combatTargetFireResistance = 0;
+	int32_t combatTargetLightningResistance = 0;
+	int32_t combatTargetMagicResistance = 0;
+	uint32_t worldItemEntityId = 0;
+	uint32_t worldItemLevelId = 0;
+	int32_t worldItemPositionX = 0;
+	int32_t worldItemPositionY = 0;
+	uint32_t worldItemSeed = 0;
+	uint32_t worldItemPrice = 0;
+	ReplayFixtureItemState worldItemState;
+	uint32_t objectEntityId = 0;
+	uint32_t objectId = 0;
+	uint32_t objectLevelId = 0;
+	int32_t objectPositionX = 0;
+	int32_t objectPositionY = 0;
+	bool objectActivated = false;
+	uint32_t questId = 0;
+	uint32_t questLevelId = 0;
+	uint32_t questProgress = 0;
+	uint32_t questRequiredProgress = 0;
+	bool questCompleted = false;
+	uint32_t spellHealingAmount = 20;
+	uint32_t spellManaCost = 5;
+	uint32_t spellStatusEffectId = 0;
+	uint32_t spellStatusDuration = 0;
+	int32_t spellStatusMagnitude = 0;
+	uint64_t lastAppliedTick = 0;
+	uint32_t portalId = 0;
+	uint32_t portalDestinationLevelId = 0;
+	int32_t portalDestinationX = 0;
+	int32_t portalDestinationY = 0;
 };
 
 struct ReplayFixtureTransitionResult {

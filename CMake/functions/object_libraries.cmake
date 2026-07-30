@@ -29,7 +29,12 @@ endfunction()
 
 # Transitively collects dependencies in topological order using depth-first search.
 function(_collect_linked_dependencies INITIAL_TARGET)
-  set(MODES PUBLIC PRIVATE INTERFACE)
+  # Imported targets and find modules may encode configuration-specific
+  # libraries as `debug`, `optimized`, or `general` link items. Keep those
+  # keywords paired with their following library when resolving deferred
+  # dependencies; CMake 4.x rejects a dangling configuration keyword.
+  set(VISIBILITY_MODES PUBLIC PRIVATE INTERFACE)
+  set(MODES ${VISIBILITY_MODES} debug optimized general)
   list(APPEND STACK "${INITIAL_TARGET}")
   while(NOT STACK STREQUAL "")
     list(POP_BACK STACK TARGET)
@@ -120,7 +125,14 @@ function(_collect_linked_dependencies INITIAL_TARGET)
       endif()
 
       if(FINALIZING)
-        target_link_libraries(${TARGET} ${MODE} "${LIBRARY}")
+        if(MODE IN_LIST VISIBILITY_MODES)
+          target_link_libraries(${TARGET} ${MODE} "${LIBRARY}")
+        else()
+          # Configuration keywords are link items, not target visibility
+          # scopes. Use the keyword signature consistently and retain the
+          # configuration selector for CMake 4.x.
+          target_link_libraries(${TARGET} PUBLIC ${MODE} "${LIBRARY}")
+        endif()
       endif()
     endforeach()
     if(FINALIZING)
@@ -131,7 +143,8 @@ endfunction()
 
 # Actually resolves the linked dependencies.
 function(resolve_target_link_dependencies)
-  set(MODES PUBLIC PRIVATE INTERFACE)
+  set(VISIBILITY_MODES PUBLIC PRIVATE INTERFACE)
+  set(MODES ${VISIBILITY_MODES} debug optimized general)
   get_property(TARGETS GLOBAL PROPERTY TARGETS_WITH_LINKED_DEPENDENCIES)
   foreach(TARGET ${TARGETS})
     _collect_linked_dependencies("${TARGET}" "")
