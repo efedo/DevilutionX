@@ -612,6 +612,60 @@ public sealed class StoreSimulationExecutorTests
     }
 
     [Fact]
+    public void ProjectileSpellResolvesOnAnAuthoritativeFutureTick()
+    {
+        var executor = new StoreSimulationExecutor(
+            CreateCatalog(),
+            startingGold: 100,
+            startingMana: 10,
+            startingManaMaximum: 10,
+            startingCombatTargets: [new AuthoritativeCombatTarget(9, 2, 0, 20)],
+            startingSpells: new AuthoritativeSpellCatalog([
+                new AuthoritativeSpellDefinition(7, 4, 0, 0, 0, 0) {
+                    DamageAmount = 12,
+                    Range = 4,
+                    ProjectileSpeed = 1,
+                    ProjectileLifetime = 8,
+                },
+            ]));
+        var server = new AuthoritativeCommandServer(executor);
+
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", new Command {
+            ClientSequence = 1,
+            RequestedTick = 1,
+            CastRequested = new CastRequested { SpellId = 7, TargetEntityId = 9 },
+        }, 1).Status);
+        Assert.Equal(20, executor.CreateSnapshot("player-a", 1, 1).Monsters.Single().HitPoints);
+        Assert.Single(executor.CreateSnapshot("player-a", 1, 1).Projectiles);
+
+        executor.AdvanceTo(3);
+        Assert.Equal(8, executor.CreateSnapshot("player-a", 1, 3).Monsters.Single().HitPoints);
+        Assert.Empty(executor.CreateSnapshot("player-a", 1, 3).Projectiles);
+        Assert.Equal(12, Assert.Single(executor.DrainEvents("player-a", 1, 3)!.Events).Damage.Amount);
+    }
+
+    [Fact]
+    public void DataDrivenObjectEffectUpdatesPlayerAndEmitsEvent()
+    {
+        var executor = new StoreSimulationExecutor(
+            CreateCatalog(),
+            startingGold: 100,
+            startingLife: 10,
+            startingLifeMaximum: 30,
+            startingObjects: [new AuthoritativeWorldObject(20, 4, 0, 1, 0, effectKind: AuthoritativeObjectEffectKind.Heal, effectAmount: 12)]);
+        var result = new AuthoritativeCommandServer(executor).Process("player-a", new Command {
+            ClientSequence = 1,
+            RequestedTick = 1,
+            OperateObjectRequested = new OperateObjectRequested { ObjectEntityId = 20 },
+        }, 1);
+
+        Assert.Equal(CommandStatus.Accepted, result.Status);
+        Assert.Equal(22, executor.GetPlayerState("player-a").Life);
+        Assert.True(executor.CreateSnapshot("player-a", 1, 1).Objects.Single().Activated);
+        Assert.Equal(12, Assert.Single(executor.DrainEvents("player-a", 1, 1)!.Events).Healing.Amount);
+    }
+
+    [Fact]
     public void DamageSpellMayResolveAnAuthoritativeTargetByCell()
     {
         var executor = new StoreSimulationExecutor(
@@ -1190,6 +1244,49 @@ public sealed class StoreSimulationExecutorTests
         Assert.Contains(restored.Monsters, monster => monster.EntityId == 9 && monster.LevelId == 2);
         Assert.Contains(restored.WorldItems, item => item.EntityId == 20 && item.LevelId == 2);
         Assert.Contains(restored.Objects, @object => @object.EntityId == 30 && @object.LevelId == 2);
+    }
+
+    [Fact]
+    public void AuthoritativeSaveRoundTripRetainsProjectilesAndObjectEffects()
+    {
+        var executor = new StoreSimulationExecutor(
+            CreateCatalog(),
+            startingGold: 0,
+            startingLife: 20,
+            startingLifeMaximum: 40,
+            startingMana: 10,
+            startingManaMaximum: 10,
+            startingCombatTargets: [new AuthoritativeCombatTarget(9, 2, 0, 20)],
+            startingObjects: [new AuthoritativeWorldObject(
+                30,
+                4,
+                0,
+                1,
+                0,
+                effectKind: AuthoritativeObjectEffectKind.Heal,
+                effectAmount: 5)],
+            startingSpells: new AuthoritativeSpellCatalog([
+                new AuthoritativeSpellDefinition(7, 4, 0, 0, 0, 0) {
+                    DamageAmount = 6,
+                    Range = 4,
+                    ProjectileSpeed = 1,
+                },
+            ]));
+        var server = new AuthoritativeCommandServer(executor);
+        Assert.Equal(CommandStatus.Accepted, server.Process("player-a", new Command {
+            ClientSequence = 1,
+            RequestedTick = 1,
+            CastRequested = new CastRequested { SpellId = 7, TargetEntityId = 9 },
+        }, 1).Status);
+
+        var replacement = new StoreSimulationExecutor(CreateCatalog(), startingGold: 0, startingLife: 20, startingLifeMaximum: 40, startingMana: 0, startingManaMaximum: 10);
+        replacement.ImportPlayerSave("player-a", executor.ExportPlayerSave("player-a"));
+        var restored = replacement.CreateSnapshot("player-a", 0, 0);
+
+        Assert.Single(restored.Projectiles);
+        var restoredObject = Assert.Single(restored.Objects);
+        Assert.Equal((int)AuthoritativeObjectEffectKind.Heal, restoredObject.EffectKind);
+        Assert.Equal(5, restoredObject.EffectAmount);
     }
 
     [Fact]

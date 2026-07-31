@@ -50,4 +50,17 @@ public sealed class AuthoritativeSpellCatalogTests
             new AuthoritativeSpellDefinition(1, 5, 0, 0, 0, 0) { DamageAmount = 10, Range = 0 },
         ]));
     }
+
+    [Fact]
+    public void LoadsProjectileTuningAndRejectsProjectileHealing()
+    {
+        var catalog = AuthoritativeSpellCatalog.LoadTsv("projectiles.tsv", "spell_id\tmana_cost\tdamage_amount\tprojectile_speed\tprojectile_lifetime\n7\t4\t12\t2\t8");
+        var spell = Assert.Single(catalog.Definitions);
+        Assert.Equal(2, spell.ProjectileSpeed);
+        Assert.Equal(8, spell.ProjectileLifetime);
+
+        Assert.Throws<InvalidDataException>(() => new AuthoritativeSpellCatalog([
+            new AuthoritativeSpellDefinition(8, 3, 10, 0, 0, 0) { ProjectileSpeed = 1 },
+        ]));
+    }
 }

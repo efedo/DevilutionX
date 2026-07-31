@@ -18,6 +18,11 @@ public sealed record AuthoritativeSpellDefinition(
     public int AreaRadius { get; init; }
 
     public AuthoritativeDamageType DamageType { get; init; } = AuthoritativeDamageType.Physical;
+
+    /** Zero keeps the legacy immediate-resolution behavior. */
+    public int ProjectileSpeed { get; init; }
+
+    public int ProjectileLifetime { get; init; } = 32;
 }
 
 public sealed class AuthoritativeSpellCatalog
@@ -35,6 +40,10 @@ public sealed class AuthoritativeSpellCatalog
                 throw new InvalidDataException("Damage-bearing spells require a positive range.");
             if (definition.AreaRadius < 0)
                 throw new InvalidDataException("Spell area radius cannot be negative.");
+            if (definition.ProjectileSpeed < 0 || definition.ProjectileLifetime <= 0)
+                throw new InvalidDataException("Projectile speed cannot be negative and projectile lifetime must be positive.");
+            if (definition.ProjectileSpeed > 0 && definition.DamageAmount == 0)
+                throw new InvalidDataException("Only damage-bearing spells can create projectiles.");
             if (definition.StatusEffectId != 0 && definition.StatusDuration == 0)
                 throw new InvalidDataException("Status-bearing spells require a positive status duration.");
             if (!spells.TryAdd(definition.SpellId, definition))
@@ -62,6 +71,8 @@ public sealed class AuthoritativeSpellCatalog
             Range = row.OptionalInt32("range", 1),
             AreaRadius = row.OptionalInt32("area_radius"),
             DamageType = ParseDamageType(row),
+            ProjectileSpeed = row.OptionalInt32("projectile_speed"),
+            ProjectileLifetime = row.OptionalInt32("projectile_lifetime", 32),
         }));
     }
 

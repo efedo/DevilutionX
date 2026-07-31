@@ -86,10 +86,13 @@ TEST(ServerBackedPlayerSnapshot, AppliesAuthoritativeEventBatchToNativeResources
 	auto *experience = events.add_events()->mutable_experience();
 	experience->set_player_entity_id(7);
 	experience->set_amount(40);
+	auto *healing = events.add_events()->mutable_healing();
+	healing->set_target_entity_id(7);
+	healing->set_amount(10);
 
 	ApplyServerBackedEventBatch(player, events, 7);
 
-	EXPECT_EQ(player.life.current, 55);
+	EXPECT_EQ(player.life.current, 65);
 	EXPECT_EQ(player._pExperience, 40U);
 }
 
@@ -192,6 +195,29 @@ TEST(ServerBackedPlayerSnapshot, ProjectsAndSortsAuthoritativeObjects)
 	EXPECT_EQ((*projected)[1].entityId, 20U);
 	EXPECT_TRUE((*projected)[1].activated);
 	EXPECT_EQ((*projected)[1].questId, 30U);
+}
+
+TEST(ServerBackedPlayerSnapshot, ProjectsAndSortsAuthoritativeProjectiles)
+{
+	protocol::Snapshot snapshot;
+	auto *second = snapshot.add_projectiles();
+	second->set_entity_id(12);
+	second->set_source_entity_id(1);
+	second->set_spell_id(4);
+	second->set_remaining_ticks(2);
+	second->set_damage(6);
+	auto *first = snapshot.add_projectiles();
+	first->set_entity_id(11);
+	first->set_source_entity_id(1);
+	first->set_spell_id(4);
+	first->set_remaining_ticks(1);
+	first->set_damage(6);
+
+	auto projected = ProjectProjectileSnapshots(snapshot);
+	ASSERT_TRUE(projected.has_value());
+	ASSERT_EQ(projected->size(), 2u);
+	EXPECT_EQ((*projected)[0].entityId, 11u);
+	EXPECT_EQ((*projected)[1].entityId, 12u);
 }
 
 TEST(ServerBackedPlayerSnapshot, WorldProjectionRetainsEntitiesFromAnotherLevel)

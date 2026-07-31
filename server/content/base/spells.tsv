@@ -1,5 +1,5 @@
-spell_id	mana_cost	healing_amount	damage_amount	range	area_radius	damage_type	status_effect_id	status_duration	status_magnitude
-1	5	20	0	1	0	Physical	0	0	0
-2	3	0	0	1	0	Physical	1	10	1
-3	4	0	8	1	0	Physical	0	0	0
-4	6	0	6	4	1	Fire	0	0	0
+spell_id	mana_cost	healing_amount	damage_amount	range	area_radius	damage_type	status_effect_id	status_duration	status_magnitude	projectile_speed	projectile_lifetime
+1	5	20	0	1	0	Physical	0	0	0	0	32
+2	3	0	0	1	0	Physical	1	10	1	0	32
+3	4	0	8	1	0	Physical	0	0	0	0	32
+4	6	0	6	4	1	Fire	0	0	0	1	8

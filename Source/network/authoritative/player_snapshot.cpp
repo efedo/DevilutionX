@@ -150,6 +150,39 @@ tl::expected<std::vector<ProjectedObjectSnapshot>, std::string> ProjectObjectSna
 			.positionY = source.position_y(),
 			.activated = source.activated(),
 			.questId = source.quest_id(),
+			.effectKind = source.effect_kind(),
+			.effectAmount = source.effect_amount(),
+		});
+	}
+	std::sort(projected.begin(), projected.end(), [](const auto &left, const auto &right) { return left.entityId < right.entityId; });
+	return projected;
+}
+
+tl::expected<std::vector<ProjectedProjectileSnapshot>, std::string> ProjectProjectileSnapshots(const protocol::Snapshot &snapshot)
+{
+	std::vector<ProjectedProjectileSnapshot> projected;
+	projected.reserve(snapshot.projectiles_size());
+	for (const auto &source : snapshot.projectiles()) {
+		if (source.entity_id() == 0 || source.source_entity_id() == 0 || source.spell_id() == 0 || source.remaining_ticks() == 0)
+			return tl::make_unexpected("Server-backed snapshot contains a projectile with an invalid identity or lifetime.");
+		if (source.damage() < 0 || source.area_radius() < 0)
+			return tl::make_unexpected("Server-backed snapshot contains a projectile with an invalid effect.");
+		if (std::any_of(projected.begin(), projected.end(), [&](const auto &candidate) { return candidate.entityId == source.entity_id(); }))
+			return tl::make_unexpected("Server-backed snapshot contains duplicate projectile entity IDs.");
+		projected.push_back({
+			.entityId = source.entity_id(),
+			.sourceEntityId = source.source_entity_id(),
+			.targetEntityId = source.target_entity_id(),
+			.spellId = source.spell_id(),
+			.levelId = source.level_id(),
+			.positionX = source.position_x(),
+			.positionY = source.position_y(),
+			.targetX = source.target_x(),
+			.targetY = source.target_y(),
+			.damage = source.damage(),
+			.damageType = source.damage_type(),
+			.areaRadius = source.area_radius(),
+			.remainingTicks = source.remaining_ticks(),
 		});
 	}
 	std::sort(projected.begin(), projected.end(), [](const auto &left, const auto &right) { return left.entityId < right.entityId; });
@@ -161,6 +194,10 @@ void ApplyServerBackedEventBatch(Player &player, const protocol::EventBatch &eve
 	for (const auto &event : eventBatch.events()) {
 		if (event.has_damage() && event.damage().target_entity_id() == entityId) {
 			player.life.current = std::max(0, player.life.current - std::max(0, event.damage().amount()));
+			player.UpdateHitPointPercentage();
+		}
+		if (event.has_healing() && event.healing().target_entity_id() == entityId) {
+			player.life.current = std::min(player.life.maximum, player.life.current + std::max(0, event.healing().amount()));
 			player.UpdateHitPointPercentage();
 		}
 		if (event.has_experience() && event.experience().player_entity_id() == entityId)

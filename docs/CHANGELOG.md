@@ -27,6 +27,7 @@ All notable changes to this fork are documented below.
 - Resolve server-backed monster targets by authoritative cell rather than sorted native cursor index, preventing attacks and spells from addressing the wrong entity.
 - Add shared multi-level occupancy replay coverage and save restoration checks for entities that remain on their original level after portal transitions.
 - Synchronize compatible authoritative world items, monsters, and objects into legacy presentation pools, including safe creation and removal of server-owned entries.
+- Complete the Phase 4 Godot-start boundary with authoritative delayed projectiles, declarative object heal/damage/experience effects, healing events, native projectile projection, and a frozen protocol contract covering handshake, framing, retries, snapshots, events, and state hashes.
 - Fix CMake 4.x deferred dependency resolution for configuration keywords and link the MSVC Protobuf import target instead of a DLL path.
 
 ## 2026-07-29

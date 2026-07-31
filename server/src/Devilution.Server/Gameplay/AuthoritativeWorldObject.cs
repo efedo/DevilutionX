@@ -12,7 +12,9 @@ public sealed class AuthoritativeWorldObject
         int positionX,
         int positionY,
         bool activated = false,
-        uint questId = 0)
+        uint questId = 0,
+        AuthoritativeObjectEffectKind effectKind = AuthoritativeObjectEffectKind.None,
+        int effectAmount = 0)
     {
         if (entityId == 0 || objectId == 0)
             throw new ArgumentOutOfRangeException(nameof(entityId));
@@ -23,6 +25,10 @@ public sealed class AuthoritativeWorldObject
         PositionY = positionY;
         Activated = activated;
         QuestId = questId;
+        if (effectAmount < 0)
+            throw new ArgumentOutOfRangeException(nameof(effectAmount));
+        EffectKind = effectKind;
+        EffectAmount = effectAmount;
     }
 
     public uint EntityId { get; }
@@ -32,6 +38,8 @@ public sealed class AuthoritativeWorldObject
     public int PositionY { get; set; }
     public bool Activated { get; set; }
     public uint QuestId { get; set; }
+    public AuthoritativeObjectEffectKind EffectKind { get; set; }
+    public int EffectAmount { get; set; }
 }
 
 /** External object placement and identity definitions. */
@@ -47,9 +55,22 @@ public static class AuthoritativeWorldObjectCatalog
             row.RequiredInt32("position_x"),
             row.RequiredInt32("position_y"),
             row.OptionalInt32("activated") != 0,
-            row.OptionalUInt32("quest_id"))).ToArray();
+            row.OptionalUInt32("quest_id"),
+            ParseEffectKind(row),
+            row.OptionalInt32("effect_amount"))).ToArray();
+        if (objects.Any(@object => @object.EffectKind == AuthoritativeObjectEffectKind.None && @object.EffectAmount != 0))
+            throw new InvalidDataException($"Object table '{sourcePath}' assigns an amount to an object without an effect.");
         if (objects.Select(@object => @object.EntityId).Distinct().Count() != objects.Length)
             throw new InvalidDataException($"Object table '{sourcePath}' contains duplicate entity IDs.");
         return objects;
+    }
+
+    private static AuthoritativeObjectEffectKind ParseEffectKind(TsvRow row)
+    {
+        if (!row.TryGet("effect_kind", out var value) || string.IsNullOrWhiteSpace(value))
+            return AuthoritativeObjectEffectKind.None;
+        if (Enum.TryParse<AuthoritativeObjectEffectKind>(value, true, out var effectKind))
+            return effectKind;
+        throw new InvalidDataException($"Object row {row.LineNumber} contains an unknown effect kind '{value}'.");
     }
 }

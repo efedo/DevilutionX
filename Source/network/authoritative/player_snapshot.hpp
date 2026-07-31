@@ -93,6 +93,24 @@ struct ProjectedObjectSnapshot {
 	int32_t positionY = 0;
 	bool activated = false;
 	uint32_t questId = 0;
+	int32_t effectKind = 0;
+	int32_t effectAmount = 0;
+};
+
+struct ProjectedProjectileSnapshot {
+	uint32_t entityId = 0;
+	uint32_t sourceEntityId = 0;
+	uint32_t targetEntityId = 0;
+	uint32_t spellId = 0;
+	uint32_t levelId = 0;
+	int32_t positionX = 0;
+	int32_t positionY = 0;
+	int32_t targetX = 0;
+	int32_t targetY = 0;
+	int32_t damage = 0;
+	int32_t damageType = 0;
+	int32_t areaRadius = 0;
+	uint32_t remainingTicks = 0;
 };
 
 struct ProjectedPlayerSnapshot {
@@ -132,6 +150,8 @@ struct ProjectedPlayerSnapshot {
 [[nodiscard]] tl::expected<std::vector<ProjectedWorldItemSnapshot>, std::string> ProjectWorldItemSnapshots(
 	const ::devilution::protocol::v1::Snapshot &snapshot);
 [[nodiscard]] tl::expected<std::vector<ProjectedObjectSnapshot>, std::string> ProjectObjectSnapshots(
+	const ::devilution::protocol::v1::Snapshot &snapshot);
+[[nodiscard]] tl::expected<std::vector<ProjectedProjectileSnapshot>, std::string> ProjectProjectileSnapshots(
 	const ::devilution::protocol::v1::Snapshot &snapshot);
 
 /** Applies server-authored combat and experience events to the native projection before its snapshot arrives. */

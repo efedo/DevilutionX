@@ -1,4 +1,5 @@
 using Devilution.Protocol.V1;
+using Devilution.Server.Gameplay;
 using Devilution.Server.Snapshots;
 using Xunit;
 
@@ -180,6 +181,40 @@ public sealed class SnapshotStateHasherTests
         };
         var second = first.Clone();
         second.WorldItems[0].PositionX = 4;
+
+        Assert.NotEqual(SnapshotStateHasher.Compute(first), SnapshotStateHasher.Compute(second));
+    }
+
+    [Fact]
+    public void ProjectileProjectionChangesTheStateHashAndIgnoresInputOrder()
+    {
+        var first = new Snapshot {
+            Projectiles = {
+                new ProjectileSnapshot { EntityId = 2, SourceEntityId = 1, SpellId = 4, Damage = 6, RemainingTicks = 2 },
+                new ProjectileSnapshot { EntityId = 1, SourceEntityId = 1, SpellId = 4, Damage = 6, RemainingTicks = 1 },
+            },
+        };
+        var second = new Snapshot {
+            Projectiles = {
+                new ProjectileSnapshot { EntityId = 1, SourceEntityId = 1, SpellId = 4, Damage = 6, RemainingTicks = 1 },
+                new ProjectileSnapshot { EntityId = 2, SourceEntityId = 1, SpellId = 4, Damage = 6, RemainingTicks = 2 },
+            },
+        };
+
+        Assert.Equal(SnapshotStateHasher.Compute(first), SnapshotStateHasher.Compute(second));
+        second.Projectiles[0].PositionX = 3;
+        Assert.NotEqual(SnapshotStateHasher.Compute(first), SnapshotStateHasher.Compute(second));
+    }
+
+    [Fact]
+    public void ObjectEffectProjectionChangesTheStateHash()
+    {
+        var first = new Snapshot {
+            Objects = { new ObjectSnapshot { EntityId = 20, ObjectId = 4, Activated = true } },
+        };
+        var second = first.Clone();
+        second.Objects[0].EffectKind = (int)AuthoritativeObjectEffectKind.Heal;
+        second.Objects[0].EffectAmount = 10;
 
         Assert.NotEqual(SnapshotStateHasher.Compute(first), SnapshotStateHasher.Compute(second));
     }

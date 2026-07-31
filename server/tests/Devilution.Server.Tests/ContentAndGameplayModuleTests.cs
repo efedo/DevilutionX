@@ -53,6 +53,20 @@ public sealed class ContentAndGameplayModuleTests
     }
 
     [Fact]
+    public void WorldObjectCatalogValidatesDeclarativeEffects()
+    {
+        var objects = AuthoritativeWorldObjectCatalog.LoadTsv(
+            "objects.tsv",
+            "entity_id\tobject_id\tlevel_id\tposition_x\tposition_y\teffect_kind\teffect_amount\n20\t4\t2\t3\t5\tHeal\t10\n");
+
+        Assert.Equal(AuthoritativeObjectEffectKind.Heal, Assert.Single(objects).EffectKind);
+        Assert.Equal(10, objects[0].EffectAmount);
+        Assert.Throws<InvalidDataException>(() => AuthoritativeWorldObjectCatalog.LoadTsv(
+            "objects.tsv",
+            "entity_id\tobject_id\tlevel_id\tposition_x\tposition_y\teffect_kind\teffect_amount\n20\t4\t2\t3\t5\tUnknown\t10\n"));
+    }
+
+    [Fact]
     public void StoreServicePricingLoadsOverridesAndSpellStaffCosts()
     {
         var pricing = StoreServicePricing.LoadTsv("store_services.tsv", "key\tspell_id\tvalue\nsale_divisor\t\t5\nspell_staff_cost\t7\t12\n");

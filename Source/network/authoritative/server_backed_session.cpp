@@ -237,6 +237,10 @@ tl::expected<void, std::string> ServerBackedSession::ApplySnapshot(const protoco
 	if (!objects.has_value())
 		return tl::make_unexpected(objects.error());
 	objectState_ = std::move(*objects);
+	auto projectiles = ProjectProjectileSnapshots(snapshot);
+	if (!projectiles.has_value())
+		return tl::make_unexpected(projectiles.error());
+	projectileState_ = std::move(*projectiles);
 
 	vendorState_.SetEnabled(true);
 	vendorState_.SetConnected(true);

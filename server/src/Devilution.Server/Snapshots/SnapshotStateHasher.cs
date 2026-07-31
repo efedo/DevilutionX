@@ -137,6 +137,10 @@ public static class SnapshotStateHasher
                 hasher.AppendInt32(@object.PositionX);
                 hasher.AppendInt32(@object.PositionY);
                 hasher.AppendBool(@object.Activated);
+                if (@object.EffectKind != 0 || @object.EffectAmount != 0) {
+                    hasher.AppendInt32(@object.EffectKind);
+                    hasher.AppendInt32(@object.EffectAmount);
+                }
             }
         }
 
@@ -149,6 +153,26 @@ public static class SnapshotStateHasher
                 hasher.AppendUInt32(quest.Progress);
                 hasher.AppendUInt32(quest.RequiredProgress);
                 hasher.AppendBool(quest.Completed);
+            }
+        }
+
+        var projectiles = snapshot.Projectiles.OrderBy(projectile => projectile.EntityId).ToArray();
+        if (projectiles.Length > 0) {
+            hasher.AppendUInt64((ulong)projectiles.Length);
+            foreach (var projectile in projectiles) {
+                hasher.AppendUInt32(projectile.EntityId);
+                hasher.AppendUInt32(projectile.SourceEntityId);
+                hasher.AppendUInt32(projectile.TargetEntityId);
+                hasher.AppendUInt32(projectile.SpellId);
+                hasher.AppendUInt32(projectile.LevelId);
+                hasher.AppendInt32(projectile.PositionX);
+                hasher.AppendInt32(projectile.PositionY);
+                hasher.AppendInt32(projectile.TargetX);
+                hasher.AppendInt32(projectile.TargetY);
+                hasher.AppendInt32(projectile.Damage);
+                hasher.AppendInt32(projectile.DamageType);
+                hasher.AppendInt32(projectile.AreaRadius);
+                hasher.AppendUInt32(projectile.RemainingTicks);
             }
         }
 
