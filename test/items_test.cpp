@@ -122,5 +122,27 @@ TEST_F(ItemsTest, AllHellfireUniquesCanDrop)
 	GenerateAllUniques(true, 99);
 }
 
+TEST_F(ItemsTest, ShippedBaseDefinitionsMatchAuthoritativeCatalog)
+{
+	Item warrior = {};
+	SetRndSeed(0x12345678);
+	GetItemAttrs(warrior, IDI_WARRIOR, 1);
+	EXPECT_EQ(warrior._itype, ItemType::Sword);
+	EXPECT_EQ(warrior._iMinDam, 2);
+	EXPECT_EQ(warrior._iMaxDam, 6);
+	EXPECT_EQ(warrior._ivalue, 120);
+	EXPECT_EQ(warrior._iDurability, 24);
+	EXPECT_EQ(warrior._iMinStr, 18);
+
+	Item cleaver = {};
+	SetRndSeed(0x12345678);
+	GetItemAttrs(cleaver, IDI_CLEAVER, 1);
+	EXPECT_EQ(cleaver._itype, ItemType::Axe);
+	EXPECT_EQ(cleaver._iMinDam, 4);
+	EXPECT_EQ(cleaver._iMaxDam, 24);
+	EXPECT_EQ(cleaver._ivalue, 2000);
+	EXPECT_EQ(cleaver._iLoc, ILOC_TWOHAND);
+}
+
 } // namespace
 } // namespace devilution

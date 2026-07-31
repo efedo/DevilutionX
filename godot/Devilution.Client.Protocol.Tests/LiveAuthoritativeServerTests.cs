@@ -48,6 +48,39 @@ public sealed class LiveAuthoritativeServerTests
             $"Cast was {castAcknowledgement.Status}/{castAcknowledgement.RejectReason} at tick {castAcknowledgement.AppliedTick}; player was ({model.Snapshot!.Players.Single().PositionX},{model.Snapshot.Players.Single().PositionY}), target was ({monster.PositionX},{monster.PositionY}).");
     }
 
+    [Fact]
+    public async Task LiveBaseStoreUsesNormalizedShippedItemDefinitions()
+    {
+        using var server = await StartedServer.StartAsync(TestContext.Current.CancellationToken);
+        await using var client = new AuthoritativeClient(new ClientConnectionOptions(
+            "127.0.0.1",
+            server.Port,
+            "godot-store-parity-test",
+            "0.1.0",
+            server.ContentHash,
+            server.RulesetHash));
+
+        await client.ConnectAsync(TestContext.Current.CancellationToken);
+        var initial = await WaitForMessageAsync(client, message => message.Snapshot is not null);
+        var model = new AuthoritativeClientModel();
+        model.Apply(initial);
+        var sequence = client.Queue(new Command {
+            OpenStoreRequested = new OpenStoreRequested { StoreId = 1 },
+        }, client.SuggestedCommandTick(model.CurrentTick));
+        await client.PollAsync(TestContext.Current.CancellationToken);
+        var acknowledgement = await WaitForAcknowledgementAsync(client, sequence);
+        Assert.Equal(CommandStatus.Accepted, acknowledgement.Status);
+        var message = await WaitForMessageAsync(client, message => message.Snapshot?.ActiveStore?.StoreId == 1);
+        var stock = message.Snapshot!.ActiveStore!.Items;
+
+        Assert.Equal(2, stock.Count);
+        Assert.Equal(1, stock[0].State.ItemIndex);
+        Assert.Equal(4, stock[0].State.MinDamage);
+        Assert.Equal(8, stock[0].State.MaxDamage);
+        Assert.Equal(2, stock[1].State.ItemIndex);
+        Assert.Equal(5, stock[1].State.ArmorClass);
+    }
+
     private static async Task<AuthoritativeClientMessage> WaitForMessageAsync(
         AuthoritativeClient client,
         Func<AuthoritativeClientMessage, bool> predicate)

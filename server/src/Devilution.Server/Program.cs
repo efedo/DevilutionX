@@ -64,15 +64,18 @@ internal static class Program
         var itemCatalog = File.Exists(itemTablePath)
             ? AuthoritativeItemCatalog.LoadTsv(itemTablePath, await File.ReadAllTextAsync(itemTablePath), affixes)
             : null;
+        // The normalized catalog owns stable IDs used by stores, monsters, and
+        // protocol snapshots. Legacy itemdat remains a compatibility fallback;
+        // loading it here would replace those IDs with row-order IDs.
         var legacyItemTablePath = Path.Combine(contentRoot, "itemdat.tsv");
-        if (File.Exists(legacyItemTablePath))
+        if (itemCatalog is null && File.Exists(legacyItemTablePath))
             itemCatalog = AuthoritativeItemCatalog.LoadLegacyTsv(legacyItemTablePath, await File.ReadAllTextAsync(legacyItemTablePath), affixes);
         var uniqueTablePath = Path.Combine(contentRoot, "unique_items.tsv");
         var legacyUniqueTablePath = Path.Combine(contentRoot, "unique_itemdat.tsv");
-        var uniqueItems = itemCatalog is not null && File.Exists(legacyUniqueTablePath)
-            ? AuthoritativeUniqueItemCatalog.LoadLegacyTsv(legacyUniqueTablePath, await File.ReadAllTextAsync(legacyUniqueTablePath), itemCatalog)
-            : File.Exists(uniqueTablePath)
+        var uniqueItems = File.Exists(uniqueTablePath)
                 ? AuthoritativeUniqueItemCatalog.LoadTsv(uniqueTablePath, await File.ReadAllTextAsync(uniqueTablePath))
+                : itemCatalog is not null && File.Exists(legacyUniqueTablePath)
+                    ? AuthoritativeUniqueItemCatalog.LoadLegacyTsv(legacyUniqueTablePath, await File.ReadAllTextAsync(legacyUniqueTablePath), itemCatalog)
                 : null;
         if (itemCatalog is not null && uniqueItems is not null)
             itemCatalog.AttachUniqueCatalog(uniqueItems);
