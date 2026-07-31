@@ -15,6 +15,7 @@ public partial class HudPresentation : CanvasLayer
     private readonly Label store = new();
     private readonly Label dialog = new();
     private readonly Label commandFeedback = new();
+    private readonly Label diagnostics = new();
     private readonly ItemList storeItems = new();
     private readonly GridContainer inventoryGrid = new() { Columns = InventoryColumns };
     private readonly List<Button> inventoryCells = [];
@@ -30,6 +31,9 @@ public partial class HudPresentation : CanvasLayer
     private readonly Button advanceQuest = new() { Text = "Advance quest" };
     private readonly Button refillMana = new() { Text = "Refill mana" };
     private readonly Button clearEvents = new() { Text = "Clear events" };
+    private readonly CheckButton diagnosticsToggle = new() { Text = "Diagnostics (F3)" };
+    private readonly CheckButton highContrastToggle = new() { Text = "High contrast (F4)" };
+    private PanelContainer? sidePanel;
     private InventoryLayout inventoryLayout = InventoryLayout.Build(null, null, InventoryColumns, VisibleInventoryRows);
     private uint activeStoreId;
     private uint? selectedStoreSlot;
@@ -58,13 +62,14 @@ public partial class HudPresentation : CanvasLayer
         statusBox.AddChild(state);
         AddChild(statusPanel);
 
-        var sidePanel = new PanelContainer { Position = new Vector2(880, 16), Size = new Vector2(380, 680) };
+        sidePanel = new PanelContainer { Position = new Vector2(880, 16), Size = new Vector2(380, 680) };
         var scroll = new ScrollContainer();
         var sideBox = new VBoxContainer();
         sidePanel.AddChild(scroll);
         scroll.AddChild(sideBox);
         sideBox.AddChild(new Label { Text = "AUTHORITATIVE CLIENT" });
         sideBox.AddChild(commandFeedback);
+        sideBox.AddChild(diagnostics);
         sideBox.AddChild(inventory);
         sideBox.AddChild(inventoryGrid);
         sideBox.AddChild(new Label { Text = "Store stock" });
@@ -82,6 +87,8 @@ public partial class HudPresentation : CanvasLayer
         })
             controls.AddChild(button);
         sideBox.AddChild(controls);
+        sideBox.AddChild(diagnosticsToggle);
+        sideBox.AddChild(highContrastToggle);
         AddChild(sidePanel);
 
         for (var index = 0; index < InventoryColumns * VisibleInventoryRows; index++) {
@@ -116,18 +123,26 @@ public partial class HudPresentation : CanvasLayer
         };
         refillMana.Pressed += () => RefillManaRequested?.Invoke();
         clearEvents.Pressed += () => ClearEventsRequested?.Invoke();
+        diagnosticsToggle.Toggled += visible => diagnostics.Visible = visible;
+        highContrastToggle.Toggled += _ => ApplyAccessibility();
 
         status.Text = "Starting...";
         commandFeedback.Text = "Commands are sent to the authoritative server.";
         inventory.Text = "Inventory\nWaiting for authoritative snapshot";
         store.Text = "No active store";
         dialog.Text = "No interaction selected.";
+        diagnostics.Text = "Diagnostics disabled. Press F3 to show.";
+        diagnostics.Visible = false;
     }
 
     public void SetStatus(string value)
     {
         status.Text = value;
     }
+
+    public void ToggleDiagnostics() => diagnosticsToggle.ButtonPressed = !diagnosticsToggle.ButtonPressed;
+
+    public void ToggleHighContrast() => highContrastToggle.ButtonPressed = !highContrastToggle.ButtonPressed;
 
     public void Apply(AuthoritativeClientModel model, AuthoritativeClient? client, Task? connectionTask)
     {
@@ -146,6 +161,7 @@ public partial class HudPresentation : CanvasLayer
             : $"Tick {model.CurrentTick}   Level {player.LevelId}   Life {player.Life}/{player.LifeMaximum}   Mana {player.Mana}/{player.ManaMaximum}   Gold {player.Gold}   XP {player.Experience}";
 
         commandFeedback.Text = FormatCommandResult(model.LastCommandResult);
+        diagnostics.Text = FormatDiagnostics(model, client);
         inventory.Text = FormatInventory(player);
         ApplyInventoryGrid(player);
         ApplyStore(model.Snapshot?.ActiveStore);
@@ -168,6 +184,7 @@ public partial class HudPresentation : CanvasLayer
         advanceQuest.Disabled = !connected || availableQuestId is null;
         refillMana.Disabled = !connected;
         clearEvents.Disabled = model.RecentEvents.Count == 0;
+        ApplyAccessibility();
     }
 
     private void ApplyStore(StoreSnapshot? activeStore)
@@ -292,5 +309,23 @@ public partial class HudPresentation : CanvasLayer
         return result.Status == CommandStatus.Accepted
             ? $"Last command accepted at tick {result.AppliedTick}."
             : $"Last command: {result.Status} ({result.RejectReason}).";
+    }
+
+    private void ApplyAccessibility()
+    {
+        var color = highContrastToggle.ButtonPressed ? Colors.White : new Color("d5d5e5");
+        var muted = highContrastToggle.ButtonPressed ? Colors.White : new Color("b2b2c5");
+        foreach (var control in new Control[] { status, state, inventory, store, dialog, commandFeedback, diagnostics }) {
+            control.Modulate = control == diagnostics ? muted : color;
+            control.AddThemeFontSizeOverride("font_size", highContrastToggle.ButtonPressed ? 18 : 14);
+        }
+    }
+
+    private static string FormatDiagnostics(AuthoritativeClientModel model, AuthoritativeClient? client)
+    {
+        var snapshot = model.Snapshot;
+        return $"Tick {model.CurrentTick}  pending {client?.PendingCommandCount ?? 0}  RTT {client?.RetryTimeout.TotalMilliseconds ?? 0:0} ms\n"
+            + $"Player {model.PlayerEntityId}  entities: {snapshot?.Monsters.Count ?? 0} monsters, {snapshot?.WorldItems.Count ?? 0} items, {snapshot?.Projectiles.Count ?? 0} projectiles\n"
+            + $"Prediction {(model.IsCorrectingPosition ? "active" : "settled")}  events {model.RecentEvents.Count}";
     }
 }

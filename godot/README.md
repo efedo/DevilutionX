@@ -42,9 +42,17 @@ left-click casts spell 4, `O` opens Smith, `P` purchases the selected store
 item, `M` opens the Adria service, and `R` requests a mana refill. The HUD
 also exposes selectable store stock, a footprint-aware inventory grid,
 authoritative buy/sell/repair/recharge/identify/move actions, object and quest
-interaction buttons, command feedback, and event-log management. The world grid is loaded from
+interaction buttons, command feedback, event-log management, F3 diagnostics,
+and F4 high-contrast HUD text. Left-clicking the world shows a presentation-only
+cast target preview. Optional `res://assets/audio/damage.ogg`,
+`healing.ogg`, and `command_rejected.ogg` files enable event feedback sounds;
+missing files are silent. The world grid is loaded from
 `assets/levels/level_layouts.json`; it is presentation data and must remain
 consistent with the server's external level definitions.
+
+For a short automated launch, use `-Headless -QuitAfterSeconds 5` with the
+local harness. The target preview and HUD toggles never change authoritative
+gameplay state.
 
 When the Godot Mono editor is installed, open
 `godot/Devilution.Client/project.godot` and run the project. The current

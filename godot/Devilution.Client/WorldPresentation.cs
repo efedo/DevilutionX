@@ -15,6 +15,7 @@ public partial class WorldPresentation : Node2D
     private readonly LevelLayoutCatalog levels = new();
     private Snapshot? snapshot;
     private ClientPosition? predictedPlayerPosition;
+    private Vector2I? targetPreview;
     private LevelLayout currentLevel = LevelLayout.Empty;
 
     public void Apply(Snapshot? next, double delta, ClientPosition? predicted = null)
@@ -46,6 +47,12 @@ public partial class WorldPresentation : Node2D
             Mathf.FloorToInt((screenPosition.Y - OriginY) / TileSize));
     }
 
+    public void SetTargetPreview(Vector2I? target)
+    {
+        targetPreview = target;
+        QueueRedraw();
+    }
+
     public override void _Draw()
     {
         DrawGrid();
@@ -54,6 +61,7 @@ public partial class WorldPresentation : Node2D
 
         var player = snapshot.Players[0];
         var currentLevel = player.LevelId;
+        DrawTargetPreview();
         DrawPlayer(player, predictedPlayerPosition);
         foreach (var monster in snapshot.Monsters.Where(monster => IsVisible(monster.LevelId, currentLevel) && monster.Alive))
             DrawMonster(monster);
@@ -83,6 +91,21 @@ public partial class WorldPresentation : Node2D
             var y = cell / currentLevel.Width;
             DrawRect(new Rect2(OriginX + x * TileSize, OriginY + y * TileSize, TileSize, TileSize), new Color("202033"));
         }
+    }
+
+    private void DrawTargetPreview()
+    {
+        if (targetPreview is not { } target
+            || target.X < 0 || target.Y < 0
+            || target.X >= currentLevel.Width || target.Y >= currentLevel.Height)
+            return;
+
+        var rectangle = new Rect2(OriginX + target.X * TileSize, OriginY + target.Y * TileSize, TileSize, TileSize);
+        var color = new Color("f4d35e");
+        DrawRect(rectangle, new Color(color, 0.16f), true);
+        DrawRect(rectangle, color, false, 2);
+        DrawLine(rectangle.Position + new Vector2(6, TileSize / 2), rectangle.Position + new Vector2(TileSize - 6, TileSize / 2), color, 2);
+        DrawLine(rectangle.Position + new Vector2(TileSize / 2, 6), rectangle.Position + new Vector2(TileSize / 2, TileSize - 6), color, 2);
     }
 
     private void DrawPlayer(PlayerSnapshot player, ClientPosition? predicted)

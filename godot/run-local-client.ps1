@@ -2,7 +2,9 @@
 param(
     [string]$GodotExecutable,
     [int]$Port = 0,
-    [switch]$Headless
+    [switch]$Headless,
+    [ValidateRange(1, 3600)]
+    [int]$QuitAfterSeconds = 120
 )
 
 $ErrorActionPreference = 'Stop'
@@ -16,13 +18,18 @@ $stderrPath = Join-Path $captureRoot 'server.stderr.log'
 New-Item -ItemType Directory -Path $captureRoot | Out-Null
 
 if ([string]::IsNullOrWhiteSpace($GodotExecutable)) {
-    $godotCommand = @(
-        Get-Command 'Godot_v*-stable_mono_win64.exe' -CommandType Application -ErrorAction SilentlyContinue
-        Get-Command 'Godot_v*-stable_mono_win64_console.exe' -CommandType Application -ErrorAction SilentlyContinue
-    ) | Select-Object -First 1
-    if ($null -eq $godotCommand)
-        { throw 'A Godot Mono executable was not found on PATH. Pass -GodotExecutable explicitly.' }
-    $GodotExecutable = $godotCommand.Source
+    $wingetRoot = Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Packages\GodotEngine.GodotEngine.Mono_Microsoft.Winget.Source_8wekyb3d8bbwe'
+    $godotCandidates = @(
+        (Get-Command 'Godot_v*-stable_mono_win64_console.exe' -CommandType Application -ErrorAction SilentlyContinue).Source
+        (Get-Command 'Godot_v*-stable_mono_win64.exe' -CommandType Application -ErrorAction SilentlyContinue).Source
+        if (Test-Path -LiteralPath $wingetRoot) {
+            (Get-ChildItem -LiteralPath $wingetRoot -Filter 'Godot_v*-stable_mono_win64_console.exe' -File -Recurse -ErrorAction SilentlyContinue).FullName
+            (Get-ChildItem -LiteralPath $wingetRoot -Filter 'Godot_v*-stable_mono_win64.exe' -File -Recurse -ErrorAction SilentlyContinue).FullName
+        }
+    ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -First 1
+    if ($null -eq $godotCandidates)
+        { throw 'A Godot Mono executable was not found on PATH or the standard WinGet package directory. Pass -GodotExecutable explicitly.' }
+    $GodotExecutable = $godotCandidates
 }
 
 $serverStartTime = Get-Date
@@ -55,7 +62,7 @@ try {
     # in content_manifest_hash for compatibility with the native client.
     $env:DEVILUTION_CONTENT_HASH = $rulesetHash
     $env:DEVILUTION_RULESET_HASH = $rulesetHash
-    $godotArguments = if ($Headless) { "--headless --path `"$clientProject`" --quit-after 120" } else { "--path `"$clientProject`"" }
+    $godotArguments = if ($Headless) { "--headless --path `"$clientProject`" --quit-after $QuitAfterSeconds" } else { "--path `"$clientProject`"" }
     $godotProcess = Start-Process -FilePath $GodotExecutable -ArgumentList $godotArguments -WorkingDirectory $repositoryRoot -PassThru -Wait
     if ($godotProcess.ExitCode -ne 0)
         { throw "Godot exited with code $($godotProcess.ExitCode)." }

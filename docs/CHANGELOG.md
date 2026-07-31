@@ -11,6 +11,7 @@ All notable changes to this fork are documented below.
 - Add Godot asset-backed level layouts and authoritative HUD controls for store services, inventory movement, mana refill, and event-log management.
 - Make the Godot harness discover versioned WinGet Mono installations from PATH and document the explicit headless verification workaround.
 - Complete the Godot protocol-boundary integration with selectable store stock, footprint-aware inventory moves, selected-item services, object/quest dialog interactions, command feedback, and tested C++-compatible headless server launches.
+- Add adjacent Godot client hardening: F3 diagnostics, F4 high-contrast HUD text, optional event audio hooks, cast target previews, and configurable headless run duration.
 
 ## 2026-07-30
 

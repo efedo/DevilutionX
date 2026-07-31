@@ -10,6 +10,7 @@ public partial class Main : Node2D
     private AuthoritativeClient? client;
     private WorldPresentation? world;
     private HudPresentation? hud;
+    private PresentationFeedback? feedback;
     private Task? connectionTask;
     private Task? pollTask;
 
@@ -19,6 +20,8 @@ public partial class Main : Node2D
         AddChild(world);
         hud = new HudPresentation();
         AddChild(hud);
+        feedback = new PresentationFeedback();
+        AddChild(feedback);
         hud.OpenStoreRequested += storeId => QueueIfConnected(new Command { OpenStoreRequested = new OpenStoreRequested { StoreId = storeId } });
         hud.PurchaseRequested += (storeId, storeSlot) => QueueIfConnected(new Command { PurchaseRequested = new PurchaseRequested { StoreId = storeId, StoreSlot = storeSlot } });
         hud.SellItemRequested += inventoryIndex => QueueIfConnected(new Command { SellItemRequested = new SellItemRequested { InventoryIndex = inventoryIndex } });
@@ -52,10 +55,24 @@ public partial class Main : Node2D
 
         world?.Apply(model.Snapshot, delta, model.PredictedPlayerPosition);
         hud?.Apply(model, client, connectionTask);
+        feedback?.Apply(model);
     }
 
     public override void _UnhandledInput(InputEvent @event)
     {
+        if (@event is InputEventKey toggle && toggle.Pressed && !toggle.Echo) {
+            if (toggle.Keycode == Key.F3) {
+                hud?.ToggleDiagnostics();
+                GetViewport().SetInputAsHandled();
+                return;
+            }
+            if (toggle.Keycode == Key.F4) {
+                hud?.ToggleHighContrast();
+                GetViewport().SetInputAsHandled();
+                return;
+            }
+        }
+
         if (@event is InputEventKey key && key.Pressed && !key.Echo && client?.IsConnected == true) {
             var direction = key.Keycode switch {
                 Key.Up or Key.W => Vector2I.Up,
@@ -79,6 +96,7 @@ public partial class Main : Node2D
 
         if (@event is InputEventMouseButton mouse && mouse.Pressed && mouse.ButtonIndex == MouseButton.Left && client?.IsConnected == true) {
             var target = world?.ScreenToTile(mouse.Position) ?? Vector2I.Zero;
+            world?.SetTargetPreview(target);
             Queue(new Command {
                 CastRequested = new CastRequested {
                     SpellId = 4,

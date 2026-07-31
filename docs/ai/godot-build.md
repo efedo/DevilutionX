@@ -23,6 +23,9 @@ The local authoritative harness accepts the discovered path explicitly:
 powershell -ExecutionPolicy Bypass -File godot/run-local-client.ps1 -Headless -GodotExecutable $godot
 ```
 
-`godot/run-local-client.ps1` now searches PATH for any versioned Godot Mono
-binary, preferring the editor executable and falling back to the console
-executable.
+`godot/run-local-client.ps1` searches PATH for any versioned Godot Mono binary,
+preferring the console executable and falling back to the editor executable.
+If a nested PowerShell process does not inherit the interactive PATH entry, it
+also searches the standard per-user WinGet package directory. This fallback is
+needed for the common `powershell -File godot/run-local-client.ps1` invocation
+in this environment.

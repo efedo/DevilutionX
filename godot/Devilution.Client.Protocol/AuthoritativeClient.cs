@@ -45,6 +45,15 @@ public sealed class AuthoritativeClient : IAsyncDisposable
 
     public bool IsConnected => stream is not null && tcpClient?.Connected == true;
 
+    public int PendingCommandCount
+    {
+        get
+        {
+            lock (pendingLock)
+                return pending.Count;
+        }
+    }
+
     public TimeSpan RetryTimeout => TimeSpan.FromMilliseconds(Math.Clamp(
         roundTripMilliseconds * 4,
         options.MinimumRetryTimeout.TotalMilliseconds,

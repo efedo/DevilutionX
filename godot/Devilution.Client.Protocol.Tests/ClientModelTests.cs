@@ -69,4 +69,16 @@ public sealed class ClientModelTests
         Assert.Equal(2, layout.Anchors[1]);
         Assert.Equal(new[] { 0, 0, 1, -1, 0, 0, -1, -1, -1, -1, -1, -1 }, layout.Occupants);
     }
+
+    [Fact]
+    public async Task CountsQueuedCommandsBeforeTransportSend()
+    {
+        await using var client = new AuthoritativeClient(new ClientConnectionOptions("127.0.0.1", 6113, "test", "0.1.0", "test-hash"));
+
+        Assert.Equal(0, client.PendingCommandCount);
+        client.Queue(new Command { RefillManaRequested = new RefillManaRequested() }, 5);
+        Assert.Equal(1, client.PendingCommandCount);
+
+        Assert.Equal(1, client.PendingCommandCount);
+    }
 }
