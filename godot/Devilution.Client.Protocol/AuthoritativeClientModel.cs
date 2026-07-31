@@ -12,6 +12,8 @@ public sealed class AuthoritativeClientModel
 
     public string? LastError { get; private set; }
 
+    public CommandResult? LastCommandResult { get; private set; }
+
     public IReadOnlyList<GameEvent> RecentEvents => recentEvents;
 
     public ulong CurrentTick => Snapshot?.Tick ?? 0;
@@ -42,6 +44,8 @@ public sealed class AuthoritativeClientModel
             LastError = message.Error.Detail;
 
         if (message.Acknowledgement is not null) {
+            if (message.Acknowledgement.Results.Count > 0)
+                LastCommandResult = message.Acknowledgement.Results[^1].Clone();
             foreach (var result in message.Acknowledgement.Results)
                 predictedMoves.Remove(result.ClientSequence);
             RebuildPredictedPosition();

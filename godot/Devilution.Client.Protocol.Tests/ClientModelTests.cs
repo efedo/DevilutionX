@@ -35,4 +35,38 @@ public sealed class ClientModelTests
 
         Assert.Throws<InvalidDataException>(() => model.Apply(new AuthoritativeClientMessage(Snapshot: new Snapshot())));
     }
+
+    [Fact]
+    public void KeepsTheLatestCommandResultForPresentationFeedback()
+    {
+        var model = new AuthoritativeClientModel();
+        model.Apply(new AuthoritativeClientMessage(
+            Acknowledgement: new CommandAck {
+                Results = {
+                    new CommandResult {
+                        ClientSequence = 4,
+                        Status = CommandStatus.Accepted,
+                        AppliedTick = 22,
+                    },
+                },
+            }));
+
+        Assert.NotNull(model.LastCommandResult);
+        Assert.Equal(4UL, model.LastCommandResult!.ClientSequence);
+        Assert.Equal(22UL, model.LastCommandResult.AppliedTick);
+    }
+
+    [Fact]
+    public void ProjectsMultiCellInventoryItemsAndFindsFallbackAnchors()
+    {
+        var items = new List<ItemSnapshot> {
+            new() { State = new ItemStateSnapshot { InventoryWidth = 2, InventoryHeight = 2 } },
+            new() { State = new ItemStateSnapshot { InventoryWidth = 1, InventoryHeight = 1 } },
+        };
+        var layout = InventoryLayout.Build(items, new[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 4, 3);
+
+        Assert.Equal(0, layout.Anchors[0]);
+        Assert.Equal(2, layout.Anchors[1]);
+        Assert.Equal(new[] { 0, 0, 1, -1, 0, 0, -1, -1, -1, -1, -1, -1 }, layout.Occupants);
+    }
 }

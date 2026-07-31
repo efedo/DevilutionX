@@ -319,6 +319,58 @@ TEST(ReplayFixture, ExecutesTransactionTransitionsAndMatchesCSharpCheckpoints)
 	EXPECT_EQ(result.transitions.back().stateSha256, fixture.checkpoints.back().stateSha256);
 }
 
+TEST(ReplayFixture, ExecutesBaseContentPurchaseAndSaleAgainstCSharpCheckpoints)
+{
+	std::ifstream file("test/fixtures/replay/stores/base-content-purchase.json");
+	ASSERT_TRUE(file.good());
+	const std::string json((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+	ReplayFixture fixture;
+	std::string error;
+	ASSERT_TRUE(ParseReplayFixture(json, fixture, error)) << error;
+
+	ReplayFixtureExecutionState state;
+	state.life = fixture.initialState.life;
+	state.mana = fixture.initialState.mana;
+	state.manaMaximum = fixture.initialState.manaMaximum;
+	state.lifeMaximum = fixture.initialState.life;
+	state.characterLevel = fixture.initialState.characterLevel;
+	state.gold = fixture.initialState.gold;
+	state.experience = fixture.initialState.experience;
+	ReplayFixtureItemState itemState;
+	itemState.createInfo = 42;
+	itemState.itemType = 1;
+	itemState.value = 75;
+	itemState.identifiedValue = 75;
+	itemState.identified = true;
+	itemState.itemIndex = 1;
+	itemState.minDamage = 4;
+	itemState.maxDamage = 8;
+	itemState.durability = 20;
+	itemState.maxDurability = 20;
+	state.activeStoreItems.push_back({ 0, 42, 75, itemState });
+	ReplayFixtureItemState armorState;
+	armorState.createInfo = 43;
+	armorState.itemType = 1;
+	armorState.value = 25;
+	armorState.identifiedValue = 25;
+	armorState.identified = true;
+	armorState.itemIndex = 2;
+	armorState.armorClass = 5;
+	armorState.durability = 20;
+	armorState.maxDurability = 20;
+	state.activeStoreItems.push_back({ 1, 43, 25, armorState });
+
+	ReplayFixtureExecutionResult result;
+	ASSERT_TRUE(ExecuteReplayFixture(fixture, state, result, error)) << error;
+	ASSERT_EQ(result.transitions.size(), 3U);
+	EXPECT_TRUE(std::all_of(result.transitions.begin(), result.transitions.end(), [](const auto &transition) {
+		return transition.accepted;
+	}));
+	EXPECT_EQ(state.gold, 43U);
+	for (size_t index = 0; index < result.transitions.size(); ++index)
+		EXPECT_EQ(result.transitions[index].stateSha256, fixture.checkpoints[index].stateSha256);
+}
+
 TEST(ReplayFixture, ExecutesGameplayTransitionsAndMatchesCSharpCheckpoints)
 {
 	std::ifstream file("test/fixtures/replay/gameplay-movement-combat.json");

@@ -19,6 +19,17 @@ public partial class Main : Node2D
         AddChild(world);
         hud = new HudPresentation();
         AddChild(hud);
+        hud.OpenStoreRequested += storeId => QueueIfConnected(new Command { OpenStoreRequested = new OpenStoreRequested { StoreId = storeId } });
+        hud.PurchaseRequested += (storeId, storeSlot) => QueueIfConnected(new Command { PurchaseRequested = new PurchaseRequested { StoreId = storeId, StoreSlot = storeSlot } });
+        hud.SellItemRequested += inventoryIndex => QueueIfConnected(new Command { SellItemRequested = new SellItemRequested { InventoryIndex = inventoryIndex } });
+        hud.RepairItemRequested += inventoryIndex => QueueIfConnected(new Command { RepairItemRequested = new RepairItemRequested { InventoryIndex = inventoryIndex } });
+        hud.RechargeItemRequested += inventoryIndex => QueueIfConnected(new Command { RechargeItemRequested = new RechargeItemRequested { InventoryIndex = inventoryIndex } });
+        hud.IdentifyItemRequested += inventoryIndex => QueueIfConnected(new Command { IdentifyItemRequested = new IdentifyItemRequested { InventoryIndex = inventoryIndex } });
+        hud.MoveInventoryItemRequested += (inventoryIndex, targetCell) => QueueIfConnected(new Command { MoveInventoryItemRequested = new MoveInventoryItemRequested { InventoryIndex = inventoryIndex, TargetCell = targetCell } });
+        hud.OperateObjectRequested += entityId => QueueIfConnected(new Command { OperateObjectRequested = new OperateObjectRequested { ObjectEntityId = entityId } });
+        hud.AdvanceQuestRequested += questId => QueueIfConnected(new Command { AdvanceQuestRequested = new AdvanceQuestRequested { QuestId = questId } });
+        hud.RefillManaRequested += () => QueueIfConnected(new Command { RefillManaRequested = new RefillManaRequested() });
+        hud.ClearEventsRequested += model.ClearRecentEvents;
         client = new AuthoritativeClient(ClientConnectionOptions.FromEnvironment());
         connectionTask = ConnectAsync();
         hud.SetStatus("Connecting to authoritative server...");
@@ -63,7 +74,7 @@ public partial class Main : Node2D
             if (key.Keycode == Key.M)
                 Queue(new Command { OpenStoreRequested = new OpenStoreRequested { StoreId = 10 } });
             if (key.Keycode == Key.R)
-                Queue(new Command { RefillManaRequested = new RefillManaRequested() });
+                QueueIfConnected(new Command { RefillManaRequested = new RefillManaRequested() });
         }
 
         if (@event is InputEventMouseButton mouse && mouse.Pressed && mouse.ButtonIndex == MouseButton.Left && client?.IsConnected == true) {
@@ -101,5 +112,11 @@ public partial class Main : Node2D
         var sequence = client!.Queue(command, client.SuggestedCommandTick(model.CurrentTick));
         if (predictedDirection is { } direction)
             model.TrackPredictedMove(sequence, direction.X, direction.Y);
+    }
+
+    private void QueueIfConnected(Command command)
+    {
+        if (client?.IsConnected == true)
+            Queue(command);
     }
 }

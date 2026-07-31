@@ -16,9 +16,12 @@ $stderrPath = Join-Path $captureRoot 'server.stderr.log'
 New-Item -ItemType Directory -Path $captureRoot | Out-Null
 
 if ([string]::IsNullOrWhiteSpace($GodotExecutable)) {
-    $godotCommand = Get-Command 'Godot_v4.7.1-stable_mono_win64.exe' -ErrorAction SilentlyContinue
+    $godotCommand = @(
+        Get-Command 'Godot_v*-stable_mono_win64.exe' -CommandType Application -ErrorAction SilentlyContinue
+        Get-Command 'Godot_v*-stable_mono_win64_console.exe' -CommandType Application -ErrorAction SilentlyContinue
+    ) | Select-Object -First 1
     if ($null -eq $godotCommand)
-        { throw 'Godot 4.7.1 Mono was not found. Pass -GodotExecutable explicitly.' }
+        { throw 'A Godot Mono executable was not found on PATH. Pass -GodotExecutable explicitly.' }
     $GodotExecutable = $godotCommand.Source
 }
 

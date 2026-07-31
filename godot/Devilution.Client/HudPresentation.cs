@@ -4,37 +4,124 @@ using Godot;
 
 namespace Devilution.Client;
 
-/** Authoritative status, inventory, store, and event-dialog presentation. */
+/** Data-driven authoritative inventory, store, interaction, and event UI. */
 public partial class HudPresentation : CanvasLayer
 {
+    private const int InventoryColumns = 10;
+    private const int VisibleInventoryRows = 4;
     private readonly Label status = new();
     private readonly Label state = new();
     private readonly Label inventory = new();
     private readonly Label store = new();
     private readonly Label dialog = new();
+    private readonly Label commandFeedback = new();
+    private readonly ItemList storeItems = new();
+    private readonly GridContainer inventoryGrid = new() { Columns = InventoryColumns };
+    private readonly List<Button> inventoryCells = [];
+    private readonly List<uint> storeSlots = [];
+    private readonly Button openSmith = new() { Text = "Open Smith" };
+    private readonly Button openAdria = new() { Text = "Open Adria" };
+    private readonly Button buySelected = new() { Text = "Buy selected" };
+    private readonly Button sellSelected = new() { Text = "Sell selected" };
+    private readonly Button repairSelected = new() { Text = "Repair selected" };
+    private readonly Button rechargeSelected = new() { Text = "Recharge selected" };
+    private readonly Button identifySelected = new() { Text = "Identify selected" };
+    private readonly Button interactObject = new() { Text = "Interact" };
+    private readonly Button advanceQuest = new() { Text = "Advance quest" };
+    private readonly Button refillMana = new() { Text = "Refill mana" };
+    private readonly Button clearEvents = new() { Text = "Clear events" };
+    private InventoryLayout inventoryLayout = InventoryLayout.Build(null, null, InventoryColumns, VisibleInventoryRows);
+    private uint activeStoreId;
+    private uint? selectedStoreSlot;
+    private uint? availableObjectEntityId;
+    private uint? availableQuestId;
+    private int selectedInventoryIndex = -1;
+
+    public event Action<uint>? OpenStoreRequested;
+    public event Action<uint, uint>? PurchaseRequested;
+    public event Action<uint>? SellItemRequested;
+    public event Action<uint>? RepairItemRequested;
+    public event Action<uint>? RechargeItemRequested;
+    public event Action<uint>? IdentifyItemRequested;
+    public event Action<uint, uint>? MoveInventoryItemRequested;
+    public event Action<uint>? OperateObjectRequested;
+    public event Action<uint>? AdvanceQuestRequested;
+    public event Action? RefillManaRequested;
+    public event Action? ClearEventsRequested;
 
     public override void _Ready()
     {
-        var statusPanel = new PanelContainer { Position = new Vector2(16, 16), Size = new Vector2(520, 100) };
+        var statusPanel = new PanelContainer { Position = new Vector2(16, 16), Size = new Vector2(760, 100) };
         var statusBox = new VBoxContainer();
         statusPanel.AddChild(statusBox);
         statusBox.AddChild(status);
         statusBox.AddChild(state);
         AddChild(statusPanel);
 
-        var sidePanel = new PanelContainer { Position = new Vector2(880, 16), Size = new Vector2(380, 660) };
+        var sidePanel = new PanelContainer { Position = new Vector2(880, 16), Size = new Vector2(380, 680) };
+        var scroll = new ScrollContainer();
         var sideBox = new VBoxContainer();
-        sidePanel.AddChild(sideBox);
+        sidePanel.AddChild(scroll);
+        scroll.AddChild(sideBox);
         sideBox.AddChild(new Label { Text = "AUTHORITATIVE CLIENT" });
+        sideBox.AddChild(commandFeedback);
         sideBox.AddChild(inventory);
+        sideBox.AddChild(inventoryGrid);
+        sideBox.AddChild(new Label { Text = "Store stock" });
+        storeItems.CustomMinimumSize = new Vector2(340, 110);
+        sideBox.AddChild(storeItems);
         sideBox.AddChild(store);
+        sideBox.AddChild(new Label { Text = "Dialog / world interactions" });
         sideBox.AddChild(dialog);
+
+        var controls = new GridContainer { Columns = 2 };
+        foreach (var button in new Control[] {
+            openSmith, openAdria, buySelected, sellSelected, repairSelected,
+            rechargeSelected, identifySelected, interactObject, advanceQuest,
+            refillMana, clearEvents,
+        })
+            controls.AddChild(button);
+        sideBox.AddChild(controls);
         AddChild(sidePanel);
 
+        for (var index = 0; index < InventoryColumns * VisibleInventoryRows; index++) {
+            var cell = new Button {
+                CustomMinimumSize = new Vector2(32, 32),
+                Text = "·",
+            };
+            var cellIndex = index;
+            cell.Pressed += () => SelectOrMoveInventoryItem(cellIndex);
+            inventoryCells.Add(cell);
+            inventoryGrid.AddChild(cell);
+        }
+
+        storeItems.ItemSelected += index => {
+            var itemIndex = checked((int)index);
+            selectedStoreSlot = itemIndex >= 0 && itemIndex < storeSlots.Count ? storeSlots[itemIndex] : null;
+        };
+        openSmith.Pressed += () => OpenStoreRequested?.Invoke(1);
+        openAdria.Pressed += () => OpenStoreRequested?.Invoke(10);
+        buySelected.Pressed += BuySelected;
+        sellSelected.Pressed += () => InvokeInventoryAction(SellItemRequested);
+        repairSelected.Pressed += () => InvokeInventoryAction(RepairItemRequested);
+        rechargeSelected.Pressed += () => InvokeInventoryAction(RechargeItemRequested);
+        identifySelected.Pressed += () => InvokeInventoryAction(IdentifyItemRequested);
+        interactObject.Pressed += () => {
+            if (availableObjectEntityId is { } entityId)
+                OperateObjectRequested?.Invoke(entityId);
+        };
+        advanceQuest.Pressed += () => {
+            if (availableQuestId is { } questId)
+                AdvanceQuestRequested?.Invoke(questId);
+        };
+        refillMana.Pressed += () => RefillManaRequested?.Invoke();
+        clearEvents.Pressed += () => ClearEventsRequested?.Invoke();
+
         status.Text = "Starting...";
+        commandFeedback.Text = "Commands are sent to the authoritative server.";
         inventory.Text = "Inventory\nWaiting for authoritative snapshot";
-        store.Text = "Store\nNo active store";
-        dialog.Text = "Events\nNone";
+        store.Text = "No active store";
+        dialog.Text = "No interaction selected.";
     }
 
     public void SetStatus(string value)
@@ -52,13 +139,109 @@ public partial class HudPresentation : CanvasLayer
             status.Text = connectionTask.Exception?.GetBaseException().Message ?? "Connection failed";
 
         var player = model.Snapshot?.Players.SingleOrDefault();
+        if (player is null || selectedInventoryIndex >= player.Inventory.Count)
+            selectedInventoryIndex = -1;
         state.Text = player is null
             ? "Waiting for authoritative snapshot"
             : $"Tick {model.CurrentTick}   Level {player.LevelId}   Life {player.Life}/{player.LifeMaximum}   Mana {player.Mana}/{player.ManaMaximum}   Gold {player.Gold}   XP {player.Experience}";
 
+        commandFeedback.Text = FormatCommandResult(model.LastCommandResult);
         inventory.Text = FormatInventory(player);
-        store.Text = FormatStore(model.Snapshot?.ActiveStore);
-        dialog.Text = FormatEvents(model.RecentEvents);
+        ApplyInventoryGrid(player);
+        ApplyStore(model.Snapshot?.ActiveStore);
+        dialog.Text = FormatDialog(model.Snapshot, model.RecentEvents);
+        availableObjectEntityId = model.Snapshot?.Objects.FirstOrDefault(@object => !@object.Activated)?.EntityId;
+        availableQuestId = model.Snapshot?.Quests.FirstOrDefault(quest => !quest.Completed)?.QuestId;
+
+        var connected = client?.IsConnected == true;
+        var activeStore = model.Snapshot?.ActiveStore;
+        var hasInventory = player is not null && player.Inventory.Count > 0;
+        var hasSelectedInventory = hasInventory && selectedInventoryIndex >= 0 && selectedInventoryIndex < player!.Inventory.Count;
+        openSmith.Disabled = !connected;
+        openAdria.Disabled = !connected;
+        buySelected.Disabled = !connected || activeStore is null || selectedStoreSlot is null;
+        sellSelected.Disabled = !connected || !hasSelectedInventory;
+        repairSelected.Disabled = !connected || !hasSelectedInventory;
+        rechargeSelected.Disabled = !connected || !hasSelectedInventory;
+        identifySelected.Disabled = !connected || !hasSelectedInventory;
+        interactObject.Disabled = !connected || availableObjectEntityId is null;
+        advanceQuest.Disabled = !connected || availableQuestId is null;
+        refillMana.Disabled = !connected;
+        clearEvents.Disabled = model.RecentEvents.Count == 0;
+    }
+
+    private void ApplyStore(StoreSnapshot? activeStore)
+    {
+        var nextStoreId = activeStore?.StoreId ?? 0;
+        if (nextStoreId != activeStoreId)
+            selectedStoreSlot = null;
+        activeStoreId = nextStoreId;
+        store.Text = activeStore is null || activeStore.StoreId == 0
+            ? "No active store"
+            : $"Store {activeStore.StoreId}: select stock above";
+
+        storeSlots.Clear();
+        storeItems.Clear();
+        if (activeStore is null)
+            return;
+        foreach (var item in activeStore.Items.OrderBy(item => item.StoreSlot)) {
+            storeSlots.Add(item.StoreSlot);
+            storeItems.AddItem(FormatStoreItem(item));
+        }
+        if (selectedStoreSlot is { } slot) {
+            var selectedIndex = storeSlots.IndexOf(slot);
+            if (selectedIndex < 0)
+                selectedStoreSlot = null;
+            else
+                storeItems.Select(selectedIndex, false);
+        }
+    }
+
+    private void ApplyInventoryGrid(PlayerSnapshot? player)
+    {
+        inventoryLayout = InventoryLayout.Build(player?.Inventory, player?.InventoryGrid, InventoryColumns, VisibleInventoryRows);
+
+        for (var cellIndex = 0; cellIndex < inventoryCells.Count; cellIndex++) {
+            var occupant = inventoryLayout.Occupants[cellIndex];
+            var anchor = occupant >= 0 && occupant < inventoryLayout.Anchors.Count ? inventoryLayout.Anchors[occupant] : -1;
+            var cell = inventoryCells[cellIndex];
+            cell.Text = occupant < 0 ? "·" : anchor == cellIndex
+                ? selectedInventoryIndex == occupant ? $"[{occupant + 1}]" : $"{occupant + 1}"
+                : "·";
+            cell.TooltipText = occupant >= 0 && player is not null && occupant < player.Inventory.Count
+                ? DescribeItem(player.Inventory[occupant].State)
+                : "Empty inventory cell. Select an item, then choose a destination.";
+            cell.Disabled = player is null;
+        }
+    }
+
+    private void SelectOrMoveInventoryItem(int cellIndex)
+    {
+        var occupant = inventoryLayout.Occupants[cellIndex];
+        if (occupant >= 0) {
+            selectedInventoryIndex = occupant;
+            return;
+        }
+        if (selectedInventoryIndex >= 0)
+            MoveInventoryItemRequested?.Invoke(checked((uint)selectedInventoryIndex), checked((uint)cellIndex));
+    }
+
+    private void BuySelected()
+    {
+        if (activeStoreId != 0 && selectedStoreSlot is { } slot)
+            PurchaseRequested?.Invoke(activeStoreId, slot);
+    }
+
+    private void InvokeInventoryAction(Action<uint>? action)
+    {
+        if (selectedInventoryIndex >= 0)
+            action?.Invoke(checked((uint)selectedInventoryIndex));
+    }
+
+    private void AdvanceFirstQuest()
+    {
+        if (availableQuestId is { } questId)
+            AdvanceQuestRequested?.Invoke(questId);
     }
 
     private static string FormatInventory(PlayerSnapshot? player)
@@ -66,43 +249,48 @@ public partial class HudPresentation : CanvasLayer
         if (player is null)
             return "Inventory\nWaiting for authoritative snapshot";
         if (player.Inventory.Count == 0)
-            return "Inventory\n(empty)";
-
-        var lines = new List<string> { $"Inventory ({player.Inventory.Count})" };
-        for (var index = 0; index < player.Inventory.Count; index++) {
-            var item = player.Inventory[index];
-            lines.Add($"[{index}] seed {item.ItemSeed} value {item.State.Value} " +
-                $"{item.State.InventoryWidth}x{item.State.InventoryHeight}");
-        }
-        return string.Join("\n", lines);
+            return "Inventory\n(empty)\nClick an occupied cell after an item arrives.";
+        return $"Inventory ({player.Inventory.Count})\nClick an item to select it; click an empty cell to request a move.";
     }
 
-    private static string FormatStore(StoreSnapshot? activeStore)
+    private static string FormatStoreItem(StoreItemSnapshot item)
     {
-        if (activeStore is null || activeStore.StoreId == 0)
-            return "Store\nNo active store";
-        if (activeStore.Items.Count == 0)
-            return $"Store {activeStore.StoreId}\n(empty)";
-
-        var lines = new List<string> { $"Store {activeStore.StoreId}" };
-        lines.AddRange(activeStore.Items.Select(item => $"slot {item.StoreSlot}: seed {item.ItemSeed} price {item.Price}"));
-        return string.Join("\n", lines);
+        return $"slot {item.StoreSlot}  {DescribeItem(item.State)}  price {item.Price}";
     }
 
-    private static string FormatEvents(IReadOnlyList<GameEvent> events)
+    private static string DescribeItem(ItemStateSnapshot? state)
     {
-        if (events.Count == 0)
-            return "Events\nNone";
+        if (state is null)
+            return "unknown item";
+        var details = state.ItemType switch {
+            1 => state.MinDamage > 0 ? $"weapon {state.MinDamage}-{state.MaxDamage}" : $"armor {state.ArmorClass}",
+            _ => $"item type {state.ItemType}",
+        };
+        return $"{details}, value {state.Value}, footprint {Math.Max(1, state.InventoryWidth)}x{Math.Max(1, state.InventoryHeight)}";
+    }
 
-        var lines = new List<string> { "Events" };
-        foreach (var @event in events.TakeLast(5)) {
-            lines.Add(@event.EventCase switch {
-                GameEvent.EventOneofCase.Damage => $"Damage { @event.Damage.Amount } -> entity {@event.Damage.TargetEntityId}",
-                GameEvent.EventOneofCase.Experience => $"XP +{@event.Experience.Amount}",
-                GameEvent.EventOneofCase.Healing => $"Healing +{@event.Healing.Amount}",
-                _ => "Authoritative event",
-            });
+    private static string FormatDialog(Snapshot? snapshot, IReadOnlyList<GameEvent> events)
+    {
+        var lines = new List<string>();
+        if (snapshot is not null) {
+            lines.AddRange(snapshot.Objects.Where(@object => !@object.Activated).Take(2).Select(@object => $"Object {@object.EntityId} is available."));
+            lines.AddRange(snapshot.Quests.Where(quest => !quest.Completed).Take(2).Select(quest => $"Quest {quest.QuestId}: {quest.Progress}/{quest.RequiredProgress}"));
         }
-        return string.Join("\n", lines);
+        lines.AddRange(events.TakeLast(4).Select(@event => @event.EventCase switch {
+            GameEvent.EventOneofCase.Damage => $"Damage {@event.Damage.Amount} to entity {@event.Damage.TargetEntityId}",
+            GameEvent.EventOneofCase.Experience => $"Experience +{@event.Experience.Amount}",
+            GameEvent.EventOneofCase.Healing => $"Healing +{@event.Healing.Amount}",
+            _ => "Authoritative event",
+        }));
+        return lines.Count == 0 ? "No interaction selected." : string.Join("\n", lines);
+    }
+
+    private static string FormatCommandResult(CommandResult? result)
+    {
+        if (result is null)
+            return "Commands are sent to the authoritative server.";
+        return result.Status == CommandStatus.Accepted
+            ? $"Last command accepted at tick {result.AppliedTick}."
+            : $"Last command: {result.Status} ({result.RejectReason}).";
     }
 }

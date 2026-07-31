@@ -100,6 +100,12 @@ commands in both language loaders. Its five transaction checkpoints are real
 C# snapshot SHA-256 values. The C# executor and the native replay executor
 validate each checkpoint after the corresponding command.
 
+`test/fixtures/replay/stores/base-content-purchase.json` repeats the purchase
+and sale transition against the checked-in base manifest and the real base
+store/item catalog. Its three checkpoints are consumed by both replay runners;
+the C# runner loads `server/content/base` rather than an inline synthetic
+catalog.
+
 The C++ replay primitives now provide canonical field encoding, SHA-256
 digests, command ordering, a protocol-shaped player/store state projection, and
 native transition execution for the shared store fixture. The strict envelope

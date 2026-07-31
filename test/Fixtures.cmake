@@ -84,6 +84,7 @@ set(devilutionx_fixtures
   memory_map/portal.txt
   memory_map/quest.txt
   replay/stores/basic-buy.json
+  replay/stores/base-content-purchase.json
   replay/stores/transaction-parity.json
   replay/gameplay-movement-combat.json
   replay/gameplay-spell-cast.json

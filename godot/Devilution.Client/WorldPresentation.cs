@@ -12,8 +12,10 @@ public partial class WorldPresentation : Node2D
     private const float OriginY = 96;
     private readonly Dictionary<uint, Vector2> displayedPositions = [];
     private readonly AssetPalette assets = new();
+    private readonly LevelLayoutCatalog levels = new();
     private Snapshot? snapshot;
     private ClientPosition? predictedPlayerPosition;
+    private LevelLayout currentLevel = LevelLayout.Empty;
 
     public void Apply(Snapshot? next, double delta, ClientPosition? predicted = null)
     {
@@ -21,6 +23,8 @@ public partial class WorldPresentation : Node2D
         predictedPlayerPosition = predicted;
         if (snapshot is null)
             return;
+
+        currentLevel = levels.Resolve(snapshot.Players.SingleOrDefault()?.LevelId ?? 0);
 
         foreach (var player in snapshot.Players)
             UpdatePosition(player.EntityId, ToScreen(predicted?.X ?? player.PositionX, predicted?.Y ?? player.PositionY), delta);
@@ -65,14 +69,20 @@ public partial class WorldPresentation : Node2D
     {
         DrawRect(new Rect2(0, 0, 1280, 720), new Color("090914"));
         if (assets.Get("floor") is { } floor) {
-            for (var x = 0; x < 32; x++)
-                for (var y = 0; y < 20; y++)
-                    DrawTextureRect(floor, new Rect2(OriginX + x * TileSize, OriginY + y * TileSize, TileSize, TileSize), false);
+            for (var x = 0; x < currentLevel.Width; x++)
+                for (var y = 0; y < currentLevel.Height; y++)
+                    if (!currentLevel.IsBlocked(x, y))
+                        DrawTextureRect(floor, new Rect2(OriginX + x * TileSize, OriginY + y * TileSize, TileSize, TileSize), false);
         }
-        for (var x = 0; x <= 32; x++)
-            DrawLine(new Vector2(OriginX + x * TileSize, OriginY), new Vector2(OriginX + x * TileSize, OriginY + 20 * TileSize), new Color("17172b"));
-        for (var y = 0; y <= 20; y++)
-            DrawLine(new Vector2(OriginX, OriginY + y * TileSize), new Vector2(OriginX + 32 * TileSize, OriginY + y * TileSize), new Color("17172b"));
+        for (var x = 0; x <= currentLevel.Width; x++)
+            DrawLine(new Vector2(OriginX + x * TileSize, OriginY), new Vector2(OriginX + x * TileSize, OriginY + currentLevel.Height * TileSize), new Color("17172b"));
+        for (var y = 0; y <= currentLevel.Height; y++)
+            DrawLine(new Vector2(OriginX, OriginY + y * TileSize), new Vector2(OriginX + currentLevel.Width * TileSize, OriginY + y * TileSize), new Color("17172b"));
+        foreach (var cell in currentLevel.Blocked) {
+            var x = cell % currentLevel.Width;
+            var y = cell / currentLevel.Width;
+            DrawRect(new Rect2(OriginX + x * TileSize, OriginY + y * TileSize, TileSize, TileSize), new Color("202033"));
+        }
     }
 
     private void DrawPlayer(PlayerSnapshot player, ClientPosition? predicted)

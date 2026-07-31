@@ -33,9 +33,18 @@ sets the client environment, and launches Godot:
 
 `powershell -ExecutionPolicy Bypass -File godot/run-local-client.ps1`
 
-Use `-Headless` for a short automated launch. In the client, arrows/WASD move,
-left-click casts spell 4, `O` opens the test vendor, `P` purchases its first
-slot, `M` opens the Adria service, and `R` requests a mana refill.
+The harness discovers versioned Godot Mono installations from `PATH`; pass
+`-GodotExecutable` only when Godot is installed outside `PATH`. See
+`docs/AI/godot-build.md` for the WinGet installation workaround.
+
+Use `-Headless` for an automated launch. In the client, arrows/WASD move,
+left-click casts spell 4, `O` opens Smith, `P` purchases the selected store
+item, `M` opens the Adria service, and `R` requests a mana refill. The HUD
+also exposes selectable store stock, a footprint-aware inventory grid,
+authoritative buy/sell/repair/recharge/identify/move actions, object and quest
+interaction buttons, command feedback, and event-log management. The world grid is loaded from
+`assets/levels/level_layouts.json`; it is presentation data and must remain
+consistent with the server's external level definitions.
 
 When the Godot Mono editor is installed, open
 `godot/Devilution.Client/project.godot` and run the project. The current

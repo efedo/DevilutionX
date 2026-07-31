@@ -7,6 +7,10 @@ All notable changes to this fork are documented below.
 - Complete the first Godot client vertical slice with a local server harness, live handshake/movement/cast smoke coverage, captured-session replay, retry/reconnect tests, SVG-backed world presentation, authoritative inventory/store/event panels, and RTT-aware movement prediction/correction.
 - Add standalone server starting-life and starting-mana options so local authoritative gameplay can exercise validated spell commands.
 - Add a CI authoritative replay-parity gate that runs the native C++ and C# fixture runners against the same state-hash checkpoints, including the previously uncopied transaction and movement fixtures.
+- Add shipped-content smoke coverage for the base monster, spell, item, store, and generated-item catalogs, plus a shared base-store purchase/sale replay fixture with native and C# hash parity.
+- Add Godot asset-backed level layouts and authoritative HUD controls for store services, inventory movement, mana refill, and event-log management.
+- Make the Godot harness discover versioned WinGet Mono installations from PATH and document the explicit headless verification workaround.
+- Complete the Godot protocol-boundary integration with selectable store stock, footprint-aware inventory moves, selected-item services, object/quest dialog interactions, command feedback, and tested C++-compatible headless server launches.
 
 ## 2026-07-30
 

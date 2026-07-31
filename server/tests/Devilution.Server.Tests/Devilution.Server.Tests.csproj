@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <None Include="../../../test/fixtures/replay/stores/basic-buy.json" Link="Fixtures/basic-buy.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../../test/fixtures/replay/stores/base-content-purchase.json" Link="Fixtures/base-content-purchase.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../../test/fixtures/replay/stores/transaction-parity.json" Link="Fixtures/transaction-parity.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../../test/fixtures/replay/gameplay-movement-combat.json" Link="Fixtures/gameplay-movement-combat.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../../test/fixtures/replay/gameplay-spell-cast.json" Link="Fixtures/gameplay-spell-cast.json" CopyToOutputDirectory="PreserveNewest" />

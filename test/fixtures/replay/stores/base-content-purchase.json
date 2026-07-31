@@ -1,0 +1,32 @@
+{
+  "format_version": 1,
+  "fixture_id": "stores/base-content-purchase",
+  "protocol_schema_version": "0.1.0",
+  "tick_rate_hz": 20,
+  "rng_seed": 305419896,
+  "initial_state": {
+    "player": "A",
+    "gold": 100,
+    "experience": 200,
+    "life": 640,
+    "mana": 32,
+    "mana_maximum": 640,
+    "character_class": 0,
+    "character_level": 1
+  },
+  "content_manifest": {
+    "id": "base",
+    "version": "1",
+    "sha256": "ef1f83e1a9e122deff7b76f7911d3dff69300dff7a6ab14b15519f48c5cce0fa"
+  },
+  "commands": [
+    { "client_sequence": 1, "target_tick": 10, "server_receipt_sequence": 1, "kind": "OpenStore", "payload": { "store_id": 1 } },
+    { "client_sequence": 2, "target_tick": 12, "server_receipt_sequence": 2, "kind": "BuyItem", "payload": { "store_id": 1, "store_slot": 0 } },
+    { "client_sequence": 3, "target_tick": 14, "server_receipt_sequence": 3, "kind": "SellItem", "payload": { "inventory_index": 0 } }
+  ],
+  "checkpoints": [
+    { "tick": 10, "state_sha256": "96413f76a47accf3d465d606956595372396da3ec7e17cbb47d07d41bff0137f" },
+    { "tick": 12, "state_sha256": "35dc28b765475aa98b7d30569a2cf14135356b27bf5de6db553a1471a5c34839" },
+    { "tick": 14, "state_sha256": "b84e3eebba3c15d3a21485b6847c2227b4b021225f92834b96734c90b1c11c52" }
+  ]
+}
