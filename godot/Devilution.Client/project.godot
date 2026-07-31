@@ -1,0 +1,25 @@
+; Godot C# authoritative presentation client.
+; Open this project with a Godot Mono editor 4.7.x.
+config_version=5
+
+[application]
+
+config/name="DevilutionY Authoritative Client"
+run/main_scene="res://Main.tscn"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/size/window_width_override=1280
+window/size/window_height_override=720
+
+[dotnet]
+
+project/assembly_name="Devilution.Client"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.035, 0.035, 0.05, 1)

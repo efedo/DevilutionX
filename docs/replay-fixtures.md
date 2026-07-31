@@ -109,6 +109,19 @@ C++ hash projections include baseline resources, primary attributes, equipment,
 belt contents, inventory layout, multi-cell item footprints, store stock, and
 the complete protocol item state in the same field order.
 
+## CI parity gate
+
+`.github/workflows/authoritative-parity.yml` builds the native `replay_test`
+runner and executes it from the CMake build directory, then builds and runs the
+C# authoritative-server test runner. Both runners consume the same fixtures
+from `test/fixtures/replay`; either implementation failing a checkpoint fails
+the gate. Checkpoint failures identify the first command tick whose canonical
+state hash diverges.
+
+The gate intentionally runs the native and C# runners as separate processes.
+This keeps the comparison independent of shared implementation details while
+using the fixture hashes as the cross-language contract.
+
 The authoritative server now also exposes bounded movement, blocked-cell
 validation, level-aware portal transitions, life/mana maxima, character level,
 healing, haste/status expiry, adjacent combat, monster snapshots, catalog-driven

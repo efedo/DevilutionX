@@ -112,6 +112,8 @@ internal static class Program
         var executor = new StoreSimulationExecutor(
             catalog,
             options.StartingGold,
+            startingLife: options.StartingLife,
+            startingMana: options.StartingMana,
             startingLevelId: world?.Levels.FirstOrDefault()?.LevelId
                 ?? stableIds?.Resolve("level", "town")
                 ?? 0,

@@ -1,0 +1,61 @@
+name: Authoritative Replay Parity
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  replay-parity:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Install native test dependencies
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install -y cmake curl g++ git libbz2-dev libfmt-dev libgmock-dev libgtest-dev libpng-dev libsodium-dev libsdl2-dev ninja-build wget
+
+    - name: Set up .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Verify shared replay fixture registration
+      shell: bash
+      run: |
+        find test/fixtures/replay -type f -name '*.json' -printf '%P\n' | sort > /tmp/replay-fixtures.expected
+        grep -oE 'replay/[^[:space:]"<]+\.json' test/Fixtures.cmake | sed 's#^replay/##' | sort > /tmp/replay-fixtures.native
+        grep -oE 'replay/[^[:space:]"<]+\.json' server/tests/Devilution.Server.Tests/Devilution.Server.Tests.csproj | sed 's#^replay/##' | sort > /tmp/replay-fixtures.server
+        diff -u /tmp/replay-fixtures.expected /tmp/replay-fixtures.native
+        diff -u /tmp/replay-fixtures.expected /tmp/replay-fixtures.server
+
+    - name: Configure native replay runner
+      run: cmake -S . -B build -G Ninja -DBUILD_TESTING=ON -DDEVILUTIONX_SYSTEM_BENCHMARK=OFF
+
+    - name: Download native test asset
+      run: wget -qnc https://github.com/diasurgical/devilutionx-assets/releases/download/v2/spawn.mpq -P build
+
+    - name: Build native replay runner
+      run: cmake --build build --target replay_test -j 2
+
+    - name: Run native replay fixtures
+      working-directory: build
+      run: ./replay_test --gtest_color=yes
+
+    - name: Restore authoritative server tests
+      run: dotnet restore server/tests/Devilution.Server.Tests/Devilution.Server.Tests.csproj
+
+    - name: Build authoritative server tests
+      run: dotnet build server/tests/Devilution.Server.Tests/Devilution.Server.Tests.csproj --configuration Release --no-restore
+
+    - name: Run authoritative server replay fixtures
+      run: dotnet run --project server/tests/Devilution.Server.Tests/Devilution.Server.Tests.csproj --configuration Release --no-build

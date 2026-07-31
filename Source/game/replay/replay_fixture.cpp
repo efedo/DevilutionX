@@ -845,7 +845,7 @@ bool ExecuteReplayFixture(
 				return false;
 			}
 			if (IsSha256(checkpoint->stateSha256) && checkpoint->stateSha256 != hash) {
-				error = "Replay checkpoint hash mismatch at tick " + std::to_string(checkpoint->tick) + ": actual " + hash;
+				error = "Replay checkpoint hash mismatch at tick " + std::to_string(checkpoint->tick) + ": expected " + checkpoint->stateSha256 + ", actual " + hash;
 				return false;
 			}
 		}

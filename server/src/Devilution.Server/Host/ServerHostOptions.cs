@@ -15,6 +15,10 @@ public sealed record ServerHostOptions(
     uint TickRateHz,
     uint StartingGold)
 {
+    public int StartingLife { get; init; } = 40;
+
+    public int StartingMana { get; init; } = 20;
+
     public string SaveRoot { get; init; } = Path.Combine("server", "saves");
 
     public static ServerHostOptions Defaults { get; } = new(
@@ -95,6 +99,22 @@ public sealed record ServerHostOptions(
                 }
                 current = current with { StartingGold = startingGold };
                 break;
+            case "--starting-life":
+                if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var startingLife) || startingLife < 0) {
+                    options = current;
+                    error = $"'{value}' is not a valid starting life amount.";
+                    return false;
+                }
+                current = current with { StartingLife = startingLife };
+                break;
+            case "--starting-mana":
+                if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var startingMana) || startingMana < 0) {
+                    options = current;
+                    error = $"'{value}' is not a valid starting mana amount.";
+                    return false;
+                }
+                current = current with { StartingMana = startingMana };
+                break;
             case "--save-root":
                 current = current with { SaveRoot = value };
                 break;
@@ -132,6 +152,8 @@ public sealed record ServerHostOptions(
           --protocol-version <version> Protocol schema version
           --tick-rate <hz>             Authoritative simulation rate
           --starting-gold <amount>     Initial wallet for new sessions
+          --starting-life <amount>     Initial life and life maximum
+          --starting-mana <amount>     Initial mana and mana maximum
           --save-root <directory>     Server-owned authoritative save directory
         """;
 }

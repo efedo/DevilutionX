@@ -147,15 +147,16 @@ The work is divided into six parallel but ordered workstreams:
 | Phase 2: C# domain and protocol | Substantially complete | Protobuf schema and C#/opt-in C++ generation, bounded framing, C# TCP sessions, standalone C# host with a live authoritative clock, native handshake/command/acknowledgement/snapshot client, adaptive retry tracking, command admission/deduplication, snapshots, state hashing, structured replay/vector loaders, matching C++/C# content-hash vectors, gameplay-module contract, fixed-point/RNG/ID primitives, reconnect ledger/entity/full-snapshot resumption, stable ID catalog, and ruleset identity handshake validation | Full transition parity, including mod-reload/Hellfire and remaining world fixtures |
 | Phase 3: inventory and stores | Remote adapter started | External TSV item definitions, native `itemdat.tsv` plus prefix/suffix/unique table-shape ingestion, item tags, deterministic level-filtered affix rows, native-LCG legacy affix and unique rolls, native fixed-point/sign/elemental/indestructible modifier semantics, legacy modifier-based value recalculation, and store stock, service pricing, module-owned purchase/sale/repair/recharge/identification/movement rules, shared stock, wallet/inventory/vendor-stock snapshots, complete protocol item-field projection, reconnect resynchronization, validated native player/equipment/inventory/belt application, native server-backed session lifecycle, adaptive retry polling, stable location references, explicit inventory/belt/equipment transfer commands, protocol-free command resolution, destination-explicit legacy store UI adapter, opt-in game/store lifecycle wiring for Smith stock and visual-store transactions, Adria mana-refill UI/service, shared per-command store checkpoints, native replay transition execution, multi-cell placement and shape-aware swaps, and broader C++/C# state-hash parity | Add shipped-content quality/pricing fixtures and move the remote store from opt-in to the selected game mode |
 | Phase 4: remaining authoritative systems | Complete for Godot start | Server-owned movement, independent level geometry and blocked cells, external portal definitions and level-aware transitions, life/mana maxima, character level, healing, data-driven haste/status effects, adjacent combat damage, external combat constants, deterministic hit/critical/resistance resolution, defeat experience, event-batch transport, native projection of players, monsters, world items, objects, and projectiles, server-owned versioned save envelopes, durable save files, validated world-entity restoration, validated multi-level world-entity restoration, validated inventory topology and initial world placement, deterministic multi-actor monster movement/attack ticks with catch-up, native gameplay command routing, catalog-backed monster drops and world-item pickup, authoritative object activation, external object-to-quest links, linked quest progress, declarative heal/damage/experience object effects, delayed projectile resolution, and cell-based native interaction projection | Expand content coverage during Godot integration |
-| Phase 5: Godot client | Ready to start | Frozen authoritative protocol contract and Godot entry criteria documented in `docs/authoritative-protocol-contract.md` | Godot project, connection, rendering, input, UI, and correction paths |
+| Phase 5: Godot client | Initial vertical slice complete | Godot 4 C# project, local server harness, live handshake/movement/cast smoke test, captured-session replay, retry/reconnect coverage, SVG asset presentation, authoritative inventory/store/event panels, and RTT-aware movement prediction/correction are implemented under `godot/` | Full level/content asset pipeline, complete inventory/store/dialog interactions, prediction for additional actions, and production packaging |
 | Phase 6: content/modules and Lua removal | Not started | Target data/domain/module layering, capability destinations, and removal gates documented | Implement replacement paths, externalize shipped content/rules, and remove Lua/sol2 |
 
 ### Current Critical Path
 
-1. Begin the Godot C# client shell against the frozen protocol contract.
-   Store, movement, combat, status expiry, data-driven spell, projectile, and
-   object-effect transitions now execute authoritatively in C#; native clients
-   project the same protocol state and event types.
+1. Expand the validated Godot C# vertical slice against the running
+   authoritative server. Store, movement, combat, status expiry, data-driven
+   spell, projectile, and object-effect transitions now execute
+   authoritatively in C#; native and Godot clients project the same protocol
+   state and event types.
 2. Apply the native server-backed session to the game loop and store UI using
    authoritative player and vendor-stock snapshots without changing the default
    local path. The opt-in runtime owns session startup/cleanup, applies the
@@ -666,6 +667,13 @@ Recommended order:
 8. Prediction for selected actions, with authoritative correction.
 9. Accessibility and developer overlays.
 
+The initial client shell now covers steps 1, 3, 4, and 5 for the current
+protocol boundary: it performs the handshake, validates content and ruleset
+identity, retries tracked commands using an adaptive latency window, requests
+snapshots, interpolates projected entities, maps movement and spell input,
+and displays connection and player state. It deliberately uses procedural
+shapes until the Godot asset pipeline and scene structure are established.
+
 Do not share Godot nodes, vectors, resources, or scene objects with `Game.Domain`. Adapt protocol DTOs at the Godot boundary.
 
 ### Exit Criteria
@@ -816,7 +824,7 @@ be silently evaluated against another.
 | Replay fixture infrastructure | `Dual test` | Add transition checkpoints and full C++/C# state projection parity |
 | Inventory/store authority | `Dual test` | Match legacy pricing/generation, complete placement semantics, and add C++ remote mode |
 | Remaining gameplay systems | `C++ local` | Migrate in the Phase 4 dependency order |
-| Godot presentation | Not started | Begin after the Phase 2 protocol boundary stabilizes |
+| Godot presentation | Initial vertical slice | Expand asset-backed levels, complete store/inventory/dialog commands, and add production packaging |
 | Lua/sol2 | `C++ local` compatibility layer | Remove only after all capability destinations are active |
 
 Track progress by authoritative ownership rather than by percentage of translated files. For every subsystem, record one of:

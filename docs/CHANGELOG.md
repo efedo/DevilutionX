@@ -2,6 +2,12 @@
 
 All notable changes to this fork are documented below.
 
+## 2026-07-31
+
+- Complete the first Godot client vertical slice with a local server harness, live handshake/movement/cast smoke coverage, captured-session replay, retry/reconnect tests, SVG-backed world presentation, authoritative inventory/store/event panels, and RTT-aware movement prediction/correction.
+- Add standalone server starting-life and starting-mana options so local authoritative gameplay can exercise validated spell commands.
+- Add a CI authoritative replay-parity gate that runs the native C++ and C# fixture runners against the same state-hash checkpoints, including the previously uncopied transaction and movement fixtures.
+
 ## 2026-07-30
 
 - Restore saved authoritative monsters and world items with entity-identity and walkability validation.
@@ -28,6 +34,7 @@ All notable changes to this fork are documented below.
 - Add shared multi-level occupancy replay coverage and save restoration checks for entities that remain on their original level after portal transitions.
 - Synchronize compatible authoritative world items, monsters, and objects into legacy presentation pools, including safe creation and removal of server-owned entries.
 - Complete the Phase 4 Godot-start boundary with authoritative delayed projectiles, declarative object heal/damage/experience effects, healing events, native projectile projection, and a frozen protocol contract covering handshake, framing, retries, snapshots, events, and state hashes.
+- Start the Godot 4 C# client with shared Protobuf transport, adaptive command retries, snapshot/event reconciliation, procedural entity presentation, input mapping, and connection/player HUD.
 - Fix CMake 4.x deferred dependency resolution for configuration keywords and link the MSVC Protobuf import target instead of a DLL path.
 
 ## 2026-07-29

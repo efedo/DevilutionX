@@ -18,6 +18,7 @@ To ensure that your contributions are effective and align with the project's goa
 
 ## Code Quality & Verification
 - All code must be verified before completion.
+- Before configuring or building with MSVC, initialize the matching Visual Studio developer environment by using Developer PowerShell or calling `VsDevCmd.bat` for the target architecture. Verify that `cl.exe`, `rc.exe`, and `mt.exe` resolve in that environment before investigating native compilation failures.
 
 ## Testing
 - Use the existing GTest framework for all tests.
