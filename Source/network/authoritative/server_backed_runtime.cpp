@@ -2,6 +2,9 @@
 
 #include "network/authoritative/server_backed_player_ui.hpp"
 #include <algorithm>
+#include <exception>
+#include <filesystem>
+#include <fstream>
 #include <utility>
 
 namespace devilution::authoritative {
@@ -12,6 +15,36 @@ constexpr uint32_t WitchStoreId = 2;
 constexpr uint32_t WirtStoreId = 3;
 constexpr uint32_t HealerStoreId = 4;
 constexpr uint32_t AdriaStoreId = 10;
+
+std::string LoadResumeToken(const std::string &path)
+{
+	if (path.empty())
+		return {};
+	std::ifstream tokenFile(path, std::ios::binary);
+	if (!tokenFile)
+		return {};
+	std::string token;
+	std::getline(tokenFile, token);
+	return token;
+}
+
+tl::expected<void, std::string> SaveResumeToken(const std::string &path, const std::string &token)
+{
+	if (path.empty() || token.empty())
+		return {};
+	try {
+		const std::filesystem::path tokenPath(path);
+		if (tokenPath.has_parent_path())
+			std::filesystem::create_directories(tokenPath.parent_path());
+		std::ofstream tokenFile(tokenPath, std::ios::binary | std::ios::trunc);
+		if (!tokenFile)
+			return tl::make_unexpected("Could not write the authoritative resume token to " + tokenPath.string() + ".");
+		tokenFile << token << '\n';
+		return {};
+	} catch (const std::exception &exception) {
+		return tl::make_unexpected("Could not persist the authoritative resume token: " + std::string(exception.what()));
+	}
+}
 
 } // namespace
 
@@ -28,10 +61,12 @@ tl::expected<void, std::string> ServerBackedRuntime::Start(const ServerBackedRun
 tl::expected<void, std::string> ServerBackedRuntime::StartImpl(const ServerBackedRuntimeConfiguration &configuration, StoreManager &storeManager, Player *player)
 {
 	Stop();
-	if (!configuration.enabled)
+	if (!configuration.enabled && configuration.mode != ServerBackedRuntimeConfiguration::GameMode::Authoritative)
 		return {};
 	if (configuration.clientBuildId.empty() || configuration.protocolSchemaVersion.empty() || configuration.contentManifestHash.empty())
 		return tl::make_unexpected("Server-backed runtime requires client build, protocol, and content identity values.");
+	authoritativeMode_ = true;
+	const std::string resumeToken = configuration.resumeToken.empty() ? LoadResumeToken(configuration.resumeTokenPath) : configuration.resumeToken;
 
 	ServerBackedSession::Configuration sessionConfiguration {
 		.client = {
@@ -40,15 +75,23 @@ tl::expected<void, std::string> ServerBackedRuntime::StartImpl(const ServerBacke
 			.clientBuildId = configuration.clientBuildId,
 			.protocolSchemaVersion = configuration.protocolSchemaVersion,
 			.contentManifestHash = configuration.contentManifestHash,
-			.resumeToken = configuration.resumeToken,
+			.rulesetIdentityHash = configuration.rulesetIdentityHash,
+			.resumeToken = resumeToken,
+			.diagnosticsDirectory = configuration.diagnosticsDirectory,
 			.expectInitialSnapshot = true,
 		},
 	};
 	auto session = ServerBackedSession::Connect(std::move(sessionConfiguration));
-	if (!session.has_value())
+	if (!session.has_value()) {
+		authoritativeMode_ = false;
 		return tl::make_unexpected(session.error());
+	}
 
 	session_ = std::move(*session);
+	if (auto result = SaveResumeToken(configuration.resumeTokenPath, session_->Client().ServerHello().session_token()); !result.has_value()) {
+		Stop();
+		return result;
+	}
 	vendorUiAdapter_ = std::make_unique<ServerBackedVendorUiAdapter>(storeManager);
 	player_ = player;
 	if (player_ != nullptr) {
@@ -66,6 +109,7 @@ void ServerBackedRuntime::Stop() noexcept
 		session_->Close();
 	vendorUiAdapter_.reset();
 	session_.reset();
+	authoritativeMode_ = false;
 	worldProjection_.Clear();
 	worldPresentation_.Clear();
 	player_ = nullptr;

@@ -1,11 +1,18 @@
 /**
  * @file network/authoritative/server_backed_client.cpp
  *
- * Implementation of the opt-in server-backed client.
+ * Implementation of the server-backed client.
  */
 
 #include "network/authoritative/server_backed_client.hpp"
 
+#include <chrono>
+#include <ctime>
+#include <filesystem>
+#include <fstream>
+#include <iomanip>
+#include <iterator>
+#include <sstream>
 #include <span>
 #include <utility>
 
@@ -29,6 +36,16 @@ std::string ProtocolErrorMessage(const protocol::Envelope &envelope)
 	if (envelope.payload_case() == protocol::Envelope::kError)
 		return "Authoritative server rejected the message: " + envelope.error().detail();
 	return "Unexpected authoritative server message.";
+}
+
+std::string DiagnosticValue(std::string_view value)
+{
+	std::string result(value);
+	for (char &character : result) {
+		if (character == '\r' || character == '\n')
+			character = ' ';
+	}
+	return result;
 }
 
 tl::expected<CommandAckStatus, std::string> ToCommandAckStatus(protocol::CommandStatus status)
@@ -103,11 +120,23 @@ tl::expected<void, std::string> ServerBackedClient::ConnectTransport(bool expect
 	auto response = ReadEnvelope();
 	if (!response.has_value())
 		return tl::make_unexpected(response.error());
-	if (response->payload_case() != protocol::Envelope::kServerHello)
-		return tl::make_unexpected(ProtocolErrorMessage(*response));
-	if (response->server_hello().protocol_schema_version() != configuration_.protocolSchemaVersion
-	    || response->server_hello().content_manifest_hash() != configuration_.contentManifestHash)
-		return tl::make_unexpected(std::string("Authoritative server returned incompatible protocol or content identity."));
+	if (response->payload_case() != protocol::Envelope::kServerHello) {
+		const std::string message = ProtocolErrorMessage(*response);
+		const std::string diagnosticPath = WriteHandshakeDiagnosticDump("server-rejected-handshake", &*response);
+		return tl::make_unexpected(message + (diagnosticPath.empty() ? std::string {} : " Diagnostic dump: " + diagnosticPath));
+	}
+	const auto &serverHello = response->server_hello();
+	const bool protocolMismatch = serverHello.protocol_schema_version() != configuration_.protocolSchemaVersion;
+	const bool contentMismatch = serverHello.content_manifest_hash() != configuration_.contentManifestHash;
+	const bool rulesetMismatch = !configuration_.rulesetIdentityHash.empty()
+	    && serverHello.ruleset_identity_hash() != configuration_.rulesetIdentityHash;
+	if (protocolMismatch || contentMismatch || rulesetMismatch) {
+		const std::string reason = protocolMismatch ? "protocol-mismatch" : contentMismatch ? "content-hash-mismatch" : "ruleset-hash-mismatch";
+		const std::string diagnosticPath = WriteHandshakeDiagnosticDump(reason, &*response);
+		const std::string detail = "Authoritative server returned incompatible protocol, content, or ruleset identity."
+		    + (diagnosticPath.empty() ? std::string {} : " Diagnostic dump: " + diagnosticPath);
+		return tl::make_unexpected(detail);
+	}
 
 	serverHello_ = response->server_hello();
 	if (!serverHello_.session_token().empty())
@@ -121,6 +150,60 @@ tl::expected<void, std::string> ServerBackedClient::ConnectTransport(bool expect
 		pendingSnapshot_ = initialSnapshot->snapshot();
 	}
 	return {};
+}
+
+std::string ServerBackedClient::WriteHandshakeDiagnosticDump(std::string_view reason, const protocol::Envelope *response) const noexcept
+{
+	try {
+		const std::filesystem::path directory = configuration_.diagnosticsDirectory.empty()
+		    ? std::filesystem::path("authoritative-diagnostics")
+		    : std::filesystem::path(configuration_.diagnosticsDirectory);
+		std::filesystem::create_directories(directory);
+
+		const auto now = std::chrono::system_clock::now();
+		const auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
+		const std::time_t time = std::chrono::system_clock::to_time_t(now);
+		std::tm calendarTime {};
+#if defined(_WIN32)
+		localtime_s(&calendarTime, &time);
+#else
+		localtime_r(&time, &calendarTime);
+#endif
+		std::ostringstream filename;
+		filename << "handshake-mismatch-" << std::put_time(&calendarTime, "%Y%m%d-%H%M%S")
+		         << '-' << std::setfill('0') << std::setw(3) << milliseconds.count() << ".txt";
+		const std::filesystem::path path = directory / filename.str();
+		std::ofstream dump(path, std::ios::binary);
+		if (!dump)
+			return {};
+
+		dump << "reason=" << DiagnosticValue(reason) << '\n';
+		dump << "endpoint=" << DiagnosticValue(configuration_.host) << ':' << configuration_.port << '\n';
+		dump << "working_directory=" << std::filesystem::current_path().string() << '\n';
+		dump << "expected.client_build_id=" << DiagnosticValue(configuration_.clientBuildId) << '\n';
+		dump << "expected.protocol_schema_version=" << DiagnosticValue(configuration_.protocolSchemaVersion) << '\n';
+		dump << "expected.content_manifest_hash=" << DiagnosticValue(configuration_.contentManifestHash) << '\n';
+		dump << "expected.ruleset_identity_hash=" << DiagnosticValue(configuration_.rulesetIdentityHash) << '\n';
+		if (response != nullptr && response->payload_case() == protocol::Envelope::kServerHello) {
+			const auto &serverHello = response->server_hello();
+			dump << "actual.server_build_id=" << DiagnosticValue(serverHello.server_build_id()) << '\n';
+			dump << "actual.protocol_schema_version=" << DiagnosticValue(serverHello.protocol_schema_version()) << '\n';
+			dump << "actual.content_manifest_hash=" << DiagnosticValue(serverHello.content_manifest_hash()) << '\n';
+			dump << "actual.ruleset_identity_hash=" << DiagnosticValue(serverHello.ruleset_identity_hash()) << '\n';
+			dump << "actual.tick_rate_hz=" << serverHello.tick_rate_hz() << '\n';
+		} else if (response != nullptr && response->payload_case() == protocol::Envelope::kError) {
+			dump << "server_error.code=" << response->error().code() << '\n';
+			dump << "server_error.detail=" << DiagnosticValue(response->error().detail()) << '\n';
+		} else {
+			dump << "actual.response_payload=unexpected-or-unavailable\n";
+		}
+		dump.flush();
+		if (!dump)
+			return {};
+		return path.string();
+	} catch (...) {
+		return {};
+	}
 }
 
 tl::expected<protocol::CommandAck, std::string> ServerBackedClient::Submit(const protocol::CommandBatch &batch)

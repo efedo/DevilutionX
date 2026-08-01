@@ -148,6 +148,7 @@ tl::expected<ServerBackedRuntimeConfiguration, std::string> ParseServerEndpoint(
 		return tl::make_unexpected(port.error());
 
 	return ServerBackedRuntimeConfiguration {
+		.mode = ServerBackedRuntimeConfiguration::GameMode::Authoritative,
 		.enabled = true,
 		.host = std::string(host),
 		.port = *port,

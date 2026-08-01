@@ -44,6 +44,9 @@
 #include "utils/algorithm/container.hpp"
 #include "utils/endian/endian_read.hpp"
 #include "utils/endian/endian_swap.hpp"
+#ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
+#include "network/authoritative/server_backed_runtime.hpp"
+#endif
 #include "utils/is_of.hpp"
 #include "utils/language.h"
 #include "utils/status_macros.hpp"
@@ -2889,6 +2892,10 @@ void SaveGameData(SaveWriter &saveWriter)
 
 void SaveGame()
 {
+#ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
+	if (authoritative::GetServerBackedRuntime().IsAuthoritativeMode())
+		return;
+#endif
 	gbValidSaveFile = true;
 	pfile_write_hero(/*writeGameData=*/true);
 	sfile_write_stash();

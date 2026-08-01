@@ -1,0 +1,103 @@
+[CmdletBinding()]
+param(
+    [Parameter(Mandatory = $true)]
+    [string]$ClientExecutable,
+    [string]$ServerExecutable,
+    [string]$ServerEndpoint,
+    [string]$ContentHash,
+    [string]$RulesetHash,
+    [string]$DiagnosticsDirectory,
+    [switch]$Legacy,
+    [string[]]$ClientArgument = @()
+)
+
+$ErrorActionPreference = 'Stop'
+$repositoryRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
+$captureRoot = Join-Path ([System.IO.Path]::GetTempPath()) ('DevilutionY-Authoritative-' + [guid]::NewGuid().ToString('N'))
+$serverOutput = Join-Path $captureRoot 'server.stdout.log'
+$serverError = Join-Path $captureRoot 'server.stderr.log'
+$resumeTokenPath = Join-Path $captureRoot 'resume-token.txt'
+New-Item -ItemType Directory -Path $captureRoot | Out-Null
+
+if (-not (Test-Path -LiteralPath $ClientExecutable))
+    { throw "The client executable was not found at $ClientExecutable." }
+
+$serverProcess = $null
+$startedServer = $false
+try {
+    if ($Legacy) {
+        $legacyArguments = @('--game-mode', 'legacy') + $ClientArgument
+        $clientProcess = Start-Process -FilePath $ClientExecutable -ArgumentList $legacyArguments -WorkingDirectory $repositoryRoot -PassThru -Wait
+        exit $clientProcess.ExitCode
+    }
+
+    if ([string]::IsNullOrWhiteSpace($ServerEndpoint)) {
+        if ([string]::IsNullOrWhiteSpace($ServerExecutable))
+            { $ServerExecutable = Join-Path $repositoryRoot 'server/src/Devilution.Server/bin/Debug/net10.0/Devilution.Server.exe' }
+        if (-not (Test-Path -LiteralPath $ServerExecutable))
+            { throw "The authoritative server executable was not found at $ServerExecutable. Build the server project first, or pass -ServerEndpoint for an already-running server." }
+
+        $serverArguments = @('--port', '0', '--save-root', (Join-Path $captureRoot 'save'))
+        $serverProcess = Start-Process -FilePath $ServerExecutable -ArgumentList $serverArguments -WorkingDirectory $repositoryRoot -RedirectStandardOutput $serverOutput -RedirectStandardError $serverError -PassThru
+        $startedServer = $true
+
+        $port = $null
+        $detectedContentHash = $null
+        $detectedRulesetHash = $null
+        for ($attempt = 0; $attempt -lt 120; $attempt++) {
+            Start-Sleep -Milliseconds 250
+            if ($serverProcess.HasExited)
+                { throw "The authoritative server exited during startup. See $serverError" }
+            $output = Get-Content -LiteralPath $serverOutput -Raw -ErrorAction SilentlyContinue
+            if ($null -eq $output)
+                { $output = '' }
+            $portMatch = [regex]::Match($output, 'listening on [^:]+:(\d+)')
+            $contentMatch = [regex]::Match($output, 'Content manifest: ([0-9a-fA-F]+)')
+            $rulesetMatch = [regex]::Match($output, 'Ruleset identity: ([0-9a-fA-F]+)')
+            if ($portMatch.Success) { $port = [int]$portMatch.Groups[1].Value }
+            if ($contentMatch.Success) { $detectedContentHash = $contentMatch.Groups[1].Value }
+            if ($rulesetMatch.Success) { $detectedRulesetHash = $rulesetMatch.Groups[1].Value }
+            if ($null -ne $port -and -not [string]::IsNullOrWhiteSpace($detectedContentHash) -and -not [string]::IsNullOrWhiteSpace($detectedRulesetHash))
+                { break }
+        }
+        if ($null -eq $port -or [string]::IsNullOrWhiteSpace($detectedContentHash) -or [string]::IsNullOrWhiteSpace($detectedRulesetHash))
+            { throw "Timed out waiting for authoritative server identity. See $serverOutput and $serverError" }
+        $ServerEndpoint = "127.0.0.1:$port"
+
+        if ([string]::IsNullOrWhiteSpace($DiagnosticsDirectory))
+            { $DiagnosticsDirectory = Join-Path $captureRoot 'diagnostics' }
+        $authoritativeArguments = @(
+            '--game-mode', 'authoritative',
+            '--authoritative-server', $ServerEndpoint,
+            '--authoritative-content-hash', $detectedContentHash,
+            '--authoritative-ruleset-hash', $detectedRulesetHash,
+            '--authoritative-resume-token', $resumeTokenPath,
+            '--authoritative-diagnostics', $DiagnosticsDirectory
+        ) + $ClientArgument
+        $clientProcess = Start-Process -FilePath $ClientExecutable -ArgumentList $authoritativeArguments -WorkingDirectory $repositoryRoot -PassThru -Wait
+        exit $clientProcess.ExitCode
+    }
+
+    if ([string]::IsNullOrWhiteSpace($ContentHash) -or [string]::IsNullOrWhiteSpace($RulesetHash))
+        { throw "An authoritative launch requires both -ContentHash and -RulesetHash when using -ServerEndpoint. ContentHash='$ContentHash'; RulesetHash='$RulesetHash'." }
+    if ([string]::IsNullOrWhiteSpace($DiagnosticsDirectory))
+        { $DiagnosticsDirectory = Join-Path $captureRoot 'diagnostics' }
+
+    $authoritativeArguments = @(
+        '--game-mode', 'authoritative',
+        '--authoritative-server', $ServerEndpoint,
+        '--authoritative-content-hash', $ContentHash,
+        '--authoritative-ruleset-hash', $RulesetHash,
+        '--authoritative-resume-token', $resumeTokenPath,
+        '--authoritative-diagnostics', $DiagnosticsDirectory
+    ) + $ClientArgument
+    $clientProcess = Start-Process -FilePath $ClientExecutable -ArgumentList $authoritativeArguments -WorkingDirectory $repositoryRoot -PassThru -Wait
+    exit $clientProcess.ExitCode
+}
+finally {
+    if ($startedServer -and $null -ne $serverProcess -and -not $serverProcess.HasExited) {
+        Stop-Process -Id $serverProcess.Id -Force -ErrorAction SilentlyContinue
+        $serverProcess.WaitForExit()
+    }
+    Write-Host "Authoritative launch logs: $captureRoot"
+}

@@ -40,6 +40,14 @@ The default listener is `127.0.0.1:6113`. Override it with `--bind`, `--port`,
 the active content and ruleset hashes that clients must use during the
 handshake.
 
+For a local native-client session on Windows, build the client with
+`DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT=ON` and run
+`tools/run-authoritative-client.ps1`. The launcher starts the server on a free
+port, supplies the matching identity hashes, and stores a resume token beside
+the temporary save root. Use `-Legacy` to launch the unchanged local client
+path. Server-backed mode owns gameplay persistence; the native client does not
+load or write its legacy binary save while connected.
+
 Run the server unit tests with xUnit's native runner:
 
 ```powershell

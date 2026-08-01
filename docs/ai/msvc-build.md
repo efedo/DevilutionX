@@ -55,6 +55,24 @@ git -c safe.directory=D:/Programming/DevilutionX status --short
 If vcpkg reports permission errors under `%LOCALAPPDATA%\vcpkg`, the command
 must run with permission to access the user vcpkg registry cache.
 
+To build the authoritative native client slice, configure a separate build
+directory with the server-backed feature enabled. Keep the default build
+unchanged because that feature requires Protobuf:
+
+```bat
+cmd /c '"C:\Program Files\Microsoft Visual Studio\18\Community\Common7\Tools\VsDevCmd.bat" -arch=x64 && "C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -S . -B build\x64-Debug-authoritative -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DDEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT=ON'
+```
+
+The authoritative client expects the server's content and ruleset hashes.
+On Windows, `tools/run-authoritative-client.ps1` starts a local server on a
+free port, reads those hashes, persists a resume token, and launches the
+client with matching arguments. A handshake identity mismatch writes a
+timestamped diagnostic report to `authoritative-diagnostics` (or the
+directory supplied with `--authoritative-diagnostics`). The report includes
+the endpoint, working directory, expected identities, and server identities.
+Use `--game-mode legacy` with the same launcher to verify the unchanged local
+path.
+
 The C# xUnit project is an executable Microsoft Testing Platform runner. Run
 it directly when `dotnet test` selects a machine-wide VSTest host whose
 `testhost` package is unavailable:

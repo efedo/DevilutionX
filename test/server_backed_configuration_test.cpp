@@ -14,12 +14,15 @@ TEST(ServerBackedConfiguration, IsDisabledByDefault)
 {
 	const ServerBackedRuntimeConfiguration configuration;
 
+	EXPECT_EQ(configuration.mode, ServerBackedRuntimeConfiguration::GameMode::Legacy);
 	EXPECT_FALSE(configuration.enabled);
 	EXPECT_EQ(configuration.host, "127.0.0.1");
 	EXPECT_EQ(configuration.port, 6113);
 	EXPECT_EQ(configuration.clientBuildId, "devilutionx-client");
 	EXPECT_EQ(configuration.protocolSchemaVersion, "0.1.0");
 	EXPECT_TRUE(configuration.contentManifestHash.empty());
+	EXPECT_TRUE(configuration.rulesetIdentityHash.empty());
+	EXPECT_EQ(configuration.diagnosticsDirectory, "authoritative-diagnostics");
 }
 
 TEST(ServerBackedRuntime, DisabledStartPreservesLocalPath)
@@ -57,6 +60,7 @@ TEST_P(ValidServerEndpointTest, ParsesAndEnablesConfiguration)
 
 	ASSERT_TRUE(configuration.has_value()) << configuration.error();
 	EXPECT_TRUE(configuration->enabled);
+	EXPECT_EQ(configuration->mode, ServerBackedRuntimeConfiguration::GameMode::Authoritative);
 	EXPECT_EQ(configuration->host, expectedHost);
 	EXPECT_EQ(configuration->port, expectedPort);
 }

@@ -300,6 +300,15 @@ All notable changes to this fork are documented below.
 - Refactor players and monsters onto Actor
 - Introduce Bestiary class and related engine updates
 - Introduce Actor base struct for Player, Monster
+# 2026-07-31
+
+- Promote server-backed gameplay to an explicit legacy/authoritative runtime
+  mode, add local server discovery and launch tooling, persist reconnect resume
+  tokens, and prevent authoritative sessions from falling back to local
+  simulation after disconnect.
+- Add detailed handshake identity-mismatch diagnostic dumps and an
+  authoritative native/protocol CI smoke gate.
+
 # 2026-07-29
 
 - Extend the authoritative gameplay boundary with catalog-driven monster snapshots, defeat drops, world-item pickup, damage spells, and native client projections for monsters and world items.

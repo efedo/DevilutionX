@@ -31,6 +31,7 @@ public:
 	void Stop() noexcept;
 
 	[[nodiscard]] bool IsConnected() const noexcept { return session_ != nullptr; }
+	[[nodiscard]] bool IsAuthoritativeMode() const noexcept { return authoritativeMode_; }
 	[[nodiscard]] ServerBackedSession *Session() noexcept { return session_.get(); }
 	[[nodiscard]] const ServerBackedSession *Session() const noexcept { return session_.get(); }
 	[[nodiscard]] const ServerBackedWorldProjection &WorldProjection() const noexcept { return worldProjection_; }
@@ -89,6 +90,7 @@ private:
 	std::unique_ptr<ServerBackedSession> session_;
 	std::unique_ptr<ServerBackedVendorUiAdapter> vendorUiAdapter_;
 	Player *player_ = nullptr;
+	bool authoritativeMode_ = false;
 	ServerBackedWorldProjection worldProjection_;
 	ServerBackedWorldPresentation worldPresentation_;
 };

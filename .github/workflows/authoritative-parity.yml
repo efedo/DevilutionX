@@ -22,7 +22,7 @@ jobs:
     - name: Install native test dependencies
       run: |
         sudo apt-get update -y
-        sudo apt-get install -y cmake curl g++ git libbz2-dev libfmt-dev libgmock-dev libgtest-dev libpng-dev libsodium-dev libsdl2-dev ninja-build wget
+        sudo apt-get install -y cmake curl g++ git libbz2-dev libfmt-dev libgmock-dev libgtest-dev libpng-dev libsodium-dev libsdl2-dev libprotobuf-dev protobuf-compiler ninja-build wget
 
     - name: Set up .NET
       uses: actions/setup-dotnet@v4
@@ -51,6 +51,18 @@ jobs:
       working-directory: build
       run: ./replay_test --gtest_color=yes
 
+    - name: Configure native authoritative-mode tests
+      run: cmake -S . -B build-authoritative -G Ninja -DBUILD_TESTING=ON -DDEVILUTIONX_SYSTEM_BENCHMARK=OFF -DDEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT=ON
+
+    - name: Build native authoritative-mode tests
+      run: cmake --build build-authoritative --target server_backed_client_test server_backed_configuration_test server_backed_vendor_ui_test -j 2
+
+    - name: Run native authoritative-mode tests
+      run: |
+        ./build-authoritative/server_backed_client_test --gtest_color=yes
+        ./build-authoritative/server_backed_configuration_test --gtest_color=yes
+        ./build-authoritative/server_backed_vendor_ui_test --gtest_color=yes
+
     - name: Restore authoritative server tests
       run: dotnet restore server/tests/Devilution.Server.Tests/Devilution.Server.Tests.csproj
 
@@ -59,3 +71,12 @@ jobs:
 
     - name: Run authoritative server replay fixtures
       run: dotnet run --project server/tests/Devilution.Server.Tests/Devilution.Server.Tests.csproj --configuration Release --no-build
+
+    - name: Restore authoritative protocol client tests
+      run: dotnet restore godot/Devilution.Client.Protocol.Tests/Devilution.Client.Protocol.Tests.csproj
+
+    - name: Build authoritative protocol client tests
+      run: dotnet build godot/Devilution.Client.Protocol.Tests/Devilution.Client.Protocol.Tests.csproj --configuration Release --no-restore
+
+    - name: Run authoritative client/server smoke tests
+      run: dotnet run --project godot/Devilution.Client.Protocol.Tests/Devilution.Client.Protocol.Tests.csproj --configuration Release --no-build

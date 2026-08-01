@@ -1,5 +1,7 @@
 #include <atomic>
 #include <cstdint>
+#include <filesystem>
+#include <fstream>
 #include <string>
 #include <thread>
 
@@ -167,6 +169,57 @@ TEST(ServerBackedClient, RequestsAutonomousSnapshotsAfterHandshake)
 	(*client)->Close();
 	server.join();
 	EXPECT_TRUE(serverObservedExpectedMessages);
+}
+
+TEST(ServerBackedClient, WritesDetailedDiagnosticDumpForIdentityMismatch)
+{
+	asio::io_context serverIo;
+	tcp::acceptor acceptor { serverIo, { tcp::v4(), 0 } };
+	std::thread server([&]() {
+		tcp::socket socket(serverIo);
+		acceptor.accept(socket);
+		auto helloPayload = EnvelopeCodec::Read(socket);
+		if (!helloPayload.has_value() || !helloPayload->has_value())
+			return;
+		protocol::Envelope hello;
+		if (!hello.ParseFromArray(helloPayload->value().data(), static_cast<int>(helloPayload->value().size())))
+			return;
+		protocol::Envelope serverHello;
+		serverHello.mutable_server_hello()->set_server_build_id("debug-server");
+		serverHello.mutable_server_hello()->set_protocol_schema_version("1");
+		serverHello.mutable_server_hello()->set_content_manifest_hash("actual-content");
+		serverHello.mutable_server_hello()->set_ruleset_identity_hash("actual-ruleset");
+		serverHello.mutable_server_hello()->set_tick_rate_hz(20);
+		WriteEnvelope(socket, serverHello);
+	});
+
+	const auto diagnosticsDirectory = std::filesystem::temp_directory_path() / "devilutionx-server-backed-mismatch-test";
+	std::filesystem::remove_all(diagnosticsDirectory);
+	ServerBackedClient::Configuration configuration {
+		.host = "127.0.0.1",
+		.port = acceptor.local_endpoint().port(),
+		.clientBuildId = "client",
+		.protocolSchemaVersion = "1",
+		.contentManifestHash = "expected-content",
+		.rulesetIdentityHash = "expected-ruleset",
+		.diagnosticsDirectory = diagnosticsDirectory.string(),
+	};
+	auto client = ServerBackedClient::Connect(configuration);
+	server.join();
+	ASSERT_FALSE(client.has_value());
+	ASSERT_NE(client.error().find("Diagnostic dump:"), std::string::npos);
+
+	const auto dumpPath = std::filesystem::path(client.error().substr(client.error().find("Diagnostic dump: ") + 17));
+	std::ifstream dump(dumpPath);
+	ASSERT_TRUE(dump.good());
+	const std::string contents((std::istreambuf_iterator<char>(dump)), std::istreambuf_iterator<char>());
+	EXPECT_NE(contents.find("reason=content-hash-mismatch"), std::string::npos);
+	EXPECT_NE(contents.find("expected.content_manifest_hash=expected-content"), std::string::npos);
+	EXPECT_NE(contents.find("actual.content_manifest_hash=actual-content"), std::string::npos);
+	EXPECT_NE(contents.find("expected.ruleset_identity_hash=expected-ruleset"), std::string::npos);
+	EXPECT_NE(contents.find("actual.ruleset_identity_hash=actual-ruleset"), std::string::npos);
+	dump.close();
+	std::filesystem::remove_all(diagnosticsDirectory);
 }
 
 TEST(ServerBackedClient, RetriesTrackedCommandsWithTheOriginalSequence)

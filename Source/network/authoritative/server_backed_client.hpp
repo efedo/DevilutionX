@@ -11,6 +11,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <asio/ip/tcp.hpp>
@@ -31,10 +32,12 @@ public:
 		uint16_t port = 0;
 		std::string clientBuildId;
 		std::string protocolSchemaVersion;
-	std::string contentManifestHash;
-	/** Optional additive ruleset identity for newer servers. */
-	std::string rulesetIdentityHash;
+		std::string contentManifestHash;
+		/** Optional additive ruleset identity for newer servers. */
+		std::string rulesetIdentityHash;
 		std::string resumeToken;
+		/** Directory for detailed handshake failure dumps. */
+		std::string diagnosticsDirectory;
 		bool expectInitialSnapshot = false;
 	};
 
@@ -80,6 +83,7 @@ private:
 	tl::expected<void, std::string> ConnectTransport(bool expectInitialSnapshot);
 	tl::expected<protocol::Envelope, std::string> ReadEnvelope();
 	tl::expected<void, std::string> WriteEnvelope(const protocol::Envelope &envelope);
+	[[nodiscard]] std::string WriteHandshakeDiagnosticDump(std::string_view reason, const protocol::Envelope *response) const noexcept;
 
 	asio::io_context ioContext_;
 	asio::ip::tcp::resolver resolver_ { ioContext_ };

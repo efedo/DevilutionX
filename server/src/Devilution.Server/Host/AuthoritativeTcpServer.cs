@@ -1,6 +1,8 @@
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
+using System.Text;
 using Devilution.Protocol.V1;
 using Devilution.Server.Commands;
 using Devilution.Server.Protocol;
@@ -13,9 +15,9 @@ namespace Devilution.Server.Host;
 /**
  * TCP session host for length-delimited Protobuf envelopes.
  *
- * Each connection is a session for the current slice. A future reconnect
- * token can preserve a session's command ledger without changing the wire
- * command contract.
+ * Each connection is a session for the current slice. The server-issued
+ * resume token also provides a stable save identity, allowing a local server
+ * restart to restore the same authoritative player save.
  */
 public sealed class AuthoritativeTcpServer : IAsyncDisposable
 {
@@ -209,7 +211,13 @@ public sealed class AuthoritativeTcpServer : IAsyncDisposable
         if (!string.IsNullOrWhiteSpace(resumeToken) && sessionsByToken.TryGetValue(resumeToken, out var resumed))
             return resumed;
 
-        var session = new SessionState(Guid.NewGuid().ToString("N"), Convert.ToHexString(Guid.NewGuid().ToByteArray()).ToLowerInvariant(), entityIds.Allocate());
+        var token = string.IsNullOrWhiteSpace(resumeToken)
+            ? Convert.ToHexString(Guid.NewGuid().ToByteArray()).ToLowerInvariant()
+            : resumeToken;
+        var sessionId = string.IsNullOrWhiteSpace(resumeToken)
+            ? Guid.NewGuid().ToString("N")
+            : Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(resumeToken))).ToLowerInvariant();
+        var session = new SessionState(sessionId, token, entityIds.Allocate());
         sessionsByToken.TryAdd(session.Token, session);
         return session;
     }

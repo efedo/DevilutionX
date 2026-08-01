@@ -932,12 +932,19 @@ void RunGameLoop(interface_mode uMsg)
 			break;
 
 #ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
-		if (authoritative::GetServerBackedRuntime().IsConnected()) {
-			if (auto result = authoritative::GetServerBackedRuntime().Poll(SDL_GetTicks()); !result.has_value()) {
-				LogError("Server-backed session polling failed: {}", result.error());
-				authoritative::GetServerBackedRuntime().Stop();
+			if (authoritative::GetServerBackedRuntime().IsConnected()) {
+				if (auto result = authoritative::GetServerBackedRuntime().Poll(SDL_GetTicks()); !result.has_value()) {
+					LogError("Server-backed session polling failed: {}", result.error());
+					authoritative::GetServerBackedRuntime().Stop();
+					if (authoritative::GetServerBackedRuntimeConfiguration().mode == authoritative::ServerBackedRuntimeConfiguration::GameMode::Authoritative) {
+						printInConsole("The authoritative server connection was lost; local simulation will not take over.");
+						printNewlineInConsole();
+						gbRunGameResult = false;
+						gbRunGame = false;
+						break;
+					}
+				}
 			}
-		}
 #endif
 
 		bool drawGame = true;
@@ -1042,8 +1049,12 @@ extern "C" void SdlLogToFile(void *userdata, int /*category*/, SDL_LogPriority p
 	PrintHelpOption("-f", _(/* TRANSLATORS: Commandline Option */ "Display frames per second"));
 	PrintHelpOption("--verbose", _(/* TRANSLATORS: Commandline Option */ "Enable verbose logging"));
 #ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
+	PrintHelpOption("--game-mode <legacy|authoritative>", _(/* TRANSLATORS: Commandline Option */ "Select the local or authoritative game mode"));
 	PrintHelpOption("--authoritative-server <host:port>", _(/* TRANSLATORS: Commandline Option */ "Use the experimental authoritative server"));
 	PrintHelpOption("--authoritative-content-hash <sha256>", _(/* TRANSLATORS: Commandline Option */ "Content hash advertised by the experimental authoritative server"));
+	PrintHelpOption("--authoritative-ruleset-hash <sha256>", _(/* TRANSLATORS: Commandline Option */ "Gameplay ruleset hash advertised by the authoritative server"));
+	PrintHelpOption("--authoritative-resume-token <path>", _(/* TRANSLATORS: Commandline Option */ "Read and persist the authoritative session token"));
+	PrintHelpOption("--authoritative-diagnostics <directory>", _(/* TRANSLATORS: Commandline Option */ "Write authoritative startup diagnostics to this directory"));
 #endif
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	PrintHelpOption("--log-to-file <path>", _(/* TRANSLATORS: Commandline Option */ "Log to a file instead of stderr"));
@@ -1181,6 +1192,27 @@ void DiabloParseFlags(int argc, char **argv)
 		} else if (arg == "--verbose") {
 			SDL_SetLogPriorities(SDL_LOG_PRIORITY_VERBOSE);
 #ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
+		} else if (arg == "--game-mode") {
+			if (i + 1 == argc) {
+				PrintFlagRequiresArgument("--game-mode");
+				diablo_quit(64);
+			}
+			const std::string_view mode = argv[++i];
+			auto &runtimeConfiguration = authoritative::GetServerBackedRuntimeConfiguration();
+			if (mode == "legacy") {
+				runtimeConfiguration.mode = authoritative::ServerBackedRuntimeConfiguration::GameMode::Legacy;
+				runtimeConfiguration.enabled = false;
+			} else if (mode == "authoritative") {
+				runtimeConfiguration.mode = authoritative::ServerBackedRuntimeConfiguration::GameMode::Authoritative;
+				runtimeConfiguration.enabled = true;
+			} else {
+				PrintFlagMessage("--game-mode", ": expected legacy or authoritative");
+				diablo_quit(64);
+			}
+		} else if (arg == "--authoritative") {
+			auto &runtimeConfiguration = authoritative::GetServerBackedRuntimeConfiguration();
+			runtimeConfiguration.mode = authoritative::ServerBackedRuntimeConfiguration::GameMode::Authoritative;
+			runtimeConfiguration.enabled = true;
 		} else if (arg == "--authoritative-server") {
 			if (i + 1 == argc) {
 				PrintFlagRequiresArgument("--authoritative-server");
@@ -1192,15 +1224,39 @@ void DiabloParseFlags(int argc, char **argv)
 				diablo_quit(64);
 			}
 			auto &runtimeConfiguration = authoritative::GetServerBackedRuntimeConfiguration();
-		const std::string contentManifestHash = std::move(runtimeConfiguration.contentManifestHash);
-		runtimeConfiguration = std::move(*configuration);
-		runtimeConfiguration.contentManifestHash = contentManifestHash;
+			const std::string contentManifestHash = std::move(runtimeConfiguration.contentManifestHash);
+			const std::string rulesetIdentityHash = std::move(runtimeConfiguration.rulesetIdentityHash);
+			const std::string resumeTokenPath = std::move(runtimeConfiguration.resumeTokenPath);
+			const std::string diagnosticsDirectory = std::move(runtimeConfiguration.diagnosticsDirectory);
+			runtimeConfiguration = std::move(*configuration);
+			runtimeConfiguration.contentManifestHash = contentManifestHash;
+			runtimeConfiguration.rulesetIdentityHash = rulesetIdentityHash;
+			runtimeConfiguration.resumeTokenPath = resumeTokenPath;
+			runtimeConfiguration.diagnosticsDirectory = diagnosticsDirectory.empty() ? "authoritative-diagnostics" : diagnosticsDirectory;
 		} else if (arg == "--authoritative-content-hash") {
 			if (i + 1 == argc) {
 				PrintFlagRequiresArgument("--authoritative-content-hash");
 				diablo_quit(64);
 			}
 			authoritative::GetServerBackedRuntimeConfiguration().contentManifestHash = argv[++i];
+		} else if (arg == "--authoritative-ruleset-hash") {
+			if (i + 1 == argc) {
+				PrintFlagRequiresArgument("--authoritative-ruleset-hash");
+				diablo_quit(64);
+			}
+			authoritative::GetServerBackedRuntimeConfiguration().rulesetIdentityHash = argv[++i];
+		} else if (arg == "--authoritative-resume-token") {
+			if (i + 1 == argc) {
+				PrintFlagRequiresArgument("--authoritative-resume-token");
+				diablo_quit(64);
+			}
+			authoritative::GetServerBackedRuntimeConfiguration().resumeTokenPath = argv[++i];
+		} else if (arg == "--authoritative-diagnostics") {
+			if (i + 1 == argc) {
+				PrintFlagRequiresArgument("--authoritative-diagnostics");
+				diablo_quit(64);
+			}
+			authoritative::GetServerBackedRuntimeConfiguration().diagnosticsDirectory = argv[++i];
 #endif
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 		} else if (arg == "--log-to-file") {
@@ -2739,6 +2795,12 @@ bool StartGame(bool bNewGame, bool bSinglePlayer)
 			NetClose();
 			gbRunGameResult = false;
 			break;
+		}
+		if (authoritative::GetServerBackedRuntime().IsAuthoritativeMode()) {
+			// The authoritative server owns persistence; do not load or save the
+			// legacy local binary save alongside the remote session.
+			gbLoadGame = false;
+			gbValidSaveFile = false;
 		}
 #endif
 
