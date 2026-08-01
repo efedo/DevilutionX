@@ -8,6 +8,9 @@ namespace devilution::authoritative {
 namespace {
 
 constexpr uint32_t SmithStoreId = 1;
+constexpr uint32_t WitchStoreId = 2;
+constexpr uint32_t WirtStoreId = 3;
+constexpr uint32_t HealerStoreId = 4;
 constexpr uint32_t AdriaStoreId = 10;
 
 } // namespace
@@ -73,6 +76,21 @@ tl::expected<void, std::string> ServerBackedRuntime::OpenSmithStore(uint64_t req
 	return OpenVendor(SmithStoreId, ServerBackedVendorDestination::Smith, requestedTick, nowMs);
 }
 
+tl::expected<void, std::string> ServerBackedRuntime::OpenWitchStore(uint64_t requestedTick, uint64_t nowMs)
+{
+	return OpenVendor(WitchStoreId, ServerBackedVendorDestination::Witch, requestedTick, nowMs);
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::OpenWirtStore(uint64_t requestedTick, uint64_t nowMs)
+{
+	return OpenVendor(WirtStoreId, ServerBackedVendorDestination::Wirt, requestedTick, nowMs);
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::OpenHealerStore(uint64_t requestedTick, uint64_t nowMs)
+{
+	return OpenVendor(HealerStoreId, ServerBackedVendorDestination::Healer, requestedTick, nowMs);
+}
+
 tl::expected<void, std::string> ServerBackedRuntime::OpenVendor(uint32_t storeId, ServerBackedVendorDestination destination, uint64_t requestedTick, uint64_t nowMs)
 {
 	if (!session_ || !vendorUiAdapter_)
@@ -115,6 +133,21 @@ tl::expected<void, std::string> ServerBackedRuntime::OpenAdriaStore(uint64_t req
 tl::expected<void, std::string> ServerBackedRuntime::PurchaseSmith(uint32_t storeSlot, uint64_t requestedTick, uint64_t nowMs)
 {
 	return PurchaseVendor(SmithStoreId, storeSlot, ServerBackedVendorDestination::Smith, requestedTick, nowMs);
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::PurchaseWitch(uint32_t storeSlot, uint64_t requestedTick, uint64_t nowMs)
+{
+	return PurchaseVendor(WitchStoreId, storeSlot, ServerBackedVendorDestination::Witch, requestedTick, nowMs);
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::PurchaseWirt(uint32_t storeSlot, uint64_t requestedTick, uint64_t nowMs)
+{
+	return PurchaseVendor(WirtStoreId, storeSlot, ServerBackedVendorDestination::Wirt, requestedTick, nowMs);
+}
+
+tl::expected<void, std::string> ServerBackedRuntime::PurchaseHealer(uint32_t storeSlot, uint64_t requestedTick, uint64_t nowMs)
+{
+	return PurchaseVendor(HealerStoreId, storeSlot, ServerBackedVendorDestination::Healer, requestedTick, nowMs);
 }
 
 tl::expected<void, std::string> ServerBackedRuntime::SellItem(uint32_t inventoryIndex, uint64_t requestedTick, uint64_t nowMs)
@@ -306,6 +339,11 @@ tl::expected<void, std::string> ServerBackedRuntime::Poll(uint64_t nowMs)
 }
 
 std::optional<uint32_t> ServerBackedRuntime::SmithStoreSlotAt(std::size_t index) const noexcept
+{
+	return StoreSlotAt(index);
+}
+
+std::optional<uint32_t> ServerBackedRuntime::StoreSlotAt(std::size_t index) const noexcept
 {
 	if (!vendorUiAdapter_)
 		return std::nullopt;

@@ -13,6 +13,7 @@ All notable changes to this fork are documented below.
 - Complete the Godot protocol-boundary integration with selectable store stock, footprint-aware inventory moves, selected-item services, object/quest dialog interactions, command feedback, and tested C++-compatible headless server launches.
 - Add adjacent Godot client hardening: F3 diagnostics, F4 high-contrast HUD text, optional event audio hooks, cast target previews, and configurable headless run duration.
 - Close the shipped Phase 3/4 parity gate: normalized store item definitions now take precedence over legacy compatibility tables, live server stock verifies weapon/armor projections, shipped generation/pricing tables are covered, and native replay/item checks remain aligned with C#.
+- Complete the remote store transition for the shipped vendor set: external Smith, Witch, Wirt, and Healer stock is projected into native text and visual store UIs, purchases and Smith/Witch sales use authoritative commands, and live C# coverage exercises every vendor open/purchase path.
 
 ## 2026-07-30
 

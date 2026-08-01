@@ -39,8 +39,14 @@ public:
 	tl::expected<void, std::string> OpenVendor(uint32_t storeId, ServerBackedVendorDestination destination, uint64_t requestedTick, uint64_t nowMs);
 	tl::expected<void, std::string> PurchaseVendor(uint32_t storeId, uint32_t storeSlot, ServerBackedVendorDestination destination, uint64_t requestedTick, uint64_t nowMs);
 	tl::expected<void, std::string> OpenSmithStore(uint64_t requestedTick, uint64_t nowMs);
+	tl::expected<void, std::string> OpenWitchStore(uint64_t requestedTick, uint64_t nowMs);
+	tl::expected<void, std::string> OpenWirtStore(uint64_t requestedTick, uint64_t nowMs);
+	tl::expected<void, std::string> OpenHealerStore(uint64_t requestedTick, uint64_t nowMs);
 	tl::expected<void, std::string> OpenAdriaStore(uint64_t requestedTick, uint64_t nowMs);
 	tl::expected<void, std::string> PurchaseSmith(uint32_t storeSlot, uint64_t requestedTick, uint64_t nowMs);
+	tl::expected<void, std::string> PurchaseWitch(uint32_t storeSlot, uint64_t requestedTick, uint64_t nowMs);
+	tl::expected<void, std::string> PurchaseWirt(uint32_t storeSlot, uint64_t requestedTick, uint64_t nowMs);
+	tl::expected<void, std::string> PurchaseHealer(uint32_t storeSlot, uint64_t requestedTick, uint64_t nowMs);
 	tl::expected<void, std::string> SellItem(uint32_t inventoryIndex, uint64_t requestedTick, uint64_t nowMs);
 	tl::expected<void, std::string> RepairItem(uint32_t inventoryIndex, uint64_t requestedTick, uint64_t nowMs);
 	tl::expected<void, std::string> RechargeItem(uint32_t inventoryIndex, uint64_t requestedTick, uint64_t nowMs);
@@ -63,6 +69,7 @@ public:
 	tl::expected<void, std::string> Poll(uint64_t nowMs);
 
 	[[nodiscard]] std::optional<uint32_t> SmithStoreSlotAt(std::size_t index) const noexcept;
+	[[nodiscard]] std::optional<uint32_t> StoreSlotAt(std::size_t index) const noexcept;
 	/** Returns the authoritative entity ID for a projected monster index. */
 	[[nodiscard]] std::optional<uint32_t> MonsterEntityIdAt(std::size_t index) const noexcept;
 	/** Finds the lowest-ID authoritative world item at a projected cell. */

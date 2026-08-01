@@ -1696,13 +1696,18 @@ void WitchRefillManaEnterImpl()
 void BoyEnter()
 {
 	if (!CurrentStoreManager.boyItem().isEmpty() && CurrentStoreManager.currentTextLine() == 18) {
-		if (!CurrentStoreManager.PlayerCanAfford(50)) {
+		bool serverBacked = false;
+#ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
+		serverBacked = authoritative::GetServerBackedRuntime().IsConnected();
+#endif
+		if (!serverBacked && !CurrentStoreManager.PlayerCanAfford(50)) {
 			CurrentStoreManager.oldActiveStore() = TalkID::Boy;
 			CurrentStoreManager.oldTextLine() = 18;
 			CurrentStoreManager.oldScrollPos() = CurrentStoreManager.scrollPos();
 			CurrentStoreManager.StartStore(TalkID::NoMoney);
 		} else {
-			CurrentStoreManager.TakePlrsMoney(50);
+			if (!serverBacked)
+				CurrentStoreManager.TakePlrsMoney(50);
 			if (*GetOptions().Gameplay.visualStoreUI) {
 				CurrentStoreManager.activeStore() = TalkID::None;
 				OpenVisualStore(VisualStoreVendor::Boy);
@@ -1870,13 +1875,30 @@ void ConfirmEnter(Item &item)
 			}
 
 			switch (CurrentStoreManager.oldActiveStore()) {
-			case TalkID::SmithBuy: {
-				const auto storeSlot = authoritative::GetServerBackedRuntime().SmithStoreSlotAt(static_cast<std::size_t>(idx));
+			case TalkID::SmithBuy:
+			case TalkID::WitchBuy:
+			case TalkID::BoyBuy:
+			case TalkID::HealerBuy: {
+				const auto storeSlot = authoritative::GetServerBackedRuntime().StoreSlotAt(static_cast<std::size_t>(idx));
 				if (!storeSlot.has_value()) {
-					fail("The selected Smith item has no authoritative store slot.");
+					fail("The selected vendor item has no authoritative store slot.");
 					return;
 				}
-				if (auto result = authoritative::GetServerBackedRuntime().PurchaseSmith(*storeSlot, 0, SDL_GetTicks()); !result.has_value()) {
+				tl::expected<void, std::string> result = [&] {
+					switch (CurrentStoreManager.oldActiveStore()) {
+					case TalkID::SmithBuy:
+						return authoritative::GetServerBackedRuntime().PurchaseSmith(*storeSlot, 0, SDL_GetTicks());
+					case TalkID::WitchBuy:
+						return authoritative::GetServerBackedRuntime().PurchaseWitch(*storeSlot, 0, SDL_GetTicks());
+					case TalkID::BoyBuy:
+						return authoritative::GetServerBackedRuntime().PurchaseWirt(*storeSlot, 0, SDL_GetTicks());
+					case TalkID::HealerBuy:
+						return authoritative::GetServerBackedRuntime().PurchaseHealer(*storeSlot, 0, SDL_GetTicks());
+					default:
+						return tl::expected<void, std::string> {};
+					}
+				}();
+				if (!result.has_value()) {
 					fail(result.error());
 					return;
 				}
@@ -2803,9 +2825,26 @@ void StoreManager::StoreEnter()
 	}
 
 #ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
-	if (activeStore_ == TalkID::Smith && authoritative::GetServerBackedRuntime().IsConnected()) {
-		if (auto result = authoritative::GetServerBackedRuntime().OpenSmithStore(/*requestedTick=*/0, SDL_GetTicks()); !result.has_value()) {
-			LogError("Failed to open the server-backed Smith store: {}", result.error());
+	if (authoritative::GetServerBackedRuntime().IsConnected()) {
+		tl::expected<void, std::string> result;
+		switch (activeStore_) {
+		case TalkID::Smith:
+			result = authoritative::GetServerBackedRuntime().OpenSmithStore(/*requestedTick=*/0, SDL_GetTicks());
+			break;
+		case TalkID::Witch:
+			result = authoritative::GetServerBackedRuntime().OpenWitchStore(/*requestedTick=*/0, SDL_GetTicks());
+			break;
+		case TalkID::Boy:
+			result = authoritative::GetServerBackedRuntime().OpenWirtStore(/*requestedTick=*/0, SDL_GetTicks());
+			break;
+		case TalkID::Healer:
+			result = authoritative::GetServerBackedRuntime().OpenHealerStore(/*requestedTick=*/0, SDL_GetTicks());
+			break;
+		default:
+			break;
+		}
+		if (!result.has_value()) {
+			LogError("Failed to open the server-backed store: {}", result.error());
 			activeStore_ = TalkID::None;
 			return;
 		}

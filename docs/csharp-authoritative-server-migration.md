@@ -145,7 +145,7 @@ The work is divided into six parallel but ordered workstreams:
 | Phase 0: decisions and baseline | Mostly complete | Decisions, Lua inventory, C++ replay hashing, shared fixture format, command-delivery vector, deterministic initial replay checkpoint, native transaction execution, per-command C++/C# hash parity, data-driven spell replay, portal/pickup, and object/quest transition coverage | Explicit mod-reload/Hellfire fixtures and broader gameplay transition fixtures |
 | Phase 1: C++ decoupling | Partial | `ModManager`, `GameDataManager`, typed events, Lua adapter, stable event IDs, canonical content-manifest hashing | Sound reload, declarative Hellfire metadata, debug registry, live data-manager manifest integration |
 | Phase 2: C# domain and protocol | Substantially complete | Protobuf schema and C#/opt-in C++ generation, bounded framing, C# TCP sessions, standalone C# host with a live authoritative clock, native handshake/command/acknowledgement/snapshot client, adaptive retry tracking, command admission/deduplication, snapshots, state hashing, structured replay/vector loaders, matching C++/C# content-hash vectors, gameplay-module contract, fixed-point/RNG/ID primitives, reconnect ledger/entity/full-snapshot resumption, stable ID catalog, and ruleset identity handshake validation | Full transition parity, including mod-reload/Hellfire and remaining world fixtures |
-| Phase 3: inventory and stores | Remote adapter started | External TSV item definitions, native `itemdat.tsv` plus prefix/suffix/unique table-shape ingestion, item tags, deterministic level-filtered affix rows, native-LCG legacy affix and unique rolls, native fixed-point/sign/elemental/indestructible modifier semantics, legacy modifier-based value recalculation, store stock, service pricing, module-owned transactions, shared stock, wallet/inventory/vendor-stock snapshots, complete protocol item-field projection, reconnect resynchronization, validated native player/equipment/inventory/belt application, native server-backed session lifecycle, adaptive retry polling, stable location references, explicit inventory/belt/equipment transfer commands, protocol-free command resolution, destination-explicit legacy store UI adapter, opt-in game/store lifecycle wiring for Smith stock and visual-store transactions, Adria mana-refill UI/service, shared per-command store checkpoints, native replay transition execution, multi-cell placement and shape-aware swaps, broader C++/C# state-hash parity, shipped base-catalog smoke coverage, normalized catalog precedence, live normalized stock checks, shipped generation/pricing coverage, and a base-content purchase/sale fixture | Extend authoritative catalog coverage to the remaining non-Smith vendor sources and promote the selected server-backed mode beyond the current endpoint opt-in |
+| Phase 3: inventory and stores | Remote adapter active for shipped vendor set | External TSV item definitions, native `itemdat.tsv` plus prefix/suffix/unique table-shape ingestion, item tags, deterministic level-filtered affix rows, native-LCG legacy affix and unique rolls, native fixed-point/sign/elemental/indestructible modifier semantics, legacy modifier-based value recalculation, store stock, service pricing, module-owned transactions, shared stock, wallet/inventory/vendor-stock snapshots, complete protocol item-field projection, reconnect resynchronization, validated native player/equipment/inventory/belt application, native server-backed session lifecycle, adaptive retry polling, stable location references, explicit inventory/belt/equipment transfer commands, protocol-free command resolution, destination-explicit legacy store UI adapter, opt-in game/store lifecycle wiring for Smith, Witch, Wirt, and Healer stock plus visual-store transactions, Adria mana-refill UI/service, shared per-command store checkpoints, native replay transition execution, multi-cell placement and shape-aware swaps, broader C++/C# state-hash parity, shipped base-catalog smoke coverage, normalized catalog precedence, live normalized stock checks, shipped generation/pricing coverage, and a base-content purchase/sale fixture | Promote the selected server-backed mode beyond the current endpoint opt-in |
 | Phase 4: remaining authoritative systems | Complete for Godot start | Server-owned movement, independent level geometry and blocked cells, external portal definitions and level-aware transitions, life/mana maxima, character level, healing, data-driven haste/status effects, adjacent combat damage, external combat constants, deterministic hit/critical/resistance resolution, defeat experience, event-batch transport, native projection of players, monsters, world items, objects, and projectiles, server-owned versioned save envelopes, durable save files, validated world-entity restoration, validated multi-level world-entity restoration, validated inventory topology and initial world placement, deterministic multi-actor monster movement/attack ticks with catch-up, native gameplay command routing, catalog-backed monster drops and world-item pickup, authoritative object activation, external object-to-quest links, linked quest progress, declarative heal/damage/experience object effects, delayed projectile resolution, and cell-based native interaction projection | Expand content coverage during Godot integration |
 | Phase 5: Godot client | Complete for current protocol boundary | Godot 4 C# project, PATH-discovered local server harness, live handshake/movement/cast smoke test, captured-session replay, retry/reconnect coverage, SVG and JSON asset presentation, selectable authoritative store stock, footprint-aware inventory grid and move requests, selected-item service actions, object/quest interaction dialogs, command-result feedback, event presentation, RTT-aware movement prediction/correction, diagnostics/accessibility toggles, optional event audio hooks, and cast target previews are implemented under `godot/` | Production art/audio assets, broader action prediction, and production packaging |
 | Phase 6: content/modules and Lua removal | Not started | Target data/domain/module layering, capability destinations, and removal gates documented | Implement replacement paths, externalize shipped content/rules, and remove Lua/sol2 |
@@ -160,20 +160,21 @@ The work is divided into six parallel but ordered workstreams:
 2. Apply the native server-backed session to the game loop and store UI using
    authoritative player and vendor-stock snapshots without changing the default
    local path. The opt-in runtime owns session startup/cleanup, applies the
-   initial player snapshot, polls adaptive command retries, requests Smith stock,
-   and routes Smith purchase/sale/repair plus inventory, body, and belt
-   service operations through acknowledged commands. The visual store now
-   refreshes from authoritative snapshots after remote transactions. Generic
-   vendor open/purchase routing is now available; remaining vendor defaults
-   still require complete catalog and legacy-generation parity.
+   initial player snapshot, polls adaptive command retries, requests
+   authoritative stock for Smith, Witch, Wirt, and Healer, and routes their
+   purchase flows plus Smith/Witch sales and inventory, body, and belt service
+   operations through acknowledged commands. The visual store now refreshes
+   from authoritative snapshots after remote transactions. Adria refill and
+   storyteller identification remain server-backed services.
 3. Complete legacy generation/pricing and transaction parity for every shipped
    item source. The native LCG armor roll, first external affix boundary, and
    catalog-backed drops now share the native LCG across base armor, quality,
    and affix generation, and legacy unique selection uses the same stream.
    Shipped base generation, unique selection, service pricing, live stock
    projection, and native/C# replay checkpoints now have regression coverage.
-   Remaining work is broader non-Smith vendor coverage and the remote store
-   mode transition.
+   Remaining work is promoting the selected remote store mode beyond its
+   endpoint opt-in; the shipped vendor set is now covered by external stock
+   definitions and live open/purchase tests.
 4. Complete shipped-content pricing/quality fixtures and move the remote store
    from opt-in to the selected game mode. The Godot client boundary is now
    complete for the current protocol and can exercise the same authoritative
@@ -569,9 +570,10 @@ validated player and vendor snapshots into native state, polls adaptive retries,
 projects validated vendor stock into native items, and tracks accepted/rejected
 command resolution state without exposing Protobuf types to the UI. Runtime
 session ownership and game-loop polling are implemented; visual-store
-application routes Smith transactions through the server, body/belt locations
-use explicit references, and Adria's refill rule is implemented in the Diablo
-module. Exact generation parity and spell-aware recharge data remain.
+application routes Smith, Witch, Wirt, and Healer purchases plus Smith/Witch
+sales through the server, body/belt locations use explicit references, and
+Adria's refill and storyteller identification rules are implemented in the
+Diablo module. Exact generation parity and spell-aware recharge data remain.
 
 ### Server Work
 
@@ -595,8 +597,8 @@ module. Exact generation parity and spell-aware recharge data remain.
 ### Existing C++ Client Work
 
 1. Apply the server-backed session lifecycle to the game loop behind its feature flag. **Done.**
-2. Render inventory and store state received from the server. **Started:** native player, belt, and Smith buffers are projected from snapshots and refreshed after visual-store transactions.
-3. Convert UI actions into commands rather than direct mutations. **Done for Smith visual-store and legacy service paths, including body/belt references; non-Smith vendors remain local until their catalogs are authoritative.**
+2. Render inventory and store state received from the server. **Done for the shipped Smith, Witch, Wirt, and Healer stock buffers; native player and belt buffers are projected from snapshots and refreshed after remote transactions.**
+3. Convert UI actions into commands rather than direct mutations. **Done for shipped vendor purchases, Smith/Witch sales, and legacy service paths, including body/belt references.**
 4. Retain the local implementation for parity testing until the remote path passes all fixtures.
 
 ### Comparison Strategy
@@ -766,7 +768,7 @@ Client extensions must not receive APIs that mutate authoritative state. They ma
 | Define gameplay-module contract and ruleset identity | Started | Explicit module registry, Diablo store rules, and combined identity exist; full module API remains |
 | Extract first store/item data and Diablo rules module | Partial | External store data and transactions are module-owned; legacy pricing/generation remains |
 | Add minimal C++ server connection | Complete for initial slice | Opt-in client proves handshake, command acknowledgement, and snapshot exchange; retry wiring and remote gameplay remain |
-| Implement remote inventory/store slice | Started server-side | Authoritative player, belt, and vendor-stock snapshots exist; C++ Smith visual-store routing and shared transaction fixtures are active; legacy generation and full pricing parity remain |
+| Implement remote inventory/store slice | Complete for shipped vendor set | Authoritative player, belt, and Smith/Witch/Wirt/Healer stock snapshots, native text/visual routing, live open/purchase coverage, and shared transaction fixtures are active; legacy generation and full pricing parity remain |
 | Implement authoritative movement, transitions, and status boundary | Started server-side | Bounded movement, blocked-cell validation, portal transitions, level snapshots, healing/haste, status expiry, and native event projection are covered; full world occupancy remains |
 
 Each delivery should include tests and update this document if it changes a
@@ -826,7 +828,7 @@ be silently evaluated against another.
 | Command delivery policy | `Dual test` | Preserve tracked commands and retry state across reconnects |
 | Protocol transport/server sessions | `Dual test` | Integrate live session ownership and tick lifecycle with the gameplay loop |
 | Replay fixture infrastructure | `Dual test` | Add transition checkpoints and full C++/C# state projection parity |
-| Inventory/store authority | `Dual test` | Match legacy pricing/generation, complete placement semantics, and add C++ remote mode |
+| Inventory/store authority | `Dual test` | Promote the selected remote mode beyond endpoint opt-in and continue legacy pricing/generation parity |
 | Remaining gameplay systems | `C++ local` | Migrate in the Phase 4 dependency order |
 | Godot presentation | Initial vertical slice | Expand asset-backed levels, complete store/inventory/dialog commands, and add production packaging |
 | Lua/sol2 | `C++ local` compatibility layer | Remove only after all capability destinations are active |

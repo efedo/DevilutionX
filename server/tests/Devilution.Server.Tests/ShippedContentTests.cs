@@ -35,6 +35,9 @@ public sealed class ShippedContentTests
         Assert.Equal(43U, secondStoreItem.ItemSeed);
         Assert.Equal(2, secondStoreItem.State.ItemIndex);
         Assert.Equal(5, secondStoreItem.State.ArmorClass);
+        Assert.Equal(2, stores.GetItems(2).Count);
+        Assert.Single(stores.GetItems(3));
+        Assert.Equal(2, stores.GetItems(4).Count);
         Assert.NotEmpty(monsters.Targets);
         Assert.True(spells.TryGet(3, out var damageSpell));
         Assert.Equal(8, damageSpell.DamageAmount);

@@ -74,6 +74,28 @@ constexpr int TabButtonPremium = 1;
 constexpr int RepairAllBtn = 2;
 constexpr int RepairBtn = 3;
 
+#ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
+struct ServerBackedVisualVendor {
+	uint32_t storeId;
+	authoritative::ServerBackedVendorDestination destination;
+};
+
+std::optional<ServerBackedVisualVendor> ServerBackedVendorFor(VisualStoreVendor vendor)
+{
+	switch (vendor) {
+	case VisualStoreVendor::Smith:
+		return ServerBackedVisualVendor { 1, authoritative::ServerBackedVendorDestination::Smith };
+	case VisualStoreVendor::Witch:
+		return ServerBackedVisualVendor { 2, authoritative::ServerBackedVendorDestination::Witch };
+	case VisualStoreVendor::Healer:
+		return ServerBackedVisualVendor { 4, authoritative::ServerBackedVendorDestination::Healer };
+	case VisualStoreVendor::Boy:
+		return ServerBackedVisualVendor { 3, authoritative::ServerBackedVendorDestination::Wirt };
+	}
+	return std::nullopt;
+}
+#endif
+
 /** @brief Get the items array for a specific vendor/tab combination. */
 std::span<Item> GetVendorItems(VisualStoreVendor vendor, VisualStoreTab tab)
 {
@@ -323,7 +345,7 @@ void VisualStoreRepairAll()
 
 #ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
 	if (authoritative::GetServerBackedRuntime().IsConnected()) {
-		if (VisualStore.vendor != VisualStoreVendor::Smith)
+		if (!ServerBackedVendorFor(VisualStore.vendor).has_value())
 			return;
 		bool repaired = false;
 		for (uint32_t slot = 0; slot < NUM_INVLOC; ++slot) {
@@ -704,15 +726,16 @@ void CheckVisualStoreItem(Point mousePosition, bool isCtrlHeld, bool isShiftHeld
 
 #ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
 	if (authoritative::GetServerBackedRuntime().IsConnected()) {
-		if (VisualStore.vendor != VisualStoreVendor::Smith || VisualStore.activeTab != VisualStoreTab::Basic)
+		const auto serverVendor = ServerBackedVendorFor(VisualStore.vendor);
+		if (!serverVendor.has_value() || (VisualStore.vendor == VisualStoreVendor::Smith && VisualStore.activeTab != VisualStoreTab::Basic))
 			return;
 		if (!CurrentStoreManager.StoreAutoPlace(item, false))
 			return;
 		const auto purchaseSound = ItemInvSnds[ItemCAnimTbl[item._iCurs]];
-		const auto storeSlot = authoritative::GetServerBackedRuntime().SmithStoreSlotAt(static_cast<std::size_t>(itemIndex));
+		const auto storeSlot = authoritative::GetServerBackedRuntime().StoreSlotAt(static_cast<std::size_t>(itemIndex));
 		if (!storeSlot.has_value())
 			return;
-		if (auto result = authoritative::GetServerBackedRuntime().PurchaseSmith(*storeSlot, 0, SDL_GetTicks()); !result.has_value())
+		if (auto result = authoritative::GetServerBackedRuntime().PurchaseVendor(serverVendor->storeId, *storeSlot, serverVendor->destination, 0, SDL_GetTicks()); !result.has_value())
 			return;
 		PlaySFX(purchaseSound);
 		pcursstoreitem = -1;
@@ -794,7 +817,7 @@ void CheckVisualStorePaste(Point mousePosition)
 
 #ifdef DEVILUTIONX_ENABLE_SERVER_BACKED_CLIENT
 	if (authoritative::GetServerBackedRuntime().IsConnected()) {
-		if (VisualStore.vendor != VisualStoreVendor::Smith)
+		if (!ServerBackedVendorFor(VisualStore.vendor).has_value())
 			return;
 		const auto reference = authoritative::GetServerBackedRuntime().PlayerItemReferenceForSeed(player.HoldItem._iSeed);
 		if (!reference.has_value())

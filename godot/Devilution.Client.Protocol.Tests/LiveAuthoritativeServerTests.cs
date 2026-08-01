@@ -79,6 +79,33 @@ public sealed class LiveAuthoritativeServerTests
         Assert.Equal(8, stock[0].State.MaxDamage);
         Assert.Equal(2, stock[1].State.ItemIndex);
         Assert.Equal(5, stock[1].State.ArmorClass);
+        model.Apply(message);
+
+        foreach (var (storeId, itemCount) in new (uint StoreId, int ItemCount)[] {
+            (2, 2), // Witch
+            (3, 1), // Wirt
+            (4, 2), // Healer
+        }) {
+            sequence = client.Queue(new Command {
+                OpenStoreRequested = new OpenStoreRequested { StoreId = storeId },
+            }, client.SuggestedCommandTick(model.CurrentTick));
+            await client.PollAsync(TestContext.Current.CancellationToken);
+            acknowledgement = await WaitForAcknowledgementAsync(client, sequence);
+            Assert.Equal(CommandStatus.Accepted, acknowledgement.Status);
+            message = await WaitForMessageAsync(client, message => message.Snapshot?.ActiveStore?.StoreId == storeId);
+            Assert.Equal(itemCount, message.Snapshot!.ActiveStore!.Items.Count);
+            model.Apply(message);
+
+            var purchaseSequence = client.Queue(new Command {
+                PurchaseRequested = new PurchaseRequested { StoreId = storeId, StoreSlot = 0 },
+            }, client.SuggestedCommandTick(model.CurrentTick));
+            await client.PollAsync(TestContext.Current.CancellationToken);
+            var purchaseAcknowledgement = await WaitForAcknowledgementAsync(client, purchaseSequence);
+            Assert.Equal(CommandStatus.Accepted, purchaseAcknowledgement.Status);
+            message = await WaitForMessageAsync(client, message => message.Snapshot?.ActiveStore?.StoreId == storeId
+                && message.Snapshot.ActiveStore.Items.Count == itemCount - 1);
+            model.Apply(message);
+        }
     }
 
     private static async Task<AuthoritativeClientMessage> WaitForMessageAsync(
